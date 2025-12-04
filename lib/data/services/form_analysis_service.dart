@@ -1,0 +1,88 @@
+import 'package:dio/dio.dart';
+import '../models/form_analysis_model.dart';
+import 'api_client.dart';
+
+class FormAnalysisService {
+  final ApiClient _apiClient;
+
+  FormAnalysisService(this._apiClient);
+
+  /// Check user's remaining quota
+  Future<FormAnalysisQuota?> checkQuota() async {
+    try {
+      final response = await _apiClient.dio.get('/form-analysis/quota');
+      return FormAnalysisQuota.fromJson(response.data);
+    } catch (e) {
+      print('Error checking quota: $e');
+      return null;
+    }
+  }
+
+  /// Submit video for analysis
+  Future<FormAnalysis?> analyzeVideo({
+    required String videoPath,
+    required String exerciseName,
+    int? exerciseId,
+    Function(int, int)? onProgress,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'video': await MultipartFile.fromFile(
+          videoPath,
+          filename: 'exercise_video.mp4',
+        ),
+        'exercise_name': exerciseName,
+        if (exerciseId != null) 'exercise_id': exerciseId,
+      });
+
+      final response = await _apiClient.dio.post(
+        '/form-analysis/analyze',
+        data: formData,
+        onSendProgress: onProgress,
+      );
+
+      if (response.data['success'] == true) {
+        return FormAnalysis.fromJson(response.data['analysis']);
+      }
+      return null;
+    } catch (e) {
+      print('Error analyzing video: $e');
+      rethrow;
+    }
+  }
+
+  /// Get analysis history
+  Future<List<FormAnalysis>?> getHistory() async {
+    try {
+      final response = await _apiClient.dio.get('/form-analysis/history');
+      return (response.data['analyses'] as List)
+          .map((json) => FormAnalysis.fromJson(json))
+          .toList();
+    } catch (e) {
+      print('Error fetching history: $e');
+      return null;
+    }
+  }
+
+  /// Get specific analysis
+  Future<FormAnalysis?> getAnalysis(int id) async {
+    try {
+      final response = await _apiClient.dio.get('/form-analysis/$id');
+      return FormAnalysis.fromJson(response.data['analysis']);
+    } catch (e) {
+      print('Error fetching analysis: $e');
+      return null;
+    }
+  }
+
+  /// Delete analysis
+  Future<bool> deleteAnalysis(int id) async {
+    try {
+      await _apiClient.dio.delete('/form-analysis/$id');
+      return true;
+    } catch (e) {
+      print('Error deleting analysis: $e');
+      return false;
+    }
+  }
+}

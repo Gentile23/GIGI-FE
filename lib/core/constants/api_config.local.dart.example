@@ -1,0 +1,7 @@
+// Example configuration file
+// Copy this file to 'api_config.local.dart' and add your actual API keys
+// The .local.dart file will be ignored by git
+
+class ApiConfigLocal {
+  static const String openAiApiKey = 'your-openai-api-key-here';
+}

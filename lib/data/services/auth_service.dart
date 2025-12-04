@@ -1,0 +1,117 @@
+import 'package:dio/dio.dart';
+import 'api_client.dart';
+import '../../core/constants/api_config.dart';
+import '../models/user_model.dart';
+
+class AuthService {
+  final ApiClient _apiClient;
+
+  AuthService(this._apiClient);
+
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        ApiConfig.register,
+        data: {'name': name, 'email': email, 'password': password},
+      );
+
+      if (response.statusCode == 201) {
+        final data = response.data;
+        await _apiClient.saveToken(data['token']);
+        return {
+          'success': true,
+          'user': UserModel.fromJson(data['user']),
+          'token': data['token'],
+        };
+      }
+
+      return {'success': false, 'message': 'Registration failed'};
+    } on DioException catch (e) {
+      String message = 'Registration failed';
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message =
+            'Connection timed out. Check your internet connection or server URL.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        message =
+            'Cannot connect to server. Check if server is running and accessible at ${ApiConfig.baseUrl}';
+      } else if (e.response != null) {
+        message =
+            e.response?.data['message'] ??
+            'Server error: ${e.response?.statusCode}';
+      }
+
+      print('Registration Error: ${e.message}');
+      print('Error Type: ${e.type}');
+      print('Response: ${e.response?.data}');
+
+      return {'success': false, 'message': message};
+    }
+  }
+
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        ApiConfig.login,
+        data: {'email': email, 'password': password},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await _apiClient.saveToken(data['token']);
+        return {
+          'success': true,
+          'user': UserModel.fromJson(data['user']),
+          'token': data['token'],
+        };
+      }
+
+      return {'success': false, 'message': 'Login failed'};
+    } on DioException catch (e) {
+      String message = 'Login failed';
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        message =
+            'Connection timed out. Check your internet connection or server URL.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        message =
+            'Cannot connect to server. Check if server is running and accessible at ${ApiConfig.baseUrl}';
+      } else if (e.response != null) {
+        message = e.response?.data['message'] ?? 'Invalid credentials';
+      }
+
+      print('Login Error: ${e.message}');
+      print('Error Type: ${e.type}');
+      print('Response: ${e.response?.data}');
+
+      return {'success': false, 'message': message};
+    }
+  }
+
+  Future<Map<String, dynamic>> logout() async {
+    try {
+      await _apiClient.dio.post(ApiConfig.logout);
+      await _apiClient.clearToken();
+      return {'success': true};
+    } on DioException catch (e) {
+      await _apiClient.clearToken(); // Clear token anyway
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Logout failed',
+      };
+    }
+  }
+
+  Future<bool> isLoggedIn() async {
+    return await _apiClient.hasToken();
+  }
+}

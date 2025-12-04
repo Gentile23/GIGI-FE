@@ -1,0 +1,78 @@
+﻿Analyzing fitgenius...                                          
+
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\modern_theme.dart:26:9 - deprecated_member_use
+   info - 'onBackground' is deprecated and shouldn't be used. Use onSurface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\modern_theme.dart:31:9 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\modern_theme.dart:81:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\modern_theme.dart:85:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\modern_theme.dart:99:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\modern_theme.dart:105:60 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\data\services\trial_workout_service.dart:20:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\trial_workout_service.dart:41:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\trial_workout_service.dart:57:7 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\data\services\user_service.dart:45:9 - curly_braces_in_flow_control_structures
+   info - Don't invoke 'print' in production code - lib\data\services\voice_coaching_service.dart:22:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\voice_coaching_service.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\voice_coaching_service.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\data\services\voice_coaching_service.dart:80:7 - avoid_print
+warning - The declaration '_savePlanToBackend' isn't referenced - lib\data\services\workout_service.dart:194:16 - unused_element
+   info - Don't invoke 'print' in production code - lib\data\services\workout_service.dart:199:7 - avoid_print
+   info - Unnecessary use of 'toList' in a spread - lib\presentation\screens\history\history_screen.dart:273:16 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\home\home_screen.dart:162:26 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\home\home_screen.dart:205:47 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\presentation\screens\paywall\paywall_screen.dart:217:22 - unnecessary_to_list_in_spreads
+   info - The private field _injuries could be 'final' - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:40:21 - prefer_final_fields
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:331:37 - unnecessary_underscores
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:342:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:415:60 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:789:60 - deprecated_member_use
+   info - Unnecessary 'const' keyword - lib\presentation\screens\workout\ai_workout_generation_screen.dart:106:11 - unnecessary_const
+   info - Unnecessary 'const' keyword - lib\presentation\screens\workout\ai_workout_generation_screen.dart:110:11 - unnecessary_const
+  error - Methods can't be invoked in constant expressions - lib\presentation\screens\workout\ai_workout_generation_screen.dart:112:11 - const_eval_method_invocation
+  error - Expected an identifier - lib\presentation\screens\workout\ai_workout_generation_screen.dart:135:11 - missing_identifier
+  error - Expected to find ')' - lib\presentation\screens\workout\ai_workout_generation_screen.dart:135:11 - expected_token
+  error - Expected to find ',' - lib\presentation\screens\workout\ai_workout_generation_screen.dart:135:11 - expected_token
+  error - Expected to find ')' - lib\presentation\screens\workout\ai_workout_generation_screen.dart:253:6 - expected_token
+  error - Expected to find ']' - lib\presentation\screens\workout\ai_workout_generation_screen.dart:253:6 - expected_token
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\workout\trial_workout_generation_screen.dart:114:56 - deprecated_member_use
+   info - The private field _totalRestTime could be 'final' - lib\presentation\screens\workout\trial_workout_screen.dart:26:7 - prefer_final_fields
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:113:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:114:17 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\workout\trial_workout_screen.dart:209:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\workout\trial_workout_screen.dart:248:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\workout\trial_workout_screen.dart:249:43 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\screens\workout\trial_workout_screen.dart:254:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:57:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:116:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:117:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:122:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:128:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\modern_widgets.dart:165:32 - deprecated_member_use
+   info - Don't invoke 'print' in production code - lib\presentation\widgets\voice_coaching_player.dart:84:7 - avoid_print
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:130:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:131:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:138:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:160:50 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:242:66 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:260:27 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\presentation\widgets\voice_coaching_player.dart:261:25 - deprecated_member_use
+
+flutter : 55 issues 
+found. (ran in 1.8s)
+In riga:1 car:1
++ flutter analyze 
+2>&1 | Out-File 
+-FilePath "analyze_re
+sults.txt" -Enco ...
++ 
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (55 issu   
+ es found. (ran i    
+n 1.8s):String)     
+[], RemoteExcept    
+ion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
