@@ -1,6 +1,6 @@
 class ApiConfig {
   // Backend URL - Modifica solo questa variabile per cambiare l'URL del backend
-  static const String baseUrl = 'http://gest_one.test/api';
+  static const String baseUrl = 'https://gigi.azienda-agricola-gentile.it/api';
 
   // API endpoints - Non modificare questi, usano automaticamente baseUrl
   static const String register = '/register';

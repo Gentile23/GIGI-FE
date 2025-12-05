@@ -540,6 +540,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
         ),
         const SizedBox(height: 12),
+        // First row: Generate AI Plan (full width)
+        _buildActionCardWide(
+          Icons.auto_awesome,
+          'Genera Scheda AI',
+          'Crea un piano personalizzato con AI',
+          const Color(0xFF00D26A),
+          () {
+            HapticService.lightTap();
+            _showGeneratePlanDialog();
+          },
+        ),
+        const SizedBox(height: 12),
+        // Second row: Custom + History
         Row(
           children: [
             Expanded(
@@ -579,6 +592,191 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildActionCardWide(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withValues(alpha: 0.1),
+              color.withValues(alpha: 0.05),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: color, size: 26),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, color: color, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showGeneratePlanDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Text('🤖', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            Text(
+              'Genera Scheda AI',
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'L\'AI creerà una scheda personalizzata basata sul tuo profilo.',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.lightbulb_outline,
+                    color: Color(0xFFFF9800),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Per risultati migliori, completa prima il Trial Workout',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: const Color(0xFFE65100),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF00D26A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _generatePlanDirectly();
+            },
+            child: Text(
+              'Genera Ora',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generatePlanDirectly() async {
+    final workoutProvider = Provider.of<WorkoutProvider>(
+      context,
+      listen: false,
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    final success = await workoutProvider.generatePlan();
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? '✅ Scheda generata con successo!'
+                : '❌ Errore: ${workoutProvider.error ?? "Riprova"}',
+          ),
+          backgroundColor: success ? const Color(0xFF00D26A) : Colors.red,
+        ),
+      );
+      if (success) _loadData();
+    }
   }
 
   Widget _buildActionCard(
