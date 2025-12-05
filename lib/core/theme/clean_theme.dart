@@ -41,6 +41,41 @@ class CleanTheme {
   static const Color accentPurple = Color(0xFF8B5CF6);
 
   // ═══════════════════════════════════════════════════════════
+  // PSYCHOLOGICAL COLOR PALETTE - Emotion-driven UX
+  // ═══════════════════════════════════════════════════════════
+
+  /// Motivation Orange - For streak flames and urgency (without fear)
+  /// Psychology: Energizing, warm, action-oriented
+  static const Color emotionMotivation = Color(0xFFFF6B35);
+  static const Color emotionMotivationLight = Color(0xFFFEF3ED);
+
+  /// Success Green - For completions, achievements, XP gains
+  /// Psychology: Reward, growth, positive reinforcement
+  static const Color emotionSuccess = Color(0xFF00D26A);
+  static const Color emotionSuccessLight = Color(0xFFE6FAF0);
+
+  /// Urgency Red - For streak warnings (loss aversion trigger)
+  /// Psychology: Alert without anxiety, protective instinct
+  static const Color emotionUrgency = Color(0xFFE74C3C);
+  static const Color emotionUrgencyLight = Color(0xFFFDF2F2);
+
+  /// Progress Purple - For XP, levels, and gamification
+  /// Psychology: Premium, mastery, achievement
+  static const Color emotionProgress = Color(0xFF9B59B6);
+  static const Color emotionProgressLight = Color(0xFFF5F0F7);
+
+  /// Recovery Blue/Cyan - For rest days and recovery suggestions
+  /// Psychology: Calm, trust, safety, healing
+  static const Color emotionRecovery = Color(0xFF06B6D4);
+  static const Color emotionRecoveryLight = Color(0xFFECFEFF);
+
+  /// Immersive Mode - Dark theme for focused workouts
+  /// Psychology: Focus, intensity, minimal distraction
+  static const Color immersiveDark = Color(0xFF1A1A2E);
+  static const Color immersiveDarkSecondary = Color(0xFF16213E);
+  static const Color immersiveAccent = Color(0xFF00D26A);
+
+  // ═══════════════════════════════════════════════════════════
   // THEME DATA
   // ═══════════════════════════════════════════════════════════
 

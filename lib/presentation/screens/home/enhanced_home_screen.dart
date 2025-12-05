@@ -3,24 +3,20 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
-import '../../../presentation/widgets/clean_widgets.dart';
-import '../../../presentation/widgets/gamification_stats_widget.dart';
-import '../../../presentation/widgets/adaptive_training_widget.dart';
-import '../../../presentation/widgets/biometric_widget.dart';
-import '../../../presentation/widgets/nutrition_widget.dart';
-import '../../../presentation/widgets/form_check_widget.dart';
-import '../../../presentation/widgets/engagement/social_proof_widgets.dart';
-import '../../../presentation/widgets/engagement/daily_challenge_widget.dart';
-import '../../../presentation/widgets/gamification/gamification_widgets.dart';
 import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
-import '../../../providers/engagement_provider.dart';
 import '../workout/trial_workout_generation_screen.dart';
+import '../workout/workout_screen.dart';
 import '../custom_workout/custom_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
 
+/// ═══════════════════════════════════════════════════════════
+/// ENHANCED HOME SCREEN - Single Focus Design
+/// Psychology: F-Pattern reading, single CTA above the fold
+/// Streak prominente per loss aversion
+/// ═══════════════════════════════════════════════════════════
 class EnhancedHomeScreen extends StatefulWidget {
   const EnhancedHomeScreen({super.key});
 
@@ -35,9 +31,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
   Future<void> _loadData() async {
@@ -49,46 +43,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       context,
       listen: false,
     );
-
     workoutProvider.fetchCurrentPlan();
     gamificationProvider.refresh();
-
-    // Load engagement data
-    try {
-      final engagementProvider = Provider.of<EngagementProvider>(
-        context,
-        listen: false,
-      );
-      await engagementProvider.loadHomeData();
-    } catch (e) {
-      debugPrint('EngagementProvider not available: $e');
-    }
-
-    workoutProvider.onGenerationComplete = () {
-      if (mounted) {
-        _showCelebrationOverlay(CelebrationStyle.confetti);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Piano generato con successo!'),
-            backgroundColor: CleanTheme.primaryColor,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    };
-  }
-
-  void _showCelebrationOverlay(CelebrationStyle style) {
-    setState(() {
-      _celebrationStyle = style;
-      _showCelebration = true;
-    });
-
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        setState(() => _showCelebration = false);
-      }
-    });
   }
 
   @override
@@ -97,94 +53,41 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       body: Stack(
         children: [
-          // Main content
           SafeArea(
             child: Consumer2<AuthProvider, WorkoutProvider>(
               builder: (context, authProvider, workoutProvider, _) {
                 final user = authProvider.user;
-                final currentPlan = workoutProvider.currentPlan;
-
                 return RefreshIndicator(
                   onRefresh: _loadData,
                   color: CleanTheme.primaryColor,
-                  backgroundColor: CleanTheme.surfaceColor,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-
-                        // Enhanced Header
-                        _buildHeader(user),
-
-                        const SizedBox(height: 24),
-
-                        // Engagement widgets (Near Miss, Streak Warning)
-                        _buildEngagementSection(),
-
-                        // Level Progress
-                        _buildLevelProgress(),
-
-                        const SizedBox(height: 20),
-
-                        // Social Proof Counter
-                        _buildSocialProof(),
-
-                        const SizedBox(height: 20),
-
-                        // Daily Challenges
-                        _buildDailyChallenges(),
-
-                        const SizedBox(height: 20),
-
-                        // Gamification Stats
-                        // TODO: Update internal style of this widget
-                        const GamificationStatsWidget(),
-
-                        const SizedBox(height: 16),
-
-                        // Adaptive Training
-                        const AdaptiveTrainingWidget(),
-
-                        const SizedBox(height: 16),
-
-                        // Biometric
-                        const BiometricWidget(),
-
-                        const SizedBox(height: 16),
-
-                        // Nutrition
-                        const NutritionWidget(),
-
-                        const SizedBox(height: 16),
-
-                        // Form Check
-                        const FormCheckWidget(),
-
-                        const SizedBox(height: 24),
-
-                        // Current Plan or Trial
-                        _buildMainActionSection(
-                          workoutProvider,
-                          currentPlan,
-                          user,
-                        ),
-
-                        const SizedBox(height: 32),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          _buildCompactHeader(user),
+                          const SizedBox(height: 20),
+                          _buildStreakMotivator(),
+                          const SizedBox(height: 20),
+                          _buildHeroWorkoutCard(workoutProvider),
+                          const SizedBox(height: 20),
+                          _buildQuickStatsRow(),
+                          const SizedBox(height: 24),
+                          _buildWeeklyProgress(),
+                          const SizedBox(height: 24),
+                          _buildQuickActions(),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
                     ),
                   ),
                 );
               },
             ),
           ),
-
-          // Celebration overlay
           if (_showCelebration)
             CelebrationOverlay(
               style: _celebrationStyle,
@@ -195,53 +98,72 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  Widget _buildHeader(UserModel? user) {
-    // Try to get personalized greeting
-    String greeting = _getTimeBasedGreeting();
-    String motivationalMessage = 'Pronto a superare i tuoi limiti?';
-
-    try {
-      final engagementProvider = Provider.of<EngagementProvider>(
-        context,
-        listen: false,
-      );
-      if (engagementProvider.motivationMessage != null) {
-        motivationalMessage = engagementProvider.motivationMessage!;
-      }
-    } catch (_) {}
+  Widget _buildCompactHeader(UserModel? user) {
+    final greeting = _getTimeBasedGreeting();
+    final name = user?.name ?? 'Atleta';
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                CleanTheme.primaryColor,
+                CleanTheme.primaryColor.withValues(alpha: 0.7),
+              ],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : 'A',
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$greeting, ${user?.name ?? 'Atleta'} 👋',
+                '$greeting, $name 👋',
                 style: GoogleFonts.outfit(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                   color: CleanTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
               Text(
-                motivationalMessage,
+                'Pronto per allenarti?',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  fontWeight: FontWeight.w400,
                   color: CleanTheme.textSecondary,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: 16),
-        const CleanAvatar(
-          initials: 'FG', // TODO: User initials
-          size: 50,
-          showBorder: true,
+        GestureDetector(
+          onTap: () => HapticService.lightTap(),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: CleanTheme.borderSecondary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: CleanTheme.textSecondary,
+              size: 22,
+            ),
+          ),
         ),
       ],
     );
@@ -251,183 +173,200 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Buongiorno';
     if (hour < 18) return 'Buon pomeriggio';
-    return 'Buona sera';
+    return 'Buonasera';
   }
 
-  Widget _buildEngagementSection() {
-    try {
-      return Consumer<EngagementProvider>(
-        builder: (context, provider, _) {
-          return Column(
-            children: [
-              // Streak Warning (urgente)
-              if (provider.hasStreakWarning) ...[
-                StreakWarningWidget(
-                  currentStreak: provider.getCurrentStreakAtRisk() ?? 0,
-                  hoursRemaining: provider.getStreakHoursRemaining() ?? 0,
-                  onTap: () {
-                    HapticService.mediumTap();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const TrialWorkoutGenerationScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              // Near Miss (quasi al level up)
-              if (provider.hasNearMiss) ...[
-                NearMissWidget(
-                  xpRemaining: provider.getXpRemaining() ?? 0,
-                  nextLevel: 2, // TODO: get from stats
-                  onTap: () {
-                    HapticService.mediumTap();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const TrialWorkoutGenerationScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-            ],
-          );
-        },
-      );
-    } catch (_) {
-      return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildLevelProgress() {
+  Widget _buildStreakMotivator() {
     return Consumer<GamificationProvider>(
       builder: (context, provider, _) {
-        final stats = provider.stats;
-        if (stats == null) return const SizedBox.shrink();
+        final streak = provider.stats?.currentStreak ?? 0;
+        final isActive = streak > 0;
 
-        return LevelProgressWidget(
-          currentLevel: stats.level,
-          currentXP: stats.totalXp % 100,
-          xpForNextLevel: 100,
-          onTap: () {
-            HapticService.lightTap();
-            // Navigate to full stats
-          },
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: isActive
+                ? const LinearGradient(
+                    colors: [Color(0xFFFF6B35), Color(0xFFFF8C5A)],
+                  )
+                : null,
+            color: isActive ? null : CleanTheme.borderSecondary,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Text('🔥', style: TextStyle(fontSize: isActive ? 28 : 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isActive
+                          ? 'STREAK: $streak GIORNI'
+                          : 'Inizia la tua serie!',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isActive ? Colors.white : CleanTheme.textPrimary,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    Text(
+                      isActive
+                          ? 'Non rompere la serie!'
+                          : 'Completa un workout oggi',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: isActive
+                            ? Colors.white.withValues(alpha: 0.9)
+                            : CleanTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: isActive ? Colors.white : CleanTheme.textTertiary,
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildSocialProof() {
-    try {
-      return Consumer<EngagementProvider>(
-        builder: (context, provider, _) {
-          return SocialProofCounter(
-            count: provider.workoutsToday > 0 ? provider.workoutsToday : 127,
-            message: 'workout completati oggi',
-            animate: true,
-          );
-        },
-      );
-    } catch (_) {
-      return SocialProofCounter(
-        count: 127,
-        message: 'workout completati oggi dalla community',
-        animate: true,
-      );
-    }
-  }
+  Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
+    if (workoutProvider.isGenerating) return _buildGeneratingCard();
 
-  Widget _buildDailyChallenges() {
-    try {
-      return Consumer<EngagementProvider>(
-        builder: (context, provider, _) {
-          if (provider.dailyChallenges.isEmpty) {
-            return _buildDefaultChallenges();
-          }
-
-          return DailyChallengesList(
-            challenges: provider.dailyChallenges,
-            onChallengeTap: (challengeId) async {
-              HapticService.mediumTap();
-              final success = await provider.completeDailyChallenge(
-                challengeId,
-              );
-              if (success && mounted) {
-                _showCelebrationOverlay(CelebrationStyle.sparkles);
-              }
-            },
-          );
-        },
-      );
-    } catch (_) {
-      return _buildDefaultChallenges();
-    }
-  }
-
-  Widget _buildDefaultChallenges() {
-    final now = DateTime.now();
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CleanSectionHeader(title: '🎯 Sfida del Giorno'),
-        const SizedBox(height: 12),
-        DailyChallengeWidget(
-          title: 'Guerriero del Mattino',
-          description: 'Completa un workout prima delle 10:00',
-          xpReward: 100,
-          timeRemaining: endOfDay.difference(now),
-          progress: 0.0,
-          completedToday: 47,
-          onTap: () {
-            HapticService.mediumTap();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TrialWorkoutGenerationScreen(),
-              ),
-            );
-          },
+    return GestureDetector(
+      onTap: () {
+        HapticService.mediumTap();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const TrialWorkoutGenerationScreen(),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1A1A2E).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-      ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "WORKOUT DEL GIORNO",
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white70,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Full Body Power 💪',
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _buildDetail(Icons.timer_outlined, '45 min'),
+                  const SizedBox(width: 16),
+                  _buildDetail(Icons.local_fire_department, '320 kcal'),
+                  const SizedBox(width: 16),
+                  _buildDetail(Icons.fitness_center, '12 esercizi'),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00D26A),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'INIZIA ORA',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildMainActionSection(
-    WorkoutProvider workoutProvider,
-    dynamic currentPlan,
-    UserModel? user,
-  ) {
-    if (workoutProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (workoutProvider.isGenerating ||
-        (currentPlan != null && currentPlan.status == 'processing')) {
-      return _buildGeneratingCard();
-    }
-
-    return _buildTrialWorkoutCard();
-  }
+  Widget _buildDetail(IconData icon, String text) => Row(
+    children: [
+      Icon(icon, size: 16, color: Colors.white60),
+      const SizedBox(width: 4),
+      Text(text, style: GoogleFonts.inter(fontSize: 13, color: Colors.white70)),
+    ],
+  );
 
   Widget _buildGeneratingCard() {
-    return CleanCard(
-      padding: const EdgeInsets.all(24),
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
       child: Column(
         children: [
           const CircularProgressIndicator(color: CleanTheme.primaryColor),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
-            '🤖 AI sta analizzando il tuo profilo',
+            '🤖 AI sta creando il tuo piano',
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -436,122 +375,251 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Generazione piano in corso...\nAttendi mentre l\'AI crea il tuo allenamento personalizzato.',
+            'Ci vorranno pochi secondi...',
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTrialWorkoutCard() {
-    return CleanCard(
-      padding: const EdgeInsets.all(20),
+  Widget _buildQuickStatsRow() {
+    return Consumer<GamificationProvider>(
+      builder: (context, provider, _) {
+        final stats = provider.stats;
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                '🎯',
+                'Obiettivo',
+                '${stats?.totalWorkouts ?? 0}/5',
+                const Color(0xFF00D26A),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                '🏆',
+                'Livello',
+                '${stats?.level ?? 1}',
+                const Color(0xFF9B59B6),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                '⚡',
+                'XP',
+                '${stats?.totalXp ?? 0}',
+                const Color(0xFFFF6B35),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard(String emoji, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CleanTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.play_arrow_rounded,
-                  color: CleanTheme.primaryColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Inizia il Tuo Viaggio 🚀',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Prova un workout con coach vocale AI!',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Text(emoji, style: const TextStyle(fontSize: 22)),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
           ),
-          const SizedBox(height: 20),
-
-          // CTA Button
-          CleanButton(
-            text: 'Inizia Trial Workout',
-            icon: Icons.fitness_center,
-            width: double.infinity,
-            onPressed: () {
-              HapticService.mediumTap();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TrialWorkoutGenerationScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // Custom Workout Button
-          CleanButton(
-            text: 'Le Mie Schede 📋',
-            icon: Icons.edit_note,
-            width: double.infinity,
-            isPrimary: false,
-            isOutlined: true,
-            onPressed: () {
-              HapticService.lightTap();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CustomWorkoutListScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-          // Social proof
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.people_outline,
-                size: 14,
-                color: CleanTheme.textTertiary,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '1,247 persone hanno iniziato questa settimana',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: CleanTheme.textTertiary,
-                ),
-              ),
-            ],
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: CleanTheme.textSecondary,
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyProgress() {
+    final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+    final today = DateTime.now().weekday - 1;
+    final completed = [true, true, true, false, false, false, false];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Questa Settimana',
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: CleanTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: CleanTheme.borderPrimary),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(7, (i) {
+              final isToday = i == today;
+              final isDone = completed[i];
+              return Column(
+                children: [
+                  Text(
+                    days[i],
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: isToday
+                          ? CleanTheme.primaryColor
+                          : CleanTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isDone
+                          ? CleanTheme.primaryColor
+                          : isToday
+                          ? CleanTheme.primaryColor.withValues(alpha: 0.1)
+                          : CleanTheme.borderSecondary,
+                      shape: BoxShape.circle,
+                      border: isToday && !isDone
+                          ? Border.all(color: CleanTheme.primaryColor, width: 2)
+                          : null,
+                    ),
+                    child: Icon(
+                      isDone ? Icons.check : Icons.circle,
+                      size: isDone ? 18 : 6,
+                      color: isDone ? Colors.white : CleanTheme.textTertiary,
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Azioni Rapide',
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                Icons.edit_note_rounded,
+                'Schede Custom',
+                const Color(0xFF9B59B6),
+                () {
+                  HapticService.lightTap();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const CustomWorkoutListScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                Icons.history_rounded,
+                'Storico',
+                const Color(0xFF3498DB),
+                () {
+                  HapticService.lightTap();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const WorkoutListScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CleanTheme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: CleanTheme.borderPrimary),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ),
+            Icon(Icons.chevron_right, color: CleanTheme.textTertiary, size: 20),
+          ],
+        ),
       ),
     );
   }

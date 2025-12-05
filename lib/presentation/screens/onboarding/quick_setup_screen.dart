@@ -67,12 +67,11 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    // Save basic preferences
-    await authProvider.updateUserProfile(
-      name: _nameController.text.trim(),
-      fitnessGoal: _selectedGoal,
-      experienceLevel: _selectedLevel,
-      preferredWorkoutDays: _weeklyFrequency,
+    // Save basic preferences using updateProfile
+    await authProvider.updateProfile(
+      goal: _selectedGoal?.name,
+      level: _selectedLevel?.name,
+      weeklyFrequency: _weeklyFrequency,
       equipment: _selectedEquipment.toList(),
     );
 
@@ -202,31 +201,31 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
       child: Column(
         children: [
           _buildGoalOption(
-            FitnessGoal.loseWeight,
+            FitnessGoal.weightLoss,
             '🔥',
             'Perdere Peso',
             'Bruciare grassi e dimagrire',
           ),
           const SizedBox(height: 12),
           _buildGoalOption(
-            FitnessGoal.buildMuscle,
+            FitnessGoal.muscleGain,
             '💪',
             'Aumentare Massa',
             'Costruire muscoli e forza',
           ),
           const SizedBox(height: 12),
           _buildGoalOption(
-            FitnessGoal.improveEndurance,
+            FitnessGoal.toning,
             '⚡',
-            'Migliorare Resistenza',
-            'Più energia e stamina',
+            'Tonificare',
+            'Definizione e resistenza',
           ),
           const SizedBox(height: 12),
           _buildGoalOption(
-            FitnessGoal.stayFit,
+            FitnessGoal.wellness,
             '✨',
-            'Mantenermi in Forma',
-            'Benessere generale',
+            'Benessere Generale',
+            'Salute e forma fisica',
           ),
         ],
       ),
