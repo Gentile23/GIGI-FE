@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:fitgenius/core/constants/app_colors.dart';
-import 'package:fitgenius/core/constants/app_text_styles.dart';
-import 'package:fitgenius/providers/workout_log_provider.dart';
+import 'package:fitgenius/core/theme/clean_theme.dart';
+import 'package:fitgenius/presentation/widgets/clean_widgets.dart';
 
 class ExerciseHistoryScreen extends StatefulWidget {
   final String exerciseId;
@@ -33,13 +32,6 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
   }
 
   Future<void> _fetchData() async {
-    // In a real app, we would fetch specific exercise history here
-    // For now, we'll simulate it or filter from existing history if available
-    // Or we can add a method to WorkoutLogProvider to fetch exercise stats
-
-    // Simulating data fetch for now as we didn't implement specific exercise history endpoint yet
-    // But we have the structure ready in backend (WorkoutStatsController.exerciseProgress)
-
     setState(() {
       _isLoading = false;
       // Mock data for demonstration
@@ -65,42 +57,53 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.exerciseName),
-        backgroundColor: AppColors.background,
+        title: Text(
+          widget.exerciseName,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildChartSection(
-                    'Max Weight (kg)',
+                    'Peso Massimo (kg)',
                     _maxWeightSpots,
                     _maxWeight,
-                    AppColors.primaryNeon,
+                    CleanTheme.primaryColor,
                   ),
                   const SizedBox(height: 24),
                   _buildChartSection(
                     'Volume (kg)',
                     _volumeSpots,
                     _maxVolume,
-                    AppColors.accentBlue,
+                    CleanTheme.accentBlue,
                   ),
 
                   const SizedBox(height: 32),
-                  Text('Personal Records', style: AppTextStyles.h5),
+                  CleanSectionHeader(title: 'Record Personali'),
                   const SizedBox(height: 16),
                   _buildPRCard('1RM', '65 kg', DateTime.now()),
                   _buildPRCard(
-                    'Max Volume',
+                    'Volume Max',
                     '1600 kg',
                     DateTime.now().subtract(const Duration(days: 2)),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -113,23 +116,30 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
     double maxY,
     Color color,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTextStyles.h6),
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
           const SizedBox(height: 24),
           SizedBox(
             height: 200,
             child: LineChart(
               LineChartData(
-                gridData: FlGridData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) =>
+                      FlLine(color: CleanTheme.borderPrimary, strokeWidth: 1),
+                ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
@@ -137,17 +147,20 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
                       reservedSize: 40,
                       getTitlesWidget: (value, meta) => Text(
                         value.toInt().toString(),
-                        style: AppTextStyles.bodySmall,
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: CleanTheme.textTertiary,
+                        ),
                       ),
                     ),
                   ),
-                  bottomTitles: AxisTitles(
+                  bottomTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
@@ -163,10 +176,20 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
                     color: color,
                     barWidth: 3,
                     isStrokeCapRound: true,
-                    dotData: FlDotData(show: true),
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) {
+                        return FlDotCirclePainter(
+                          radius: 4,
+                          color: color,
+                          strokeWidth: 2,
+                          strokeColor: Colors.white,
+                        );
+                      },
+                    ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -179,34 +202,57 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
   }
 
   Widget _buildPRCard(String label, String value, DateTime date) {
-    return Card(
+    return CleanCard(
       margin: const EdgeInsets.only(bottom: 12),
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.primaryNeon.withOpacity(0.5)),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primaryNeon.withOpacity(0.1),
-            shape: BoxShape.circle,
+      borderColor: CleanTheme.primaryColor.withValues(alpha: 0.3),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: CleanTheme.primaryLight,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.emoji_events_outlined,
+              color: CleanTheme.primaryColor,
+              size: 24,
+            ),
           ),
-          child: Icon(Icons.emoji_events, color: AppColors.primary),
-        ),
-        title: Text(label, style: AppTextStyles.h6),
-        subtitle: Text(
-          'Achieved on ${date.day}/${date.month}/${date.year}',
-          style: AppTextStyles.bodySmall,
-        ),
-        trailing: Text(
-          value,
-          style: AppTextStyles.h5.copyWith(
-            color: AppColors.primaryNeon,
-            fontWeight: FontWeight.bold,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Raggiunto il ${date.day}/${date.month}/${date.year}',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.primaryColor,
+            ),
+          ),
+        ],
       ),
     );
   }

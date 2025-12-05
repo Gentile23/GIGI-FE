@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/form_analysis_model.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class FormAnalysisResultScreen extends StatelessWidget {
   final FormAnalysis analysis;
@@ -12,16 +12,22 @@ class FormAnalysisResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
           'Risultati Analisi',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
-        backgroundColor: ModernTheme.cardColor,
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -33,11 +39,13 @@ class FormAnalysisResultScreen extends StatelessWidget {
             const SizedBox(height: 16),
             if (analysis.suggestions.isNotEmpty) _buildSuggestionsCard(),
             const SizedBox(height: 24),
-            ModernButton(
+            CleanButton(
               text: 'Nuova Analisi',
-              icon: Icons.videocam,
+              icon: Icons.videocam_outlined,
+              width: double.infinity,
               onPressed: () => Navigator.pop(context),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -48,14 +56,16 @@ class FormAnalysisResultScreen extends StatelessWidget {
     final score = analysis.formScore ?? 0;
     final color = _getScoreColor(score);
 
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(32),
       child: Column(
         children: [
           Text(
             analysis.exerciseName,
             style: GoogleFonts.outfit(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 24),
@@ -64,9 +74,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
             height: 140,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
-              ),
+              color: color.withValues(alpha: 0.1),
               border: Border.all(color: color, width: 4),
             ),
             child: Center(
@@ -77,13 +85,16 @@ class FormAnalysisResultScreen extends StatelessWidget {
                     '$score',
                     style: GoogleFonts.outfit(
                       fontSize: 56,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: color,
                     ),
                   ),
-                  const Text(
+                  Text(
                     '/10',
-                    style: TextStyle(fontSize: 20, color: Colors.white60),
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      color: CleanTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -92,9 +103,9 @@ class FormAnalysisResultScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             analysis.scoreGrade,
-            style: TextStyle(
+            style: GoogleFonts.outfit(
               fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               color: color,
             ),
           ),
@@ -104,24 +115,44 @@ class FormAnalysisResultScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryCard() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.summarize, color: Colors.blue),
-              const SizedBox(width: 8),
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.summarize_outlined,
+                  color: CleanTheme.accentBlue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
                 'Riepilogo',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             analysis.summary!,
-            style: const TextStyle(fontSize: 16, height: 1.5),
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              height: 1.5,
+              color: CleanTheme.textSecondary,
+            ),
           ),
         ],
       ),
@@ -129,17 +160,33 @@ class FormAnalysisResultScreen extends StatelessWidget {
   }
 
   Widget _buildErrorsCard() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.warning_amber, color: Colors.red),
-              const SizedBox(width: 8),
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_outlined,
+                  color: CleanTheme.accentRed,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
                 'Errori Rilevati',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
             ],
           ),
@@ -158,9 +205,9 @@ class FormAnalysisResultScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,16 +220,20 @@ class FormAnalysisResultScreen extends StatelessWidget {
               children: [
                 Text(
                   error.severity.toUpperCase(),
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: color,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   error.issue,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: CleanTheme.textPrimary,
+                  ),
                 ),
               ],
             ),
@@ -193,17 +244,33 @@ class FormAnalysisResultScreen extends StatelessWidget {
   }
 
   Widget _buildSuggestionsCard() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb, color: Colors.green),
-              const SizedBox(width: 8),
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  color: CleanTheme.accentGreen,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
                 'Suggerimenti',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
             ],
           ),
@@ -223,14 +290,14 @@ class FormAnalysisResultScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.check_circle, color: color, size: 20),
+          Icon(Icons.check_circle_outline, color: color, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -238,16 +305,20 @@ class FormAnalysisResultScreen extends StatelessWidget {
               children: [
                 Text(
                   suggestion.priority.toUpperCase(),
-                  style: TextStyle(
+                  style: GoogleFonts.inter(
                     fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: color,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   suggestion.improvement,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    height: 1.4,
+                    color: CleanTheme.textPrimary,
+                  ),
                 ),
               ],
             ),
@@ -258,48 +329,48 @@ class FormAnalysisResultScreen extends StatelessWidget {
   }
 
   Color _getScoreColor(int score) {
-    if (score >= 8) return Colors.green;
-    if (score >= 6) return Colors.orange;
-    if (score >= 4) return Colors.deepOrange;
-    return Colors.red;
+    if (score >= 8) return CleanTheme.accentGreen;
+    if (score >= 6) return CleanTheme.accentOrange;
+    if (score >= 4) return const Color(0xFFFF6B00);
+    return CleanTheme.accentRed;
   }
 
   Color _getSeverityColor(String severity) {
     switch (severity.toLowerCase()) {
       case 'high':
-        return Colors.red;
+        return CleanTheme.accentRed;
       case 'medium':
-        return Colors.orange;
+        return CleanTheme.accentOrange;
       case 'low':
-        return Colors.yellow;
+        return const Color(0xFFFFC107);
       default:
-        return Colors.grey;
+        return CleanTheme.textTertiary;
     }
   }
 
   IconData _getSeverityIcon(String severity) {
     switch (severity.toLowerCase()) {
       case 'high':
-        return Icons.error;
+        return Icons.error_outline;
       case 'medium':
-        return Icons.warning;
+        return Icons.warning_amber_outlined;
       case 'low':
-        return Icons.info;
+        return Icons.info_outline;
       default:
-        return Icons.help;
+        return Icons.help_outline;
     }
   }
 
   Color _getPriorityColor(String priority) {
     switch (priority.toLowerCase()) {
       case 'high':
-        return Colors.green;
+        return CleanTheme.accentGreen;
       case 'medium':
-        return Colors.blue;
+        return CleanTheme.accentBlue;
       case 'low':
-        return Colors.grey;
+        return CleanTheme.textTertiary;
       default:
-        return Colors.grey;
+        return CleanTheme.textTertiary;
     }
   }
 }

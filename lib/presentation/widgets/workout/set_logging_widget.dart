@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fitgenius/core/constants/app_colors.dart';
-import 'package:fitgenius/core/constants/app_text_styles.dart';
-import 'package:fitgenius/data/models/workout_model.dart';
-import 'package:fitgenius/data/models/workout_log_model.dart';
-import 'package:fitgenius/providers/workout_log_provider.dart';
-import 'package:fitgenius/core/services/audio/voice_coaching_player.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../data/models/workout_model.dart';
+import '../../../data/models/workout_log_model.dart';
+import '../../../providers/workout_log_provider.dart';
+import '../../../core/services/audio/voice_coaching_player.dart';
 
 class SetLoggingWidget extends StatefulWidget {
   final WorkoutExercise exercise;
@@ -24,7 +24,6 @@ class SetLoggingWidget extends StatefulWidget {
 }
 
 class _SetLoggingWidgetState extends State<SetLoggingWidget> {
-  // Local state to track inputs before saving
   final Map<int, double> _weights = {};
   final Map<int, int> _reps = {};
   final Map<int, bool> _completedSets = {};
@@ -39,7 +38,6 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   }
 
   void _initializeCoaching() {
-    // Initialize coaching if available
     if (widget.exercise.exercise.voiceCoaching?.isMultiPhase == true) {
       _coachingPlayer.setCoaching(
         widget.exercise.exercise.voiceCoaching!.multiPhase,
@@ -49,11 +47,9 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   }
 
   void _initializeData() {
-    // Initialize with default values from exercise plan
     for (int i = 1; i <= widget.exercise.sets; i++) {
       _reps[i] = int.tryParse(widget.exercise.reps) ?? 0;
 
-      // If we have existing logs, use them
       if (widget.exerciseLog != null) {
         final setLog = widget.exerciseLog!.setLogs.firstWhere(
           (s) => s.setNumber == i,
@@ -85,7 +81,6 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Voice Coaching Controls
         if (_showCoachingControls) _buildCoachingControls(),
 
         // Header
@@ -97,16 +92,19 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                 width: 40,
                 child: Text(
                   'SET',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textSecondary,
                   ),
                 ),
               ),
               Expanded(
                 child: Text(
-                  'PREVIOUS',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                  'PREC.',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: CleanTheme.textTertiary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -115,8 +113,10 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                 width: 60,
                 child: Text(
                   'KG',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -126,13 +126,15 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                 width: 60,
                 child: Text(
                   'REPS',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ),
-              const SizedBox(width: 40), // Checkbox space
+              const SizedBox(width: 40),
             ],
           ),
         ),
@@ -153,7 +155,9 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isCompleted ? Colors.green.withOpacity(0.1) : Colors.transparent,
+        color: isCompleted
+            ? CleanTheme.primaryColor.withValues(alpha: 0.1)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -166,21 +170,28 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.backgroundLight,
-                border: Border.all(color: AppColors.border),
+                color: CleanTheme.borderSecondary,
+                border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: Center(
-                child: Text('$setNumber', style: AppTextStyles.bodySmall),
+                child: Text(
+                  '$setNumber',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
               ),
             ),
           ),
 
-          // Previous (Placeholder for now)
+          // Previous
           Expanded(
             child: Text(
               '-',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -192,15 +203,19 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             child: Container(
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.backgroundLight,
+                color: CleanTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: TextField(
                 textAlign: TextAlign.center,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                style: AppTextStyles.bodyMedium,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
@@ -230,13 +245,17 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             child: Container(
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.backgroundLight,
+                color: CleanTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: TextField(
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.number,
-                style: AppTextStyles.bodyMedium,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textPrimary,
+                ),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
@@ -265,7 +284,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             height: 28,
             child: Checkbox(
               value: isCompleted,
-              activeColor: Colors.green,
+              activeColor: CleanTheme.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
@@ -286,21 +305,18 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
 
-    // Ensure we have an exercise log first
     String? exerciseLogId = widget.exerciseLog?.id;
 
     if (exerciseLogId == null) {
-      // Create exercise log if it doesn't exist
       final newLog = await provider.addExerciseLog(
         exerciseId: widget.exercise.exercise.id,
-        orderIndex: 0, // Should be passed or calculated
+        orderIndex: 0,
         exerciseType: 'main',
       );
       exerciseLogId = newLog?.id;
     }
 
     if (exerciseLogId != null && value) {
-      // Log the set
       await provider.addSetLog(
         exerciseLogId: exerciseLogId,
         setNumber: setNumber,
@@ -310,12 +326,10 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       );
     }
 
-    // Check if all sets are completed to update parent
     final allCompleted =
         _completedSets.values.where((v) => v).length == widget.exercise.sets;
     widget.onCompletionChanged(allCompleted);
 
-    // Auto-play post-exercise audio if all sets are complete
     if (allCompleted && _showCoachingControls) {
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
@@ -333,10 +347,10 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.primaryNeon.withValues(alpha: 0.1),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: AppColors.primaryNeon.withValues(alpha: 0.3),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -345,25 +359,28 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.headset, color: AppColors.primaryNeon, size: 20),
+                  const Icon(
+                    Icons.headset_outlined,
+                    color: CleanTheme.primaryColor,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Voice Coaching',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.primaryNeon,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.primaryColor,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const Spacer(),
                   if (_coachingPlayer.isPlaying)
-                    SizedBox(
+                    const SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primaryNeon,
-                        ),
+                        color: CleanTheme.primaryColor,
                       ),
                     ),
                 ],
@@ -382,7 +399,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                   _buildCoachingButton(
                     icon: Icons.fitness_center,
-                    label: 'During',
+                    label: 'Durante',
                     onPressed: () => _coachingPlayer.playDuringExecution(),
                     isActive:
                         _coachingPlayer.state ==
@@ -390,7 +407,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                   _buildCoachingButton(
                     icon: Icons.check_circle_outline,
-                    label: 'Wrap-up',
+                    label: 'Finale',
                     onPressed: () => _coachingPlayer.playPostExercise(),
                     isActive:
                         _coachingPlayer.state ==
@@ -423,13 +440,13 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: isActive ? AppColors.primaryNeon : AppColors.backgroundLight,
+            color: isActive ? CleanTheme.primaryColor : CleanTheme.surfaceColor,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primaryNeon, width: 1.5),
+            border: Border.all(color: CleanTheme.primaryColor, width: 1.5),
           ),
           child: IconButton(
             icon: Icon(icon),
-            color: isActive ? Colors.white : AppColors.primaryNeon,
+            color: isActive ? Colors.white : CleanTheme.primaryColor,
             iconSize: 24,
             onPressed: onPressed,
           ),
@@ -437,10 +454,12 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         const SizedBox(height: 4),
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: isActive ? AppColors.primaryNeon : AppColors.textSecondary,
+          style: GoogleFonts.inter(
             fontSize: 10,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            color: isActive
+                ? CleanTheme.primaryColor
+                : CleanTheme.textSecondary,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
       ],

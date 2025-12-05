@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_log_model.dart';
 
 class WorkoutCalendarWidget extends StatefulWidget {
@@ -59,9 +59,9 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: Column(
         children: [
@@ -72,18 +72,22 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
               IconButton(
                 icon: const Icon(
                   Icons.chevron_left,
-                  color: AppColors.textPrimary,
+                  color: CleanTheme.textPrimary,
                 ),
                 onPressed: () => _changeMonth(-1),
               ),
               Text(
-                DateFormat('MMMM yyyy').format(_focusedMonth),
-                style: AppTextStyles.h6,
+                DateFormat('MMMM yyyy', 'it').format(_focusedMonth),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
               IconButton(
                 icon: const Icon(
                   Icons.chevron_right,
-                  color: AppColors.textPrimary,
+                  color: CleanTheme.textPrimary,
                 ),
                 onPressed: () => _changeMonth(1),
               ),
@@ -94,13 +98,14 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
           // Days of week
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            children: ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
                 .map(
                   (day) => Text(
                     day,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
                 )
@@ -135,26 +140,27 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
               return Container(
                 decoration: BoxDecoration(
                   color: hasWorkout
-                      ? AppColors.primaryNeon.withOpacity(0.2)
+                      ? CleanTheme.primaryColor.withValues(alpha: 0.15)
                       : isToday
-                      ? AppColors.textSecondary.withOpacity(0.1)
+                      ? CleanTheme.textSecondary.withValues(alpha: 0.1)
                       : Colors.transparent,
                   shape: BoxShape.circle,
                   border: isToday
-                      ? Border.all(color: AppColors.primaryNeon, width: 1)
+                      ? Border.all(color: CleanTheme.primaryColor, width: 1.5)
                       : hasWorkout
-                      ? Border.all(color: AppColors.primaryNeon, width: 1)
+                      ? Border.all(color: CleanTheme.primaryColor, width: 1)
                       : null,
                 ),
                 child: Center(
                   child: Text(
                     day.toString(),
-                    style: AppTextStyles.bodySmall.copyWith(
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
                       color: hasWorkout
-                          ? AppColors.primaryNeon
-                          : AppColors.textPrimary,
+                          ? CleanTheme.primaryColor
+                          : CleanTheme.textPrimary,
                       fontWeight: hasWorkout || isToday
-                          ? FontWeight.bold
+                          ? FontWeight.w600
                           : FontWeight.normal,
                     ),
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fitgenius/core/constants/app_colors.dart';
-import 'package:fitgenius/core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:fitgenius/core/theme/clean_theme.dart';
+import 'package:fitgenius/presentation/widgets/clean_widgets.dart';
 import 'package:fitgenius/data/models/workout_log_model.dart';
 import 'package:fitgenius/presentation/screens/history/exercise_history_screen.dart';
 import 'package:intl/intl.dart';
@@ -13,54 +14,71 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = workoutLog.completedAt ?? workoutLog.startedAt;
-    final dateStr = DateFormat('EEEE, MMM d, yyyy').format(date);
+    final dateStr = DateFormat('EEEE, d MMM yyyy', 'it').format(date);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(dateStr),
-        backgroundColor: AppColors.background,
+        title: Text(
+          dateStr,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header Stats
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: AppColors.neonGradient,
-                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [
+                    CleanTheme.primaryColor,
+                    CleanTheme.primaryColor.withValues(alpha: 0.8),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 children: [
                   Text(
-                    workoutLog.workoutDay?.name ?? 'Workout Session',
-                    style: AppTextStyles.h4.copyWith(
-                      color: AppColors.background,
+                    workoutLog.workoutDay?.name ?? 'Sessione Allenamento',
+                    style: GoogleFonts.outfit(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildHeaderStat(
-                        Icons.timer,
+                        Icons.timer_outlined,
                         workoutLog.durationFormatted,
-                        'Duration',
+                        'Durata',
                       ),
                       _buildHeaderStat(
-                        Icons.fitness_center,
+                        Icons.fitness_center_outlined,
                         '${workoutLog.totalVolume.toInt()} kg',
                         'Volume',
                       ),
                       _buildHeaderStat(
                         Icons.check_circle_outline,
                         '${workoutLog.totalExercises}',
-                        'Exercises',
+                        'Esercizi',
                       ),
                     ],
                   ),
@@ -69,7 +87,7 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 24),
-            Text('Exercises', style: AppTextStyles.h5),
+            CleanSectionHeader(title: 'Esercizi'),
             const SizedBox(height: 12),
 
             // Exercise List
@@ -79,24 +97,21 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
 
             if (workoutLog.notes != null && workoutLog.notes!.isNotEmpty) ...[
               const SizedBox(height: 24),
-              Text('Notes', style: AppTextStyles.h5),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
+              CleanSectionHeader(title: 'Note'),
+              const SizedBox(height: 12),
+              CleanCard(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
                 child: Text(
                   workoutLog.notes!,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: CleanTheme.textSecondary,
+                    height: 1.5,
                   ),
                 ),
               ),
             ],
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -106,19 +121,21 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
   Widget _buildHeaderStat(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.background, size: 24),
-        const SizedBox(height: 4),
+        Icon(icon, color: Colors.white, size: 24),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: AppTextStyles.h6.copyWith(
-            color: AppColors.background,
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ),
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.background.withOpacity(0.8),
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: Colors.white.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -129,138 +146,161 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
     BuildContext context,
     ExerciseLogModel exerciseLog,
   ) {
-    return Card(
+    return CleanCard(
       margin: const EdgeInsets.only(bottom: 12),
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.border),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ExerciseHistoryScreen(
-                exerciseId: exerciseLog.exerciseId,
-                exerciseName: exerciseLog.exercise?.name ?? 'Exercise',
-              ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExerciseHistoryScreen(
+              exerciseId: exerciseLog.exerciseId,
+              exerciseName: exerciseLog.exercise?.name ?? 'Esercizio',
             ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+        );
+      },
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      exerciseLog.exercise?.name ?? 'Unknown Exercise',
-                      style: AppTextStyles.h6,
-                    ),
+              Expanded(
+                child: Text(
+                  exerciseLog.exercise?.name ?? 'Esercizio Sconosciuto',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
                   ),
-                  Text(
-                    '${exerciseLog.totalVolume.toInt()} kg',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
+                ),
               ),
-              const SizedBox(height: 12),
-              // Sets Table
-              Table(
-                columnWidths: const {
-                  0: FixedColumnWidth(40),
-                  1: FlexColumnWidth(),
-                  2: FlexColumnWidth(),
-                  3: FixedColumnWidth(40),
-                },
-                children: [
-                  TableRow(
-                    children: [
-                      Text(
-                        'Set',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        'kg',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'Reps',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'RPE',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${exerciseLog.totalVolume.toInt()} kg',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.primaryColor,
                   ),
-                  const TableRow(
-                    children: [
-                      SizedBox(height: 8),
-                      SizedBox(height: 8),
-                      SizedBox(height: 8),
-                      SizedBox(height: 8),
-                    ],
-                  ),
-                  ...exerciseLog.setLogs.map((set) {
-                    return TableRow(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            '${set.setNumber}',
-                            style: AppTextStyles.bodyMedium,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            '${set.weightKg ?? '-'}',
-                            style: AppTextStyles.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            '${set.reps}',
-                            style: AppTextStyles.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(
-                            '${set.rpe ?? '-'}',
-                            style: AppTextStyles.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          // Sets Table Header
+          Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: Text(
+                  'Set',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'kg',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Reps',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(
+                width: 40,
+                child: Text(
+                  'RPE',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 16, color: CleanTheme.borderPrimary),
+          // Sets Data
+          ...exerciseLog.setLogs.map((set) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      '${set.setNumber}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${set.weightKg ?? '-'}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '${set.reps}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      '${set.rpe ?? '-'}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

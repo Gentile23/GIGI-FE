@@ -72,6 +72,9 @@ class UserStats {
     final xpInCurrentLevel = totalXp - currentLevelXp;
     return (xpInCurrentLevel / xpToNextLevel).clamp(0.0, 1.0);
   }
+
+  // Alias for compatibility
+  int get level => currentLevel;
 }
 
 class Achievement {

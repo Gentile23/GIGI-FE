@@ -42,7 +42,73 @@ class ApiClient {
 
   Dio get dio => _dio;
 
-  // Token management
+  // ========== HTTP Methods ==========
+
+  /// GET request
+  Future<Map<String, dynamic>> get(
+    String path, {
+    Map<String, String>? queryParams,
+  }) async {
+    try {
+      final response = await _dio.get(path, queryParameters: queryParams);
+      return response.data is Map<String, dynamic>
+          ? response.data
+          : {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// POST request
+  Future<Map<String, dynamic>> post(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    try {
+      final response = await _dio.post(path, data: body);
+      return response.data is Map<String, dynamic>
+          ? response.data
+          : {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// PUT request
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    try {
+      final response = await _dio.put(path, data: body);
+      return response.data is Map<String, dynamic>
+          ? response.data
+          : {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// DELETE request
+  Future<Map<String, dynamic>> delete(String path) async {
+    try {
+      final response = await _dio.delete(path);
+      return response.data is Map<String, dynamic>
+          ? response.data
+          : {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Map<String, dynamic> _handleError(DioException e) {
+    final message =
+        e.response?.data?['message'] ?? e.message ?? 'Network error';
+    return {'success': false, 'message': message, 'error': e.toString()};
+  }
+
+  // ========== Token Management ==========
+
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);

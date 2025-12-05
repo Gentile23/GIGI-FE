@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/adaptive_training_model.dart';
 import '../../../data/services/adaptive_training_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class RecoveryTrackingScreen extends StatefulWidget {
   const RecoveryTrackingScreen({super.key});
@@ -48,7 +48,7 @@ class _RecoveryTrackingScreenState extends State<RecoveryTrackingScreen> {
       if (score != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Recovery tracked! ${score.readinessLabel}'),
+            content: Text('Recupero registrato! ${score.readinessLabel}'),
             backgroundColor: score.readinessColor,
           ),
         );
@@ -59,13 +59,22 @@ class _RecoveryTrackingScreenState extends State<RecoveryTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Recovery Tracking'),
-        backgroundColor: ModernTheme.cardColor,
+        title: Text(
+          'Tracciamento Recupero',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,60 +84,70 @@ class _RecoveryTrackingScreenState extends State<RecoveryTrackingScreen> {
             ],
 
             Text(
-              'How are you feeling today?',
+              'Come ti senti oggi?',
               style: GoogleFonts.outfit(
                 fontSize: 24,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Track your recovery to get personalized recommendations',
-              style: Theme.of(context).textTheme.bodyMedium,
+              'Traccia il tuo recupero per raccomandazioni personalizzate',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            _buildSlider(
+              'Qualità Sonno',
+              Icons.bedtime_outlined,
+              _sleepQuality,
+              (value) => setState(() => _sleepQuality = value),
+              ['Scarsa', 'Sufficiente', 'Buona', 'Ottima', 'Eccellente'],
+              CleanTheme.accentBlue,
+            ),
+            const SizedBox(height: 16),
+
+            _buildSlider(
+              'Dolori Muscolari',
+              Icons.fitness_center_outlined,
+              _muscleSoreness,
+              (value) => setState(() => _muscleSoreness = value),
+              ['Nessuno', 'Leggeri', 'Moderati', 'Forti', 'Severi'],
+              CleanTheme.accentOrange,
+            ),
+            const SizedBox(height: 16),
+
+            _buildSlider(
+              'Livello Stress',
+              Icons.psychology_outlined,
+              _stressLevel,
+              (value) => setState(() => _stressLevel = value),
+              ['Molto Basso', 'Basso', 'Moderato', 'Alto', 'Molto Alto'],
+              CleanTheme.accentPurple,
+            ),
+            const SizedBox(height: 16),
+
+            _buildSlider(
+              'Livello Energia',
+              Icons.bolt_outlined,
+              _energyLevel,
+              (value) => setState(() => _energyLevel = value),
+              ['Molto Basso', 'Basso', 'Moderato', 'Alto', 'Molto Alto'],
+              CleanTheme.accentGreen,
             ),
             const SizedBox(height: 32),
 
-            _buildSlider(
-              'Sleep Quality',
-              Icons.bedtime,
-              _sleepQuality,
-              (value) => setState(() => _sleepQuality = value),
-              ['Poor', 'Fair', 'Good', 'Great', 'Excellent'],
-            ),
-            const SizedBox(height: 24),
-
-            _buildSlider(
-              'Muscle Soreness',
-              Icons.fitness_center,
-              _muscleSoreness,
-              (value) => setState(() => _muscleSoreness = value),
-              ['None', 'Light', 'Moderate', 'High', 'Severe'],
-            ),
-            const SizedBox(height: 24),
-
-            _buildSlider(
-              'Stress Level',
-              Icons.psychology,
-              _stressLevel,
-              (value) => setState(() => _stressLevel = value),
-              ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],
-            ),
-            const SizedBox(height: 24),
-
-            _buildSlider(
-              'Energy Level',
-              Icons.bolt,
-              _energyLevel,
-              (value) => setState(() => _energyLevel = value),
-              ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],
-            ),
-            const SizedBox(height: 40),
-
-            ModernButton(
-              text: 'Submit Recovery Data',
-              icon: Icons.check_circle,
+            CleanButton(
+              text: 'Invia Dati Recupero',
+              icon: Icons.check_circle_outline,
+              width: double.infinity,
               onPressed: _isSubmitting ? null : _submitRecovery,
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -138,52 +157,52 @@ class _RecoveryTrackingScreenState extends State<RecoveryTrackingScreen> {
   Widget _buildRecoveryScoreCard(RecoveryScore score) {
     final scorePercentage = ((score.calculatedScore ?? 0) * 100).toInt();
 
-    return ModernCard(
-      child: Column(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: score.readinessColor.withOpacity(0.2),
-                  shape: BoxShape.circle,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: score.readinessColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.favorite_rounded,
+              color: score.readinessColor,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Punteggio Recupero',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                  ),
                 ),
-                child: Icon(
-                  Icons.favorite,
-                  color: score.readinessColor,
-                  size: 32,
+                Text(
+                  '$scorePercentage%',
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: score.readinessColor,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Recovery Score',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    Text(
-                      '$scorePercentage%',
-                      style: GoogleFonts.outfit(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: score.readinessColor,
-                      ),
-                    ),
-                    Text(
-                      score.readinessLabel,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: score.readinessColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                Text(
+                  score.readinessLabel,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: score.readinessColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -196,40 +215,59 @@ class _RecoveryTrackingScreenState extends State<RecoveryTrackingScreen> {
     int value,
     Function(int) onChanged,
     List<String> labels,
+    Color accentColor,
   ) {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: ModernTheme.accentColor),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
+              ),
               const SizedBox(width: 12),
               Text(
                 label,
                 style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Slider(
-            value: value.toDouble(),
-            min: 1,
-            max: 5,
-            divisions: 4,
-            activeColor: ModernTheme.accentColor,
-            label: labels[value - 1],
-            onChanged: (val) => onChanged(val.toInt()),
+          const SizedBox(height: 20),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: accentColor,
+              inactiveTrackColor: CleanTheme.borderSecondary,
+              thumbColor: accentColor,
+              overlayColor: accentColor.withValues(alpha: 0.2),
+            ),
+            child: Slider(
+              value: value.toDouble(),
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: labels[value - 1],
+              onChanged: (val) => onChanged(val.toInt()),
+            ),
           ),
-          Text(
-            labels[value - 1],
-            style: TextStyle(
-              fontSize: 14,
-              color: ModernTheme.accentColor,
-              fontWeight: FontWeight.w500,
+          Center(
+            child: Text(
+              labels[value - 1],
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: accentColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

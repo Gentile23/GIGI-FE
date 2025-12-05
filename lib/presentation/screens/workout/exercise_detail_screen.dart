@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
+import '../../widgets/workout/similar_exercises_sheet.dart';
+import '../../widgets/workout/alternative_exercises_sheet.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -45,42 +48,54 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text('Exercise Details', style: AppTextStyles.h5),
-        backgroundColor: AppColors.surface,
+        title: Text(
+          'Dettagli Esercizio',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Exercise Name
             Text(
               widget.workoutExercise.exercise.name,
-              style: AppTextStyles.h3.copyWith(color: const Color(0xFF2563EB)),
+              style: GoogleFonts.outfit(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.primaryColor,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
             // Difficulty Badge
             _buildDifficultyBadge(),
             const SizedBox(height: 24),
 
+            // Similar & Alternative Exercises Buttons
+            _buildExerciseOptionsButtons(),
+            const SizedBox(height: 24),
+
             // Anatomical Diagram
             if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
-              Text('Muscles Worked', style: AppTextStyles.h5),
+              CleanSectionHeader(title: 'Muscoli Coinvolti'),
               const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              CleanCard(
                 padding: const EdgeInsets.all(16),
                 child: AnatomicalMuscleView(
                   muscleGroups: widget.workoutExercise.exercise.muscleGroups,
                   height: 300,
-                  highlightColor: const Color(0xFF2563EB),
+                  highlightColor: CleanTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 24),
@@ -95,16 +110,29 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Equipment
             if (widget.workoutExercise.exercise.equipment.isNotEmpty) ...[
-              Text('Equipment Required', style: AppTextStyles.h5),
+              CleanSectionHeader(title: 'Attrezzatura Richiesta'),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: widget.workoutExercise.exercise.equipment.map((eq) {
-                  return Chip(
-                    label: Text(eq),
-                    backgroundColor: AppColors.surface,
-                    labelStyle: AppTextStyles.bodyMedium,
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: CleanTheme.borderPrimary),
+                    ),
+                    child: Text(
+                      eq,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
@@ -113,17 +141,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Description
             if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
-              Text('How to Perform', style: AppTextStyles.h5),
+              CleanSectionHeader(title: 'Come Eseguire'),
               const SizedBox(height: 12),
-              Container(
+              CleanCard(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 child: Text(
                   widget.workoutExercise.exercise.description,
-                  style: AppTextStyles.bodyLarge.copyWith(height: 1.6),
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    height: 1.6,
+                    color: CleanTheme.textSecondary,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -132,44 +160,151 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             // Video Player / Thumbnail
             if (widget.workoutExercise.exercise.videoUrl != null &&
                 widget.workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
-              Text('Video Tutorial', style: AppTextStyles.h5),
+              CleanSectionHeader(title: 'Video Tutorial'),
               const SizedBox(height: 12),
               _buildVideoSection(widget.workoutExercise.exercise.videoUrl!),
             ],
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
+  /// Build buttons for similar exercises and alternatives
+  Widget _buildExerciseOptionsButtons() {
+    final isBodyweight = widget.workoutExercise.exercise.equipment.contains(
+      'Bodyweight',
+    );
+
+    return Row(
+      children: [
+        // Similar Exercises Button
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              SimilarExercisesSheet.show(
+                context,
+                exercise: widget.workoutExercise.exercise,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: CleanTheme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CleanTheme.primaryColor.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.compare_arrows,
+                    color: CleanTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Esercizi Simili',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Alternative Exercises Button
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              AlternativeExercisesSheet.show(
+                context,
+                exercise: widget.workoutExercise.exercise,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                color: CleanTheme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: (isBodyweight ? Colors.blue : Colors.green)
+                      .withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isBodyweight
+                        ? Icons.fitness_center
+                        : Icons.accessibility_new,
+                    color: isBodyweight ? Colors.blue : Colors.green,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      isBodyweight ? 'Con Attrezzatura' : 'Corpo Libero',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDifficultyBadge() {
     Color badgeColor;
     IconData icon;
+    String label;
 
     switch (widget.workoutExercise.exercise.difficulty.name.toLowerCase()) {
       case 'beginner':
-        badgeColor = Colors.green;
+        badgeColor = CleanTheme.accentGreen;
         icon = Icons.star;
+        label = 'Principiante';
         break;
       case 'intermediate':
-        badgeColor = Colors.orange;
+        badgeColor = CleanTheme.accentOrange;
         icon = Icons.star_half;
+        label = 'Intermedio';
         break;
       case 'advanced':
-        badgeColor = Colors.red;
+        badgeColor = CleanTheme.accentRed;
         icon = Icons.star_border;
+        label = 'Avanzato';
         break;
       default:
-        badgeColor = Colors.grey;
+        badgeColor = CleanTheme.textTertiary;
         icon = Icons.help_outline;
+        label = widget.workoutExercise.exercise.difficulty.name;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.2),
+        color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: badgeColor),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -177,10 +312,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           Icon(icon, size: 16, color: badgeColor),
           const SizedBox(width: 6),
           Text(
-            widget.workoutExercise.exercise.difficulty.name,
-            style: AppTextStyles.bodyMedium.copyWith(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
               color: badgeColor,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -189,31 +325,27 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   }
 
   Widget _buildWorkoutInfo() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           if (widget.workoutExercise.sets != null)
             _buildInfoColumn(
               icon: Icons.repeat,
-              label: 'Sets',
+              label: 'Serie',
               value: widget.workoutExercise.sets.toString(),
             ),
           if (widget.workoutExercise.reps != null)
             _buildInfoColumn(
-              icon: Icons.fitness_center,
-              label: 'Reps',
+              icon: Icons.fitness_center_outlined,
+              label: 'Ripetizioni',
               value: widget.workoutExercise.reps!,
             ),
           if (widget.workoutExercise.restSeconds != null)
             _buildInfoColumn(
-              icon: Icons.timer,
-              label: 'Rest',
+              icon: Icons.timer_outlined,
+              label: 'Recupero',
               value: '${widget.workoutExercise.restSeconds}s',
             ),
         ],
@@ -228,13 +360,28 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   }) {
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFF2563EB), size: 28),
-        const SizedBox(height: 8),
-        Text(value, style: AppTextStyles.h4),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: CleanTheme.primaryLight,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: CleanTheme.primaryColor, size: 24),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          value,
+          style: GoogleFonts.outfit(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: CleanTheme.textSecondary,
           ),
         ),
       ],
@@ -244,35 +391,32 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   Widget _buildVideoSection(String url) {
     final videoId = YoutubePlayer.convertUrlToId(url);
     if (videoId == null) {
-      return Container(
+      return CleanCard(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+        child: Text(
+          'URL video non valido',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
-        child: const Text('Invalid video URL'),
       );
     }
 
-    // Show video player if initialized, otherwise show thumbnail
     if (_showVideoPlayer && _videoController != null) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: YoutubePlayer(
           controller: _videoController!,
           showVideoProgressIndicator: true,
-          progressIndicatorColor: AppColors.primaryNeon,
+          progressIndicatorColor: CleanTheme.primaryColor,
         ),
       );
     }
 
-    // Show thumbnail with play button overlay
     return GestureDetector(
       onTap: () => _initializeVideoPlayer(url),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           color: Colors.black,
           image: DecorationImage(
             image: NetworkImage(
@@ -285,10 +429,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: CleanTheme.primaryColor,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+            child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
           ),
         ),
       ),

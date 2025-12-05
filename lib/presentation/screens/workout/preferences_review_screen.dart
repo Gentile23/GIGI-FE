@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../data/models/user_model.dart';
 import '../../screens/profile/edit_preferences_screen.dart';
 import '../../../data/models/user_profile_model.dart';
+import '../../widgets/clean_widgets.dart';
 
 class PreferencesReviewScreen extends StatelessWidget {
   const PreferencesReviewScreen({super.key});
@@ -14,7 +15,19 @@ class PreferencesReviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Rivedi Preferenze')),
+      backgroundColor: CleanTheme.backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Rivedi Preferenze',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+      ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           final user = authProvider.user;
@@ -24,43 +37,45 @@ class PreferencesReviewScreen extends StatelessWidget {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Info Card
-                Card(
-                  color: AppColors.primaryNeon.withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: AppColors.primaryNeon,
-                          size: 32,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Rivedi le tue preferenze',
-                                style: AppTextStyles.h5.copyWith(
-                                  color: AppColors.primaryNeon,
-                                ),
+                CleanCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: CleanTheme.primaryColor,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Rivedi le tue preferenze',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: CleanTheme.primaryColor,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Useremo queste informazioni per generare il tuo piano di allenamento personalizzato. Puoi modificarle se necessario.',
-                                style: AppTextStyles.bodyMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Useremo queste informazioni per generare il tuo piano di allenamento personalizzato. Puoi modificarle se necessario.',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: CleanTheme.textSecondary,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -145,7 +160,9 @@ class PreferencesReviewScreen extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton.icon(
+                      child: CleanButton(
+                        text: 'Modifica',
+                        isOutlined: true,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -155,28 +172,19 @@ class PreferencesReviewScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Modifica'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.all(16),
-                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 2,
-                      child: ElevatedButton.icon(
+                      child: CleanButton(
+                        text: 'Genera Piano',
                         onPressed: () => _proceedToGeneration(context, user),
-                        icon: const Icon(Icons.auto_awesome),
-                        label: const Text('Genera Piano'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(16),
-                          backgroundColor: AppColors.primaryNeon,
-                        ),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 24),
               ],
             ),
           );
@@ -190,19 +198,21 @@ class PreferencesReviewScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
-        style: AppTextStyles.h5.copyWith(color: AppColors.primaryNeon),
+        style: GoogleFonts.outfit(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: CleanTheme.primaryColor,
+        ),
       ),
     );
   }
 
   Widget _buildPreferenceCard(List<Widget> children) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
-        ),
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
@@ -216,16 +226,19 @@ class PreferencesReviewScreen extends StatelessWidget {
         children: [
           Text(
             label,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               value,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
               ),
               textAlign: TextAlign.right,
             ),
@@ -243,17 +256,12 @@ class PreferencesReviewScreen extends StatelessWidget {
   String _getBodyShapeLabel(String? value) {
     if (value == null || value.isEmpty) return 'Non specificato';
 
-    // Debug: print the actual value received
-    print('DEBUG: bodyShape value = "$value"');
-
     try {
-      // Try to match with enum values (case-insensitive)
       final normalizedValue = value.toLowerCase().trim();
 
       final shape = BodyShape.values.firstWhere(
         (e) => e.toString().split('.').last.toLowerCase() == normalizedValue,
         orElse: () {
-          print('DEBUG: No matching BodyShape enum for "$value"');
           throw Exception('No match');
         },
       );
@@ -273,8 +281,6 @@ class PreferencesReviewScreen extends StatelessWidget {
           return 'Nella Media';
       }
     } catch (e) {
-      print('DEBUG: Error converting bodyShape: $e');
-      // Return a capitalized version of the raw value as fallback
       return value[0].toUpperCase() + value.substring(1);
     }
   }
@@ -300,7 +306,6 @@ class PreferencesReviewScreen extends StatelessWidget {
     if (value == null || value.isEmpty) return 'Non specificato';
 
     try {
-      // Try to match with enum values (case-insensitive)
       final normalizedValue = value.toLowerCase().trim();
 
       final type = WorkoutType.values.firstWhere(
@@ -323,7 +328,6 @@ class PreferencesReviewScreen extends StatelessWidget {
           return 'Calisthenics';
       }
     } catch (e) {
-      // Return a capitalized version of the raw value as fallback
       return value[0].toUpperCase() + value.substring(1);
     }
   }
@@ -337,56 +341,54 @@ class PreferencesReviewScreen extends StatelessWidget {
       listen: false,
     );
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
     );
 
     try {
       final success = await workoutProvider.generatePlan();
 
       if (context.mounted) {
-        // Close loading dialog
         Navigator.pop(context);
 
         if (success) {
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
                 'Generazione avviata! L\'AI sta creando il tuo piano.',
               ),
-              backgroundColor: Colors.blue,
+              backgroundColor: CleanTheme.accentBlue,
             ),
           );
 
-          // Navigate to home screen
           Navigator.of(
             context,
           ).pushNamedAndRemoveUntil('/main', (route) => false);
         } else {
-          // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 workoutProvider.error ??
                     'Errore durante la generazione del piano',
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        // Close loading dialog
         Navigator.pop(context);
 
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
         );
       }
     }

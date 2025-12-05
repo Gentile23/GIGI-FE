@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/workout_log_provider.dart';
@@ -24,9 +24,8 @@ class WorkoutSessionScreen extends StatefulWidget {
 
 class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Set<String> _completedExercises = {};
-  final Set<String> _completedSections =
-      {}; // Track completed sections (e.g. 'warmupCardio')
-  final Set<String> _skippedSections = {}; // Track skipped sections
+  final Set<String> _completedSections = {};
+  final Set<String> _skippedSections = {};
 
   @override
   void initState() {
@@ -38,45 +37,52 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   Future<void> _startWorkoutSession() async {
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
-    // Assuming workoutDay has a reference to plan id, or we pass it.
-    // For now, we'll just pass workoutDayId.
-    // Note: The backend expects workout_day_id.
     await provider.startWorkout(workoutDayId: widget.workoutDay.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    // ... (rest of build method same as before until _buildPreWorkoutNavigationCard) ...
-    // Add safety check for empty exercises
     if (widget.workoutDay.exercises.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(title: Text(widget.workoutDay.name)),
+        backgroundColor: CleanTheme.backgroundColor,
+        appBar: AppBar(
+          title: Text(widget.workoutDay.name),
+          backgroundColor: CleanTheme.surfaceColor,
+          elevation: 0,
+        ),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.warning_amber_rounded,
                   size: 80,
-                  color: AppColors.primaryNeon,
+                  color: CleanTheme.primaryColor,
                 ),
                 const SizedBox(height: 24),
-                Text('No Exercises', style: AppTextStyles.h3),
+                Text(
+                  'Nessun Esercizio',
+                  style: GoogleFonts.outfit(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Text(
-                  'This workout doesn\'t have any exercises yet.',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  'Questo allenamento non ha ancora esercizi.',
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Go Back'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                  ),
+                  child: const Text('Torna Indietro'),
                 ),
               ],
             ),
@@ -86,11 +92,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.workoutDay.name),
+        title: Text(
+          widget.workoutDay.name,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: CleanTheme.textPrimary),
           onPressed: () => _confirmExit(),
         ),
       ),
@@ -99,29 +113,39 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           // Header
           Container(
             padding: const EdgeInsets.all(16),
-            color: AppColors.backgroundLight,
+            decoration: BoxDecoration(
+              color: CleanTheme.surfaceColor,
+              border: Border(
+                bottom: BorderSide(color: CleanTheme.borderPrimary),
+              ),
+            ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    Icon(Icons.timer, color: AppColors.primaryNeon),
+                    const Icon(
+                      Icons.timer_outlined,
+                      color: CleanTheme.primaryColor,
+                    ),
                     const SizedBox(width: 8),
                     Text(
-                      '${widget.workoutDay.estimatedDuration} min estimated',
-                      style: AppTextStyles.bodyMedium,
+                      '${widget.workoutDay.estimatedDuration} min stimati',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textSecondary,
+                      ),
                     ),
                     const Spacer(),
-                    // Exercise Type Indicator
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryNeon.withValues(alpha: 0.2),
+                        color: CleanTheme.primaryLight,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: AppColors.primaryNeon,
+                          color: CleanTheme.primaryColor,
                           width: 1.5,
                         ),
                       ),
@@ -132,9 +156,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           const SizedBox(width: 6),
                           Text(
                             'Allenamento',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.primaryNeon,
-                              fontWeight: FontWeight.bold,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: CleanTheme.primaryColor,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -148,9 +173,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   children: [
                     Text(
                       '${widget.workoutDay.mainWorkout.where((e) => _completedExercises.contains(e.exercise.id)).length}/${widget.workoutDay.mainExerciseCount} esercizi completati',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryNeon,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.primaryColor,
                       ),
                     ),
                   ],
@@ -204,18 +230,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   backgroundColor:
                       _completedExercises.length ==
                           widget.workoutDay.mainExerciseCount
-                      ? Colors.green
-                      : AppColors.primaryNeon,
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: Text(
                   _completedExercises.length ==
                           widget.workoutDay.mainExerciseCount
                       ? 'Completa Allenamento'
                       : 'Termina in Anticipo',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -230,10 +260,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primaryNeon.withValues(alpha: 0.3),
+          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -242,11 +272,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary),
+              const Icon(Icons.info_outline, color: CleanTheme.primaryColor),
               const SizedBox(width: 8),
               Text(
                 'Prima dell\'allenamento',
-                style: AppTextStyles.h5.copyWith(color: AppColors.primary),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
+                ),
               ),
             ],
           ),
@@ -256,7 +290,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               id: 'warmupCardio',
               title: 'Riscaldamento Cardio',
               emoji: '🔥',
-              color: const Color(0xFFFF6347),
+              color: CleanTheme.accentOrange,
               onTap: () => _navigateToCardio(
                 widget.workoutDay.warmupCardio,
                 'Riscaldamento Cardio',
@@ -271,7 +305,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               id: 'preWorkoutMobility',
               title: 'Mobilità Pre-Workout',
               emoji: '🤸',
-              color: const Color(0xFF00CED1),
+              color: CleanTheme.accentBlue,
               onTap: () => _navigateToMobility(
                 widget.workoutDay.preWorkoutMobility,
                 'Mobilità Pre-Workout',
@@ -287,10 +321,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primaryNeon.withValues(alpha: 0.3),
+          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -299,16 +333,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary),
+              const Icon(Icons.info_outline, color: CleanTheme.primaryColor),
               const SizedBox(width: 8),
               Text(
                 'Dopo l\'allenamento',
-                style: AppTextStyles.h5.copyWith(color: AppColors.primary),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Group post-workout exercises by type
           ...widget.workoutDay.postWorkoutExercises
               .fold<Map<String, List<WorkoutExercise>>>({}, (map, exercise) {
                 final type = exercise.exerciseType;
@@ -328,7 +365,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       id: sectionId,
                       title: 'Mobilità Post-Workout',
                       emoji: '🧘',
-                      color: const Color(0xFF00CED1),
+                      color: CleanTheme.accentBlue,
                       onTap: () => _navigateToMobility(
                         entry.value,
                         'Mobilità Post-Workout',
@@ -343,7 +380,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       id: sectionId,
                       title: 'Cardio Post-Workout',
                       emoji: '🏃',
-                      color: const Color(0xFFFF6347),
+                      color: CleanTheme.accentOrange,
                       onTap: () => _navigateToCardio(
                         entry.value,
                         'Cardio Post-Workout',
@@ -370,24 +407,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final isSkipped = _skippedSections.contains(id);
 
     return InkWell(
-      onTap: isSkipped
-          ? null
-          : onTap, // Disable tap if skipped (or allow to undo?)
+      onTap: isSkipped ? null : onTap,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isCompleted
-              ? Colors.green.withValues(alpha: 0.1)
+              ? CleanTheme.accentGreen.withValues(alpha: 0.1)
               : isSkipped
-              ? Colors.grey.withValues(alpha: 0.1)
+              ? CleanTheme.textTertiary.withValues(alpha: 0.1)
               : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isCompleted
-                ? Colors.green
+                ? CleanTheme.accentGreen
                 : isSkipped
-                ? Colors.grey
+                ? CleanTheme.textTertiary
                 : color,
             width: 1.5,
           ),
@@ -399,22 +434,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             Expanded(
               child: Text(
                 title,
-                style: AppTextStyles.bodyLarge.copyWith(
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                   color: isCompleted
-                      ? Colors.green
+                      ? CleanTheme.accentGreen
                       : isSkipped
-                      ? Colors.grey
+                      ? CleanTheme.textTertiary
                       : color,
-                  fontWeight: FontWeight.bold,
                   decoration: isSkipped ? TextDecoration.lineThrough : null,
                 ),
               ),
             ),
             if (isCompleted)
-              const Icon(Icons.check_circle, color: Colors.green)
+              const Icon(Icons.check_circle, color: CleanTheme.accentGreen)
             else if (isSkipped)
               IconButton(
-                icon: const Icon(Icons.undo, color: Colors.grey),
+                icon: const Icon(Icons.undo, color: CleanTheme.textTertiary),
                 onPressed: () {
                   setState(() {
                     _skippedSections.remove(id);
@@ -424,7 +460,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               )
             else ...[
               IconButton(
-                icon: const Icon(Icons.skip_next, color: Colors.orange),
+                icon: const Icon(
+                  Icons.skip_next,
+                  color: CleanTheme.accentOrange,
+                ),
                 onPressed: () {
                   setState(() {
                     _skippedSections.add(id);
@@ -462,11 +501,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$title completata!'),
-            backgroundColor: Colors.green,
+            backgroundColor: CleanTheme.accentGreen,
           ),
         );
       } else if (result == false) {
-        // User skipped from inside the screen
         setState(() {
           _skippedSections.add(sectionId);
           _completedSections.remove(sectionId);
@@ -497,11 +535,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$title completato!'),
-            backgroundColor: Colors.green,
+            backgroundColor: CleanTheme.accentGreen,
           ),
         );
       } else if (result == false) {
-        // User skipped from inside the screen
         setState(() {
           _skippedSections.add(sectionId);
           _completedSections.remove(sectionId);
@@ -513,22 +550,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   void _navigateToExerciseDetail(WorkoutExercise workoutExercise) {
     Widget detailScreen;
 
-    // Route to correct screen based on exercise type
     switch (workoutExercise.exerciseType) {
       case 'mobility':
         detailScreen = MobilityExerciseDetailScreen(
           workoutExercise: workoutExercise,
-          duration: workoutExercise.reps, // Duration stored in reps field
+          duration: workoutExercise.reps,
         );
         break;
       case 'cardio':
         detailScreen = CardioExerciseDetailScreen(
           workoutExercise: workoutExercise,
           duration: workoutExercise.reps,
-          intensity: 'Moderate', // Could be derived from notes
+          intensity: 'Moderate',
         );
         break;
-      default: // strength
+      default:
         detailScreen = ExerciseDetailScreen(workoutExercise: workoutExercise);
     }
 
@@ -541,16 +577,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     switch (difficulty) {
       case ExerciseDifficulty.beginner:
-        badgeColor = Colors.green;
-        label = 'Beginner';
+        badgeColor = CleanTheme.accentGreen;
+        label = 'Principiante';
         break;
       case ExerciseDifficulty.intermediate:
-        badgeColor = Colors.orange;
-        label = 'Intermediate';
+        badgeColor = CleanTheme.accentOrange;
+        label = 'Intermedio';
         break;
       case ExerciseDifficulty.advanced:
-        badgeColor = Colors.red;
-        label = 'Advanced';
+        badgeColor = CleanTheme.accentRed;
+        label = 'Avanzato';
         break;
     }
 
@@ -563,10 +599,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       ),
       child: Text(
         label,
-        style: AppTextStyles.bodySmall.copyWith(
-          color: badgeColor,
-          fontWeight: FontWeight.bold,
+        style: GoogleFonts.inter(
           fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: badgeColor,
         ),
       ),
     );
@@ -576,11 +612,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: AppColors.primaryNeon),
+        Icon(icon, size: 14, color: CleanTheme.primaryColor),
         const SizedBox(width: 4),
         Text(
           value,
-          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
       ],
     );
@@ -595,7 +635,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           const SizedBox(width: 8),
           Text(
             title,
-            style: AppTextStyles.h4.copyWith(color: AppColors.primaryNeon),
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.primaryColor,
+            ),
           ),
         ],
       ),
@@ -603,7 +647,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildExerciseCard(WorkoutExercise exercise) {
-    // We need to access the provider to get the current log state
     return Consumer<WorkoutLogProvider>(
       builder: (context, provider, child) {
         final exerciseLog = provider.currentWorkoutLog?.exerciseLogs.firstWhere(
@@ -620,13 +663,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
         final isCompleted = _completedExercises.contains(exercise.exercise.id);
 
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 12),
-          color: AppColors.backgroundLight,
-          shape: RoundedRectangleBorder(
+          decoration: BoxDecoration(
+            color: CleanTheme.surfaceColor,
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: isCompleted ? Colors.green : AppColors.primaryNeon,
+            border: Border.all(
+              color: isCompleted
+                  ? CleanTheme.accentGreen
+                  : CleanTheme.primaryColor,
               width: isCompleted ? 1.0 : 2.0,
             ),
           ),
@@ -644,17 +689,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: isCompleted ? null : AppColors.primaryGradient,
-                  color: isCompleted ? Colors.green : null,
+                  color: isCompleted
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.primaryColor,
                 ),
                 child: Center(
                   child: isCompleted
                       ? const Icon(Icons.check, size: 18, color: Colors.white)
                       : Text(
                           '${widget.workoutDay.exercises.indexOf(exercise) + 1}',
-                          style: AppTextStyles.bodyMedium.copyWith(
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
@@ -664,12 +711,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 children: [
                   Text(
                     exercise.exercise.name,
-                    style: AppTextStyles.h6.copyWith(
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isCompleted
+                          ? CleanTheme.textTertiary
+                          : CleanTheme.textPrimary,
                       decoration: isCompleted
                           ? TextDecoration.lineThrough
                           : null,
-                      color: isCompleted ? Colors.grey : AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -680,11 +730,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
-                  // Stats Row
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundLight,
+                      color: CleanTheme.backgroundColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -704,7 +753,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Muscle Groups
                   if (exercise.exercise.muscleGroups.isNotEmpty)
                     Wrap(
                       spacing: 4,
@@ -718,19 +766,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryNeon.withValues(alpha: 0.1),
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: AppColors.primaryNeon.withValues(
+                              color: CleanTheme.primaryColor.withValues(
                                 alpha: 0.3,
                               ),
                             ),
                           ),
                           child: Text(
                             muscle,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.primaryNeon,
+                            style: GoogleFonts.inter(
                               fontSize: 10,
+                              color: CleanTheme.primaryColor,
                             ),
                           ),
                         );
@@ -741,8 +791,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         exercise.notes!,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.primaryNeon,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: CleanTheme.primaryColor,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -751,7 +802,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               trailing: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.primaryNeon,
+                  color: CleanTheme.primaryColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextButton.icon(
@@ -761,11 +812,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     color: Colors.white,
                     size: 18,
                   ),
-                  label: const Text(
+                  label: Text(
                     'Info',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   style: TextButton.styleFrom(
@@ -777,7 +828,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
               children: [
-                // Anatomical View
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -786,13 +836,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   child: DualAnatomicalView(
                     muscleGroups: exercise.exercise.muscleGroups,
                     height: 150,
-                    highlightColor: const Color(0xFFFF0000),
+                    highlightColor: CleanTheme.accentRed,
                   ),
                 ),
 
-                const Divider(color: AppColors.border),
+                const Divider(color: CleanTheme.borderPrimary),
 
-                // Exercise Explanation Button
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -805,7 +854,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       icon: const Icon(Icons.info_outline),
                       label: const Text('Vedi Spiegazione Esercizio'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryNeon,
+                        backgroundColor: CleanTheme.primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
@@ -816,9 +865,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                 ),
 
-                const Divider(color: AppColors.border),
+                const Divider(color: CleanTheme.borderPrimary),
 
-                // Set Logging
                 SetLoggingWidget(
                   exercise: exercise,
                   exerciseLog: exerciseLog?.id.isNotEmpty == true
@@ -851,21 +899,36 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Uscire dall\'allenamento?'),
-        content: const Text(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Uscire dall\'allenamento?',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        content: Text(
           'Il tuo progresso andrà perso. Sei sicuro di voler uscire?',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla'),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close screen
+              Navigator.pop(context);
+              Navigator.pop(context);
             },
-            child: const Text('Esci', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Esci',
+              style: GoogleFonts.inter(color: CleanTheme.accentRed),
+            ),
           ),
         ],
       ),
@@ -879,26 +942,37 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Completa Allenamento'),
-        content: const Text(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Completa Allenamento',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        content: Text(
           'Sei sicuro di voler terminare l\'allenamento? Tutti i progressi verranno salvati.',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla'),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context);
 
-              // Show loading indicator
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => Center(
+                builder: (context) => const Center(
                   child: CircularProgressIndicator(
-                    color: AppColors.primaryNeon,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
               );
@@ -907,39 +981,61 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 await provider.completeWorkout();
 
                 if (!mounted) return;
-                Navigator.pop(context); // Close loading
+                Navigator.pop(context);
 
-                // Show success dialog
                 await showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Allenamento Completato!'),
-                    content: const Text(
+                    backgroundColor: CleanTheme.surfaceColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Allenamento Completato!',
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    content: Text(
                       'Ottimo lavoro! Il tuo allenamento è stato registrato con successo.',
+                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () {
-                          Navigator.pop(context); // Close dialog
-                          Navigator.pop(context); // Close screen
+                          Navigator.pop(context);
+                          Navigator.pop(context);
                         },
-                        child: const Text('Fantastico!'),
+                        child: Text(
+                          'Fantastico!',
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 );
               } catch (e) {
                 if (!mounted) return;
-                Navigator.pop(context); // Close loading
+                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Errore durante il salvataggio: $e'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: CleanTheme.accentRed,
                   ),
                 );
               }
             },
-            child: const Text('Termina', style: TextStyle(color: Colors.green)),
+            child: Text(
+              'Termina',
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentGreen,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../../presentation/widgets/modern_widgets.dart';
-import '../../../presentation/widgets/gamification_stats_widget.dart';
-import '../../../presentation/widgets/adaptive_training_widget.dart';
-import '../../../presentation/widgets/biometric_widget.dart';
-import '../../../presentation/widgets/nutrition_widget.dart';
-import '../../../presentation/widgets/form_check_widget.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
@@ -24,6 +19,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _selectedCategoryIndex = 0;
+  final List<String> _categories = ['Tutti', 'Forza', 'Cardio', 'Mobilità'];
+
   @override
   void initState() {
     super.initState();
@@ -34,20 +32,18 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       workoutProvider.fetchCurrentPlan();
 
-      // Load gamification stats
       final gamificationProvider = Provider.of<GamificationProvider>(
         context,
         listen: false,
       );
       gamificationProvider.refresh();
 
-      // Set callback for when generation completes
       workoutProvider.onGenerationComplete = () {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('🎉 Piano generato con successo!'),
-              backgroundColor: Colors.green,
+              backgroundColor: CleanTheme.accentGreen,
               duration: Duration(seconds: 3),
             ),
           );
@@ -59,271 +55,261 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Consumer2<AuthProvider, WorkoutProvider>(
           builder: (context, authProvider, workoutProvider, _) {
             final user = authProvider.user;
             final currentPlan = workoutProvider.currentPlan;
 
-            // Plan generation restriction logic
-            final lastGeneration = user?.lastPlanGeneration;
-            final daysSinceLastGeneration = lastGeneration != null
-                ? DateTime.now().difference(lastGeneration).inDays
-                : null;
-            final canGenerate =
-                lastGeneration == null ||
-                (daysSinceLastGeneration != null &&
-                    daysSinceLastGeneration >= 60);
-            final daysRemaining = daysSinceLastGeneration != null
-                ? 60 - daysSinceLastGeneration
-                : 0;
-
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
+                  // ═══════════════════════════════════════════
+                  // HEADER - Travel app style
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: ModernTheme.primaryColor,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      'assets/images/gigi_logo.png',
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'Hello, ${user?.name ?? 'Athlete'} 👋',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.headlineMedium,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
                             Text(
-                              'Ready to crush it?',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              'Ciao, ${user?.name ?? 'Atleta'}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w700,
+                                color: CleanTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Benvenuto in FitGenius',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: CleanTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      const CircleAvatar(
-                        radius: 24,
-                        backgroundColor: ModernTheme.surfaceColor,
-                        child: Icon(
-                          Icons.person,
-                          color: ModernTheme.primaryColor,
+                        // Avatar
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: CleanTheme.borderPrimary,
+                              width: 2,
+                            ),
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/gigi_logo.png'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ═══════════════════════════════════════════
+                  // SEARCH BAR
+                  // ═══════════════════════════════════════════
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: CleanSearchBar(
+                      hintText: 'Cerca esercizi...',
+                      showFilter: true,
+                    ),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // Gamification Stats
-                  const GamificationStatsWidget(),
+                  // ═══════════════════════════════════════════
+                  // SECTION: Il Tuo Allenamento
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CleanSectionHeader(
+                      title: 'Il tuo allenamento',
+                      actionText: 'Vedi tutti',
+                      onAction: () {},
+                    ),
+                  ),
 
                   const SizedBox(height: 16),
 
-                  // Adaptive Training Insights
-                  const AdaptiveTrainingWidget(),
+                  // Category Chips
+                  HorizontalChips(
+                    chips: _categories,
+                    selectedIndex: _selectedCategoryIndex,
+                    onSelected: (index) {
+                      setState(() => _selectedCategoryIndex = index);
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ═══════════════════════════════════════════
+                  // FEATURED WORKOUT CARD
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: _buildFeaturedWorkoutCard(
+                      user,
+                      workoutProvider,
+                      currentPlan,
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // ═══════════════════════════════════════════
+                  // SECTION: Programmi Consigliati
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CleanSectionHeader(
+                      title: 'Programmi consigliati',
+                      actionText: 'Vedi tutti',
+                      onAction: () {},
+                    ),
+                  ),
 
                   const SizedBox(height: 16),
 
-                  // Biometric Recovery Score
-                  const BiometricWidget(),
+                  // Horizontal scrolling workout cards
+                  SizedBox(
+                    height: 260,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        _buildWorkoutCard(
+                          title: 'Full Body Power',
+                          subtitle: '45 min • 8 esercizi',
+                          rating: '4.8',
+                          category: 'Forza',
+                          onTap: () => _navigateToTrialWorkout(),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildWorkoutCard(
+                          title: 'HIIT Cardio',
+                          subtitle: '30 min • 6 esercizi',
+                          rating: '4.6',
+                          category: 'Cardio',
+                          onTap: () => _navigateToTrialWorkout(),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildWorkoutCard(
+                          title: 'Yoga Flow',
+                          subtitle: '40 min • 12 pose',
+                          rating: '4.9',
+                          category: 'Mobilità',
+                          onTap: () => _navigateToTrialWorkout(),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 28),
 
-                  // Nutrition Tracking
-                  const NutritionWidget(),
-
-                  const SizedBox(height: 16),
-
-                  // AI Form Check
-                  const FormCheckWidget(),
-
-                  const SizedBox(height: 24),
-
-                  // Current Plan or Trial Workout
-                  if (workoutProvider.isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (workoutProvider.isGenerating ||
-                      (currentPlan != null &&
-                          currentPlan.status == 'processing'))
-                    ModernCard(
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 16),
-                          const CircularProgressIndicator(
-                            color: ModernTheme.primaryColor,
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            '🤖 AI sta analizzando il tuo profilo',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Generazione piano in corso...\nAttendi mentre l\'AI crea il tuo allenamento personalizzato.',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    )
-                  else
-                    _buildNoPlanCard(),
-
-                  const SizedBox(height: 32),
-
-                  // Quick Actions
-                  _buildSectionHeader('Quick Actions'),
-                  const SizedBox(height: 16),
-
-                  // Show trial requirement warning if error exists
-                  if (workoutProvider.error == 'trial_required')
-                    ModernCard(
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.orange,
-                            size: 32,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Trial Workout Richiesto',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Colors.orange,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Completa il trial workout prima di generare un piano personalizzato',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                  // ═══════════════════════════════════════════
+                  // SECTION: Il Tuo Programma (Schedule)
+                  // ═══════════════════════════════════════════
+                  if (currentPlan != null &&
+                      currentPlan.workouts.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: CleanSectionHeader(
+                        title: 'Il tuo programma',
+                        actionText: 'Modifica',
+                        onAction: () {},
                       ),
                     ),
 
-                  if (workoutProvider.error == 'trial_required')
                     const SizedBox(height: 16),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ModernButton(
-                          text: canGenerate
-                              ? 'New Plan'
-                              : 'New Plan ($daysRemaining days)',
-                          icon: Icons.add_circle_outline,
-                          backgroundColor:
-                              !canGenerate ||
-                                  workoutProvider.error == 'trial_required'
-                              ? Colors.grey
-                              : null, // Use default accent color
-                          onPressed: !canGenerate
-                              ? null
-                              : () async {
-                                  if (user != null &&
-                                      !user.trialWorkoutCompleted) {
-                                    // Show Alert Dialog for Trial Workout
-                                    if (context.mounted) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          backgroundColor:
-                                              ModernTheme.cardColor,
-                                          title: const Text(
-                                            'Consiglio FitGenius',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          content: const Text(
-                                            'Sarebbe molto meglio fare il Trial Workout prima di generare la scheda. Questo ci permette di calibrare perfettamente i carichi su di te.',
-                                            style: TextStyle(
-                                              color: Colors.white70,
-                                            ),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                // Proceed with generation anyway
-                                                _generatePlan(
-                                                  context,
-                                                  workoutProvider,
-                                                );
-                                              },
-                                              child: const Text(
-                                                'Genera Comunque',
-                                                style: TextStyle(
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                            ),
-                                            ModernButton(
-                                              text: 'Vai al Trial',
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const TrialWorkoutGenerationScreen(),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  } else {
-                                    // Proceed directly
-                                    _generatePlan(context, workoutProvider);
-                                  }
-                                },
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: currentPlan.workouts.take(3).map((workout) {
+                          final dayIndex =
+                              currentPlan.workouts.indexOf(workout) + 1;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildScheduleItem(
+                              day: 'Giorno $dayIndex',
+                              title: workout.name,
+                              duration: '${workout.estimatedDuration} min',
+                              exercises: '${workout.exercises.length} esercizi',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => WorkoutSessionScreen(
+                                      workoutDay: workout,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    ],
+                    ),
+                  ],
+
+                  // ═══════════════════════════════════════════
+                  // QUICK ACTIONS
+                  // ═══════════════════════════════════════════
+                  const SizedBox(height: 16),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CleanSectionHeader(title: 'Azioni rapide'),
                   ),
+
+                  const SizedBox(height: 16),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickAction(
+                            icon: Icons.fitness_center,
+                            label: 'Trial Workout',
+                            onTap: () => _navigateToTrialWorkout(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickAction(
+                            icon: Icons.auto_awesome,
+                            label: 'Genera Piano',
+                            onTap: () =>
+                                _generatePlan(context, workoutProvider),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildQuickAction(
+                            icon: Icons.history,
+                            label: 'Cronologia',
+                            onTap: () {},
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 100), // Space for bottom nav
                 ],
               ),
             );
@@ -333,179 +319,245 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(title, style: Theme.of(context).textTheme.titleLarge);
-  }
-
-  Widget _buildNextWorkoutCard(dynamic plan) {
-    if (plan.workouts.isEmpty) return const SizedBox.shrink();
-    final nextWorkout = plan.workouts.first;
-
-    return ModernCard(
-      isSelected: true,
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WorkoutSessionScreen(workoutDay: nextWorkout),
-          ),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Next Up',
-                style: GoogleFonts.outfit(
-                  color: ModernTheme.primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Icon(Icons.arrow_forward, color: ModernTheme.primaryColor),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            nextWorkout.name,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.timer, size: 16, color: Colors.white70),
-              const SizedBox(width: 4),
-              Text(
-                '${nextWorkout.estimatedDuration} min',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(width: 16),
-              const Icon(Icons.fitness_center, size: 16, color: Colors.white70),
-              const SizedBox(width: 4),
-              Text(
-                '${nextWorkout.exercises.length} exercises',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoPlanCard() {
-    return ModernCard(
-      isSelected: true,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: ModernTheme.primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.play_circle_outline,
-                  color: ModernTheme.primaryColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Inizia il Tuo Trial Workout',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Prova un allenamento personalizzato con coach vocale AI!',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ModernButton(
-            text: 'Inizia Trial Workout',
-            icon: Icons.fitness_center,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TrialWorkoutGenerationScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTrialWorkoutButton(UserModel? user) {
-    if (user?.trialWorkoutCompleted == true) {
-      return const SizedBox.shrink();
+  // ═══════════════════════════════════════════════════════════
+  // FEATURED WORKOUT CARD
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildFeaturedWorkoutCard(
+    UserModel? user,
+    WorkoutProvider workoutProvider,
+    dynamic currentPlan,
+  ) {
+    // Loading state
+    if (workoutProvider.isLoading) {
+      return Container(
+        height: 280,
+        decoration: BoxDecoration(
+          color: CleanTheme.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: CleanTheme.borderPrimary),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+        ),
+      );
     }
-    return ModernCard(
-      isSelected: true,
-      child: Column(
+
+    // Generating state
+    if (workoutProvider.isGenerating ||
+        (currentPlan != null && currentPlan.status == 'processing')) {
+      return Container(
+        height: 280,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: CleanTheme.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: CleanTheme.primaryColor),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(color: CleanTheme.primaryColor),
+            const SizedBox(height: 24),
+            Text(
+              '🤖 AI sta creando il tuo piano',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Attendere prego...',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Has plan - show next workout
+    if (currentPlan != null && currentPlan.workouts.isNotEmpty) {
+      final nextWorkout = currentPlan.workouts.first;
+      return FeaturedImageCard(
+        assetImage: 'assets/images/workout_hero.png',
+        title: nextWorkout.name,
+        badge: 'Prossimo',
+        rating: '4.8',
+        reviews: '${nextWorkout.exercises.length} esercizi',
+        subtitle: '${nextWorkout.estimatedDuration} min • Inizia ora',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  WorkoutSessionScreen(workoutDay: nextWorkout),
+            ),
+          );
+        },
+        onFavorite: () {},
+      );
+    }
+
+    // No plan - show trial workout CTA
+    return FeaturedImageCard(
+      assetImage: 'assets/images/cardio.png',
+      title: 'Inizia il Tuo Percorso',
+      badge: 'Nuovo',
+      rating: '5.0',
+      reviews: 'Consigliato',
+      subtitle: 'Prova un allenamento con AI Coach',
+      onTap: () => _navigateToTrialWorkout(),
+      onFavorite: () {},
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // WORKOUT CARD (Small)
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildWorkoutCard({
+    required String title,
+    required String subtitle,
+    required String rating,
+    required String category,
+    required VoidCallback onTap,
+  }) {
+    return ImageCard(
+      title: title,
+      subtitle: subtitle,
+      rating: rating,
+      price: category,
+      width: 180,
+      imageHeight: 130,
+      onTap: onTap,
+      onFavorite: () {},
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SCHEDULE ITEM
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildScheduleItem({
+    required String day,
+    required String title,
+    required String duration,
+    required String exercises,
+    required VoidCallback onTap,
+  }) {
+    return CleanCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(16),
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: ModernTheme.primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.play_circle_outline,
-                  color: ModernTheme.primaryColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Try Your First Workout',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Start with a beginner-friendly trial workout',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Icon
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.fitness_center,
+              color: CleanTheme.primaryColor,
+              size: 24,
+            ),
           ),
-          const SizedBox(height: 16),
-          ModernButton(
-            text: 'Start Trial Workout',
-            icon: Icons.fitness_center,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TrialWorkoutGenerationScreen(),
+          const SizedBox(width: 14),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  day,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: CleanTheme.primaryColor,
+                  ),
                 ),
-              );
-            },
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$duration • $exercises',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
+          // Arrow
+          const Icon(Icons.chevron_right, color: CleanTheme.textSecondary),
         ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // QUICK ACTION BUTTON
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: CleanTheme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: CleanTheme.borderPrimary),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CleanTheme.textPrimary.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: CleanTheme.textPrimary, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: CleanTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // NAVIGATION HELPERS
+  // ═══════════════════════════════════════════════════════════
+  void _navigateToTrialWorkout() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const TrialWorkoutGenerationScreen(),
       ),
     );
   }
@@ -514,7 +566,6 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     WorkoutProvider workoutProvider,
   ) async {
-    // Navigate to preferences review screen
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PreferencesReviewScreen()),

@@ -75,8 +75,8 @@ class _AchievementUnlockedDialogState extends State<AchievementUnlockedDialog>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  achievement.rarityColor.withOpacity(0.9),
-                  achievement.rarityColor.withOpacity(0.7),
+                  achievement.rarityColor.withValues(alpha: 0.9),
+                  achievement.rarityColor.withValues(alpha: 0.7),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -84,7 +84,7 @@ class _AchievementUnlockedDialogState extends State<AchievementUnlockedDialog>
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: achievement.rarityColor.withOpacity(0.5),
+                  color: achievement.rarityColor.withValues(alpha: 0.5),
                   blurRadius: 30,
                   offset: const Offset(0, 15),
                 ),
@@ -106,7 +106,7 @@ class _AchievementUnlockedDialogState extends State<AchievementUnlockedDialog>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Text(
@@ -137,7 +137,7 @@ class _AchievementUnlockedDialogState extends State<AchievementUnlockedDialog>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

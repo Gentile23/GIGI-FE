@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/adaptive_training_model.dart';
 import '../../../data/services/adaptive_training_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class RecommendationsScreen extends StatefulWidget {
   const RecommendationsScreen({super.key});
@@ -44,18 +44,29 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        title: const Text('Apply Recommendation?'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Applica Raccomandazione?',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Text(
-          'This will modify your workout plan based on:\n\n${recommendation.reason}',
+          'Questo modificherà il tuo piano in base a:\n\n${recommendation.reason}',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
           ),
-          ModernButton(
-            text: 'Apply',
+          CleanButton(
+            text: 'Applica',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -71,16 +82,16 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Recommendation applied successfully!'),
-              backgroundColor: Colors.green,
+              content: Text('Raccomandazione applicata!'),
+              backgroundColor: CleanTheme.accentGreen,
             ),
           );
           _loadRecommendations();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('❌ Failed to apply recommendation'),
-              backgroundColor: Colors.red,
+              content: Text('Errore durante l\'applicazione'),
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -101,7 +112,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           _recommendations.remove(recommendation);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Recommendation dismissed')),
+          const SnackBar(content: Text('Raccomandazione ignorata')),
         );
       }
     }
@@ -110,25 +121,39 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('AI Recommendations'),
-        backgroundColor: ModernTheme.cardColor,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadRecommendations,
+        title: Text(
+          'Raccomandazioni AI',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
           ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+        actions: [
+          CleanIconButton(
+            icon: Icons.refresh_outlined,
+            onTap: _loadRecommendations,
+            hasBorder: false,
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : _recommendations.isEmpty
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadRecommendations,
+              color: CleanTheme.primaryColor,
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 itemCount: _recommendations.length,
                 itemBuilder: (context, index) {
                   return _buildRecommendationCard(_recommendations[index]);
@@ -140,36 +165,51 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.check_circle_outline,
-            size: 80,
-            color: Colors.green.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'No Recommendations',
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_outline,
+                size: 64,
+                color: CleanTheme.accentGreen,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'You\'re doing great! Keep up the good work.',
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 24),
+            Text(
+              'Nessuna Raccomandazione',
+              style: GoogleFonts.outfit(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Stai andando alla grande! Continua così.',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildRecommendationCard(TrainingRecommendation recommendation) {
-    return ModernCard(
+    return CleanCard(
       margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -178,7 +218,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: recommendation.typeColor.withValues(alpha: 0.2),
+                  color: recommendation.typeColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -196,20 +236,24 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                       recommendation.typeLabel,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         color: recommendation.typeColor,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.psychology, size: 14, color: Colors.white60),
+                        Icon(
+                          Icons.psychology_outlined,
+                          size: 14,
+                          color: CleanTheme.textTertiary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
-                          '${(recommendation.confidenceScore * 100).toInt()}% confidence',
-                          style: const TextStyle(
+                          '${(recommendation.confidenceScore * 100).toInt()}% confidenza',
+                          style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: Colors.white60,
+                            color: CleanTheme.textTertiary,
                           ),
                         ),
                       ],
@@ -222,26 +266,29 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           const SizedBox(height: 16),
           Text(
             recommendation.reason,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
           ),
           if (recommendation.suggestedChanges != null &&
               recommendation.suggestedChanges!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
+                color: CleanTheme.borderSecondary,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Suggested Changes:',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white70,
+                  Text(
+                    'Modifiche Suggerite:',
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -258,41 +305,36 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                           const SizedBox(width: 8),
                           Text(
                             '${_formatKey(entry.key)}: ${entry.value}%',
-                            style: const TextStyle(fontSize: 13),
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: CleanTheme.textPrimary,
+                            ),
                           ),
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: CleanButton(
+                  text: 'Ignora',
+                  isOutlined: true,
                   onPressed: () => _dismissRecommendation(recommendation),
-                  icon: const Icon(Icons.close, size: 18),
-                  label: const Text('Dismiss'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white60,
-                    side: const BorderSide(color: Colors.white24),
-                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 flex: 2,
-                child: ElevatedButton.icon(
+                child: CleanButton(
+                  text: 'Applica',
+                  icon: Icons.check,
                   onPressed: () => _applyRecommendation(recommendation),
-                  icon: const Icon(Icons.check, size: 18),
-                  label: const Text('Apply'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: recommendation.typeColor,
-                    foregroundColor: Colors.white,
-                  ),
                 ),
               ),
             ],

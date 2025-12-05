@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/biometric_model.dart';
 import '../../data/services/biometric_service.dart';
 import '../../data/services/api_client.dart';
-import '../../core/theme/modern_theme.dart';
+import '../../core/theme/clean_theme.dart';
 import '../screens/biometric/biometric_dashboard_screen.dart';
 
 class BiometricWidget extends StatefulWidget {
@@ -55,33 +55,33 @@ class _BiometricWidgetState extends State<BiometricWidget> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              _recoveryScore!.readinessColor.withOpacity(0.3),
-              _recoveryScore!.readinessColor.withOpacity(0.1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: CleanTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: _recoveryScore!.readinessColor.withOpacity(0.5),
+            color: _recoveryScore!.readinessColor.withValues(alpha: 0.3),
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: _recoveryScore!.readinessColor.withValues(alpha: 0.05),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _recoveryScore!.readinessColor.withOpacity(0.2),
+                color: _recoveryScore!.readinessColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.favorite,
+                Icons.favorite_rounded,
                 color: _recoveryScore!.readinessColor,
                 size: 24,
               ),
@@ -92,24 +92,29 @@ class _BiometricWidgetState extends State<BiometricWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recovery Score',
+                    'Punteggio Recupero',
                     style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                   Text(
                     '$scorePercentage% - ${_recoveryScore!.readinessLabel}',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       fontSize: 12,
                       color: _recoveryScore!.readinessColor,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: Colors.white60, size: 16),
+            const Icon(
+              Icons.chevron_right,
+              color: CleanTheme.textTertiary,
+              size: 20,
+            ),
           ],
         ),
       ),

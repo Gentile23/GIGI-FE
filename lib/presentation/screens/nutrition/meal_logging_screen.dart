@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class MealLoggingScreen extends StatefulWidget {
   const MealLoggingScreen({super.key});
@@ -31,9 +31,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   int? _createdMealId;
 
   final Map<String, String> _mealTypes = {
-    'breakfast': 'Breakfast',
-    'lunch': 'Lunch',
-    'dinner': 'Dinner',
+    'breakfast': 'Colazione',
+    'lunch': 'Pranzo',
+    'dinner': 'Cena',
     'snack': 'Snack',
     'pre_workout': 'Pre-Workout',
     'post_workout': 'Post-Workout',
@@ -70,7 +70,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
           _isSubmitting = true;
         });
 
-        // Call quickLog immediately to analyze
         final result = await _nutritionService.quickLog(
           imagePath: pickedFile.path,
           mealType: _selectedMealType,
@@ -86,13 +85,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
             setState(() {
               _createdMealId = meal['id'];
 
-              // Populate fields from analysis
               if (analysis != null &&
                   analysis['food_items'] != null &&
                   analysis['food_items'].isNotEmpty) {
                 final firstItem = analysis['food_items'][0];
                 _foodNameController.text =
-                    firstItem['food_name'] ?? 'Detected Meal';
+                    firstItem['food_name'] ?? 'Pasto Rilevato';
               }
 
               _caloriesController.text = (meal['total_calories'] ?? 0)
@@ -107,12 +105,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 SnackBar(
                   content: Text(
                     analysis != null
-                        ? '✅ Meal analyzed! Verify details below.'
-                        : '⚠️ Analysis partially succeeded. Please verify.',
+                        ? 'Pasto analizzato! Verifica i dettagli.'
+                        : 'Analisi parziale. Verifica i dati.',
                   ),
                   backgroundColor: analysis != null
-                      ? Colors.green
-                      : Colors.orange,
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.accentOrange,
                 ),
               );
             }
@@ -122,9 +120,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 SnackBar(
                   content: Text(
                     result?['warning'] ??
-                        'Analysis failed. Please enter details manually.',
+                        'Analisi fallita. Inserisci manualmente.',
                   ),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: CleanTheme.accentOrange,
                 ),
               );
             }
@@ -136,7 +134,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
       }
     }
   }
@@ -160,7 +158,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
       bool success = false;
 
-      // If we already created a meal via quickLog, update it
       if (_createdMealId != null) {
         success = await _nutritionService.updateMeal(
           mealId: _createdMealId!,
@@ -172,7 +169,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
           foodItems: [foodItem],
         );
       } else {
-        // Normal logMeal
         final meal = await _nutritionService.logMeal(
           mealType: _selectedMealType,
           totalCalories: int.parse(_caloriesController.text),
@@ -189,15 +185,15 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Meal logged successfully!'),
-              backgroundColor: Colors.green,
+              content: Text('Pasto salvato!'),
+              backgroundColor: CleanTheme.accentGreen,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('❌ Failed to save meal'),
-              backgroundColor: Colors.red,
+              content: Text('Errore nel salvataggio'),
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -206,7 +202,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -217,22 +213,55 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        title: const Text('Choose Image Source'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Scegli Origine Immagine',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: CleanTheme.accentBlue,
+                ),
+              ),
+              title: Text(
+                'Fotocamera',
+                style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentPurple.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.photo_library,
+                  color: CleanTheme.accentPurple,
+                ),
+              ),
+              title: Text(
+                'Galleria',
+                style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
@@ -247,16 +276,22 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Log Meal',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          'Registra Pasto',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
-        backgroundColor: ModernTheme.cardColor,
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
@@ -265,12 +300,11 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               _buildMealTypeSelector(),
               const SizedBox(height: 24),
 
-              // Photo Upload/Display
               if (_imageFile != null)
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.file(
                         _imageFile!,
                         height: 200,
@@ -281,9 +315,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () => setState(() {
+                      child: CleanIconButton(
+                        icon: Icons.close,
+                        onTap: () => setState(() {
                           _imageFile = null;
                           _createdMealId = null;
                           _foodNameController.clear();
@@ -292,36 +326,44 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                           _carbsController.clear();
                           _fatController.clear();
                         }),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.black54,
-                        ),
                       ),
                     ),
                   ],
                 )
               else
-                ModernCard(
+                CleanCard(
                   onTap: _showImageSourceDialog,
+                  padding: const EdgeInsets.all(32),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.camera_alt,
-                        size: 40,
-                        color: ModernTheme.primaryColor,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.primaryLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_outlined,
+                          size: 36,
+                          color: CleanTheme.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Scansiona Pasto con AI',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.primaryColor,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Scan Meal with AI',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: ModernTheme.primaryColor,
+                        'Scatta una foto per analisi automatica',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: CleanTheme.textSecondary,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Take a photo for automatic nutrition analysis',
-                        style: TextStyle(fontSize: 12, color: Colors.white60),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -331,29 +373,30 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               const SizedBox(height: 24),
 
               if (_isSubmitting)
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Analyzing meal...'),
+                      const CircularProgressIndicator(
+                        color: CleanTheme.primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Analisi pasto in corso...',
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 )
               else ...[
-                Text(
-                  'Manual Entry',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                CleanSectionHeader(title: 'Inserimento Manuale'),
                 const SizedBox(height: 16),
 
                 _buildTextField(
                   controller: _foodNameController,
-                  label: 'Food Name',
-                  icon: Icons.restaurant_menu,
+                  label: 'Nome Alimento',
+                  icon: Icons.restaurant_menu_outlined,
                 ),
                 const SizedBox(height: 16),
 
@@ -362,8 +405,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     Expanded(
                       child: _buildTextField(
                         controller: _caloriesController,
-                        label: 'Calories',
-                        icon: Icons.local_fire_department,
+                        label: 'Calorie',
+                        icon: Icons.local_fire_department_outlined,
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -371,8 +414,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     Expanded(
                       child: _buildTextField(
                         controller: _proteinController,
-                        label: 'Protein (g)',
-                        icon: Icons.fitness_center,
+                        label: 'Proteine (g)',
+                        icon: Icons.fitness_center_outlined,
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -385,8 +428,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     Expanded(
                       child: _buildTextField(
                         controller: _carbsController,
-                        label: 'Carbs (g)',
-                        icon: Icons.grain,
+                        label: 'Carbo (g)',
+                        icon: Icons.grain_outlined,
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -394,8 +437,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     Expanded(
                       child: _buildTextField(
                         controller: _fatController,
-                        label: 'Fat (g)',
-                        icon: Icons.opacity,
+                        label: 'Grassi (g)',
+                        icon: Icons.opacity_outlined,
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -404,11 +447,16 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
                 const SizedBox(height: 32),
 
-                ModernButton(
-                  text: _createdMealId != null ? 'Update Meal' : 'Save Meal',
+                CleanButton(
+                  text: _createdMealId != null
+                      ? 'Aggiorna Pasto'
+                      : 'Salva Pasto',
+                  icon: Icons.check,
+                  width: double.infinity,
                   onPressed: _isSubmitting ? null : _submitMeal,
                 ),
               ],
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -433,12 +481,17 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                   setState(() => _selectedMealType = entry.key);
                 }
               },
-              selectedColor: ModernTheme.primaryColor,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              selectedColor: CleanTheme.primaryColor,
+              labelStyle: GoogleFonts.inter(
+                color: isSelected ? Colors.white : CleanTheme.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
-              backgroundColor: ModernTheme.cardColor,
+              backgroundColor: CleanTheme.surfaceColor,
+              side: BorderSide(
+                color: isSelected
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.borderPrimary,
+              ),
             ),
           );
         }).toList(),
@@ -455,28 +508,32 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.white60),
+        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        prefixIcon: Icon(icon, color: CleanTheme.textTertiary),
         filled: true,
-        fillColor: ModernTheme.cardColor,
+        fillColor: CleanTheme.surfaceColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: ModernTheme.primaryColor),
+          borderSide: const BorderSide(
+            color: CleanTheme.primaryColor,
+            width: 2,
+          ),
         ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Required';
+          return 'Richiesto';
         }
         return null;
       },

@@ -154,6 +154,10 @@ class BiometricService {
     try {
       final response = await _apiClient.dio.get('/biometric/insights');
 
+      if (response.data == null || response.data is List) {
+        return null;
+      }
+
       // Safely parse recovery_score
       EnhancedRecoveryScore? recoveryScore;
       if (response.data['recovery_score'] != null &&

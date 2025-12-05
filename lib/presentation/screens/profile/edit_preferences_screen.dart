@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/training_preferences_model.dart';
+import '../../widgets/clean_widgets.dart';
 
 class EditPreferencesScreen extends StatefulWidget {
   final bool showGenerateButton;
@@ -54,7 +55,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         _height = user.height;
         _weight = user.weight;
 
-        // Calculate age from dateOfBirth
         if (user.dateOfBirth != null) {
           final now = DateTime.now();
           _age = now.year - user.dateOfBirth!.year;
@@ -178,7 +178,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Preferenze salvate con successo'),
-              backgroundColor: Colors.green,
+              backgroundColor: CleanTheme.primaryColor,
             ),
           );
           Navigator.pop(context, true);
@@ -190,7 +190,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
               content: Text(
                 authProvider.error ?? 'Errore durante il salvataggio',
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -198,7 +198,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
         );
       }
     } finally {
@@ -211,35 +214,47 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
           widget.showGenerateButton
               ? 'Rivedi Preferenze'
               : 'Modifica Preferenze',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           children: [
             if (widget.showGenerateButton) ...[
-              Card(
-                color: AppColors.primaryNeon.withOpacity(0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: AppColors.primaryNeon),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Rivedi le tue preferenze prima di generare il piano. Puoi modificarle se necessario.',
-                          style: AppTextStyles.bodyMedium,
+              CleanCard(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: CleanTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Rivedi le tue preferenze prima di generare il piano. Puoi modificarle se necessario.',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: CleanTheme.textSecondary,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -247,14 +262,24 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
             // Personal Info Section
             _buildSectionTitle('Informazioni Personali'),
-            _buildInfoRow(
-              'Altezza',
-              '${_height?.toStringAsFixed(0) ?? '-'} cm',
+            CleanCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildInfoRow(
+                    'Altezza',
+                    '${_height?.toStringAsFixed(0) ?? '-'} cm',
+                  ),
+                  _buildInfoRow(
+                    'Peso',
+                    '${_weight?.toStringAsFixed(0) ?? '-'} kg',
+                  ),
+                  _buildInfoRow('Età', '${_age ?? '-'} anni'),
+                  _buildInfoRow('Genere', _getGenderLabel(_gender)),
+                  _buildInfoRow('Forma Fisica', _getBodyShapeLabel(_bodyShape)),
+                ],
+              ),
             ),
-            _buildInfoRow('Peso', '${_weight?.toStringAsFixed(0) ?? '-'} kg'),
-            _buildInfoRow('Età', '${_age ?? '-'} anni'),
-            _buildInfoRow('Genere', _getGenderLabel(_gender)),
-            _buildInfoRow('Forma Fisica', _getBodyShapeLabel(_bodyShape)),
             const SizedBox(height: 24),
 
             // Training Goals Section
@@ -341,38 +366,26 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
             // Action Buttons
             if (widget.showGenerateButton) ...[
-              ElevatedButton(
+              CleanButton(
+                text: 'Genera Piano con Queste Preferenze',
+                width: double.infinity,
                 onPressed: _isLoading ? null : widget.onGenerate,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                  backgroundColor: AppColors.primaryNeon,
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Genera Piano con Queste Preferenze',
-                        style: TextStyle(fontSize: 16),
-                      ),
               ),
               const SizedBox(height: 12),
-              OutlinedButton(
+              CleanButton(
+                text: 'Salva Modifiche',
+                width: double.infinity,
+                isOutlined: true,
                 onPressed: _isLoading ? null : _savePreferences,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: const Text('Salva Modifiche'),
               ),
             ] else ...[
-              ElevatedButton(
+              CleanButton(
+                text: 'Salva Preferenze',
+                width: double.infinity,
                 onPressed: _isLoading ? null : _savePreferences,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Salva Preferenze'),
               ),
             ],
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -384,7 +397,11 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         title,
-        style: AppTextStyles.h5.copyWith(color: AppColors.primaryNeon),
+        style: GoogleFonts.outfit(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: CleanTheme.primaryColor,
+        ),
       ),
     );
   }
@@ -395,11 +412,19 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTextStyles.bodyMedium),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
           Text(
             value,
-            style: AppTextStyles.bodyMedium.copyWith(
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
             ),
           ),
         ],
@@ -418,10 +443,29 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<T>(
         value: value,
+        style: GoogleFonts.inter(color: CleanTheme.textPrimary),
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+          filled: true,
+          fillColor: CleanTheme.surfaceColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: CleanTheme.primaryColor,
+              width: 2,
+            ),
+          ),
         ),
+        dropdownColor: CleanTheme.surfaceColor,
         items: items
             .map(
               (item) =>
@@ -450,12 +494,19 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label, style: AppTextStyles.bodyMedium),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
               Text(
                 '${value.toInt()} $suffix',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryNeon,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
                 ),
               ),
             ],
@@ -465,6 +516,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             min: min,
             max: max,
             divisions: divisions,
+            activeColor: CleanTheme.primaryColor,
+            inactiveColor: CleanTheme.borderSecondary,
             onChanged: onChanged,
           ),
         ],
@@ -478,16 +531,35 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Attrezzatura Disponibile', style: AppTextStyles.bodyMedium),
-          const SizedBox(height: 8),
+          Text(
+            'Attrezzatura Disponibile',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: Equipment.values.map((eq) {
               final isSelected = _equipment.contains(eq);
               return FilterChip(
-                label: Text(_getEquipmentLabel(eq)),
+                label: Text(
+                  _getEquipmentLabel(eq),
+                  style: GoogleFonts.inter(
+                    color: isSelected ? Colors.white : CleanTheme.textPrimary,
+                  ),
+                ),
                 selected: isSelected,
+                selectedColor: CleanTheme.primaryColor,
+                checkmarkColor: Colors.white,
+                backgroundColor: CleanTheme.surfaceColor,
+                side: BorderSide(
+                  color: isSelected
+                      ? CleanTheme.primaryColor
+                      : CleanTheme.borderPrimary,
+                ),
                 onSelected: (selected) {
                   setState(() {
                     if (selected) {

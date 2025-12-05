@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
 import 'edit_preferences_screen.dart';
 
@@ -12,12 +13,22 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(
+          'Profilo',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
+          CleanIconButton(
+            icon: Icons.edit_outlined,
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -25,182 +36,232 @@ class ProfileScreen extends StatelessWidget {
                 ),
               );
             },
+            hasBorder: false,
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         children: [
           // User info card
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppColors.primaryNeon,
-                    child: const Text(
-                      'M',
-                      style: TextStyle(fontSize: 40, color: Colors.white),
-                    ),
+          CleanCard(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const CleanAvatar(
+                  initials: 'M',
+                  size: 100,
+                  backgroundColor: CleanTheme.primaryLight,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Marco Rossi',
+                  style: GoogleFonts.outfit(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Marco Rossi',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'marco@example.com',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildStatColumn('Height', '180 cm'),
-                      _buildStatColumn('Weight', '75 kg'),
-                      _buildStatColumn('Age', '28'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Subscription card
-          Card(
-            color: AppColors.primaryNeon,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PaywallScreen(),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'marco@example.com',
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.workspace_premium,
-                          color: AppColors.background,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Current Plan',
-                          style: AppTextStyles.h5.copyWith(
-                            color: AppColors.background,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Free Tier',
-                      style: AppTextStyles.h3.copyWith(
-                        color: AppColors.background,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Upgrade to unlock AI coaching, pose detection, and more',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.background.withValues(alpha: 0.9),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PaywallScreen(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.background,
-                        foregroundColor: AppColors.primaryNeon,
-                      ),
-                      child: const Text('Upgrade to Premium'),
-                    ),
+                    _buildStatColumn('Altezza', '180 cm'),
+                    _buildDivider(),
+                    _buildStatColumn('Peso', '75 kg'),
+                    _buildDivider(),
+                    _buildStatColumn('Età', '28'),
                   ],
                 ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Subscription card
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [CleanTheme.primaryColor, Color(0xFF10B981)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PaywallScreen(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.workspace_premium_outlined,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Piano Attuale',
+                            style: GoogleFonts.inter(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Free Tier',
+                        style: GoogleFonts.outfit(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Passa a Premium per sbloccare il coaching AI, l\'analisi della forma e altro ancora.',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Passa a Premium',
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Settings section
-          Text('Settings', style: AppTextStyles.h5),
+          CleanSectionHeader(title: 'Impostazioni'),
           const SizedBox(height: 12),
 
-          _buildSettingsTile(
-            icon: Icons.person,
-            title: 'Personal Information',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
+          CleanCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildSettingsTile(
+                  icon: Icons.person_outline,
+                  title: 'Informazioni Personali',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfileScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-          _buildSettingsTile(
-            icon: Icons.fitness_center,
-            title: 'Fitness Goals',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditPreferencesScreen(),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.fitness_center_outlined,
+                  title: 'Obiettivi Fitness',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditPreferencesScreen(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.notifications_outlined,
+                  title: 'Notifiche',
+                  onTap: () {},
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.security_outlined,
+                  title: 'Privacy & Sicurezza',
+                  onTap: () {},
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.help_outline,
+                  title: 'Aiuto & Supporto',
+                  onTap: () {},
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.info_outline,
+                  title: 'Info',
+                  onTap: () {},
+                ),
+              ],
+            ),
           ),
-          _buildSettingsTile(
-            icon: Icons.notifications,
-            title: 'Notifications',
-            onTap: () {},
-          ),
-          _buildSettingsTile(
-            icon: Icons.security,
-            title: 'Privacy & Security',
-            onTap: () {},
-          ),
-          _buildSettingsTile(
-            icon: Icons.help,
-            title: 'Help & Support',
-            onTap: () {},
-          ),
-          _buildSettingsTile(icon: Icons.info, title: 'About', onTap: () {}),
 
           const SizedBox(height: 24),
 
           // Logout button
-          ListTile(
-            leading: const Icon(Icons.logout, color: AppColors.error),
-            title: const Text(
-              'Logout',
-              style: TextStyle(color: AppColors.error),
-            ),
-            onTap: () {
+          CleanButton(
+            text: 'Logout',
+            icon: Icons.logout,
+            backgroundColor: CleanTheme.accentRed.withValues(alpha: 0.1),
+            textColor: CleanTheme.accentRed,
+            onPressed: () {
               _showLogoutDialog(context);
             },
           ),
+
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -209,16 +270,28 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildStatColumn(String label, String value) {
     return Column(
       children: [
-        Text(value, style: AppTextStyles.h5),
+        Text(
+          value,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: CleanTheme.textSecondary,
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildDivider() {
+    return Container(height: 30, width: 1, color: CleanTheme.borderPrimary);
   }
 
   Widget _buildSettingsTile({
@@ -227,10 +300,37 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: CleanTheme.primaryLight,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: CleanTheme.primaryColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w500,
+          color: CleanTheme.textPrimary,
+        ),
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: CleanTheme.textTertiary,
+        size: 20,
+      ),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildSettingsDivider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      color: CleanTheme.borderSecondary,
+      indent: 16,
+      endIndent: 16,
     );
   }
 
@@ -238,12 +338,23 @@ class ProfileScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Logout',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Sei sicuro di voler uscire?',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -253,8 +364,11 @@ class ProfileScreen extends StatelessWidget {
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) =>
-                    const Center(child: CircularProgressIndicator()),
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(
+                    color: CleanTheme.primaryColor,
+                  ),
+                ),
               );
 
               // Perform logout
@@ -271,7 +385,13 @@ class ProfileScreen extends StatelessWidget {
                 ).pushNamedAndRemoveUntil('/auth', (route) => false);
               }
             },
-            child: const Text('Logout'),
+            child: Text(
+              'Esci',
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentRed,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -305,7 +425,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      backgroundColor: CleanTheme.backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Modifica Profilo',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -315,31 +448,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Avatar
               Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppColors.primaryNeon,
-                    child: const Text(
-                      'M',
-                      style: TextStyle(fontSize: 40, color: Colors.white),
-                    ),
+                  const CleanAvatar(
+                    initials: 'M',
+                    size: 100,
+                    backgroundColor: CleanTheme.primaryLight,
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
                     child: Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryNeon,
+                        color: CleanTheme.primaryColor,
                         shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.camera_alt,
-                          color: AppColors.background,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          // TODO: Implement image picker
-                        },
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -349,15 +476,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 32),
 
               // Name
-              TextFormField(
+              _buildTextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person),
-                ),
+                label: 'Nome Completo',
+                icon: Icons.person_outline,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
+                    return 'Inserisci il tuo nome';
                   }
                   return null;
                 },
@@ -366,19 +491,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
 
               // Email
-              TextFormField(
+              _buildTextField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                ),
+                label: 'Email',
+                icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
+                    return 'Inserisci la tua email';
                   }
                   if (!value.contains('@')) {
-                    return 'Please enter a valid email';
+                    return 'Inserisci un\'email valida';
                   }
                   return null;
                 },
@@ -387,36 +510,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
 
               // Height
-              TextFormField(
+              _buildTextField(
                 controller: _heightController,
-                decoration: const InputDecoration(
-                  labelText: 'Height (cm)',
-                  prefixIcon: Icon(Icons.height),
-                ),
+                label: 'Altezza (cm)',
+                icon: Icons.height,
                 keyboardType: TextInputType.number,
               ),
 
               const SizedBox(height: 16),
 
               // Weight
-              TextFormField(
+              _buildTextField(
                 controller: _weightController,
-                decoration: const InputDecoration(
-                  labelText: 'Weight (kg)',
-                  prefixIcon: Icon(Icons.monitor_weight),
-                ),
+                label: 'Peso (kg)',
+                icon: Icons.monitor_weight_outlined,
                 keyboardType: TextInputType.number,
               ),
 
               const SizedBox(height: 32),
 
               // Save button
-              SizedBox(
+              CleanButton(
+                text: 'Salva Modifiche',
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  child: const Text('Save Changes'),
-                ),
+                onPressed: _saveProfile,
               ),
             ],
           ),
@@ -425,11 +542,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        prefixIcon: Icon(icon, color: CleanTheme.textSecondary),
+        filled: true,
+        fillColor: CleanTheme.surfaceColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.primaryColor),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
       // TODO: Implement save logic
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        const SnackBar(
+          content: Text('Profilo aggiornato con successo'),
+          backgroundColor: CleanTheme.primaryColor,
+        ),
       );
       Navigator.pop(context);
     }

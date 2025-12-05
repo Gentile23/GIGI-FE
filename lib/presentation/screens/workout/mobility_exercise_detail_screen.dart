@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 
@@ -15,50 +16,52 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
     this.duration,
   });
 
+  static const Color _mobilityColor = CleanTheme.accentPurple;
+  static const Color _breathingColor = CleanTheme.accentGreen;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1B4B),
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text('Mobility Exercise', style: AppTextStyles.h5),
-        backgroundColor: const Color(0xFF312E81),
+        title: Text(
+          'Esercizio Mobilità',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               workoutExercise.exercise.name,
-              style: AppTextStyles.h3.copyWith(
-                color: const Color(0xFFA78BFA),
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0.5,
+              style: GoogleFonts.outfit(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: _mobilityColor,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _buildTypeBadge(),
             const SizedBox(height: 24),
 
             if (workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
-              Text(
-                'Areas to Stretch',
-                style: AppTextStyles.h5.copyWith(
-                  color: const Color(0xFFA78BFA),
-                ),
-              ),
+              CleanSectionHeader(title: 'Aree da Allungare'),
               const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF312E81),
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              CleanCard(
                 padding: const EdgeInsets.all(16),
                 child: AnatomicalMuscleView(
                   muscleGroups: workoutExercise.exercise.muscleGroups,
                   height: 280,
-                  highlightColor: const Color(0xFF8B5CF6),
+                  highlightColor: _mobilityColor,
                 ),
               ),
               const SizedBox(height: 24),
@@ -73,24 +76,16 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
             ],
 
             if (workoutExercise.exercise.description.isNotEmpty) ...[
-              Text(
-                'Instructions',
-                style: AppTextStyles.h5.copyWith(
-                  color: const Color(0xFFA78BFA),
-                ),
-              ),
+              CleanSectionHeader(title: 'Istruzioni'),
               const SizedBox(height: 12),
-              Container(
+              CleanCard(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF312E81),
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 child: Text(
                   workoutExercise.exercise.description,
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    height: 1.8,
-                    color: const Color(0xFFE0E7FF),
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    height: 1.7,
+                    color: CleanTheme.textSecondary,
                   ),
                 ),
               ),
@@ -99,15 +94,11 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
 
             if (workoutExercise.exercise.videoUrl != null &&
                 workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
-              Text(
-                'Video Demonstration',
-                style: AppTextStyles.h5.copyWith(
-                  color: const Color(0xFFA78BFA),
-                ),
-              ),
+              CleanSectionHeader(title: 'Video Dimostrazione'),
               const SizedBox(height: 12),
               _buildVideoPlayer(workoutExercise.exercise.videoUrl!),
             ],
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -116,26 +107,23 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
 
   Widget _buildTypeBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withOpacity(0.2),
+        color: _breathingColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF10B981)),
+        border: Border.all(color: _breathingColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.self_improvement,
-            size: 16,
-            color: Color(0xFF10B981),
-          ),
+          Icon(Icons.self_improvement, size: 16, color: _breathingColor),
           const SizedBox(width: 6),
           Text(
-            'Mobility & Flexibility',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: const Color(0xFF10B981),
-              fontWeight: FontWeight.bold,
+            'Mobilità & Flessibilità',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: _breathingColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -147,40 +135,42 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF10B981).withOpacity(0.2),
-            const Color(0xFF059669).withOpacity(0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+        color: _breathingColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _breathingColor.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.air, color: Color(0xFF10B981), size: 28),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _breathingColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.air, color: _breathingColor, size: 24),
+              ),
               const SizedBox(width: 12),
               Text(
-                'Breathing Guide',
-                style: AppTextStyles.h5.copyWith(
-                  color: const Color(0xFF10B981),
+                'Guida Respirazione',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: _breathingColor,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildBreathingStep('1', 'Inhale deeply through your nose'),
+          const SizedBox(height: 20),
+          _buildBreathingStep('1', 'Inspira profondamente dal naso'),
           const SizedBox(height: 12),
-          _buildBreathingStep('2', 'Hold the stretch gently'),
+          _buildBreathingStep('2', 'Mantieni lo stretch dolcemente'),
           const SizedBox(height: 12),
-          _buildBreathingStep('3', 'Exhale slowly, deepening the stretch'),
+          _buildBreathingStep('3', 'Espira lentamente, approfondendo'),
           const SizedBox(height: 12),
-          _buildBreathingStep('4', 'Repeat with each breath'),
+          _buildBreathingStep('4', 'Ripeti con ogni respiro'),
         ],
       ),
     );
@@ -193,16 +183,17 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: const Color(0xFF10B981).withOpacity(0.2),
+            color: _breathingColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF10B981)),
+            border: Border.all(color: _breathingColor.withValues(alpha: 0.4)),
           ),
           child: Center(
             child: Text(
               number,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: const Color(0xFF10B981),
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: _breathingColor,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -211,8 +202,9 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: const Color(0xFFE0E7FF),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textPrimary,
             ),
           ),
         ),
@@ -221,30 +213,36 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
   }
 
   Widget _buildDurationCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF312E81),
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.timer, color: Color(0xFFA78BFA), size: 32),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _mobilityColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.timer_outlined, color: _mobilityColor, size: 28),
+          ),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Duration',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: const Color(0xFF9CA3AF),
+                'Durata',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: CleanTheme.textSecondary,
                 ),
               ),
               Text(
                 duration!,
-                style: AppTextStyles.h3.copyWith(
-                  color: const Color(0xFFA78BFA),
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: _mobilityColor,
                 ),
               ),
             ],
@@ -257,27 +255,24 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
   Widget _buildVideoPlayer(String url) {
     final videoId = YoutubePlayer.convertUrlToId(url);
     if (videoId == null) {
-      return Container(
+      return CleanCard(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF312E81),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Text(
-          'Invalid video URL',
-          style: TextStyle(color: Color(0xFFE0E7FF)),
+        child: Text(
+          'URL video non valido',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
       );
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: YoutubePlayer(
         controller: YoutubePlayerController(
           initialVideoId: videoId,
           flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
         ),
         showVideoProgressIndicator: true,
+        progressIndicatorColor: CleanTheme.primaryColor,
       ),
     );
   }

@@ -1,52 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../../presentation/widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import 'trial_workout_generation_screen.dart';
 import '../home/home_screen.dart';
 
-/// Screen that appears after questionnaire completion
-/// Gives users the choice to complete trial workout or skip it
 class TrialWorkoutChoiceScreen extends StatelessWidget {
   const TrialWorkoutChoiceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Text(
                 'Quasi fatto! 🎉',
                 style: GoogleFonts.outfit(
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 'Ora puoi scegliere come procedere',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
-              // Option 1: Complete Trial Workout (Recommended)
               _buildOptionCard(
                 context: context,
                 title: 'Trial Workout',
                 subtitle: 'Consigliato',
                 description:
-                    'Completa un breve allenamento di prova per aiutarci a creare il piano perfetto per te.',
+                    'Completa un breve allenamento di prova per creare il piano perfetto per te.',
                 icon: Icons.fitness_center,
-                iconColor: ModernTheme.primaryColor,
+                iconColor: CleanTheme.primaryColor,
                 benefits: [
                   'Piano personalizzato al 100%',
                   'Voice Coaching GRATIS',
@@ -66,17 +63,16 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Option 2: Skip Trial Workout
               _buildOptionCard(
                 context: context,
                 title: 'Salta il Trial',
                 subtitle: 'Genera subito',
                 description:
-                    'Genera il tuo piano di allenamento direttamente, senza il trial workout.',
+                    'Genera il tuo piano direttamente, senza il trial workout.',
                 icon: Icons.fast_forward,
-                iconColor: Colors.orange,
+                iconColor: CleanTheme.accentOrange,
                 benefits: [
                   'Piano generato immediatamente',
                   'Basato sul questionario',
@@ -89,24 +85,30 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
 
               const Spacer(),
 
-              // Info text
-              Container(
+              CleanCard(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.white70, size: 20),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.info_outline,
+                        color: CleanTheme.accentBlue,
+                        size: 20,
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Il Trial Workout richiede solo 15-20 minuti e migliora significativamente la qualità del tuo piano.',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                        'Il Trial Workout richiede solo 15-20 minuti e migliora la qualità del tuo piano.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -131,21 +133,12 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
     required bool isRecommended,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isRecommended
-              ? ModernTheme.primaryColor.withOpacity(0.5)
-              : Colors.white.withOpacity(0.1),
-          width: isRecommended ? 2 : 1,
-        ),
-      ),
+    return CleanCard(
+      padding: EdgeInsets.zero,
+      borderColor: isRecommended ? CleanTheme.primaryColor : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -153,7 +146,7 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.2),
+                    color: iconColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: iconColor, size: 28),
@@ -169,8 +162,8 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                             title,
                             style: GoogleFonts.outfit(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              color: CleanTheme.textPrimary,
                             ),
                           ),
                           if (isRecommended) ...[
@@ -181,14 +174,14 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: ModernTheme.primaryColor,
+                                color: CleanTheme.primaryColor,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 subtitle,
-                                style: const TextStyle(
+                                style: GoogleFonts.inter(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
                               ),
@@ -199,9 +192,10 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         description,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.white60),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -210,7 +204,6 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
             ),
           ),
 
-          // Benefits
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -225,8 +218,10 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
                           Expanded(
                             child: Text(
                               benefit,
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Colors.white70),
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: CleanTheme.textSecondary,
+                              ),
                             ),
                           ),
                         ],
@@ -237,15 +232,15 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
-          // Button
           Padding(
             padding: const EdgeInsets.all(20),
-            child: ModernButton(
+            child: CleanButton(
               text: buttonText,
               onPressed: onTap,
-              isPrimary: isRecommended,
+              isOutlined: !isRecommended,
+              width: double.infinity,
             ),
           ),
         ],
@@ -257,17 +252,28 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                color: CleanTheme.accentOrange,
+                size: 24,
+              ),
+            ),
             const SizedBox(width: 12),
             Text(
               'Sei sicuro?',
               style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -278,9 +284,9 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
           children: [
             Text(
               'Saltando il Trial Workout:',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+              style: GoogleFonts.outfit(
+                color: CleanTheme.textPrimary,
+                fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 12),
@@ -291,15 +297,15 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: ModernTheme.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: ModernTheme.primaryColor.withOpacity(0.3),
-                ),
+                color: CleanTheme.primaryLight,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                '💡 Ti consigliamo vivamente di completare il Trial Workout per ottenere i migliori risultati!',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                '💡 Ti consigliamo vivamente di completare il Trial Workout!',
+                style: GoogleFonts.inter(
+                  color: CleanTheme.textSecondary,
+                  fontSize: 13,
+                ),
               ),
             ),
           ],
@@ -309,12 +315,15 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Torna Indietro',
-              style: TextStyle(color: ModernTheme.primaryColor),
+              style: GoogleFonts.inter(
+                color: CleanTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -322,7 +331,10 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
             },
             child: Text(
               'Salta Comunque',
-              style: TextStyle(color: Colors.orange),
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentOrange,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -336,12 +348,15 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.close, color: Colors.red, size: 16),
+          const Icon(Icons.close, color: CleanTheme.accentRed, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: GoogleFonts.inter(
+                color: CleanTheme.textSecondary,
+                fontSize: 14,
+              ),
             ),
           ),
         ],

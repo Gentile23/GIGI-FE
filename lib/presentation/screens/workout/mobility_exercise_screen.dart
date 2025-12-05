@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/exercise_video_player.dart';
 import '../../widgets/workout/dual_anatomical_view.dart';
@@ -25,32 +26,35 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
   final Set<String> _completedExercises = {};
   final Set<String> _skippedExercises = {};
 
+  static const Color _mobilityColor = CleanTheme.accentBlue;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: const Color(0xFF00CED1), // Cyan
+        title: Text(
+          widget.title,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: _mobilityColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          // Distinct Header with Counter
+          // Header with Counter
           Container(
-            padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
             decoration: BoxDecoration(
-              color: const Color(0xFF00CED1),
+              color: _mobilityColor,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(32),
                 bottomRight: Radius.circular(32),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00CED1).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
             ),
             child: Column(
               children: [
@@ -59,9 +63,10 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                   children: [
                     Text(
                       widget.title,
-                      style: AppTextStyles.h4.copyWith(
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     Container(
@@ -70,7 +75,7 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -78,14 +83,15 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                           const Icon(
                             Icons.self_improvement,
                             color: Colors.white,
-                            size: 20,
+                            size: 18,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             'Mobilità',
-                            style: AppTextStyles.bodySmall.copyWith(
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -101,21 +107,21 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                   children: [
                     Text(
                       '${_completedExercises.length}',
-                      style: const TextStyle(
-                        fontSize: 64,
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.outfit(
+                        fontSize: 56,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
                         height: 1,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12, left: 4),
+                      padding: const EdgeInsets.only(bottom: 8, left: 4),
                       child: Text(
                         '/${widget.mobilityExercises.length}',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white.withOpacity(0.7),
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ),
@@ -124,8 +130,9 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Esercizi Completati',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: Colors.white.withOpacity(0.9),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
                 if (_skippedExercises.isNotEmpty)
@@ -133,8 +140,9 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       '${_skippedExercises.length} saltati',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withOpacity(0.7),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -145,7 +153,7 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
           // Exercise List
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
               itemCount: widget.mobilityExercises.length,
               itemBuilder: (context, index) {
                 final exercise = widget.mobilityExercises[index];
@@ -156,12 +164,12 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
 
           // Action Buttons
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: CleanTheme.surfaceColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -169,49 +177,32 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
             ),
             child: Column(
               children: [
-                SizedBox(
+                CleanButton(
+                  text: 'Completa Sessione',
+                  icon: Icons.check,
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        (_completedExercises.length +
-                                _skippedExercises.length) ==
-                            widget.mobilityExercises.length
-                        ? () {
-                            if (widget.onComplete != null) {
-                              widget.onComplete!();
-                            }
-                            Navigator.pop(context, true);
+                  onPressed:
+                      (_completedExercises.length + _skippedExercises.length) ==
+                          widget.mobilityExercises.length
+                      ? () {
+                          if (widget.onComplete != null) {
+                            widget.onComplete!();
                           }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00CED1),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Completa Sessione',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                          Navigator.pop(context, true);
+                        }
+                      : null,
                 ),
                 if ((_completedExercises.length + _skippedExercises.length) !=
                     widget.mobilityExercises.length)
                   Padding(
-                    padding: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.only(top: 12),
                     child: TextButton(
                       onPressed: () => Navigator.pop(context, false),
                       child: Text(
                         'Salta Intera Sessione',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 16,
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textSecondary,
+                          fontSize: 14,
                         ),
                       ),
                     ),
@@ -232,19 +223,24 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isCompleted
-            ? Colors.green.shade900.withOpacity(0.3)
+            ? CleanTheme.accentGreen.withValues(alpha: 0.08)
             : isSkipped
-            ? Colors.orange.shade900.withOpacity(0.2)
-            : AppColors.backgroundLight,
-        borderRadius: BorderRadius.circular(12),
+            ? CleanTheme.accentOrange.withValues(alpha: 0.08)
+            : CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSkipped ? Colors.orange : const Color(0xFF00CED1),
-          width: 2.0,
+          color: isCompleted
+              ? CleanTheme.accentGreen
+              : isSkipped
+              ? CleanTheme.accentOrange
+              : _mobilityColor.withValues(alpha: 0.3),
+          width: 1.5,
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Checkbox
             InkWell(
@@ -257,18 +253,22 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                 }
               }),
               child: Container(
-                width: 24,
-                height: 24,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCompleted ? Colors.green : Colors.transparent,
+                  color: isCompleted
+                      ? CleanTheme.accentGreen
+                      : Colors.transparent,
                   border: Border.all(
-                    color: isCompleted ? Colors.green : Colors.grey.shade400,
+                    color: isCompleted
+                        ? CleanTheme.accentGreen
+                        : CleanTheme.borderPrimary,
                     width: 2,
                   ),
                 ),
                 child: isCompleted
-                    ? const Icon(Icons.check, size: 16, color: Colors.white)
+                    ? const Icon(Icons.check, size: 18, color: Colors.white)
                     : null,
               ),
             ),
@@ -284,13 +284,15 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                       Expanded(
                         child: Text(
                           exercise.exercise.name,
-                          style: AppTextStyles.h5.copyWith(
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                             decoration: isCompleted || isSkipped
                                 ? TextDecoration.lineThrough
                                 : null,
                             color: isCompleted || isSkipped
-                                ? Colors.grey
-                                : AppColors.textPrimary,
+                                ? CleanTheme.textTertiary
+                                : CleanTheme.textPrimary,
                           ),
                         ),
                       ),
@@ -301,14 +303,17 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.2),
+                            color: CleanTheme.accentOrange.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             'Saltato',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: CleanTheme.accentOrange,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -316,20 +321,19 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${exercise.sets} sets × ${exercise.reps}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+                    '${exercise.sets} serie × ${exercise.reps}',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
-                  // Anatomical Muscle Visualization (always shown - both views)
+                  // Anatomical Muscle Visualization
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: DualAnatomicalView(
                       muscleGroups: exercise.exercise.muscleGroups,
                       height: 220,
-                      highlightColor: const Color(
-                        0xFF00CED1,
-                      ), // Cyan/Blue for mobility
+                      highlightColor: _mobilityColor,
                     ),
                   ),
                   // Video Player
@@ -344,11 +348,12 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                     ),
                   if (exercise.notes != null && exercise.notes!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         exercise.notes!,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: const Color(0xFF00CED1),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: _mobilityColor,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -357,7 +362,7 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
               ),
             ),
 
-            // Skip button
+            // Skip/Undo button
             if (!isCompleted && !isSkipped)
               IconButton(
                 onPressed: () => setState(() {
@@ -365,17 +370,16 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                   _completedExercises.remove(exercise.exercise.id);
                 }),
                 icon: const Icon(Icons.skip_next),
-                color: Colors.orange,
+                color: CleanTheme.accentOrange,
                 tooltip: 'Salta esercizio',
               ),
-            // Undo skip button
             if (isSkipped)
               IconButton(
                 onPressed: () => setState(() {
                   _skippedExercises.remove(exercise.exercise.id);
                 }),
                 icon: const Icon(Icons.undo),
-                color: Colors.orange,
+                color: CleanTheme.accentOrange,
                 tooltip: 'Annulla skip',
               ),
           ],

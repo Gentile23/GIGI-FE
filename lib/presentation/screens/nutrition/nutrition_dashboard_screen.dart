@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/nutrition_model.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 import 'meal_logging_screen.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
@@ -59,16 +59,22 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
           'Nutrition Coach',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
-        backgroundColor: ModernTheme.cardColor,
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today),
+            icon: const Icon(Icons.calendar_today_outlined),
             onPressed: () {
               // Date picker TODO
             },
@@ -76,11 +82,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : RefreshIndicator(
               onRefresh: _loadData,
+              color: CleanTheme.primaryColor,
+              backgroundColor: CleanTheme.surfaceColor,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -91,6 +101,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                     _buildMealsSection(),
                     const SizedBox(height: 24),
                     _buildWaterTracker(),
+                    const SizedBox(height: 80), // Space for FAB
                   ],
                 ),
               ),
@@ -105,22 +116,35 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
             _loadData();
           }
         },
-        backgroundColor: ModernTheme.primaryColor,
+        backgroundColor: CleanTheme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 4,
         icon: const Icon(Icons.add),
-        label: const Text('Log Meal'),
+        label: Text(
+          'Aggiungi Pasto',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
 
   Widget _buildCaloriesCard() {
     if (_dailyLog == null || _goal == null) {
-      return const ModernCard(child: Text('Set your goals to start tracking'));
+      return CleanCard(
+        child: Center(
+          child: Text(
+            'Imposta i tuoi obiettivi per iniziare a tracciare',
+            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+          ),
+        ),
+      );
     }
 
     final remaining = _goal!.dailyCalories - _dailyLog!.totalCalories;
     final progress = _dailyLog!.totalCalories / _goal!.dailyCalories;
 
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Row(
@@ -130,56 +154,78 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Calories',
+                    'Calorie',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                   Text(
-                    'Goal: ${_goal!.dailyCalories}',
-                    style: TextStyle(color: Colors.white60),
+                    'Obiettivo: ${_goal!.dailyCalories}',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
-              Text(
-                '${remaining > 0 ? remaining : 0}',
-                style: GoogleFonts.outfit(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: remaining < 0 ? Colors.red : ModernTheme.primaryColor,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${remaining > 0 ? remaining : 0}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: remaining < 0
+                          ? CleanTheme.accentRed
+                          : CleanTheme.primaryColor,
+                    ),
+                  ),
+                  Text(
+                    'rimanenti',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.textTertiary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                'remaining',
-                style: TextStyle(color: Colors.white60, fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
-              backgroundColor: Colors.white10,
+              backgroundColor: CleanTheme.borderSecondary,
               valueColor: AlwaysStoppedAnimation(
-                progress > 1.0 ? Colors.red : ModernTheme.primaryColor,
+                progress > 1.0 ? CleanTheme.accentRed : CleanTheme.primaryColor,
               ),
               minHeight: 12,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${_dailyLog!.totalCalories} eaten'),
-              Text('${(progress * 100).toInt()}%'),
+              Text(
+                '${_dailyLog!.totalCalories} assunte',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              Text(
+                '${(progress * 100).toInt()}%',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
             ],
           ),
         ],
@@ -194,28 +240,28 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
       children: [
         Expanded(
           child: _buildMacroItem(
-            'Protein',
+            'Proteine',
             _dailyLog!.totalProtein,
             _goal!.proteinGrams.toDouble(),
-            Colors.blue,
+            CleanTheme.accentBlue,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildMacroItem(
-            'Carbs',
+            'Carboidrati',
             _dailyLog!.totalCarbs,
             _goal!.carbsGrams.toDouble(),
-            Colors.green,
+            CleanTheme.primaryColor,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildMacroItem(
-            'Fat',
+            'Grassi',
             _dailyLog!.totalFat,
             _goal!.fatGrams.toDouble(),
-            Colors.orange,
+            CleanTheme.accentOrange,
           ),
         ),
       ],
@@ -230,27 +276,34 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   ) {
     final progress = target > 0 ? current / target : 0.0;
 
-    return ModernCard(
-      padding: const EdgeInsets.all(12),
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             '${current.toInt()}/${target.toInt()}g',
             style: GoogleFonts.outfit(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress.clamp(0.0, 1.0),
-              backgroundColor: color.withValues(alpha: 0.2),
+              backgroundColor: color.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation(color),
               minHeight: 6,
             ),
@@ -264,16 +317,26 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Today\'s Meals',
-          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
+        CleanSectionHeader(title: 'Pasti di Oggi'),
+        const SizedBox(height: 16),
         if (_meals.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Text('No meals logged yet'),
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.restaurant_outlined,
+                    size: 48,
+                    color: CleanTheme.textTertiary,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Nessun pasto registrato',
+                    style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                  ),
+                ],
+              ),
             ),
           )
         else
@@ -283,70 +346,118 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
   }
 
   Widget _buildMealCard(Meal meal) {
-    return ModernCard(
+    return CleanCard(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: meal.mealTypeColor.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(8),
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: meal.mealTypeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(meal.mealTypeIcon, color: meal.mealTypeColor, size: 24),
           ),
-          child: Icon(meal.mealTypeIcon, color: meal.mealTypeColor),
+          title: Text(
+            meal.mealTypeLabel,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          subtitle: Text(
+            '${meal.totalCalories} kcal',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          children: meal.foodItems.map((food) {
+            return Container(
+              decoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: CleanTheme.borderSecondary),
+                ),
+              ),
+              child: ListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
+                ),
+                title: Text(
+                  food.foodName,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w500,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                subtitle: Text(
+                  '${food.quantity} ${food.unit}',
+                  style: GoogleFonts.inter(color: CleanTheme.textTertiary),
+                ),
+                trailing: Text(
+                  '${food.calories} kcal',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
-        title: Text(
-          meal.mealTypeLabel,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text('${meal.totalCalories} kcal'),
-        children: meal.foodItems.map((food) {
-          return ListTile(
-            dense: true,
-            title: Text(food.foodName),
-            subtitle: Text('${food.quantity} ${food.unit}'),
-            trailing: Text('${food.calories} kcal'),
-          );
-        }).toList(),
       ),
     );
   }
 
   Widget _buildWaterTracker() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.2),
+              color: Colors.blue.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.water_drop, color: Colors.blue),
+            child: const Icon(Icons.water_drop, color: Colors.blue, size: 28),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Water Intake',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  'Acqua',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
                 ),
                 Text(
                   '${_dailyLog?.waterMl ?? 0} ml',
                   style: GoogleFonts.outfit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
                     color: Colors.blue,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: () {
+          CleanIconButton(
+            icon: Icons.add,
+            backgroundColor: Colors.blue,
+            iconColor: Colors.white,
+            hasBorder: false,
+            onTap: () {
               // Add water dialog
             },
           ),

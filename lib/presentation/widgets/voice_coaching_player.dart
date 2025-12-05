@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/voice_coaching_model.dart';
-import '../../core/theme/modern_theme.dart';
+import '../../core/theme/clean_theme.dart';
 import '../../core/constants/api_config.dart';
 
 class VoiceCoachingController {
@@ -108,11 +108,6 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
 
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) {
-        // If controlled externally, we might not want auto-advance
-        // But for now, let's just stop and let the controller handle the next phase
-        // Or if it's legacy/auto mode, we continue.
-        // Given the requirement "synchronized", we likely want to stop and wait for triggers.
-
         if (widget.controller != null) {
           setState(() {
             _isPlaying = false;
@@ -143,14 +138,12 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
     });
   }
 
-  /// Calculate current phase and repetition based on audio position
   void _updateCurrentPhaseAndRep() {
     if (!widget.voiceCoaching.isStructured) return;
 
     final structured = widget.voiceCoaching.structuredScript!;
     final positionSeconds = _position.inSeconds;
 
-    // Phase 1: Preparation
     final prepDuration = structured.preparation.durationSeconds;
     if (positionSeconds < prepDuration) {
       _currentPhase = 'preparation';
@@ -158,9 +151,8 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
       return;
     }
 
-    // Phase 2: Execution (estimate ~5 seconds per rep)
     final execStartTime = prepDuration;
-    final estimatedRepDuration = 5; // seconds per repetition
+    final estimatedRepDuration = 5;
     final totalExecDuration = structured.totalReps * estimatedRepDuration;
     final execEndTime = execStartTime + totalExecDuration;
 
@@ -168,12 +160,10 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
       _currentPhase = 'execution';
       final execElapsed = positionSeconds - execStartTime;
       _currentRep = (execElapsed / estimatedRepDuration).floor() + 1;
-      // Clamp to valid range
       _currentRep = _currentRep.clamp(1, structured.totalReps);
       return;
     }
 
-    // Phase 3: Closing
     _currentPhase = 'closing';
     _currentRep = structured.totalReps;
   }
@@ -198,7 +188,6 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
           audioUrl = widget.voiceCoaching.multiPhase?.postExercise?.audioUrl;
         }
       } else {
-        // Legacy fallback - just play the whole file
         audioUrl = widget.voiceCoaching.audioUrl;
       }
 
@@ -209,11 +198,11 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
               : ApiConfig.baseUrl;
           audioUrl = '$baseUrl$audioUrl';
         }
-        await _audioPlayer.stop(); // Stop current before playing new
+        await _audioPlayer.stop();
         await _audioPlayer.play(UrlSource(audioUrl));
       }
     } catch (e) {
-      print('Error playing phase $phase: $e');
+      debugPrint('Error playing phase $phase: $e');
       if (mounted) {
         setState(() {
           _errorMessage = 'Errore: ${e.toString()}';
@@ -238,7 +227,6 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
       if (_isPlaying) {
         await _audioPlayer.pause();
       } else {
-        // Multi-phase playback logic
         if (widget.voiceCoaching.isMultiPhase) {
           String? audioUrl;
           if (_currentPhase == 'preparation') {
@@ -251,31 +239,24 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
           }
 
           if (audioUrl != null) {
-            // Handle relative URLs
             if (audioUrl.startsWith('/')) {
-              // Use configured base URL (remove /api suffix if present to avoid duplication)
               final baseUrl = ApiConfig.baseUrl.endsWith('/api')
                   ? ApiConfig.baseUrl.substring(0, ApiConfig.baseUrl.length - 4)
                   : ApiConfig.baseUrl;
               audioUrl = '$baseUrl$audioUrl';
             }
 
-            // If resuming from pause, just resume
             if (_position > Duration.zero && _position < _duration) {
               await _audioPlayer.resume();
             } else {
               await _audioPlayer.play(UrlSource(audioUrl));
             }
           } else {
-            // Skip phase if no audio
-
-            // Prevent infinite loop: only advance if we haven't just cycled through everything
             if (_currentPhase == 'closing' &&
                 widget.voiceCoaching.multiPhase?.preExercise?.audioUrl ==
                     null &&
                 widget.voiceCoaching.multiPhase?.duringExecution?.audioUrl ==
                     null) {
-              // All phases empty, stop
               setState(() {
                 _isPlaying = false;
                 _position = Duration.zero;
@@ -285,11 +266,9 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
             }
 
             _advancePhase();
-            // Only recurse if we haven't looped back to preparation
             if (_currentPhase != 'preparation') {
               _playPause();
             } else {
-              // We looped back to start, stop
               setState(() {
                 _isPlaying = false;
               });
@@ -297,11 +276,9 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
             return;
           }
         } else {
-          // Legacy single-file playback
           if (_position == Duration.zero) {
             String audioUrl = widget.voiceCoaching.audioUrl!;
             if (audioUrl.startsWith('/')) {
-              // Use configured base URL (remove /api suffix if present to avoid duplication)
               final baseUrl = ApiConfig.baseUrl.endsWith('/api')
                   ? ApiConfig.baseUrl.substring(0, ApiConfig.baseUrl.length - 4)
                   : ApiConfig.baseUrl;
@@ -314,7 +291,7 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
         }
       }
     } catch (e) {
-      print('Error playing audio: $e');
+      debugPrint('Error playing audio: $e');
       if (mounted) {
         setState(() {
           _errorMessage = 'Errore durante la riproduzione: ${e.toString()}';
@@ -357,8 +334,6 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
       _currentPhase = 'preparation';
       _currentRep = 0;
     });
-    // If controlled, maybe just play current phase? Or restart sequence?
-    // For now, reuse playPause which handles sequence
     await _playPause();
   }
 
@@ -394,13 +369,13 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
   Color _getPhaseColor() {
     switch (_currentPhase) {
       case 'preparation':
-        return Colors.blue;
+        return CleanTheme.accentBlue;
       case 'execution':
-        return ModernTheme.accentColor;
+        return CleanTheme.primaryColor;
       case 'closing':
-        return Colors.green;
+        return CleanTheme.accentGreen;
       default:
-        return Colors.white;
+        return CleanTheme.textPrimary;
     }
   }
 
@@ -411,21 +386,23 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _getPhaseColor().withOpacity(0.1),
+        color: _getPhaseColor().withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _getPhaseColor().withOpacity(0.3), width: 2),
+        border: Border.all(
+          color: _getPhaseColor().withValues(alpha: 0.3),
+          width: 2,
+        ),
       ),
       child: Column(
         children: [
-          // Phase indicator
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 _getPhaseLabel(),
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: _getPhaseColor(),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
@@ -435,47 +412,48 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
                   style: GoogleFonts.outfit(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: ModernTheme.accentColor,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 12),
-          // Progress bar for execution phase
           if (_currentPhase == 'execution') ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: LinearProgressIndicator(
                 value: progress,
-                backgroundColor: Colors.white24,
+                backgroundColor: CleanTheme.borderSecondary,
                 valueColor: AlwaysStoppedAnimation<Color>(_getPhaseColor()),
                 minHeight: 8,
               ),
             ),
             const SizedBox(height: 8),
-            // Large rep counter
             Text(
               '$_currentRep',
               style: GoogleFonts.outfit(
                 fontSize: 48,
                 fontWeight: FontWeight.bold,
-                color: ModernTheme.accentColor,
+                color: CleanTheme.primaryColor,
                 height: 1,
               ),
             ),
           ],
-          // Completion message
           if (_currentPhase == 'closing')
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 24),
+                const Icon(
+                  Icons.check_circle,
+                  color: CleanTheme.accentGreen,
+                  size: 24,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '${structured.totalReps} ripetizioni completate!',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.accentGreen,
+                    fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
@@ -503,17 +481,10 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            ModernTheme.accentColor.withOpacity(0.1),
-            ModernTheme.accentColor.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: CleanTheme.primaryColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ModernTheme.accentColor.withOpacity(0.3),
+          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -522,17 +493,21 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
         children: [
           Row(
             children: [
-              Icon(Icons.mic, color: ModernTheme.accentColor, size: 20),
+              Icon(
+                Icons.mic_outlined,
+                color: CleanTheme.primaryColor,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Voice Coaching Live',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: ModernTheme.accentColor,
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
                 ),
               ),
               const Spacer(),
-              // Script toggle button
               if (widget.voiceCoaching.scriptText != null)
                 IconButton(
                   icon: Icon(
@@ -540,47 +515,46 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
                     size: 18,
                   ),
                   onPressed: _toggleScript,
-                  color: Colors.white70,
+                  color: CleanTheme.textSecondary,
                   tooltip: _showScript ? 'Nascondi testo' : 'Mostra testo',
                 ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: ModernTheme.accentColor.withOpacity(0.2),
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'PRO',
-                  style: TextStyle(
-                    color: ModernTheme.accentColor,
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.primaryColor,
                     fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ],
           ),
 
-          // Repetition Counter (only for structured coaching)
           if (widget.voiceCoaching.isStructured && _isPlaying) ...[
             const SizedBox(height: 16),
             _buildRepetitionCounter(),
           ],
 
-          // Script text (collapsible)
           if (_showScript && widget.voiceCoaching.scriptText != null) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: CleanTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: Text(
                 widget.voiceCoaching.scriptText!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white70,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: CleanTheme.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -589,30 +563,38 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
 
           const SizedBox(height: 16),
 
-          // Error message
           if (_errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: CleanTheme.accentRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.withOpacity(0.3)),
+                border: Border.all(
+                  color: CleanTheme.accentRed.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 16),
+                  const Icon(
+                    Icons.error_outline,
+                    color: CleanTheme.accentRed,
+                    size: 16,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                      style: GoogleFonts.inter(
+                        color: CleanTheme.accentRed,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                   TextButton(
                     onPressed: _playPause,
-                    child: const Text(
+                    child: Text(
                       'Riprova',
-                      style: TextStyle(fontSize: 12),
+                      style: GoogleFonts.inter(fontSize: 12),
                     ),
                   ),
                 ],
@@ -627,9 +609,9 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              activeTrackColor: ModernTheme.accentColor,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: ModernTheme.accentColor,
+              activeTrackColor: CleanTheme.primaryColor,
+              inactiveTrackColor: CleanTheme.borderSecondary,
+              thumbColor: CleanTheme.primaryColor,
             ),
             child: Slider(
               value: _duration.inSeconds > 0
@@ -643,7 +625,7 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
               },
             ),
           ),
-          // Time labels
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
@@ -651,64 +633,67 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
               children: [
                 Text(
                   _formatDuration(_position),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                  ),
                 ),
                 Text(
                   _formatDuration(_duration),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
+
           // Controls
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Mute button
               IconButton(
                 onPressed: _toggleMute,
                 icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-                color: Colors.white70,
+                color: CleanTheme.textSecondary,
                 iconSize: 24,
               ),
               const SizedBox(width: 8),
-              // Stop button
               IconButton(
                 onPressed: _stop,
                 icon: const Icon(Icons.stop),
-                color: Colors.white70,
+                color: CleanTheme.textSecondary,
                 iconSize: 28,
               ),
               const SizedBox(width: 16),
-              // Play/Pause button
               _isLoading
                   ? const SizedBox(
                       width: 48,
                       height: 48,
-                      child: CircularProgressIndicator(strokeWidth: 3),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: CleanTheme.primaryColor,
+                      ),
                     )
-                  : IconButton(
-                      onPressed: _playPause,
-                      icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-                      color: ModernTheme.accentColor,
-                      iconSize: 48,
-                      style: IconButton.styleFrom(
-                        backgroundColor: ModernTheme.accentColor.withOpacity(
-                          0.2,
-                        ),
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: _playPause,
+                        icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
+                        color: CleanTheme.primaryColor,
+                        iconSize: 48,
                       ),
                     ),
               const SizedBox(width: 16),
-              // Replay button
               IconButton(
                 onPressed: _replay,
                 icon: const Icon(Icons.replay),
-                color: Colors.white70,
+                color: CleanTheme.textSecondary,
                 iconSize: 28,
               ),
             ],
@@ -722,47 +707,49 @@ class _VoiceCoachingPlayerState extends State<VoiceCoachingPlayer> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.purple.withOpacity(0.1),
-            Colors.blue.withOpacity(0.1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: CleanTheme.accentPurple.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white24, width: 1),
+        border: Border.all(
+          color: CleanTheme.accentPurple.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
-          Icon(Icons.lock, color: ModernTheme.accentColor, size: 32),
+          Icon(Icons.lock_outlined, color: CleanTheme.accentPurple, size: 32),
           const SizedBox(height: 12),
           Text(
             'Voice Coaching Live',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Guida vocale AI per ogni esercizio',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: widget.onUpgrade,
             style: ElevatedButton.styleFrom(
-              backgroundColor: ModernTheme.accentColor,
+              backgroundColor: CleanTheme.accentPurple,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Passa a PRO'),
+            child: Text(
+              'Passa a PRO',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

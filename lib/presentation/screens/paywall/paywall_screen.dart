@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../core/constants/subscription_tiers.dart';
+import '../../widgets/clean_widgets.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -16,19 +17,44 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upgrade Your Plan')),
+      backgroundColor: CleanTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        title: Text(
+          'Scegli il Piano',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        centerTitle: true,
+        leading: CleanIconButton(
+          icon: Icons.close,
+          onTap: () => Navigator.pop(context),
+          hasBorder: false,
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Text('Unlock Your Full Potential', style: AppTextStyles.h2),
+            Text(
+              'Sblocca il Tuo Potenziale',
+              style: GoogleFonts.outfit(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
-              'Choose the plan that fits your fitness journey',
-              style: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textSecondary,
+              'Scegli il piano perfetto per il tuo percorso fitness',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
               ),
             ),
 
@@ -39,13 +65,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
               tier: SubscriptionTier.free,
               name: 'Free',
               price: '€0',
-              period: 'forever',
+              period: 'sempre',
               features: [
-                '1 workout plan every 2 months',
-                'Basic exercise library',
-                'Manual tracking',
+                '1 piano ogni 2 mesi',
+                'Libreria esercizi base',
+                'Tracking manuale',
               ],
               isPopular: false,
+              accentColor: CleanTheme.textSecondary,
             ),
 
             const SizedBox(height: 16),
@@ -54,14 +81,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
               tier: SubscriptionTier.premium,
               name: 'Premium',
               price: '€9.99',
-              period: 'month',
+              period: 'mese',
               features: [
-                'Unlimited workout plans',
-                'AI voice coaching',
-                'Advanced analytics',
-                'Priority support',
+                'Piani illimitati',
+                'AI Voice Coaching',
+                'Analytics avanzati',
+                'Supporto prioritario',
               ],
               isPopular: true,
+              accentColor: CleanTheme.primaryColor,
             ),
 
             const SizedBox(height: 16),
@@ -70,14 +98,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
               tier: SubscriptionTier.gold,
               name: 'Gold',
               price: '€14.99',
-              period: 'month',
+              period: 'mese',
               features: [
-                'Everything in Premium',
-                'Pose detection & form analysis',
-                'Personalized nutrition plans',
-                'Weekly coach check-ins',
+                'Tutto in Premium',
+                'Analisi postura AI',
+                'Piani nutrizionali',
+                'Check-in settimanali',
               ],
               isPopular: false,
+              accentColor: CleanTheme.accentOrange,
             ),
 
             const SizedBox(height: 16),
@@ -86,41 +115,39 @@ class _PaywallScreenState extends State<PaywallScreen> {
               tier: SubscriptionTier.platinum,
               name: 'Platinum',
               price: '€24.99',
-              period: 'month',
+              period: 'mese',
               features: [
-                'Everything in Gold',
-                '1-on-1 video coaching sessions',
-                'Custom meal planning',
-                'Advanced body composition tracking',
-                '24/7 priority support',
+                'Tutto in Gold',
+                'Video coaching 1-to-1',
+                'Meal planning personalizzato',
+                'Body composition tracking',
+                'Supporto 24/7',
               ],
               isPopular: false,
+              accentColor: CleanTheme.accentPurple,
             ),
 
             const SizedBox(height: 32),
 
             // Subscribe button
-            SizedBox(
+            CleanButton(
+              text: _selectedTier == SubscriptionTier.free
+                  ? 'Piano Attuale'
+                  : 'Abbonati Ora',
+              onPressed: _selectedTier == SubscriptionTier.free
+                  ? null
+                  : _handleSubscribe,
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _selectedTier == SubscriptionTier.free
-                    ? null
-                    : _handleSubscribe,
-                child: Text(
-                  _selectedTier == SubscriptionTier.free
-                      ? 'Current Plan'
-                      : 'Subscribe Now',
-                ),
-              ),
             ),
 
             const SizedBox(height: 16),
 
             // Terms
             Text(
-              'By subscribing, you agree to our Terms of Service and Privacy Policy. Subscription automatically renews unless cancelled.',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+              'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: CleanTheme.textTertiary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -137,6 +164,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     required String period,
     required List<String> features,
     required bool isPopular,
+    required Color accentColor,
   }) {
     final isSelected = _selectedTier == tier;
 
@@ -144,14 +172,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
       onTap: () => setState(() => _selectedTier = tier),
       child: Stack(
         children: [
-          Card(
-            elevation: isSelected ? 4 : 1,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: isSelected ? AppColors.primaryNeon : Colors.transparent,
-                width: 2,
+          Container(
+            decoration: BoxDecoration(
+              color: CleanTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isSelected ? accentColor : CleanTheme.borderPrimary,
+                width: isSelected ? 2 : 1,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: accentColor.withValues(alpha: 0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
             ),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -161,55 +198,88 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(name, style: AppTextStyles.h4),
+                      Text(
+                        name,
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
                       if (isSelected)
-                        Icon(Icons.check_circle, color: AppColors.primary),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         price,
-                        style: AppTextStyles.h2.copyWith(
-                          color: AppColors.primaryNeon,
+                        style: GoogleFonts.outfit(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: accentColor,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
+                        padding: const EdgeInsets.only(bottom: 6),
                         child: Text(
                           '/$period',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: CleanTheme.textSecondary,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   ...features.map((feature) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.check,
-                            color: AppColors.success,
-                            size: 20,
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentGreen.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: CleanTheme.accentGreen,
+                              size: 14,
+                            ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               feature,
-                              style: AppTextStyles.bodyMedium,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: CleanTheme.textPrimary,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -217,24 +287,26 @@ class _PaywallScreenState extends State<PaywallScreen> {
           if (isPopular)
             Positioned(
               top: 0,
-              right: 0,
+              right: 16,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 4,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  gradient: AppColors.neonGradient,
+                  color: CleanTheme.primaryColor,
                   borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
                   ),
                 ),
                 child: Text(
-                  'POPULAR',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.background,
-                    fontWeight: FontWeight.bold,
+                  'CONSIGLIATO',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
@@ -245,18 +317,32 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   void _handleSubscribe() {
-    // TODO: Implement subscription logic
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Subscribe'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Abbonamento',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Text(
-          'You are about to subscribe to ${_getTierName(_selectedTier)}. This feature is not yet implemented.',
+          'Stai per abbonarti a ${_getTierName(_selectedTier)}. Funzionalità non ancora implementata.',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(
+              'OK',
+              style: GoogleFonts.inter(
+                color: CleanTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

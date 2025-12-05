@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/nutrition_model.dart';
 import '../../data/services/nutrition_service.dart';
 import '../../data/services/api_client.dart';
+import '../../core/theme/clean_theme.dart';
 import '../screens/nutrition/nutrition_dashboard_screen.dart';
-import 'modern_widgets.dart';
+import 'clean_widgets.dart';
 
 class NutritionWidget extends StatefulWidget {
   const NutritionWidget({super.key});
@@ -55,70 +56,78 @@ class _NutritionWidgetState extends State<NutritionWidget> {
     final caloriesProgress = _dailyLog!.totalCalories / _goal!.dailyCalories;
     final remaining = _goal!.dailyCalories - _dailyLog!.totalCalories;
 
-    return ModernCard(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const NutritionDashboardScreen(),
-          ),
-        );
-      },
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.green.withValues(alpha: 0.3),
-                  Colors.blue.withValues(alpha: 0.3),
+    return CleanCard(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NutritionDashboardScreen(),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.restaurant_menu,
+                color: CleanTheme.accentGreen,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nutrizione Oggi',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_dailyLog!.totalCalories} / ${_goal!.dailyCalories} kcal',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: caloriesProgress > 1.0
+                          ? CleanTheme.accentRed
+                          : CleanTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    remaining > 0
+                        ? '$remaining kcal rimanenti'
+                        : 'Eccesso di ${-remaining} kcal',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: remaining > 0
+                          ? CleanTheme.textTertiary
+                          : CleanTheme.accentRed,
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.restaurant_menu,
-              color: Colors.green,
-              size: 32,
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: CleanTheme.textTertiary,
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Nutrition Today',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_dailyLog!.totalCalories} / ${_goal!.dailyCalories} kcal',
-                  style: GoogleFonts.outfit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: caloriesProgress > 1.0 ? Colors.red : Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  remaining > 0
-                      ? '$remaining kcal remaining'
-                      : 'Over by ${-remaining} kcal',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: remaining > 0 ? Colors.white70 : Colors.red.shade300,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white30),
-        ],
+          ],
+        ),
       ),
     );
   }

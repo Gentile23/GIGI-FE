@@ -55,4 +55,65 @@ class ExerciseService {
       };
     }
   }
+
+  /// Get similar exercises that target the same muscle groups
+  Future<Map<String, dynamic>> getSimilarExercises(String exerciseId) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '${ApiConfig.exercises}/$exerciseId/similar',
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final exercises = data.map((json) => Exercise.fromJson(json)).toList();
+        return {'success': true, 'exercises': exercises};
+      }
+
+      return {'success': false, 'message': 'Failed to fetch similar exercises'};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message':
+            e.response?.data['message'] ?? 'Failed to fetch similar exercises',
+      };
+    }
+  }
+
+  /// Get alternative exercises (bodyweight <-> equipment)
+  Future<Map<String, dynamic>> getAlternativeExercises(
+    String exerciseId,
+  ) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '${ApiConfig.exercises}/$exerciseId/alternatives',
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final alternatives = (data['alternatives'] as List<dynamic>)
+            .map((json) => Exercise.fromJson(json))
+            .toList();
+        return {
+          'success': true,
+          'currentType': data['current_type'] as String,
+          'currentEquipment': List<String>.from(
+            data['current_equipment'] ?? [],
+          ),
+          'alternatives': alternatives,
+        };
+      }
+
+      return {
+        'success': false,
+        'message': 'Failed to fetch alternative exercises',
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message':
+            e.response?.data['message'] ??
+            'Failed to fetch alternative exercises',
+      };
+    }
+  }
 }

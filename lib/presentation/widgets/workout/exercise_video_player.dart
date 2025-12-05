@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/clean_theme.dart';
 
 class ExerciseVideoPlayer extends StatefulWidget {
   final String? videoUrl;
@@ -57,7 +57,6 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
   @override
   void didUpdateWidget(ExerciseVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If the video URL changed, dispose old controller and create new one
     if (oldWidget.videoUrl != widget.videoUrl) {
       _controller?.dispose();
       _controller = null;
@@ -93,10 +92,10 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
         child: YoutubePlayer(
           controller: _controller!,
           showVideoProgressIndicator: true,
-          progressIndicatorColor: AppColors.primaryNeon,
-          progressColors: ProgressBarColors(
-            playedColor: AppColors.primaryNeon,
-            handleColor: AppColors.primaryNeon,
+          progressIndicatorColor: CleanTheme.primaryColor,
+          progressColors: const ProgressBarColors(
+            playedColor: CleanTheme.primaryColor,
+            handleColor: CleanTheme.primaryColor,
           ),
           onReady: () {
             setState(() {
@@ -121,16 +120,16 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade800,
+        color: CleanTheme.borderSecondary,
       ),
-      child: Row(
+      child: const Row(
         children: [
-          Icon(Icons.videocam_off, color: Colors.grey.shade400),
-          const SizedBox(width: 12),
+          Icon(Icons.videocam_off, color: CleanTheme.textTertiary),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               'Video non disponibile',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              style: TextStyle(color: CleanTheme.textTertiary, fontSize: 14),
             ),
           ),
         ],

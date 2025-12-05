@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/biometric_model.dart';
 import '../../../data/services/biometric_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class BiometricDashboardScreen extends StatefulWidget {
   const BiometricDashboardScreen({super.key});
@@ -51,26 +51,37 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Biometric Dashboard'),
-        backgroundColor: ModernTheme.cardColor,
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // Navigate to settings
-            },
+        title: Text(
+          'Dati Biometrici',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
           ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+        actions: [
+          CleanIconButton(
+            icon: Icons.refresh_outlined,
+            onTap: _loadData,
+            hasBorder: false,
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : RefreshIndicator(
               onRefresh: _loadData,
+              color: CleanTheme.primaryColor,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -95,6 +106,7 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
                     ],
 
                     _buildQuickActions(),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -106,7 +118,8 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
     final score = _recoveryScore!;
     final scorePercentage = (score.score * 100).toInt();
 
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Row(
@@ -114,11 +127,11 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: score.readinessColor.withOpacity(0.2),
+                  color: score.readinessColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.favorite,
+                  Icons.favorite_rounded,
                   color: score.readinessColor,
                   size: 32,
                 ),
@@ -128,24 +141,27 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Recovery Score',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                    Text(
+                      'Punteggio Recupero',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textSecondary,
+                      ),
                     ),
                     Text(
                       '$scorePercentage%',
                       style: GoogleFonts.outfit(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w700,
                         color: score.readinessColor,
                       ),
                     ),
                     Text(
                       score.readinessLabel,
-                      style: TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 14,
                         color: score.readinessColor,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -153,18 +169,18 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          const Divider(color: CleanTheme.borderPrimary),
           const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 12),
-          const Text(
-            'Components:',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white70,
+          Text(
+            'Componenti',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textSecondary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           ...score.components.entries.map((entry) {
             final percentage = (entry.value * 100).toInt();
             return Padding(
@@ -174,21 +190,24 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
                   Expanded(
                     child: Text(
                       _formatComponentName(entry.key),
-                      style: const TextStyle(fontSize: 13),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                      ),
                     ),
                   ),
                   Text(
                     '$percentage%',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                       color: _getScoreColor(entry.value),
                     ),
                   ),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -197,30 +216,44 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
   Widget _buildHRVTrendCard() {
     final trend = _hrvTrend!;
 
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Icon(trend.trendIcon, color: trend.trendColor, size: 28),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: trend.trendColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(trend.trendIcon, color: trend.trendColor, size: 24),
+          ),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'HRV Trend (7 days)',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                Text(
+                  'Trend HRV (7 giorni)',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                  ),
                 ),
                 Text(
                   trend.trend.toUpperCase(),
                   style: GoogleFonts.outfit(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     color: trend.trendColor,
                   ),
                 ),
                 Text(
-                  'Avg: ${trend.average.toStringAsFixed(1)} ms',
-                  style: const TextStyle(fontSize: 12, color: Colors.white60),
+                  'Media: ${trend.average.toStringAsFixed(1)} ms',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textTertiary,
+                  ),
                 ),
               ],
             ),
@@ -229,7 +262,7 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
             '${trend.changePercentage > 0 ? '+' : ''}${trend.changePercentage.toStringAsFixed(1)}%',
             style: GoogleFonts.outfit(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: trend.trendColor,
             ),
           ),
@@ -242,10 +275,7 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Latest Metrics',
-          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        CleanSectionHeader(title: 'Metriche Recenti'),
         const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
@@ -253,35 +283,35 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.5,
+          childAspectRatio: 1.4,
           children: [
             if (_latestData!['hrv'] != null)
               _buildMetricCard(
                 'HRV',
                 '${_latestData!['hrv']['value']} ${_latestData!['hrv']['unit']}',
-                Icons.monitor_heart,
-                Colors.purple,
+                Icons.monitor_heart_outlined,
+                CleanTheme.accentPurple,
               ),
             if (_latestData!['resting_heart_rate'] != null)
               _buildMetricCard(
-                'Resting HR',
+                'FC a Riposo',
                 '${_latestData!['resting_heart_rate']['value']} ${_latestData!['resting_heart_rate']['unit']}',
-                Icons.favorite,
-                Colors.red,
+                Icons.favorite_outline,
+                CleanTheme.accentRed,
               ),
             if (_latestData!['sleep'] != null)
               _buildMetricCard(
-                'Sleep',
+                'Sonno',
                 '${(_latestData!['sleep']['duration_minutes'] / 60).toStringAsFixed(1)}h',
-                Icons.bedtime,
-                Colors.blue,
+                Icons.bedtime_outlined,
+                CleanTheme.accentBlue,
               ),
             if (_latestData!['steps'] != null)
               _buildMetricCard(
-                'Steps',
+                'Passi',
                 '${_latestData!['steps']['value'].toInt()}',
-                Icons.directions_walk,
-                Colors.green,
+                Icons.directions_walk_outlined,
+                CleanTheme.accentGreen,
               ),
           ],
         ),
@@ -295,23 +325,34 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
     IconData icon,
     Color color,
   ) {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
             style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.white70),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textSecondary,
+            ),
           ),
         ],
       ),
@@ -322,23 +363,31 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'AI Insights',
-          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        CleanSectionHeader(title: 'AI Insights'),
         const SizedBox(height: 12),
         ..._insights.map(
           (insight) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: ModernCard(
+            child: CleanCard(
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(insight.icon, color: insight.color, size: 24),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: insight.color.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(insight.icon, color: insight.color, size: 20),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       insight.message,
-                      style: const TextStyle(fontSize: 14),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -354,30 +403,37 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Quick Actions',
-          style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        CleanSectionHeader(title: 'Azioni Rapide'),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: ModernCard(
-                onTap: () {
-                  // Navigate to sleep tracking
-                },
+              child: CleanCard(
+                onTap: () {},
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.bedtime,
-                      color: ModernTheme.accentColor,
-                      size: 32,
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bedtime_outlined,
+                        color: CleanTheme.accentBlue,
+                        size: 28,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Log Sleep',
+                    const SizedBox(height: 12),
+                    Text(
+                      'Registra Sonno',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: CleanTheme.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -385,22 +441,32 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: ModernCard(
-                onTap: () {
-                  // Navigate to HRV tracking
-                },
+              child: CleanCard(
+                onTap: () {},
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.monitor_heart,
-                      color: ModernTheme.accentColor,
-                      size: 32,
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentPurple.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.monitor_heart_outlined,
+                        color: CleanTheme.accentPurple,
+                        size: 28,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Log HRV',
+                    const SizedBox(height: 12),
+                    Text(
+                      'Registra HRV',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: CleanTheme.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -421,8 +487,8 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
   }
 
   Color _getScoreColor(double score) {
-    if (score >= 0.75) return Colors.green;
-    if (score >= 0.5) return Colors.orange;
-    return Colors.red;
+    if (score >= 0.75) return CleanTheme.accentGreen;
+    if (score >= 0.5) return CleanTheme.accentOrange;
+    return CleanTheme.accentRed;
   }
 }

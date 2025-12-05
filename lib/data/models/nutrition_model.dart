@@ -241,20 +241,33 @@ class DailyNutritionLog {
     this.goalFat,
   });
 
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
   factory DailyNutritionLog.fromJson(Map<String, dynamic> json) {
     return DailyNutritionLog(
       id: json['id'],
       logDate: DateTime.parse(json['log_date']),
-      totalCalories: json['total_calories'],
-      totalProtein: (json['total_protein'] ?? 0).toDouble(),
-      totalCarbs: (json['total_carbs'] ?? 0).toDouble(),
-      totalFat: (json['total_fat'] ?? 0).toDouble(),
-      totalFiber: json['total_fiber']?.toDouble(),
-      waterMl: json['water_ml'] ?? 0,
-      goalCalories: json['goal_calories'],
-      goalProtein: json['goal_protein']?.toDouble(),
-      goalCarbs: json['goal_carbs']?.toDouble(),
-      goalFat: json['goal_fat']?.toDouble(),
+      totalCalories: json['total_calories'] is String
+          ? int.tryParse(json['total_calories']) ?? 0
+          : (json['total_calories'] as num?)?.toInt() ?? 0,
+      totalProtein: _parseDouble(json['total_protein']),
+      totalCarbs: _parseDouble(json['total_carbs']),
+      totalFat: _parseDouble(json['total_fat']),
+      totalFiber: _parseDouble(json['total_fiber']),
+      waterMl: json['water_ml'] is String
+          ? int.tryParse(json['water_ml']) ?? 0
+          : (json['water_ml'] as num?)?.toInt() ?? 0,
+      goalCalories: json['goal_calories'] is String
+          ? int.tryParse(json['goal_calories'])
+          : (json['goal_calories'] as num?)?.toInt(),
+      goalProtein: _parseDouble(json['goal_protein']),
+      goalCarbs: _parseDouble(json['goal_carbs']),
+      goalFat: _parseDouble(json['goal_fat']),
     );
   }
 

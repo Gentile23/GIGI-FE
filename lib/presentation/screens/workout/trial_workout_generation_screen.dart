@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/services/trial_workout_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 import 'trial_workout_screen.dart';
 
 class TrialWorkoutGenerationScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _TrialWorkoutGenerationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -79,13 +80,11 @@ class _TrialWorkoutGenerationScreenState
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [ModernTheme.accentColor, Colors.purple],
-                      ),
+                      color: CleanTheme.primaryLight,
                     ),
                     child: const Center(
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: CleanTheme.primaryColor,
                         strokeWidth: 3,
                       ),
                     ),
@@ -93,59 +92,82 @@ class _TrialWorkoutGenerationScreenState
                   const SizedBox(height: 32),
                   Text(
                     'Generazione Trial Workout',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: CleanTheme.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Stiamo creando il tuo allenamento di prova personalizzato...',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: CleanTheme.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: ModernTheme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: ModernTheme.accentColor.withOpacity(0.3),
-                      ),
-                    ),
+                  CleanCard(
+                    padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Icon(
-                          Icons.mic,
-                          color: ModernTheme.accentColor,
-                          size: 40,
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: CleanTheme.accentPurple.withValues(
+                              alpha: 0.1,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.mic_outlined,
+                            color: CleanTheme.accentPurple,
+                            size: 36,
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Text(
                           '🎤 Voice Coaching GRATIS',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: ModernTheme.accentColor,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: CleanTheme.accentPurple,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Prova il coach vocale AI durante questo trial!',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: CleanTheme.textSecondary,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
                 ] else if (_error != null) ...[
-                  const Icon(Icons.error_outline, size: 80, color: Colors.red),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: CleanTheme.accentRed,
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Text(
                     'Errore',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -153,13 +175,17 @@ class _TrialWorkoutGenerationScreenState
                     constraints: const BoxConstraints(maxWidth: 400),
                     child: Text(
                       _error!,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: CleanTheme.textSecondary,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
                   const SizedBox(height: 32),
-                  ModernButton(
+                  CleanButton(
                     text: 'Riprova',
+                    icon: Icons.refresh,
                     onPressed: _generateTrialWorkout,
                   ),
                 ],

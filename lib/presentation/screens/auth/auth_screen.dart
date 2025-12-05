@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../widgets/clean_widgets.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -20,6 +21,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -32,6 +34,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -42,31 +45,19 @@ class _AuthScreenState extends State<AuthScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                // Logo - Enhanced with Neon Glow
+                // Logo
                 Center(
                   child: Container(
-                    width: 140,
-                    height: 140,
+                    width: 120,
+                    height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      color: CleanTheme.primaryLight,
                       boxShadow: [
-                        // Inner glow - strong
                         BoxShadow(
-                          color: AppColors.primaryNeon.withOpacity(0.6),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                           blurRadius: 30,
                           spreadRadius: 5,
-                        ),
-                        // Middle glow
-                        BoxShadow(
-                          color: AppColors.primaryNeon.withOpacity(0.4),
-                          blurRadius: 50,
-                          spreadRadius: 10,
-                        ),
-                        // Outer glow - subtle
-                        BoxShadow(
-                          color: AppColors.primaryNeon.withOpacity(0.2),
-                          blurRadius: 70,
-                          spreadRadius: 15,
                         ),
                       ],
                     ),
@@ -74,17 +65,26 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Image.asset(
                         'assets/images/gigi_logo.png',
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.fitness_center,
+                          size: 48,
+                          color: CleanTheme.primaryColor,
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Title
                 Text(
-                  _isLogin ? 'WELCOME BACK!' : 'CREATE ACCOUNT',
-                  style: Theme.of(context).textTheme.displayMedium,
+                  _isLogin ? 'Bentornato!' : 'Crea Account',
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.textPrimary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
 
@@ -92,9 +92,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 Text(
                   _isLogin
-                      ? 'Sign in to continue your fitness journey'
-                      : 'Start your fitness journey today',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                      ? 'Accedi per continuare il tuo percorso fitness'
+                      : 'Inizia oggi il tuo percorso fitness',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: CleanTheme.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
 
@@ -102,15 +105,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
                 // Name field (only for register)
                 if (!_isLogin) ...[
-                  TextFormField(
+                  _buildTextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
-                    ),
+                    label: 'Nome Completo',
+                    icon: Icons.person_outline,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your name';
+                        return 'Inserisci il tuo nome';
                       }
                       return null;
                     },
@@ -119,19 +120,17 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
 
                 // Email field
-                TextFormField(
+                _buildTextField(
                   controller: _emailController,
+                  label: 'Email',
+                  icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Inserisci la tua email';
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return 'Inserisci un\'email valida';
                     }
                     return null;
                   },
@@ -140,96 +139,111 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 16),
 
                 // Password field
-                TextFormField(
+                _buildTextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
+                  label: 'Password',
+                  icon: Icons.lock_outline,
+                  obscureText: _obscurePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: CleanTheme.textTertiary,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
+                      return 'Inserisci la password';
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return 'La password deve essere di almeno 6 caratteri';
                     }
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Submit button
-                ElevatedButton(
+                CleanButton(
+                  text: _isLogin ? 'Accedi' : 'Registrati',
                   onPressed: _isLoading ? null : _handleSubmit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.background,
-                            ),
-                          ),
-                        )
-                      : Text(_isLogin ? 'Sign In' : 'Create Account'),
+                  width: double.infinity,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Divider
                 Row(
                   children: [
-                    const Expanded(child: Divider()),
+                    const Expanded(
+                      child: Divider(color: CleanTheme.borderPrimary),
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('OR', style: AppTextStyles.bodySmall),
+                      child: Text(
+                        'oppure',
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textTertiary,
+                          fontSize: 14,
+                        ),
+                      ),
                     ),
-                    const Expanded(child: Divider()),
+                    const Expanded(
+                      child: Divider(color: CleanTheme.borderPrimary),
+                    ),
                   ],
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // Google Sign In
-                OutlinedButton.icon(
+                _buildSocialButton(
+                  icon: Icons.g_mobiledata,
+                  label: 'Continua con Google',
                   onPressed: _handleGoogleSignIn,
-                  icon: const Icon(Icons.g_mobiledata, size: 24),
-                  label: const Text('Continue with Google'),
                 ),
 
                 const SizedBox(height: 12),
 
                 // Apple Sign In
-                OutlinedButton.icon(
+                _buildSocialButton(
+                  icon: Icons.apple,
+                  label: 'Continua con Apple',
                   onPressed: _handleAppleSignIn,
-                  icon: const Icon(Icons.apple, size: 24),
-                  label: const Text('Continue with Apple'),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
                 // Toggle login/register
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        _isLogin
-                            ? "Don't have an account? "
-                            : 'Already have an account? ',
-                        style: AppTextStyles.bodyMedium,
-                      ),
+                    Text(
+                      _isLogin
+                          ? 'Non hai un account? '
+                          : 'Hai già un account? ',
+                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                     ),
-                    TextButton(
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         setState(() {
                           _isLogin = !_isLogin;
                         });
                       },
-                      child: Text(_isLogin ? 'Sign Up' : 'Sign In'),
+                      child: Text(
+                        _isLogin ? 'Registrati' : 'Accedi',
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -237,6 +251,78 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        prefixIcon: Icon(icon, color: CleanTheme.textSecondary),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: CleanTheme.surfaceColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: CleanTheme.primaryColor,
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: CleanTheme.accentRed),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: CleanTheme.textPrimary,
+        side: const BorderSide(color: CleanTheme.borderPrimary),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500),
+          ),
+        ],
       ),
     );
   }
@@ -272,14 +358,12 @@ class _AuthScreenState extends State<AuthScreen> {
       });
 
       if (success) {
-        // Call onComplete callback
         widget.onComplete?.call();
       } else {
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.error ?? 'Authentication failed'),
-            backgroundColor: AppColors.error,
+            content: Text(authProvider.error ?? 'Autenticazione fallita'),
+            backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
@@ -287,18 +371,14 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
-    // 2
-    debugPrint('Google Sign In Pressed');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Sign In not implemented yet')),
+      const SnackBar(content: Text('Google Sign In non implementato')),
     );
   }
 
   Future<void> _handleAppleSignIn() async {
-    // TODO: Implement Apple Sign In
-    debugPrint('Apple Sign In Pressed');
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Apple Sign In not implemented yet')),
+      const SnackBar(content: Text('Apple Sign In non implementato')),
     );
   }
 }

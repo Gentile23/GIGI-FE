@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/gamification_model.dart';
 import '../../../data/services/gamification_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class GamificationScreen extends StatefulWidget {
   const GamificationScreen({super.key});
@@ -59,27 +59,35 @@ class _GamificationScreenState extends State<GamificationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Gamification',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          'Premi & Livelli',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
-        backgroundColor: ModernTheme.cardColor,
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: ModernTheme.accentColor,
-          labelColor: ModernTheme.accentColor,
-          unselectedLabelColor: Colors.white60,
+          indicatorColor: CleanTheme.primaryColor,
+          labelColor: CleanTheme.primaryColor,
+          unselectedLabelColor: CleanTheme.textSecondary,
+          labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
           tabs: const [
-            Tab(text: 'Stats', icon: Icon(Icons.bar_chart)),
-            Tab(text: 'Achievements', icon: Icon(Icons.emoji_events)),
-            Tab(text: 'Leaderboard', icon: Icon(Icons.leaderboard)),
+            Tab(text: 'Stats', icon: Icon(Icons.bar_chart_outlined)),
+            Tab(text: 'Premi', icon: Icon(Icons.emoji_events_outlined)),
+            Tab(text: 'Classifica', icon: Icon(Icons.leaderboard_outlined)),
           ],
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -93,14 +101,16 @@ class _GamificationScreenState extends State<GamificationScreen>
 
   Widget _buildStatsTab() {
     if (_stats == null) {
-      return const Center(child: Text('No stats available'));
+      return const Center(child: Text('Nessuna statistica disponibile'));
     }
 
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: CleanTheme.primaryColor,
+      backgroundColor: CleanTheme.surfaceColor,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -108,18 +118,11 @@ class _GamificationScreenState extends State<GamificationScreen>
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    ModernTheme.accentColor,
-                    ModernTheme.accentColor.withValues(alpha: 0.7),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
+                color: CleanTheme.primaryColor,
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: ModernTheme.accentColor.withValues(alpha: 0.3),
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -134,18 +137,18 @@ class _GamificationScreenState extends State<GamificationScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Level ${_stats!.currentLevel}',
+                            'Livello ${_stats!.currentLevel}',
                             style: GoogleFonts.outfit(
                               fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                           Text(
-                            '${_stats!.totalXp} XP',
-                            style: const TextStyle(
+                            '${_stats!.totalXp} XP Totali',
+                            style: GoogleFonts.inter(
                               fontSize: 16,
-                              color: Colors.white70,
+                              color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -157,14 +160,14 @@ class _GamificationScreenState extends State<GamificationScreen>
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.star,
+                          Icons.star_rounded,
                           size: 40,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -172,17 +175,17 @@ class _GamificationScreenState extends State<GamificationScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Progress to Level ${_stats!.currentLevel + 1}',
-                            style: const TextStyle(
+                            'Prossimo Livello',
+                            style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: Colors.white70,
+                              color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
                           Text(
                             '${(_stats!.progressToNextLevel * 100).toInt()}%',
-                            style: const TextStyle(
+                            style: GoogleFonts.inter(
                               fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
@@ -208,41 +211,48 @@ class _GamificationScreenState extends State<GamificationScreen>
             const SizedBox(height: 24),
 
             // Streak Card
-            ModernCard(
+            CleanCard(
+              padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(
-                      Icons.local_fire_department,
+                      Icons.local_fire_department_rounded,
                       size: 32,
-                      color: Colors.orange,
+                      color: CleanTheme.accentOrange,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Current Streak',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          '${_stats!.currentStreak} days',
-                          style: GoogleFonts.outfit(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
+                          'Streak Attuale',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: CleanTheme.textSecondary,
                           ),
                         ),
                         Text(
-                          'Best: ${_stats!.longestStreak} days',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          '${_stats!.currentStreak} giorni',
+                          style: GoogleFonts.outfit(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: CleanTheme.accentOrange,
+                          ),
+                        ),
+                        Text(
+                          'Record: ${_stats!.longestStreak} giorni',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: CleanTheme.textTertiary,
+                          ),
                         ),
                       ],
                     ),
@@ -250,7 +260,7 @@ class _GamificationScreenState extends State<GamificationScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Stats Grid
             GridView.count(
@@ -259,19 +269,19 @@ class _GamificationScreenState extends State<GamificationScreen>
               crossAxisCount: 2,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1.4,
               children: [
                 _buildStatCard(
-                  'Workouts',
+                  'Workout',
                   '${_stats!.totalWorkouts}',
                   Icons.fitness_center,
-                  Colors.blue,
+                  CleanTheme.accentBlue,
                 ),
                 _buildStatCard(
-                  'Sets',
+                  'Serie',
                   '${_stats!.totalSetsCompleted}',
                   Icons.repeat,
-                  Colors.green,
+                  CleanTheme.primaryColor,
                 ),
                 _buildStatCard(
                   'Reps',
@@ -280,10 +290,10 @@ class _GamificationScreenState extends State<GamificationScreen>
                   Colors.purple,
                 ),
                 _buildStatCard(
-                  'Weight',
-                  '${_stats!.totalWeightLifted.toStringAsFixed(0)} kg',
+                  'Peso (kg)',
+                  _stats!.totalWeightLifted.toStringAsFixed(0),
                   Icons.scale,
-                  Colors.red,
+                  CleanTheme.accentRed,
                 ),
               ],
             ),
@@ -299,21 +309,28 @@ class _GamificationScreenState extends State<GamificationScreen>
     IconData icon,
     Color color,
   ) {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 32, color: color),
+          Icon(icon, size: 28, color: color),
           const SizedBox(height: 8),
           Text(
             value,
             style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textPrimary,
             ),
           ),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -322,18 +339,16 @@ class _GamificationScreenState extends State<GamificationScreen>
   Widget _buildAchievementsTab() {
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: CleanTheme.primaryColor,
+      backgroundColor: CleanTheme.surfaceColor,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         children: [
           if (_unlockedAchievements.isNotEmpty) ...[
-            Text(
-              'Unlocked (${_unlockedAchievements.length})',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            CleanSectionHeader(
+              title: 'Sbloccati (${_unlockedAchievements.length})',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ..._unlockedAchievements.map(
               (achievement) =>
                   _buildAchievementCard(achievement, unlocked: true),
@@ -341,14 +356,10 @@ class _GamificationScreenState extends State<GamificationScreen>
             const SizedBox(height: 24),
           ],
           if (_lockedAchievements.isNotEmpty) ...[
-            Text(
-              'Locked (${_lockedAchievements.length})',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            CleanSectionHeader(
+              title: 'Da Sbloccare (${_lockedAchievements.length})',
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ..._lockedAchievements.map(
               (achievement) =>
                   _buildAchievementCard(achievement, unlocked: false),
@@ -363,17 +374,18 @@ class _GamificationScreenState extends State<GamificationScreen>
     Achievement achievement, {
     required bool unlocked,
   }) {
-    return ModernCard(
+    return CleanCard(
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: unlocked
-                  ? achievement.rarityColor.withValues(alpha: 0.2)
-                  : Colors.grey.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+                  ? achievement.rarityColor.withValues(alpha: 0.1)
+                  : CleanTheme.borderSecondary,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               achievement.icon,
@@ -392,13 +404,18 @@ class _GamificationScreenState extends State<GamificationScreen>
                   achievement.name,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: unlocked ? achievement.rarityColor : Colors.grey,
+                    fontWeight: FontWeight.w600,
+                    color: unlocked
+                        ? CleanTheme.textPrimary
+                        : CleanTheme.textSecondary,
                   ),
                 ),
                 Text(
                   achievement.description,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                  ),
                 ),
                 if (!unlocked && achievement.progress != null) ...[
                   const SizedBox(height: 8),
@@ -406,7 +423,7 @@ class _GamificationScreenState extends State<GamificationScreen>
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
                       value: (achievement.progressPercentage ?? 0) / 100,
-                      backgroundColor: Colors.grey.withValues(alpha: 0.2),
+                      backgroundColor: CleanTheme.borderSecondary,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         achievement.rarityColor,
                       ),
@@ -416,24 +433,27 @@ class _GamificationScreenState extends State<GamificationScreen>
                   const SizedBox(height: 4),
                   Text(
                     '${achievement.progress}/${achievement.target}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.textTertiary,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: ModernTheme.accentColor.withValues(alpha: 0.2),
+              color: CleanTheme.accentYellow.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               '+${achievement.xpReward} XP',
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: ModernTheme.accentColor,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.accentYellow,
               ),
             ),
           ),
@@ -445,32 +465,36 @@ class _GamificationScreenState extends State<GamificationScreen>
   Widget _buildLeaderboardTab() {
     return RefreshIndicator(
       onRefresh: _loadData,
+      color: CleanTheme.primaryColor,
+      backgroundColor: CleanTheme.surfaceColor,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         itemCount: _leaderboard.length,
         itemBuilder: (context, index) {
           final entry = _leaderboard[index];
           final isTopThree = entry.rank <= 3;
 
-          return ModernCard(
+          return CleanCard(
             margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: isTopThree
-                        ? _getRankColor(entry.rank).withValues(alpha: 0.2)
-                        : Colors.grey.withValues(alpha: 0.1),
+                        ? _getRankColor(entry.rank).withValues(alpha: 0.1)
+                        : CleanTheme.borderSecondary,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       isTopThree ? _getRankEmoji(entry.rank) : '#${entry.rank}',
-                      style: TextStyle(
+                      style: GoogleFonts.outfit(
                         fontSize: isTopThree ? 24 : 16,
                         fontWeight: FontWeight.bold,
+                        color: isTopThree ? null : CleanTheme.textSecondary,
                       ),
                     ),
                   ),
@@ -484,12 +508,16 @@ class _GamificationScreenState extends State<GamificationScreen>
                         entry.name,
                         style: GoogleFonts.outfit(
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.textPrimary,
                         ),
                       ),
                       Text(
-                        'Level ${entry.level}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        'Livello ${entry.level}',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -498,8 +526,8 @@ class _GamificationScreenState extends State<GamificationScreen>
                   '${entry.xp} XP',
                   style: GoogleFonts.outfit(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: ModernTheme.accentColor,
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
               ],
@@ -513,7 +541,7 @@ class _GamificationScreenState extends State<GamificationScreen>
   Color _getRankColor(int rank) {
     switch (rank) {
       case 1:
-        return Colors.amber;
+        return CleanTheme.accentYellow;
       case 2:
         return Colors.grey;
       case 3:

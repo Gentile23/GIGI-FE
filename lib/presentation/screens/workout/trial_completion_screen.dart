@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/trial_workout_model.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class TrialCompletionScreen extends StatelessWidget {
   final TrialCompletionResponse completionResponse;
@@ -15,7 +16,7 @@ class TrialCompletionScreen extends StatelessWidget {
     final avgDifficulty = analysis['average_difficulty'] as double;
 
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -24,29 +25,31 @@ class TrialCompletionScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 32),
 
-              // Success icon
               Center(
                 child: Container(
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [ModernTheme.accentColor, Colors.purple],
-                    ),
+                    color: CleanTheme.primaryLight,
                   ),
-                  child: const Icon(Icons.check, size: 64, color: Colors.white),
+                  child: const Icon(
+                    Icons.check,
+                    size: 64,
+                    color: CleanTheme.primaryColor,
+                  ),
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // Title
               Center(
                 child: Text(
                   'Trial Completato!',
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -54,56 +57,63 @@ class TrialCompletionScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Summary
               Center(
                 child: Text(
                   completionResponse.summary,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: CleanTheme.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
 
               const SizedBox(height: 40),
 
-              // Performance stats
-              ModernCard(
+              CleanCard(
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Le Tue Performance',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 24),
 
                     _buildStatRow(
                       context,
-                      Icons.check_circle,
+                      Icons.check_circle_outline,
                       'Completamento',
                       '${completionRate.toStringAsFixed(0)}%',
                       _getCompletionColor(completionRate),
                     ),
 
-                    const Divider(height: 32),
+                    const Divider(height: 32, color: CleanTheme.borderPrimary),
 
                     _buildStatRow(
                       context,
-                      Icons.fitness_center,
+                      Icons.fitness_center_outlined,
                       'Difficoltà Media',
                       '${avgDifficulty.toStringAsFixed(1)}/5',
                       _getDifficultyColor(avgDifficulty),
                     ),
 
                     if (analysis['fatigue_level'] != null) ...[
-                      const Divider(height: 32),
+                      const Divider(
+                        height: 32,
+                        color: CleanTheme.borderPrimary,
+                      ),
                       _buildStatRow(
                         context,
-                        Icons.battery_charging_full,
+                        Icons.battery_charging_full_outlined,
                         'Livello Fatica',
                         '${analysis['fatigue_level']}/5',
-                        ModernTheme.accentColor,
+                        CleanTheme.accentOrange,
                       ),
                     ],
                   ],
@@ -112,8 +122,8 @@ class TrialCompletionScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Voice Coaching CTA
-              ModernCard(
+              CleanCard(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     Row(
@@ -121,15 +131,15 @@ class TrialCompletionScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: ModernTheme.accentColor.withValues(
-                              alpha: 0.2,
+                            color: CleanTheme.accentPurple.withValues(
+                              alpha: 0.1,
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
-                            Icons.mic,
-                            color: ModernTheme.accentColor,
-                            size: 32,
+                          child: const Icon(
+                            Icons.mic_outlined,
+                            color: CleanTheme.accentPurple,
+                            size: 28,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -139,14 +149,19 @@ class TrialCompletionScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'Ti è piaciuto il Voice Coaching?',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: CleanTheme.textPrimary,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Passa a Pro per usarlo sempre!',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Colors.white70),
+                                'Passa a Premium per usarlo sempre!',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: CleanTheme.textSecondary,
+                                ),
                               ),
                             ],
                           ),
@@ -154,11 +169,11 @@ class TrialCompletionScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    ModernButton(
+                    CleanButton(
                       text: 'Scopri i Piani Premium',
                       isOutlined: true,
+                      width: double.infinity,
                       onPressed: () {
-                        // TODO: Navigate to subscription screen
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Schermata abbonamenti in arrivo!'),
@@ -172,25 +187,21 @@ class TrialCompletionScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Generate plan button
-              SizedBox(
+              CleanButton(
+                text: 'Genera la Mia Scheda',
+                icon: Icons.auto_awesome,
                 width: double.infinity,
-                child: ModernButton(
-                  text: 'Genera la Mia Scheda',
-                  icon: Icons.auto_awesome,
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/main',
-                      (route) => false,
-                    );
-                  },
-                ),
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/main',
+                    (route) => false,
+                  );
+                },
               ),
 
               const SizedBox(height: 16),
 
-              // Skip button
               Center(
                 child: TextButton(
                   onPressed: () {
@@ -200,7 +211,10 @@ class TrialCompletionScreen extends StatelessWidget {
                       (route) => false,
                     );
                   },
-                  child: const Text('Salta per ora'),
+                  child: Text(
+                    'Salta per ora',
+                    style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                  ),
                 ),
               ),
             ],
@@ -219,15 +233,29 @@ class TrialCompletionScreen extends StatelessWidget {
   ) {
     return Row(
       children: [
-        Icon(icon, color: color, size: 24),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
             color: color,
           ),
         ),
@@ -236,15 +264,15 @@ class TrialCompletionScreen extends StatelessWidget {
   }
 
   Color _getCompletionColor(double rate) {
-    if (rate >= 80) return Colors.green;
-    if (rate >= 50) return Colors.orange;
-    return Colors.red;
+    if (rate >= 80) return CleanTheme.accentGreen;
+    if (rate >= 50) return CleanTheme.accentOrange;
+    return CleanTheme.accentRed;
   }
 
   Color _getDifficultyColor(double difficulty) {
-    if (difficulty > 4) return Colors.red;
-    if (difficulty > 3) return Colors.orange;
-    if (difficulty < 2) return Colors.green;
-    return ModernTheme.accentColor;
+    if (difficulty > 4) return CleanTheme.accentRed;
+    if (difficulty > 3) return CleanTheme.accentOrange;
+    if (difficulty < 2) return CleanTheme.accentGreen;
+    return CleanTheme.primaryColor;
   }
 }

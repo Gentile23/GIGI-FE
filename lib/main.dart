@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'core/theme/modern_theme.dart';
+import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
@@ -10,6 +10,8 @@ import 'providers/auth_provider.dart';
 import 'providers/workout_provider.dart';
 import 'providers/workout_log_provider.dart';
 import 'providers/gamification_provider.dart';
+import 'providers/engagement_provider.dart';
+import 'providers/social_provider.dart';
 
 void main() {
   runApp(const FitGeniusApp());
@@ -28,11 +30,13 @@ class FitGeniusApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => WorkoutProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => WorkoutLogProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => GamificationProvider()),
+        ChangeNotifierProvider(create: (_) => EngagementProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => SocialProvider(apiClient)),
       ],
       child: MaterialApp(
         title: 'FitGenius',
         debugShowCheckedModeBanner: false,
-        theme: ModernTheme.darkTheme,
+        theme: CleanTheme.lightTheme,
         // Start with onboarding, then: auth -> questionnaire -> main app
         home: const AppNavigator(),
         routes: {
@@ -71,6 +75,7 @@ class _AppNavigatorState extends State<AppNavigator> {
       builder: (context, authProvider, _) {
         if (authProvider.isLoading) {
           return Scaffold(
+            backgroundColor: CleanTheme.backgroundColor,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -81,9 +86,10 @@ class _AppNavigatorState extends State<AppNavigator> {
                     margin: const EdgeInsets.only(bottom: 32),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: ModernTheme.primaryColor.withOpacity(0.3),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),
@@ -96,7 +102,9 @@ class _AppNavigatorState extends State<AppNavigator> {
                       ),
                     ),
                   ),
-                  const CircularProgressIndicator(),
+                  const CircularProgressIndicator(
+                    color: CleanTheme.primaryColor,
+                  ),
                 ],
               ),
             ),

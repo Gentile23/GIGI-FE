@@ -6,8 +6,8 @@ import '../../../data/models/voice_coaching_model.dart';
 import '../../../data/services/trial_workout_service.dart';
 import '../../../data/services/voice_coaching_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 import '../../widgets/voice_coaching_player.dart';
 import 'trial_completion_screen.dart';
 import 'post_trial_assessment_screen.dart';
@@ -30,9 +30,8 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   int _overallFatigue = 3;
   bool _isSubmitting = false;
 
-  // Per-set tracking
   bool _setStarted = false;
-  int _currentSetNumber = 0; // 0-indexed
+  int _currentSetNumber = 0;
   final Map<String, List<int>> _actualRepsPerformed = {};
   final Map<String, List<double>> _weightsUsed = {};
 
@@ -51,12 +50,10 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
     _voiceCoachingService = VoiceCoachingService(apiClient);
   }
 
-  // Timer logic
   final Stopwatch _stopwatch = Stopwatch();
   Timer? _timer;
   String _formattedTime = '00:00';
 
-  // Countdown logic
   bool _isCountdownActive = false;
   int _countdownSeconds = 3;
   Timer? _countdownTimer;
@@ -92,7 +89,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   Future<void> _loadVoiceCoaching() async {
     final exercise = widget.trialWorkout.exercises[_currentExerciseIndex];
 
-    // Check if we already have voice coaching URLs (from trial template)
     if (exercise.voiceCoachingPreUrl != null ||
         exercise.voiceCoachingDuringUrl != null ||
         exercise.voiceCoachingPostUrl != null) {
@@ -103,7 +99,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
           multiPhase: MultiPhaseCoaching(
             preExercise: CoachingPhase(
               audioUrl: exercise.voiceCoachingPreUrl,
-              duration: 10, // Default 10 seconds for pre-exercise
+              duration: 10,
             ),
             duringExecution: CoachingPhase(
               audioUrl: exercise.voiceCoachingDuringUrl,
@@ -117,7 +113,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       return;
     }
 
-    // Only load if we have an ID (meaning it's a real exercise in DB)
     if (exercise.id != null) {
       setState(() {
         _isLoadingVoiceCoaching = true;
@@ -139,7 +134,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
           });
         }
       } catch (e) {
-        print('Error loading voice coaching: $e');
+        debugPrint('Error loading voice coaching: $e');
         if (mounted) {
           setState(() {
             _isLoadingVoiceCoaching = false;
@@ -150,15 +145,12 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   }
 
   Future<void> _startSet() async {
-    // Load voice coaching on first set
     if (_currentSetNumber == 0 && _currentVoiceCoaching == null) {
       await _loadVoiceCoaching();
     }
 
-    // 1. Play pre-exercise audio immediately
     _voiceCoachingController.playPre();
 
-    // 2. Determine countdown duration from voice coaching or use default
     int countdownDuration = 3;
     if (_currentVoiceCoaching?.multiPhase?.preExercise?.duration != null) {
       countdownDuration =
@@ -181,7 +173,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
             _setStarted = true;
             _startTimer();
 
-            // 3. Start "during" audio after a short delay (2 seconds into exercise)
             Future.delayed(const Duration(seconds: 2), () {
               if (mounted && _setStarted) {
                 _voiceCoachingController.playDuring();
@@ -204,39 +195,73 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          backgroundColor: ModernTheme.cardColor,
+          backgroundColor: CleanTheme.surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Text(
             'Serie ${_currentSetNumber + 1}/${exercise.sets} completata!',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Tempo: $_formattedTime',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: ModernTheme.accentColor,
+                  _formattedTime,
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 TextField(
                   controller: repsController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
+                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                  decoration: InputDecoration(
                     labelText: 'Quante ripetizioni hai fatto?',
+                    labelStyle: GoogleFonts.inter(
+                      color: CleanTheme.textSecondary,
+                    ),
                     hintText: 'Es: 10',
-                    border: OutlineInputBorder(),
+                    filled: true,
+                    fillColor: CleanTheme.backgroundColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.borderPrimary,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.borderPrimary,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.primaryColor,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   autofocus: true,
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
-                  title: const Text('Esercizio a corpo libero'),
+                  title: Text(
+                    'Esercizio a corpo libero',
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                  ),
                   value: isBodyweight,
                   onChanged: (value) => setState(() => isBodyweight = value),
-                  activeColor: ModernTheme.accentColor,
+                  activeColor: CleanTheme.primaryColor,
                 ),
                 if (!isBodyweight) ...[
                   const SizedBox(height: 8),
@@ -245,10 +270,21 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    decoration: InputDecoration(
                       labelText: 'Peso utilizzato (kg)',
+                      labelStyle: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary,
+                      ),
                       hintText: 'Es: 20.5',
-                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: CleanTheme.backgroundColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -256,7 +292,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
             ),
           ),
           actions: [
-            ModernButton(
+            CleanButton(
               text: 'Conferma',
               onPressed: () {
                 final reps = int.tryParse(repsController.text) ?? 0;
@@ -277,7 +313,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   void _completeSet(int reps, {double? weight}) {
     final exercise = widget.trialWorkout.exercises[_currentExerciseIndex];
 
-    // 4. Play post-exercise audio immediately when set is completed
     _voiceCoachingController.playPost();
 
     if (!_actualRepsPerformed.containsKey(exercise.name)) {
@@ -296,7 +331,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       _formattedTime = '00:00';
     });
 
-    // Check if all sets for this exercise are completed
     if (_currentSetNumber >= exercise.sets) {
       _showDifficultyDialog();
     }
@@ -307,14 +341,24 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        title: const Text('Quanto è stato difficile?'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Quanto è stato difficile?',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(5, (index) {
             final difficulty = index + 1;
             return ListTile(
-              title: Text(_getDifficultyLabel(difficulty)),
+              title: Text(
+                _getDifficultyLabel(difficulty),
+                style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+              ),
               leading: Text(
                 _getDifficultyEmoji(difficulty),
                 style: const TextStyle(fontSize: 24),
@@ -335,7 +379,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
     setState(() {
       _difficultyRatings[exercise.name] = difficulty;
       _setStarted = false;
-      _currentSetNumber = 0; // Reset for next exercise
+      _currentSetNumber = 0;
       _formattedTime = '00:00';
     });
 
@@ -388,30 +432,41 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        title: const Text('Livello di Fatica'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Livello di Fatica',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Come ti senti dopo questo allenamento?'),
+            Text(
+              'Come ti senti dopo questo allenamento?',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
             const SizedBox(height: 24),
             ...List.generate(5, (index) {
               final level = index + 1;
               return RadioListTile<int>(
-                title: Text(_getFatigueLabel(level)),
+                title: Text(
+                  _getFatigueLabel(level),
+                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                ),
                 value: level,
                 groupValue: _overallFatigue,
                 onChanged: (value) {
                   setState(() => _overallFatigue = value!);
                 },
-                activeColor: ModernTheme.accentColor,
+                activeColor: CleanTheme.primaryColor,
               );
             }),
           ],
         ),
-        actions: [
-          ModernButton(text: 'Completa Trial', onPressed: _submitTrial),
-        ],
+        actions: [CleanButton(text: 'Completa Trial', onPressed: _submitTrial)],
       ),
     );
   }
@@ -434,9 +489,8 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   }
 
   Future<void> _submitTrial() async {
-    Navigator.pop(context); // Close fatigue dialog
+    Navigator.pop(context);
 
-    // Navigate to post-assessment screen
     final assessmentData = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
@@ -468,7 +522,6 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
         setState(() => _isSubmitting = false);
 
         if (response != null) {
-          // Navigate to completion screen or show success
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -480,7 +533,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Errore durante l\'invio dei risultati. Riprova.'),
-              backgroundColor: Colors.red,
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -491,7 +544,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Errore imprevisto: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
@@ -502,8 +555,10 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   Widget build(BuildContext context) {
     if (_isSubmitting) {
       return Scaffold(
-        backgroundColor: ModernTheme.backgroundColor,
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: CleanTheme.backgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+        ),
       );
     }
 
@@ -513,10 +568,19 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
         (_currentExerciseIndex + 1) / widget.trialWorkout.exercises.length;
 
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Trial Workout'),
-        backgroundColor: ModernTheme.cardColor,
+        title: Text(
+          'Trial Workout',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -527,14 +591,14 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: ModernTheme.accentColor.withOpacity(0.2),
+                  color: CleanTheme.primaryLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${_currentExerciseIndex + 1}/${widget.trialWorkout.exercises.length}',
-                  style: TextStyle(
-                    color: ModernTheme.accentColor,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -544,11 +608,16 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
       ),
       body: Column(
         children: [
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.white12,
-            valueColor: AlwaysStoppedAnimation<Color>(ModernTheme.accentColor),
-            minHeight: 4,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: CleanTheme.borderSecondary,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                CleanTheme.primaryColor,
+              ),
+              minHeight: 4,
+            ),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -557,27 +626,24 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (_currentExerciseIndex == 0 && _currentSetNumber == 0)
-                    Container(
-                      padding: const EdgeInsets.all(16),
+                    CleanCard(
                       margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            ModernTheme.accentColor.withOpacity(0.2),
-                            Colors.purple.withOpacity(0.2),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: ModernTheme.accentColor.withOpacity(0.3),
-                        ),
-                      ),
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.mic,
-                            color: ModernTheme.accentColor,
-                            size: 32,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentPurple.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.mic_outlined,
+                              color: CleanTheme.accentPurple,
+                              size: 28,
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -586,16 +652,19 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                               children: [
                                 Text(
                                   '🎤 Voice Coaching GRATIS',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: ModernTheme.accentColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: CleanTheme.accentPurple,
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Prova il coach vocale durante questo trial!',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: CleanTheme.textSecondary,
+                                  ),
                                 ),
                               ],
                             ),
@@ -608,8 +677,11 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                       Expanded(
                         child: Text(
                           currentExercise.name,
-                          style: Theme.of(context).textTheme.displaySmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: GoogleFonts.outfit(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: CleanTheme.textPrimary,
+                          ),
                         ),
                       ),
                       Container(
@@ -618,15 +690,15 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: ModernTheme.accentColor.withOpacity(0.2),
+                          color: CleanTheme.primaryLight,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           'Serie ${_currentSetNumber + 1}/${currentExercise.sets}',
-                          style: TextStyle(
-                            color: ModernTheme.accentColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
                           ),
                         ),
                       ),
@@ -639,21 +711,39 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                       controller: _voiceCoachingController,
                     )
                   else if (_isLoadingVoiceCoaching)
-                    const Center(child: CircularProgressIndicator()),
+                    const Center(
+                      child: CircularProgressIndicator(
+                        color: CleanTheme.primaryColor,
+                      ),
+                    ),
                   const SizedBox(height: 24),
                   if (currentExercise.notes != null)
-                    ModernCard(
+                    CleanCard(
+                      padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: ModernTheme.accentColor,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentBlue.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.info_outline,
+                              color: CleanTheme.accentBlue,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               currentExercise.notes!,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: CleanTheme.textSecondary,
+                              ),
                             ),
                           ),
                         ],
@@ -668,14 +758,18 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                             '$_countdownSeconds',
                             style: GoogleFonts.outfit(
                               fontSize: 80,
-                              fontWeight: FontWeight.bold,
-                              color: ModernTheme.accentColor,
+                              fontWeight: FontWeight.w700,
+                              color: CleanTheme.primaryColor,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Preparati!',
-                            style: Theme.of(context).textTheme.titleLarge,
+                            style: GoogleFonts.outfit(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: CleanTheme.textPrimary,
+                            ),
                           ),
                         ],
                       ),
@@ -688,14 +782,17 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                             _formattedTime,
                             style: GoogleFonts.outfit(
                               fontSize: 64,
-                              fontWeight: FontWeight.bold,
-                              color: ModernTheme.accentColor,
+                              fontWeight: FontWeight.w700,
+                              color: CleanTheme.primaryColor,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Tempo Trascorso',
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: CleanTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -704,15 +801,17 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                   ],
                   if (!_isCountdownActive)
                     if (!_setStarted)
-                      ModernButton(
+                      CleanButton(
                         text: 'Inizia Serie ${_currentSetNumber + 1}',
                         icon: Icons.play_arrow,
+                        width: double.infinity,
                         onPressed: _startSet,
                       )
                     else
-                      ModernButton(
+                      CleanButton(
                         text: 'Termina Serie ${_currentSetNumber + 1}',
-                        icon: Icons.done,
+                        icon: Icons.check,
+                        width: double.infinity,
                         onPressed: () =>
                             _showSetCompletionDialog(currentExercise),
                       ),

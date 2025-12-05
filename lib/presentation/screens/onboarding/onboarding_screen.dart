@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -19,27 +20,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       imagePath: 'assets/images/gigi_logo.png',
-      title: 'Welcome to GIGI',
+      title: 'Benvenuto in GIGI',
       description:
-          'Your personal AI fitness coach. Get personalized workout plans tailored to your goals and fitness level.',
+          'Il tuo coach fitness AI personale. Ottieni piani di allenamento personalizzati in base ai tuoi obiettivi e livello.',
     ),
     OnboardingPage(
-      icon: Icons.assessment,
-      title: '3 Assessment Workouts',
+      icon: Icons.assessment_outlined,
+      title: '3 Workout di Valutazione',
       description:
-          'Complete 3 evaluation workouts so our AI can understand your current fitness level and create the perfect plan for you.',
+          'Completa 3 allenamenti di valutazione così la nostra AI può capire il tuo livello attuale e creare il piano perfetto per te.',
     ),
     OnboardingPage(
-      icon: Icons.mic,
+      icon: Icons.mic_outlined,
       title: 'Voice Coaching',
       description:
-          'Follow along with AI voice coaching during your workouts and get real-time feedback on your form.',
+          'Segui il coaching vocale AI durante i tuoi allenamenti e ricevi feedback in tempo reale sulla tua forma.',
     ),
     OnboardingPage(
-      icon: Icons.workspace_premium,
-      title: 'Choose Your Plan',
+      icon: Icons.workspace_premium_outlined,
+      title: 'Scegli il Tuo Piano',
       description:
-          'Start free or upgrade to unlock AI voice coaching, pose detection, and advanced analytics.',
+          'Inizia gratis o passa a Premium per sbloccare il coaching vocale AI, il rilevamento della postura e analytics avanzati.',
     ),
   ];
 
@@ -52,15 +53,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Skip button
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _skipToEnd,
-                child: const Text('Skip'),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextButton(
+                  onPressed: _skipToEnd,
+                  child: Text(
+                    'Salta',
+                    style: GoogleFonts.inter(
+                      color: CleanTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
             ),
 
@@ -87,28 +98,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 count: _pages.length,
                 effect: WormEffect(
-                  activeDotColor: AppColors.primary,
-                  dotColor: AppColors.backgroundLight,
-                  dotHeight: 12,
-                  dotWidth: 12,
-                  spacing: 16,
+                  activeDotColor: CleanTheme.primaryColor,
+                  dotColor: CleanTheme.borderSecondary,
+                  dotHeight: 10,
+                  dotWidth: 10,
+                  spacing: 12,
                 ),
               ),
             ),
 
             // Next/Get Started button
             Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: SizedBox(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              child: CleanButton(
+                text: _currentPage == _pages.length - 1 ? 'Inizia' : 'Avanti',
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _currentPage == _pages.length - 1
-                      ? _getStarted
-                      : _nextPage,
-                  child: Text(
-                    _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
-                  ),
-                ),
+                onPressed: _currentPage == _pages.length - 1
+                    ? _getStarted
+                    : _nextPage,
               ),
             ),
           ],
@@ -125,16 +132,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           // Icon or Image
           Container(
-            width: 120,
-            height: 120,
+            width: 140,
+            height: 140,
             decoration: BoxDecoration(
-              gradient: page.imagePath == null ? AppColors.neonGradient : null,
+              color: page.imagePath == null ? CleanTheme.primaryLight : null,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryNeon.withOpacity(0.3),
-                  blurRadius: 20,
-                  spreadRadius: 2,
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  blurRadius: 30,
+                  spreadRadius: 5,
                 ),
               ],
             ),
@@ -142,7 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ? ClipOval(
                     child: Image.asset(page.imagePath!, fit: BoxFit.cover),
                   )
-                : Icon(page.icon, size: 60, color: AppColors.background),
+                : Icon(page.icon, size: 64, color: CleanTheme.primaryColor),
           ),
 
           const SizedBox(height: 48),
@@ -150,17 +157,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Title
           Text(
             page.title,
-            style: AppTextStyles.h2,
+            style: GoogleFonts.outfit(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textPrimary,
+            ),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
           // Description
           Text(
             page.description,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              height: 1.6,
+              color: CleanTheme.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),

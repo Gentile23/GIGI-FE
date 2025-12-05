@@ -5,8 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../data/models/form_analysis_model.dart';
 import '../../../data/services/form_analysis_service.dart';
 import '../../../data/services/api_client.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
 
 class FormAnalysisScreen extends StatefulWidget {
@@ -65,13 +65,12 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         final file = File(pickedFile.path);
         final fileSize = await file.length();
 
-        // Check file size (max 50MB)
         if (fileSize > 50 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('❌ Video troppo grande! Max 50MB'),
-                backgroundColor: Colors.red,
+                content: Text('Video troppo grande! Max 50MB'),
+                backgroundColor: CleanTheme.accentRed,
               ),
             );
           }
@@ -93,13 +92,12 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     if (_videoFile == null || _exerciseController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Seleziona video e inserisci nome esercizio'),
+          content: Text('Seleziona video e inserisci nome esercizio'),
         ),
       );
       return;
     }
 
-    // Check quota
     if (_quota != null && !_quota!.canAnalyze && !_quota!.isPremium) {
       _showUpgradeDialog();
       return;
@@ -136,8 +134,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Errore: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            content: Text('Errore: ${e.toString()}'),
+            backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
@@ -152,22 +150,32 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: ModernTheme.cardColor,
-        title: const Text('Limite Raggiunto'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Limite Raggiunto',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Text(
           'Hai raggiunto il limite giornaliero di ${_quota?.dailyLimit ?? 3} analisi.\n\nUpgrade a Premium per analisi illimitate!',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Chiudi'),
+            child: Text(
+              'Chiudi',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
           ),
-          ElevatedButton(
+          CleanButton(
+            text: 'Upgrade',
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Navigate to premium upgrade screen
             },
-            child: const Text('Upgrade'),
           ),
         ],
       ),
@@ -177,18 +185,26 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
           'AI Form Check',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
-        backgroundColor: ModernTheme.cardColor,
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -202,9 +218,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                     _buildVideoSelector(),
                   const SizedBox(height: 32),
                   if (_videoFile != null && !_isAnalyzing)
-                    ModernButton(
+                    CleanButton(
                       text: 'Analizza Esecuzione',
-                      icon: Icons.psychology,
+                      icon: Icons.auto_awesome,
+                      width: double.infinity,
                       onPressed: _analyzeVideo,
                     ),
                   if (_isAnalyzing) _buildAnalyzingWidget(),
@@ -222,20 +239,23 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     final remaining = _quota!.remaining;
     final isPremium = _quota!.isPremium;
 
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isPremium
-                  ? Colors.amber.withOpacity(0.2)
-                  : Colors.blue.withOpacity(0.2),
+                  ? CleanTheme.accentOrange.withValues(alpha: 0.1)
+                  : CleanTheme.accentBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              isPremium ? Icons.workspace_premium : Icons.analytics,
-              color: isPremium ? Colors.amber : Colors.blue,
+              isPremium ? Icons.workspace_premium : Icons.analytics_outlined,
+              color: isPremium
+                  ? CleanTheme.accentOrange
+                  : CleanTheme.accentBlue,
               size: 28,
             ),
           ),
@@ -246,9 +266,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               children: [
                 Text(
                   isPremium ? '✨ Premium User' : 'Analisi Giornaliere',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -256,12 +277,12 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                   isPremium
                       ? 'Analisi illimitate'
                       : '$remaining/${_quota!.dailyLimit} rimaste oggi',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
                     color: remaining > 0 || isPremium
-                        ? Colors.green
-                        : Colors.red,
-                    fontWeight: FontWeight.bold,
+                        ? CleanTheme.accentGreen
+                        : CleanTheme.accentRed,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -275,24 +296,32 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   Widget _buildExerciseNameField() {
     return TextField(
       controller: _exerciseController,
-      style: const TextStyle(color: Colors.white),
+      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
       decoration: InputDecoration(
         labelText: 'Nome Esercizio',
+        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
         hintText: 'es. Squat, Panca piana, Stacco...',
-        prefixIcon: const Icon(Icons.fitness_center, color: Colors.white60),
+        hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
+        prefixIcon: const Icon(
+          Icons.fitness_center_outlined,
+          color: CleanTheme.textSecondary,
+        ),
         filled: true,
-        fillColor: ModernTheme.cardColor,
+        fillColor: CleanTheme.surfaceColor,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: ModernTheme.primaryColor),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(
+            color: CleanTheme.primaryColor,
+            width: 2,
+          ),
         ),
       ),
     );
@@ -301,37 +330,62 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   Widget _buildVideoSelector() {
     return Column(
       children: [
-        ModernCard(
+        CleanCard(
           onTap: () => _pickVideo(ImageSource.camera),
+          padding: const EdgeInsets.all(32),
           child: Column(
             children: [
-              Icon(Icons.videocam, size: 48, color: ModernTheme.primaryColor),
-              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.videocam_outlined,
+                  size: 40,
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'Registra Video',
-                style: TextStyle(
+                style: GoogleFonts.outfit(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: ModernTheme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Max 15 secondi',
-                style: TextStyle(fontSize: 12, color: Colors.white60),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: CleanTheme.textTertiary,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        ModernCard(
+        CleanCard(
           onTap: () => _pickVideo(ImageSource.gallery),
+          padding: const EdgeInsets.all(16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.video_library, color: Colors.white70),
-              const SizedBox(width: 8),
-              const Text('Carica dalla Galleria'),
+              const Icon(
+                Icons.video_library_outlined,
+                color: CleanTheme.textSecondary,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Carica dalla Galleria',
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
             ],
           ),
         ),
@@ -340,37 +394,55 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildVideoPreview() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Container(
-            height: 200,
+            height: 180,
             decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(12),
+              color: CleanTheme.borderSecondary,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Center(
               child: Icon(
                 Icons.play_circle_outline,
                 size: 64,
-                color: Colors.white70,
+                color: CleanTheme.textTertiary,
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '✅ Video selezionato',
-                style: TextStyle(color: Colors.green),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    color: CleanTheme.accentGreen,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Video selezionato',
+                    style: GoogleFonts.inter(
+                      color: CleanTheme.accentGreen,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
               TextButton.icon(
                 onPressed: () => setState(() => _videoFile = null),
-                icon: const Icon(Icons.delete, color: Colors.red),
-                label: const Text(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: CleanTheme.accentRed,
+                  size: 20,
+                ),
+                label: Text(
                   'Rimuovi',
-                  style: TextStyle(color: Colors.red),
+                  style: GoogleFonts.inter(color: CleanTheme.accentRed),
                 ),
               ),
             ],
@@ -381,31 +453,40 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildAnalyzingWidget() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
+          const CircularProgressIndicator(color: CleanTheme.primaryColor),
+          const SizedBox(height: 20),
           Text(
             _uploadProgress < 1.0
-                ? '📤 Caricamento... ${(_uploadProgress * 100).toInt()}%'
-                : '🤖 Gemini sta analizzando...',
+                ? 'Caricamento... ${(_uploadProgress * 100).toInt()}%'
+                : 'Gemini sta analizzando...',
             style: GoogleFonts.outfit(
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           if (_uploadProgress < 1.0)
-            LinearProgressIndicator(
-              value: _uploadProgress,
-              backgroundColor: Colors.white24,
-              color: ModernTheme.primaryColor,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: _uploadProgress,
+                backgroundColor: CleanTheme.borderSecondary,
+                color: CleanTheme.primaryColor,
+                minHeight: 6,
+              ),
             ),
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: 12),
+          Text(
             'Questo può richiedere 30-60 secondi',
-            style: TextStyle(fontSize: 12, color: Colors.white60),
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: CleanTheme.textTertiary,
+            ),
           ),
         ],
       ),
@@ -413,21 +494,37 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildInfoCard() {
-    return ModernCard(
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue),
-              const SizedBox(width: 8),
-              const Text(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: CleanTheme.accentBlue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
                 'Come funziona',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildInfoItem('📹', 'Registra o carica un video (max 15 sec)'),
           _buildInfoItem('🤖', 'Gemini AI analizza la tua esecuzione'),
           _buildInfoItem('📊', 'Ricevi feedback su postura ed errori'),
@@ -439,15 +536,18 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Widget _buildInfoItem(String emoji, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
+          Text(emoji, style: const TextStyle(fontSize: 18)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 14, color: Colors.white70),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textSecondary,
+              ),
             ),
           ),
         ],

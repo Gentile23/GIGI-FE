@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fitgenius/core/constants/app_colors.dart';
-import 'package:fitgenius/core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
 
 class WorkoutStatsCard extends StatelessWidget {
   final String label;
@@ -20,12 +20,11 @@ class WorkoutStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.border),
+        border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: InkWell(
         onTap: onTap,
@@ -35,18 +34,23 @@ class WorkoutStatsCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: iconColor ?? AppColors.primaryNeon, size: 28),
+              Icon(icon, color: iconColor ?? CleanTheme.primaryColor, size: 28),
               const SizedBox(height: 12),
               Text(
                 value,
-                style: AppTextStyles.h5.copyWith(fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: CleanTheme.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),

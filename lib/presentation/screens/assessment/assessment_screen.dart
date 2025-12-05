@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class AssessmentIntroScreen extends StatelessWidget {
   const AssessmentIntroScreen({super.key});
@@ -8,6 +9,7 @@ class AssessmentIntroScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -15,12 +17,21 @@ class AssessmentIntroScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Text('Assessment Workouts', style: AppTextStyles.h2),
+              Text(
+                'Workout di Valutazione',
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
-                'Complete 3 evaluation workouts to help our AI understand your fitness level',
-                style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.textSecondary,
+                'Completa 3 workout di valutazione per permettere alla nostra AI di capire il tuo livello',
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  color: CleanTheme.textSecondary,
+                  height: 1.5,
                 ),
               ),
 
@@ -31,81 +42,89 @@ class AssessmentIntroScreen extends StatelessWidget {
                 child: ListView(
                   children: [
                     _buildInfoCard(
-                      icon: Icons.assessment,
-                      title: 'Why Assessment?',
+                      icon: Icons.assessment_outlined,
+                      title: 'Perché la Valutazione?',
                       description:
-                          'These workouts help us understand your current fitness level, strengths, and areas for improvement.',
+                          'Questi workout ci aiutano a capire il tuo livello attuale, i tuoi punti di forza e le aree di miglioramento.',
                     ),
                     const SizedBox(height: 16),
                     _buildInfoCard(
-                      icon: Icons.timer,
-                      title: 'How Long?',
+                      icon: Icons.timer_outlined,
+                      title: 'Quanto Tempo?',
                       description:
-                          'Each assessment workout takes 20-30 minutes. You can complete them at your own pace.',
+                          'Ogni valutazione richiede 20-30 minuti. Puoi completarle al tuo ritmo.',
                     ),
                     const SizedBox(height: 16),
                     _buildInfoCard(
-                      icon: Icons.fitness_center,
-                      title: 'What to Expect?',
+                      icon: Icons.fitness_center_outlined,
+                      title: 'Cosa Aspettarsi?',
                       description:
-                          'A mix of strength, endurance, and mobility exercises to evaluate your overall fitness.',
+                          'Un mix di esercizi di forza, resistenza e mobilità per valutare il tuo fitness generale.',
                     ),
                     const SizedBox(height: 16),
                     _buildInfoCard(
-                      icon: Icons.auto_awesome,
-                      title: 'Personalized Plans',
+                      icon: Icons.auto_awesome_outlined,
+                      title: 'Piani Personalizzati',
                       description:
-                          'After completion, you\'ll receive a customized workout plan tailored to your abilities.',
+                          'Dopo il completamento, riceverai un piano di allenamento personalizzato.',
                     ),
                   ],
                 ),
               ),
 
               // Progress indicator
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Your Progress', style: AppTextStyles.h5),
-                      const SizedBox(height: 12),
-                      LinearProgressIndicator(
+              CleanCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Il Tuo Progresso',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
                         value: 0 / 3,
-                        backgroundColor: AppColors.backgroundLight,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primary,
+                        backgroundColor: CleanTheme.borderSecondary,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          CleanTheme.primaryColor,
                         ),
+                        minHeight: 8,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '0 of 3 assessments completed',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '0 di 3 valutazioni completate',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
               const SizedBox(height: 24),
 
               // Start button
-              SizedBox(
+              CleanButton(
+                text: 'Inizia Prima Valutazione',
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const AssessmentWorkoutScreen(assessmentNumber: 1),
-                      ),
-                    );
-                  },
-                  child: const Text('Start First Assessment'),
-                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const AssessmentWorkoutScreen(assessmentNumber: 1),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -119,39 +138,46 @@ class AssessmentIntroScreen extends StatelessWidget {
     required String title,
     required String description,
   }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primaryNeon.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primaryNeon),
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: CleanTheme.primaryLight,
+              shape: BoxShape.circle,
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: AppTextStyles.h6),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+            child: Icon(icon, color: CleanTheme.primaryColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -172,22 +198,22 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
   final List<Map<String, dynamic>> _exercises = [
     {
       'name': 'Push-ups',
-      'description': 'Do as many push-ups as you can with good form',
+      'description': 'Fai quante più push-up riesci con buona forma',
       'type': 'max_reps',
       'completed': false,
       'result': 0,
     },
     {
-      'name': 'Bodyweight Squats',
-      'description': 'Do as many squats as you can in 60 seconds',
+      'name': 'Squat a Corpo Libero',
+      'description': 'Fai quanti più squat riesci in 60 secondi',
       'type': 'timed',
       'duration': 60,
       'completed': false,
       'result': 0,
     },
     {
-      'name': 'Plank Hold',
-      'description': 'Hold a plank position for as long as possible',
+      'name': 'Plank',
+      'description': 'Mantieni la posizione di plank il più a lungo possibile',
       'type': 'duration',
       'completed': false,
       'result': 0,
@@ -199,14 +225,31 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
     final currentExercise = _exercises[_currentExerciseIndex];
 
     return Scaffold(
-      appBar: AppBar(title: Text('Assessment ${widget.assessmentNumber}/3')),
+      backgroundColor: CleanTheme.backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Valutazione ${widget.assessmentNumber}/3',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+      ),
       body: Column(
         children: [
           // Progress
-          LinearProgressIndicator(
-            value: (_currentExerciseIndex + 1) / _exercises.length,
-            backgroundColor: AppColors.backgroundLight,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ClipRRect(
+            child: LinearProgressIndicator(
+              value: (_currentExerciseIndex + 1) / _exercises.length,
+              backgroundColor: CleanTheme.borderSecondary,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                CleanTheme.primaryColor,
+              ),
+              minHeight: 4,
+            ),
           ),
 
           Expanded(
@@ -216,12 +259,20 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Exercise info
-                  Text(currentExercise['name'], style: AppTextStyles.h2),
+                  Text(
+                    currentExercise['name'],
+                    style: GoogleFonts.outfit(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     currentExercise['description'],
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textSecondary,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
 
@@ -232,59 +283,101 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
                     width: double.infinity,
                     height: 200,
                     decoration: BoxDecoration(
-                      color: AppColors.backgroundLight,
+                      color: CleanTheme.borderSecondary,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Center(
-                      child: Icon(Icons.play_circle_outline, size: 64),
+                      child: Icon(
+                        Icons.play_circle_outline,
+                        size: 64,
+                        color: CleanTheme.textTertiary,
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 32),
 
                   // Instructions
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Instructions', style: AppTextStyles.h5),
-                          const SizedBox(height: 12),
-                          _buildInstruction('1. Get into starting position'),
-                          _buildInstruction('2. Perform the exercise'),
-                          _buildInstruction('3. Record your result'),
-                        ],
-                      ),
+                  CleanCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Istruzioni',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInstruction(
+                          '1. Posizionati nella posizione iniziale',
+                        ),
+                        _buildInstruction('2. Esegui l\'esercizio'),
+                        _buildInstruction('3. Registra il tuo risultato'),
+                      ],
                     ),
                   ),
 
                   const SizedBox(height: 24),
 
                   // Result input
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Record Your Result', style: AppTextStyles.h5),
-                          const SizedBox(height: 16),
-                          TextField(
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: currentExercise['type'] == 'max_reps'
-                                  ? 'Number of reps'
-                                  : 'Seconds',
-                              border: const OutlineInputBorder(),
-                            ),
-                            onChanged: (value) {
-                              currentExercise['result'] =
-                                  int.tryParse(value) ?? 0;
-                            },
+                  CleanCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Registra il Tuo Risultato',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: CleanTheme.textPrimary,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.textPrimary,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: currentExercise['type'] == 'max_reps'
+                                ? 'Numero di ripetizioni'
+                                : 'Secondi',
+                            labelStyle: GoogleFonts.inter(
+                              color: CleanTheme.textSecondary,
+                            ),
+                            filled: true,
+                            fillColor: CleanTheme.backgroundColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: CleanTheme.borderPrimary,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: CleanTheme.borderPrimary,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: CleanTheme.primaryColor,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          onChanged: (value) {
+                            currentExercise['result'] =
+                                int.tryParse(value) ?? 0;
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -295,16 +388,12 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
           // Next button
           Padding(
             padding: const EdgeInsets.all(24.0),
-            child: SizedBox(
+            child: CleanButton(
+              text: _currentExerciseIndex == _exercises.length - 1
+                  ? 'Completa Valutazione'
+                  : 'Esercizio Successivo',
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _nextExercise,
-                child: Text(
-                  _currentExerciseIndex == _exercises.length - 1
-                      ? 'Complete Assessment'
-                      : 'Next Exercise',
-                ),
-              ),
+              onPressed: _nextExercise,
             ),
           ),
         ],
@@ -317,9 +406,21 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, size: 20),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 20,
+            color: CleanTheme.primaryColor,
+          ),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: AppTextStyles.bodyMedium)),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -332,7 +433,6 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
         _currentExerciseIndex++;
       });
     } else {
-      // Assessment complete
       _showCompletionDialog();
     }
   }
@@ -342,11 +442,20 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('🎉 Assessment Complete!'),
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          '🎉 Valutazione Completata!',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
         content: Text(
           widget.assessmentNumber == 3
-              ? 'Great job! You\'ve completed all assessments. Your personalized plan is being generated.'
-              : 'Great job! Assessment ${widget.assessmentNumber} complete. ${3 - widget.assessmentNumber} more to go!',
+              ? 'Ottimo lavoro! Hai completato tutte le valutazioni. Il tuo piano personalizzato sta per essere generato.'
+              : 'Ottimo lavoro! Valutazione ${widget.assessmentNumber} completata. Ancora ${3 - widget.assessmentNumber} da fare!',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
@@ -354,7 +463,13 @@ class _AssessmentWorkoutScreenState extends State<AssessmentWorkoutScreen> {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Close assessment screen
             },
-            child: const Text('Done'),
+            child: Text(
+              'Fatto',
+              style: GoogleFonts.inter(
+                color: CleanTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

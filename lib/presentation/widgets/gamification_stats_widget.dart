@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/gamification_provider.dart';
-import '../../core/theme/modern_theme.dart';
+import '../../core/theme/clean_theme.dart';
 import '../screens/gamification/gamification_screen.dart';
 
 class GamificationStatsWidget extends StatelessWidget {
@@ -28,21 +28,14 @@ class GamificationStatsWidget extends StatelessWidget {
             );
           },
           child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  ModernTheme.accentColor.withOpacity(0.8),
-                  ModernTheme.accentColor.withOpacity(0.6),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
+              color: CleanTheme.primaryColor,
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: ModernTheme.accentColor.withOpacity(0.3),
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -59,11 +52,11 @@ class GamificationStatsWidget extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.star,
+                            Icons.star_rounded,
                             color: Colors.white,
                             size: 20,
                           ),
@@ -73,18 +66,18 @@ class GamificationStatsWidget extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Level ${stats.currentLevel}',
+                              'Livello ${stats.currentLevel}',
                               style: GoogleFonts.outfit(
                                 fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
                             Text(
                               '${stats.totalXp} XP',
-                              style: const TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: Colors.white70,
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
@@ -98,26 +91,28 @@ class GamificationStatsWidget extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.3),
+                          color: CleanTheme.accentOrange.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.orange.withOpacity(0.5),
+                            color: CleanTheme.accentOrange.withValues(
+                              alpha: 0.5,
+                            ),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.local_fire_department,
-                              color: Colors.orange,
+                              Icons.local_fire_department_rounded,
+                              color: CleanTheme.accentOrange,
                               size: 16,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               '${stats.currentStreak}',
-                              style: const TextStyle(
+                              style: GoogleFonts.inter(
                                 fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
@@ -131,7 +126,7 @@ class GamificationStatsWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   child: LinearProgressIndicator(
                     value: stats.progressToNextLevel,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       Colors.white,
                     ),
@@ -143,39 +138,39 @@ class GamificationStatsWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Next level: ${stats.currentLevel + 1}',
-                      style: const TextStyle(
+                      'Prossimo livello: ${stats.currentLevel + 1}',
+                      style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: Colors.white70,
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                     Text(
                       '${(stats.progressToNextLevel * 100).toInt()}%',
-                      style: const TextStyle(
+                      style: GoogleFonts.inter(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildMiniStat(
                       '${stats.totalWorkouts}',
-                      'Workouts',
+                      'Workout',
                       Icons.fitness_center,
                     ),
                     _buildMiniStat(
                       '${stats.totalSetsCompleted}',
-                      'Sets',
+                      'Serie',
                       Icons.repeat,
                     ),
                     _buildMiniStat(
                       '${stats.totalWeightLifted.toStringAsFixed(0)}kg',
-                      'Weight',
+                      'Peso',
                       Icons.scale,
                     ),
                   ],
@@ -191,19 +186,22 @@ class GamificationStatsWidget extends StatelessWidget {
   Widget _buildMiniStat(String value, String label, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 18),
+        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 18),
         const SizedBox(height: 4),
         Text(
           value,
           style: GoogleFonts.outfit(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: Colors.white60),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
         ),
       ],
     );

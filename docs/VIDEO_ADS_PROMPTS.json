@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ad_concept_01_voice_coach_performance",
+    "title": "Unleash Your Ghost Partner",
+    "marketing_angle": "High-Impact Hook: Visualize the 'Voice' as a powerful entity. Stops the scroll by showing a visible transformation triggered by sound.",
+    "veo_3_prompt": "High-octane commercial shot. Opening Hook (0-1s): Extreme close-up of a sweaty, exhausted eye, pupil dilating, grey/bluish lighting, sound of heavy breathing. Suddenly, a neon blue 'shockwave' ripple effect originates from an earbud entering the ear. Cut to (1-3s): Wide explosive shot. The subject transforms from tired to explosive power, sprinting through a dark urban tunnel. A semi-transparent 'Ghost Runner' (glowing blue outlined silhouette representing the AI Coach) runs perfectly synchronized beside him, pacing him. Illuminating the dark tunnel with blue light. Camera movement: Fast lateral tracking shot matching the sprint speed, low angle to make them look heroic. Atmosphere is electric, high contrast, cinematic teal and orange grading. 4k, hyper-realistic.",
+    "voiceover_script": "You're never training alone. Activate your AI Ghost Partner. Push harder, run faster, break limits. The voice in your ear is the power in your legs.",
+    "text_overlay": "DON'T TRAIN ALONE. GET FITGENIUS."
+  },
+  {
+    "id": "ad_concept_02_form_analysis_performance",
+    "title": "X-Ray Vision Correction",
+    "marketing_angle": "Fear & Relief Pattern: Instantly highlights the danger of bad form (red/warning) and the immediate relief of correction (green/safe). Satisfying to watch.",
+    "veo_3_prompt": "Sci-Fi HUD POV shot. The camera IS the AI scanner. We see a user doing a squat with bad form in a dimly lit home gym. An intense RED warning holographic overlay flashes on their lower back, pulsing like a heartbeat (Danger visual). Sound of a digital 'Lock-on'. As the user corrects their hips, the red holographic skeleton snaps instantly into a bright, satisfying NEON GREEN structure with a 'ding' visual ripple effect. Values like 'Spine Load: SAFE' pop up in crisp white text. The room lighting shifts from dim to bright/clean simultaneously to signify 'correctness'. Camera movement: Slight handheld shake during red phase (tension), perfectly stable float during green phase (mastery). Iron Man helmet interface style. 8k resolution.",
+    "voiceover_script": "One inch wrong, and it's pain. One inch right, and it's gains. FitGenius Vision sees what you can't. Perfect form, zero injuries.",
+    "text_overlay": "FIX YOUR FORM INSTANTLY"
+  },
+  {
+    "id": "ad_concept_03_gamification_performance",
+    "title": "Dopamine Rush",
+    "marketing_angle": "Gamification Overload: Mimics the addictive visual cues of top-tier video games to target Gen Z attention spans. Fast cuts, highly stimulating.",
+    "veo_3_prompt": "Fast-paced Montage with Match Cuts. Shot 1: A user slams a medicine ball on the floor. IMPACT frame freezes for 0.1s, exploding into golden digital coins and a huge 'CRITICAL HIT' 3D text. Shot 2 (Match Cut): The ball slam transitions seamlessly to a foot landing a jump box. The impact generates a shockwave of XP points floating up (+150 XP). Shot 3: User drinks water, but the water bottle glows like a 'Health Potion' in a RPG. A green health bar above their head fills up to 100%. Final Shot: Phone screen showing a 'Level Up' animation that breaks the fourth wall, with confetti flying OUT of the screen towards the viewer. Lighting: Hyper-saturated, neon rim lights, energetic vibe. Camera: Dynamic zoom-ins on impacts. 4k, Unreal Engine 5 aesthetic.",
+    "voiceover_script": "Boring workouts are dead. Turn every rep into XP. Every set into a quest. Every drop of sweat into gold. Stop working out. Start playing.",
+    "text_overlay": "ADDICTIVE FITNESS IS HERE"
+  }
+]

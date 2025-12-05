@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../widgets/modern_widgets.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class PostTrialAssessmentScreen extends StatefulWidget {
   const PostTrialAssessmentScreen({super.key});
@@ -30,54 +31,70 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
       'additional_notes': _additionalNotes.isNotEmpty ? _additionalNotes : null,
     };
 
-    // Return assessment data to previous screen
     Navigator.pop(context, assessmentData);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Valutazione Post-Allenamento'),
-        backgroundColor: ModernTheme.cardColor,
+        title: Text(
+          'Valutazione Post-Allenamento',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Aiutaci a capire meglio il tuo livello',
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: GoogleFonts.outfit(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Rispondi a queste domande per permetterci di creare il piano perfetto per te',
-              style: Theme.of(context).textTheme.bodyMedium,
+              'Rispondi a queste domande per creare il piano perfetto per te',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
+              ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
-            // Overall Feeling
             _buildQuestionCard(
               'Come ti senti dopo l\'allenamento?',
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
                   return RadioListTile<int>(
-                    title: Text(_getFeelingLabel(value)),
+                    title: Text(
+                      _getFeelingLabel(value),
+                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    ),
                     value: value,
                     groupValue: _overallFeeling,
                     onChanged: (val) => setState(() => _overallFeeling = val!),
-                    activeColor: ModernTheme.accentColor,
+                    activeColor: CleanTheme.primaryColor,
                   );
                 }),
               ),
             ),
 
-            // Recovery Time
             _buildQuestionCard(
-              'Quanto tempo ti ci è voluto per recuperare il respiro?',
+              'Quanto tempo per recuperare il respiro?',
               Column(
                 children: [
                   Slider(
@@ -86,37 +103,51 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
                     max: 30,
                     divisions: 29,
                     label: '$_recoveryTime minuti',
-                    activeColor: ModernTheme.accentColor,
+                    activeColor: CleanTheme.primaryColor,
+                    inactiveColor: CleanTheme.borderSecondary,
                     onChanged: (val) =>
                         setState(() => _recoveryTime = val.toInt()),
                   ),
-                  Text('$_recoveryTime minuti'),
+                  Text(
+                    '$_recoveryTime minuti',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.primaryColor,
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            // Muscle Soreness
             _buildQuestionCard(
-              'Hai avuto dolori muscolari durante o dopo?',
+              'Hai avuto dolori muscolari?',
               Column(
                 children: [
                   SwitchListTile(
-                    title: const Text('Sì, ho avuto dolori'),
+                    title: Text(
+                      'Sì, ho avuto dolori',
+                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    ),
                     value: _hadMuscleSoreness,
                     onChanged: (val) =>
                         setState(() => _hadMuscleSoreness = val),
-                    activeColor: ModernTheme.accentColor,
+                    activeColor: CleanTheme.primaryColor,
                   ),
                   if (_hadMuscleSoreness) ...[
                     const SizedBox(height: 16),
-                    Text('Intensità del dolore:'),
+                    Text(
+                      'Intensità del dolore:',
+                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                    ),
                     Slider(
                       value: _sorenessIntensity.toDouble(),
                       min: 1,
                       max: 5,
                       divisions: 4,
                       label: _getSorenessLabel(_sorenessIntensity),
-                      activeColor: ModernTheme.accentColor,
+                      activeColor: CleanTheme.accentOrange,
+                      inactiveColor: CleanTheme.borderSecondary,
                       onChanged: (val) =>
                           setState(() => _sorenessIntensity = val.toInt()),
                     ),
@@ -125,42 +156,67 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
               ),
             ),
 
-            // Energy Level
             _buildQuestionCard(
               'Livello di energia dopo l\'allenamento',
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
                   return RadioListTile<int>(
-                    title: Text(_getEnergyLabel(value)),
+                    title: Text(
+                      _getEnergyLabel(value),
+                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    ),
                     value: value,
                     groupValue: _energyLevel,
                     onChanged: (val) => setState(() => _energyLevel = val!),
-                    activeColor: ModernTheme.accentColor,
+                    activeColor: CleanTheme.primaryColor,
                   );
                 }),
               ),
             ),
 
-            // Could Do More
             _buildQuestionCard(
               'Potevi fare di più?',
               SwitchListTile(
-                title: const Text('Sì, potevo continuare'),
+                title: Text(
+                  'Sì, potevo continuare',
+                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                ),
                 value: _couldDoMore,
                 onChanged: (val) => setState(() => _couldDoMore = val),
-                activeColor: ModernTheme.accentColor,
+                activeColor: CleanTheme.primaryColor,
               ),
             ),
 
-            // Additional Notes
             _buildQuestionCard(
               'Note aggiuntive (opzionale)',
               TextField(
                 maxLines: 3,
-                decoration: const InputDecoration(
+                style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                decoration: InputDecoration(
                   hintText: 'Es: Ho trovato difficile l\'esercizio X...',
-                  border: OutlineInputBorder(),
+                  hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
+                  filled: true,
+                  fillColor: CleanTheme.backgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: CleanTheme.borderPrimary,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: CleanTheme.borderPrimary,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: CleanTheme.primaryColor,
+                      width: 2,
+                    ),
+                  ),
                 ),
                 onChanged: (val) => _additionalNotes = val,
               ),
@@ -168,11 +224,13 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
 
             const SizedBox(height: 32),
 
-            // Submit Button
-            ModernButton(
+            CleanButton(
               text: 'Completa Valutazione',
+              icon: Icons.check,
+              width: double.infinity,
               onPressed: _submitAssessment,
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -180,15 +238,19 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
   }
 
   Widget _buildQuestionCard(String question, Widget content) {
-    return ModernCard(
+    return CleanCard(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             question,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           content,

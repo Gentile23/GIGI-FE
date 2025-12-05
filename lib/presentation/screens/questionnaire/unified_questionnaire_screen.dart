@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/modern_theme.dart';
-import '../../../presentation/widgets/modern_widgets.dart';
+import '../../../core/theme/clean_theme.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
@@ -279,7 +279,7 @@ class _UnifiedQuestionnaireScreenState
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: ModernTheme.cardColor,
+          backgroundColor: CleanTheme.cardColor,
           title: const Text(
             'Infortunio Aggiunto',
             style: TextStyle(color: Colors.white),
@@ -457,7 +457,7 @@ class _UnifiedQuestionnaireScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: ModernTheme.backgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -488,7 +488,7 @@ class _UnifiedQuestionnaireScreenState
                           value: _progress,
                           backgroundColor: Colors.white10,
                           valueColor: const AlwaysStoppedAnimation<Color>(
-                            ModernTheme.primaryColor,
+                            CleanTheme.primaryColor,
                           ),
                           minHeight: 6,
                         ),
@@ -681,18 +681,26 @@ class _UnifiedQuestionnaireScreenState
           TextFormField(
             initialValue: _height?.toString(),
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
+            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Es. 175',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.1),
+              fillColor: CleanTheme.surfaceColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.primaryColor),
               ),
               suffixText: 'cm',
-              suffixStyle: const TextStyle(color: Colors.white70),
+              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
             onChanged: (value) => setState(() {
               _height = double.tryParse(value);
@@ -707,18 +715,26 @@ class _UnifiedQuestionnaireScreenState
           TextFormField(
             initialValue: _weight?.toString(),
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
+            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Es. 70',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.1),
+              fillColor: CleanTheme.surfaceColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.primaryColor),
               ),
               suffixText: 'kg',
-              suffixStyle: const TextStyle(color: Colors.white70),
+              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
             onChanged: (value) => setState(() {
               _weight = double.tryParse(value);
@@ -726,7 +742,7 @@ class _UnifiedQuestionnaireScreenState
           ),
 
           const Spacer(),
-          ModernButton(
+          CleanButton(
             text: 'Continua',
             onPressed: (_height != null && _weight != null) ? _nextPage : null,
           ),
@@ -755,7 +771,7 @@ class _UnifiedQuestionnaireScreenState
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final option = options[index];
-                return ModernCard(
+                return CleanCard(
                   isSelected: option.isSelected,
                   onTap: option.onTap,
                   child: Row(
@@ -763,10 +779,14 @@ class _UnifiedQuestionnaireScreenState
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(option.icon, color: Colors.white, size: 28),
+                        child: Icon(
+                          option.icon,
+                          color: CleanTheme.primaryColor,
+                          size: 28,
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -790,7 +810,7 @@ class _UnifiedQuestionnaireScreenState
                       if (option.isSelected)
                         const Icon(
                           Icons.check_circle,
-                          color: ModernTheme.primaryColor,
+                          color: CleanTheme.primaryColor,
                         ),
                     ],
                   ),
@@ -825,7 +845,7 @@ class _UnifiedQuestionnaireScreenState
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final option = options[index];
-                return ModernCard(
+                return CleanCard(
                   isSelected: option.isSelected,
                   onTap: option.onTap,
                   child: Row(
@@ -833,10 +853,14 @@ class _UnifiedQuestionnaireScreenState
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(option.icon, color: Colors.white, size: 28),
+                        child: Icon(
+                          option.icon,
+                          color: CleanTheme.primaryColor,
+                          size: 28,
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
@@ -860,7 +884,7 @@ class _UnifiedQuestionnaireScreenState
                       if (option.isSelected)
                         const Icon(
                           Icons.check_circle,
-                          color: ModernTheme.primaryColor,
+                          color: CleanTheme.primaryColor,
                         ),
                     ],
                   ),
@@ -869,7 +893,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const SizedBox(height: 16),
-          ModernButton(
+          CleanButton(
             text: 'Continua',
             onPressed: canContinue ? onContinue : null,
           ),
@@ -929,7 +953,7 @@ class _UnifiedQuestionnaireScreenState
               itemBuilder: (context, index) {
                 final item = equipmentOptions[index];
                 final isSelected = _selectedEquipment.contains(item.$1);
-                return ModernCard(
+                return CleanCard(
                   isSelected: isSelected,
                   onTap: () {
                     setState(() {
@@ -946,7 +970,9 @@ class _UnifiedQuestionnaireScreenState
                       Icon(
                         item.$3,
                         size: 32,
-                        color: isSelected ? Colors.white : Colors.white54,
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.textSecondary,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -954,7 +980,9 @@ class _UnifiedQuestionnaireScreenState
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
-                              color: isSelected ? Colors.white : Colors.white70,
+                              color: isSelected
+                                  ? CleanTheme.primaryColor
+                                  : CleanTheme.textPrimary,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -967,7 +995,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const SizedBox(height: 16),
-          ModernButton(
+          CleanButton(
             text: 'Continua',
             onPressed: _selectedEquipment.isNotEmpty ? _nextPage : null,
           ),
@@ -1013,7 +1041,7 @@ class _UnifiedQuestionnaireScreenState
                 final isSelected = _selectedMachines.contains(machine);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: isSelected,
                     onTap: () {
                       setState(() {
@@ -1028,7 +1056,9 @@ class _UnifiedQuestionnaireScreenState
                       children: [
                         Icon(
                           Icons.settings,
-                          color: isSelected ? Colors.white : Colors.white54,
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.textSecondary,
                         ),
                         const SizedBox(width: 16),
                         Text(
@@ -1036,15 +1066,15 @@ class _UnifiedQuestionnaireScreenState
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: isSelected
-                                    ? Colors.white
-                                    : Colors.white70,
+                                    ? CleanTheme.primaryColor
+                                    : CleanTheme.textPrimary,
                               ),
                         ),
                         const Spacer(),
                         if (isSelected)
                           const Icon(
                             Icons.check_circle,
-                            color: ModernTheme.primaryColor,
+                            color: CleanTheme.primaryColor,
                           ),
                       ],
                     ),
@@ -1054,7 +1084,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const SizedBox(height: 16),
-          ModernButton(text: 'Continua', onPressed: _nextPage),
+          CleanButton(text: 'Continua', onPressed: _nextPage),
         ],
       ),
     );
@@ -1083,8 +1113,8 @@ class _UnifiedQuestionnaireScreenState
                 itemCount: _injuries.length,
                 itemBuilder: (context, index) {
                   final injury = _injuries[index];
-                  return Card(
-                    color: Colors.white10,
+                  return CleanCard(
+                    backgroundColor: CleanTheme.surfaceColor,
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: Text(
@@ -1093,11 +1123,16 @@ class _UnifiedQuestionnaireScreenState
                       ),
                       title: Text(
                         injury.area.displayName,
-                        style: const TextStyle(color: Colors.white),
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       subtitle: Text(
                         injury.severity.displayName,
-                        style: const TextStyle(color: Colors.white70),
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textSecondary,
+                        ),
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.redAccent),
@@ -1112,7 +1147,7 @@ class _UnifiedQuestionnaireScreenState
             const SizedBox(height: 24),
           ],
 
-          ModernCard(
+          CleanCard(
             onTap: () {
               setState(() => _hasInjuries = true);
               _nextPage(); // Go to Category selection
@@ -1121,7 +1156,7 @@ class _UnifiedQuestionnaireScreenState
               children: [
                 const Icon(
                   Icons.add_circle_outline,
-                  color: ModernTheme.primaryColor,
+                  color: CleanTheme.primaryColor,
                   size: 32,
                 ),
                 const SizedBox(width: 16),
@@ -1135,7 +1170,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const SizedBox(height: 16),
-          ModernCard(
+          CleanCard(
             onTap: () {
               setState(() => _hasInjuries = false);
               // Skip injury steps.
@@ -1215,7 +1250,7 @@ class _UnifiedQuestionnaireScreenState
               itemCount: areas.length,
               itemBuilder: (context, index) {
                 final area = areas[index];
-                return ModernCard(
+                return CleanCard(
                   isSelected: _tempInjuryArea == area,
                   onTap: () {
                     setState(() => _tempInjuryArea = area);
@@ -1266,7 +1301,7 @@ class _UnifiedQuestionnaireScreenState
           ...InjuryTiming.values.map(
             (t) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: ModernCard(
+              child: CleanCard(
                 isSelected: _tempInjuryTiming == t,
                 onTap: () => setState(() {
                   _tempInjuryTiming = t;
@@ -1302,7 +1337,7 @@ class _UnifiedQuestionnaireScreenState
             ].map(
               (side) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: ModernCard(
+                child: CleanCard(
                   isSelected: _tempInjurySide == side.$1,
                   onTap: () => setState(() => _tempInjurySide = side.$1),
                   child: Row(
@@ -1328,7 +1363,7 @@ class _UnifiedQuestionnaireScreenState
               style: Theme.of(context).textTheme.displayMedium,
             ),
             const SizedBox(height: 16),
-            ModernCard(
+            CleanCard(
               isSelected: _tempInjuryOvercome,
               onTap: () =>
                   setState(() => _tempInjuryOvercome = !_tempInjuryOvercome),
@@ -1358,7 +1393,7 @@ class _UnifiedQuestionnaireScreenState
           ...InjurySeverity.values.map(
             (s) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: ModernCard(
+              child: CleanCard(
                 isSelected: _tempInjurySeverity == s,
                 onTap: () => setState(() => _tempInjurySeverity = s),
                 child: Row(
@@ -1389,7 +1424,7 @@ class _UnifiedQuestionnaireScreenState
             style: GoogleFonts.outfit(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Es: Squat, Panca piana, Stacchi...',
-              fillColor: ModernTheme.surfaceColor,
+              fillColor: CleanTheme.surfaceColor,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1411,7 +1446,7 @@ class _UnifiedQuestionnaireScreenState
             style: GoogleFonts.outfit(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Dettagli aggiuntivi...',
-              fillColor: ModernTheme.surfaceColor,
+              fillColor: CleanTheme.surfaceColor,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1420,7 +1455,7 @@ class _UnifiedQuestionnaireScreenState
           ),
 
           const SizedBox(height: 32),
-          ModernButton(text: 'Salva Infortunio', onPressed: _addInjury),
+          CleanButton(text: 'Salva Infortunio', onPressed: _addInjury),
         ],
       ),
     );
@@ -1450,16 +1485,16 @@ class _UnifiedQuestionnaireScreenState
                   style: GoogleFonts.outfit(
                     fontSize: 64,
                     fontWeight: FontWeight.bold,
-                    color: ModernTheme.primaryColor,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 32),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: ModernTheme.primaryColor,
+                    activeTrackColor: CleanTheme.primaryColor,
                     inactiveTrackColor: Colors.white24,
                     thumbColor: Colors.white,
-                    overlayColor: ModernTheme.primaryColor.withValues(
+                    overlayColor: CleanTheme.primaryColor.withValues(
                       alpha: 0.2,
                     ),
                   ),
@@ -1476,7 +1511,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const Spacer(),
-          ModernButton(text: 'Continua', onPressed: _nextPage),
+          CleanButton(text: 'Continua', onPressed: _nextPage),
         ],
       ),
     );
@@ -1500,7 +1535,7 @@ class _UnifiedQuestionnaireScreenState
               .map(
                 (p) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: _cardioPreference == p,
                     onTap: () => setState(() => _cardioPreference = p),
                     child: Row(
@@ -1524,7 +1559,7 @@ class _UnifiedQuestionnaireScreenState
               .map(
                 (p) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: _mobilityPreference == p,
                     onTap: () => setState(() => _mobilityPreference = p),
                     child: Row(
@@ -1541,7 +1576,7 @@ class _UnifiedQuestionnaireScreenState
                 ),
               ),
           const SizedBox(height: 24),
-          ModernButton(text: 'Continua', onPressed: _nextPage),
+          CleanButton(text: 'Continua', onPressed: _nextPage),
         ],
       ),
     );
@@ -1569,7 +1604,7 @@ class _UnifiedQuestionnaireScreenState
                 final isSelected = _selectedSplit == split;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: isSelected,
                     onTap: () {
                       setState(() => _selectedSplit = split);
@@ -1598,7 +1633,7 @@ class _UnifiedQuestionnaireScreenState
                         if (isSelected)
                           const Icon(
                             Icons.check_circle,
-                            color: ModernTheme.primaryColor,
+                            color: CleanTheme.primaryColor,
                           ),
                       ],
                     ),
@@ -1641,7 +1676,7 @@ class _UnifiedQuestionnaireScreenState
                 Text(
                   'Cosa potresti scrivere qui:',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: ModernTheme.primaryColor,
+                    color: CleanTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1660,7 +1695,7 @@ class _UnifiedQuestionnaireScreenState
             style: GoogleFonts.outfit(color: Colors.white),
             decoration: InputDecoration(
               hintText: 'Scrivi qui le tue note...',
-              fillColor: ModernTheme.surfaceColor,
+              fillColor: CleanTheme.surfaceColor,
               filled: true,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1668,7 +1703,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const Spacer(),
-          ModernButton(
+          CleanButton(
             text: _isLoading ? 'Salvataggio...' : 'Procedi',
             onPressed: _isLoading ? null : _finish,
           ),
@@ -1860,16 +1895,16 @@ class _UnifiedQuestionnaireScreenState
                   style: GoogleFonts.outfit(
                     fontSize: 64,
                     fontWeight: FontWeight.bold,
-                    color: ModernTheme.primaryColor,
+                    color: CleanTheme.primaryColor,
                   ),
                 ),
                 const SizedBox(height: 16),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: ModernTheme.primaryColor,
-                    inactiveTrackColor: Colors.white24,
-                    thumbColor: Colors.white,
-                    overlayColor: ModernTheme.primaryColor.withValues(
+                    activeTrackColor: CleanTheme.primaryColor,
+                    inactiveTrackColor: CleanTheme.borderPrimary,
+                    thumbColor: CleanTheme.primaryColor,
+                    overlayColor: CleanTheme.primaryColor.withValues(
                       alpha: 0.2,
                     ),
                   ),
@@ -1887,7 +1922,7 @@ class _UnifiedQuestionnaireScreenState
           ),
 
           const Spacer(),
-          ModernButton(text: 'Continua', onPressed: _nextPage),
+          CleanButton(text: 'Continua', onPressed: _nextPage),
         ],
       ),
     );
@@ -1942,12 +1977,12 @@ class _UnifiedQuestionnaireScreenState
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? ModernTheme.primaryColor.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.05),
+                          ? CleanTheme.primaryColor.withValues(alpha: 0.2)
+                          : CleanTheme.surfaceColor,
                       border: Border.all(
                         color: isSelected
-                            ? ModernTheme.primaryColor
-                            : Colors.transparent,
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.borderPrimary,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(16),
@@ -1957,8 +1992,8 @@ class _UnifiedQuestionnaireScreenState
                         Icon(
                           g == Gender.male ? Icons.male : Icons.female,
                           color: isSelected
-                              ? ModernTheme.primaryColor
-                              : Colors.white,
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.textTertiary,
                           size: 40,
                         ),
                         const SizedBox(height: 8),
@@ -1966,8 +2001,8 @@ class _UnifiedQuestionnaireScreenState
                           g == Gender.male ? 'Uomo' : 'Donna',
                           style: TextStyle(
                             color: isSelected
-                                ? ModernTheme.primaryColor
-                                : Colors.white,
+                                ? CleanTheme.primaryColor
+                                : CleanTheme.textSecondary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -1988,25 +2023,33 @@ class _UnifiedQuestionnaireScreenState
           TextFormField(
             initialValue: _age?.toString(),
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white),
+            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Es. 25',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.1),
+              fillColor: CleanTheme.surfaceColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: CleanTheme.primaryColor),
               ),
               suffixText: 'anni',
-              suffixStyle: const TextStyle(color: Colors.white70),
+              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
             onChanged: (value) => setState(() {
               _age = int.tryParse(value);
             }),
           ),
           const SizedBox(height: 24),
-          ModernButton(
+          CleanButton(
             text: 'Continua',
             onPressed: (_selectedGender != null && _age != null)
                 ? _nextPage
@@ -2080,7 +2123,7 @@ class _UnifiedQuestionnaireScreenState
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: isSelected,
                     onTap: () {
                       setState(() => _bodyFatPercentage = bf);
@@ -2091,10 +2134,16 @@ class _UnifiedQuestionnaireScreenState
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(icon, color: Colors.white, size: 28),
+                          child: Icon(
+                            icon,
+                            color: CleanTheme.primaryColor,
+                            size: 28,
+                          ),
                         ),
                         const SizedBox(width: 20),
                         Expanded(
@@ -2116,7 +2165,7 @@ class _UnifiedQuestionnaireScreenState
                                 subtitle,
                                 style: Theme.of(context).textTheme.bodyLarge
                                     ?.copyWith(
-                                      color: Colors.white70,
+                                      color: CleanTheme.textSecondary,
                                       fontSize: 16, // Medium
                                     ),
                               ),
@@ -2125,7 +2174,7 @@ class _UnifiedQuestionnaireScreenState
                                 percentage,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
-                                      color: ModernTheme.primaryColor,
+                                      color: CleanTheme.primaryColor,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12, // Small
                                     ),
@@ -2136,7 +2185,7 @@ class _UnifiedQuestionnaireScreenState
                         if (isSelected)
                           const Icon(
                             Icons.check_circle,
-                            color: ModernTheme.primaryColor,
+                            color: CleanTheme.primaryColor,
                           ),
                       ],
                     ),
@@ -2219,7 +2268,7 @@ class _UnifiedQuestionnaireScreenState
             max: 10,
             divisions: 6,
             label: _sleepHours.toString(),
-            activeColor: ModernTheme.primaryColor,
+            activeColor: CleanTheme.primaryColor,
             onChanged: (val) => setState(() => _sleepHours = val.round()),
           ),
 
@@ -2254,7 +2303,7 @@ class _UnifiedQuestionnaireScreenState
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
-                  child: ModernCard(
+                  child: CleanCard(
                     isSelected: _recoveryCapacity == r,
                     onTap: () {
                       setState(() => _recoveryCapacity = r);
@@ -2281,7 +2330,7 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
 
-          ModernButton(
+          CleanButton(
             text: 'Continua',
             onPressed: (_recoveryCapacity != null) ? _nextPage : null,
           ),
