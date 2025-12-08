@@ -42,7 +42,7 @@ class _AlternativeExercisesSheetState extends State<AlternativeExercisesSheet> {
   late ExerciseService _exerciseService;
   List<Exercise> _alternatives = [];
   String _currentType = '';
-  List<String> _currentEquipment = [];
+
   bool _isLoading = true;
   String? _error;
 
@@ -69,7 +69,6 @@ class _AlternativeExercisesSheetState extends State<AlternativeExercisesSheet> {
         if (result['success'] == true) {
           _alternatives = result['alternatives'] as List<Exercise>;
           _currentType = result['currentType'] as String;
-          _currentEquipment = result['currentEquipment'] as List<String>;
         } else {
           _error = result['message'] as String?;
         }
@@ -135,7 +134,7 @@ class _AlternativeExercisesSheetState extends State<AlternativeExercisesSheet> {
                     color: CleanTheme.cardColor,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: CleanTheme.primaryColor.withOpacity(0.3),
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -147,8 +146,8 @@ class _AlternativeExercisesSheetState extends State<AlternativeExercisesSheet> {
                         ),
                         decoration: BoxDecoration(
                           color: isBodyweight
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.blue.withOpacity(0.2),
+                              ? Colors.green.withValues(alpha: 0.2)
+                              : Colors.blue.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -324,8 +323,8 @@ class _AlternativeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isBodyweight
-                ? Colors.green.withOpacity(0.3)
-                : Colors.blue.withOpacity(0.3),
+                ? Colors.green.withValues(alpha: 0.3)
+                : Colors.blue.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -337,8 +336,8 @@ class _AlternativeCard extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: isBodyweight
-                    ? Colors.green.withOpacity(0.2)
-                    : Colors.blue.withOpacity(0.2),
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : Colors.blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -372,8 +371,8 @@ class _AlternativeCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isBodyweight
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.blue.withOpacity(0.2),
+                              ? Colors.green.withValues(alpha: 0.2)
+                              : Colors.blue.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(

@@ -79,7 +79,7 @@ class AppColors {
   // Shadows (for BoxShadow)
   static List<BoxShadow> get shadowLight => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
+      color: Colors.black.withValues(alpha: 0.04),
       blurRadius: 3,
       offset: const Offset(0, 1),
     ),
@@ -87,7 +87,7 @@ class AppColors {
 
   static List<BoxShadow> get shadowMedium => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.06),
+      color: Colors.black.withValues(alpha: 0.06),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),
@@ -95,7 +95,7 @@ class AppColors {
 
   static List<BoxShadow> get shadowHeavy => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.08),
+      color: Colors.black.withValues(alpha: 0.08),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),
@@ -112,8 +112,8 @@ class AppColors {
   static const Color cardioColor = softCoral;
 
   // Overlay Colors
-  static Color get overlay => Colors.black.withOpacity(0.5);
-  static Color get overlayLight => Colors.black.withOpacity(0.3);
+  static Color get overlay => Colors.black.withValues(alpha: 0.5);
+  static Color get overlayLight => Colors.black.withValues(alpha: 0.3);
 
   // ============================================
   // BACKWARD COMPATIBILITY ALIASES
@@ -130,6 +130,6 @@ class AppColors {
   static Color get textDark => textPrimary;
   static Color get textLight => textOnDark;
   static Color get cardBackground => surface;
-  static Color get shadow => Colors.black.withOpacity(0.1);
+  static Color get shadow => Colors.black.withValues(alpha: 0.1);
   static LinearGradient get neonGradient => primaryGradient;
 }

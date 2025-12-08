@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
 import '../models/user_model.dart';
@@ -46,9 +47,9 @@ class AuthService {
             'Server error: ${e.response?.statusCode}';
       }
 
-      print('Registration Error: ${e.message}');
-      print('Error Type: ${e.type}');
-      print('Response: ${e.response?.data}');
+      debugPrint('Registration Error: ${e.message}');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Response: ${e.response?.data}');
 
       return {'success': false, 'message': message};
     }
@@ -89,9 +90,9 @@ class AuthService {
         message = e.response?.data['message'] ?? 'Invalid credentials';
       }
 
-      print('Login Error: ${e.message}');
-      print('Error Type: ${e.type}');
-      print('Response: ${e.response?.data}');
+      debugPrint('Login Error: ${e.message}');
+      debugPrint('Error Type: ${e.type}');
+      debugPrint('Response: ${e.response?.data}');
 
       return {'success': false, 'message': message};
     }

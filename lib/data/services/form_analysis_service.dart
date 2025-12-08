@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/form_analysis_model.dart';
 import 'api_client.dart';
 
@@ -13,7 +14,7 @@ class FormAnalysisService {
       final response = await _apiClient.dio.get('/form-analysis/quota');
       return FormAnalysisQuota.fromJson(response.data);
     } catch (e) {
-      print('Error checking quota: $e');
+      debugPrint('Error checking quota: $e');
       return null;
     }
   }
@@ -46,7 +47,7 @@ class FormAnalysisService {
       }
       return null;
     } catch (e) {
-      print('Error analyzing video: $e');
+      debugPrint('Error analyzing video: $e');
       rethrow;
     }
   }
@@ -59,7 +60,7 @@ class FormAnalysisService {
           .map((json) => FormAnalysis.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching history: $e');
+      debugPrint('Error fetching history: $e');
       return null;
     }
   }
@@ -70,7 +71,7 @@ class FormAnalysisService {
       final response = await _apiClient.dio.get('/form-analysis/$id');
       return FormAnalysis.fromJson(response.data['analysis']);
     } catch (e) {
-      print('Error fetching analysis: $e');
+      debugPrint('Error fetching analysis: $e');
       return null;
     }
   }
@@ -81,7 +82,7 @@ class FormAnalysisService {
       await _apiClient.dio.delete('/form-analysis/$id');
       return true;
     } catch (e) {
-      print('Error deleting analysis: $e');
+      debugPrint('Error deleting analysis: $e');
       return false;
     }
   }

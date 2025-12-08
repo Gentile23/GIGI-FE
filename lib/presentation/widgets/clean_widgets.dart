@@ -222,7 +222,7 @@ class CleanImageCard extends StatelessWidget {
                         ? Image.network(
                             imageUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                            errorBuilder: (_, _, _) => _buildPlaceholder(),
                           )
                         : _buildPlaceholder()),
               ),
@@ -545,7 +545,7 @@ class CleanAvatar extends StatelessWidget {
               ? Image.network(
                   imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildInitials(),
+                  errorBuilder: (_, _, _) => _buildInitials(),
                 )
               : _buildInitials(),
         ),
@@ -884,7 +884,7 @@ class FeaturedImageCard extends StatelessWidget {
                 Image.asset(
                   assetImage!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
+                  errorBuilder: (_, _, _) {
                     return Container(
                       color: CleanTheme.borderSecondary,
                       child: const Center(
@@ -901,7 +901,7 @@ class FeaturedImageCard extends StatelessWidget {
                 Image.network(
                   imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     color: CleanTheme.borderSecondary,
                     child: const Icon(
                       Icons.image,
@@ -1082,7 +1082,7 @@ class HorizontalChips extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 20),
         itemCount: chips.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final isSelected = selectedIndex == index;
           return GestureDetector(
@@ -1180,7 +1180,7 @@ class ImageCard extends StatelessWidget {
                         ? Image.network(
                             imageUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, _, _) => Container(
                               color: CleanTheme.borderSecondary,
                               child: const Icon(
                                 Icons.image,

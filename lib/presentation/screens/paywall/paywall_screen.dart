@@ -12,7 +12,8 @@ class PaywallScreen extends StatefulWidget {
 }
 
 class _PaywallScreenState extends State<PaywallScreen> {
-  SubscriptionTier _selectedTier = SubscriptionTier.premium;
+  SubscriptionTier _selectedTier = SubscriptionTier.pro;
+  bool _isYearly = true; // Default to yearly for better conversion
 
   @override
   Widget build(BuildContext context) {
@@ -51,26 +52,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Scegli il piano perfetto per il tuo percorso fitness',
+              'Allenamenti intelligenti con AI Voice Coach e Form Analysis',
               style: GoogleFonts.inter(
                 fontSize: 15,
                 color: CleanTheme.textSecondary,
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Billing toggle
+            _buildBillingToggle(),
+
+            const SizedBox(height: 24),
 
             // Subscription tiers
             _buildTierCard(
-              tier: SubscriptionTier.free,
-              name: 'Free',
-              price: '€0',
-              period: 'sempre',
-              features: [
-                '1 piano ogni 2 mesi',
-                'Libreria esercizi base',
-                'Tracking manuale',
-              ],
+              config: SubscriptionTierConfig.free,
               isPopular: false,
               accentColor: CleanTheme.textSecondary,
             ),
@@ -78,16 +76,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             const SizedBox(height: 16),
 
             _buildTierCard(
-              tier: SubscriptionTier.premium,
-              name: 'Premium',
-              price: '€9.99',
-              period: 'mese',
-              features: [
-                'Piani illimitati',
-                'AI Voice Coaching',
-                'Analytics avanzati',
-                'Supporto prioritario',
-              ],
+              config: SubscriptionTierConfig.pro,
               isPopular: true,
               accentColor: CleanTheme.primaryColor,
             ),
@@ -95,34 +84,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             const SizedBox(height: 16),
 
             _buildTierCard(
-              tier: SubscriptionTier.gold,
-              name: 'Gold',
-              price: '€14.99',
-              period: 'mese',
-              features: [
-                'Tutto in Premium',
-                'Analisi postura AI',
-                'Piani nutrizionali',
-                'Check-in settimanali',
-              ],
-              isPopular: false,
-              accentColor: CleanTheme.accentOrange,
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildTierCard(
-              tier: SubscriptionTier.platinum,
-              name: 'Platinum',
-              price: '€24.99',
-              period: 'mese',
-              features: [
-                'Tutto in Gold',
-                'Video coaching 1-to-1',
-                'Meal planning personalizzato',
-                'Body composition tracking',
-                'Supporto 24/7',
-              ],
+              config: SubscriptionTierConfig.elite,
               isPopular: false,
               accentColor: CleanTheme.accentPurple,
             ),
@@ -133,18 +95,54 @@ class _PaywallScreenState extends State<PaywallScreen> {
             CleanButton(
               text: _selectedTier == SubscriptionTier.free
                   ? 'Piano Attuale'
-                  : 'Abbonati Ora',
+                  : _isYearly
+                  ? 'Abbonati - ${_getSelectedConfig().priceYearly.toStringAsFixed(2)}€/anno'
+                  : 'Abbonati - ${_getSelectedConfig().priceMonthly.toStringAsFixed(2)}€/mese',
               onPressed: _selectedTier == SubscriptionTier.free
                   ? null
                   : _handleSubscribe,
               width: double.infinity,
             ),
 
+            const SizedBox(height: 12),
+
+            // Money back guarantee
+            if (_selectedTier != SubscriptionTier.free)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.verified_user,
+                      color: CleanTheme.accentGreen,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '7 giorni di prova gratuita',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: CleanTheme.accentGreen,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             const SizedBox(height: 16),
 
             // Terms
             Text(
-              'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente.',
+              'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.',
               style: GoogleFonts.inter(
                 fontSize: 12,
                 color: CleanTheme.textTertiary,
@@ -157,19 +155,111 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
+  Widget _buildBillingToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _isYearly = false),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: !_isYearly
+                      ? CleanTheme.primaryColor
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Mensile',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: !_isYearly ? Colors.white : CleanTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _isYearly = true),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _isYearly
+                      ? CleanTheme.primaryColor
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Annuale',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _isYearly
+                            ? Colors.white
+                            : CleanTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _isYearly
+                            ? Colors.white.withValues(alpha: 0.2)
+                            : CleanTheme.accentGreen.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '-37%',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _isYearly
+                              ? Colors.white
+                              : CleanTheme.accentGreen,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTierCard({
-    required SubscriptionTier tier,
-    required String name,
-    required String price,
-    required String period,
-    required List<String> features,
+    required SubscriptionTierConfig config,
     required bool isPopular,
     required Color accentColor,
   }) {
-    final isSelected = _selectedTier == tier;
+    final isSelected = _selectedTier == config.tier;
+    final price = _isYearly ? config.priceYearly : config.priceMonthly;
+    final period = config.tier == SubscriptionTier.free
+        ? 'sempre'
+        : _isYearly
+        ? 'anno'
+        : 'mese';
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedTier = tier),
+      onTap: () => setState(() => _selectedTier = config.tier),
       child: Stack(
         children: [
           Container(
@@ -198,13 +288,26 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.outfit(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.textPrimary,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            config.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: CleanTheme.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            config.tagline,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: CleanTheme.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                       if (isSelected)
                         Container(
@@ -221,12 +324,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        price,
+                        config.tier == SubscriptionTier.free
+                            ? '€0'
+                            : '€${price.toStringAsFixed(2)}',
                         style: GoogleFonts.outfit(
                           fontSize: 32,
                           fontWeight: FontWeight.w700,
@@ -244,10 +349,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           ),
                         ),
                       ),
+                      if (_isYearly &&
+                          config.tier != SubscriptionTier.free) ...[
+                        const SizedBox(width: 12),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text(
+                            '€${config.effectiveMonthlyPrice.toStringAsFixed(2)}/mese',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: CleanTheme.textTertiary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 20),
-                  ...features.map((feature) {
+                  ...config.features.take(4).map((feature) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
@@ -280,6 +399,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                     );
                   }),
+                  if (config.features.length > 4)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '+${config.features.length - 4} altre funzionalità',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: accentColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -301,7 +432,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ),
                 ),
                 child: Text(
-                  'CONSIGLIATO',
+                  'PIÙ POPOLARE',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -316,22 +447,52 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
+  SubscriptionTierConfig _getSelectedConfig() {
+    return SubscriptionTierConfig.fromTier(_selectedTier);
+  }
+
   void _handleSubscribe() {
+    final config = _getSelectedConfig();
+    final price = _isYearly ? config.priceYearly : config.priceMonthly;
+    final period = _isYearly ? 'anno' : 'mese';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          'Abbonamento',
+          'Attiva ${config.name}',
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
-        content: Text(
-          'Stai per abbonarti a ${_getTierName(_selectedTier)}. Funzionalità non ancora implementata.',
-          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Stai per attivare il piano ${config.name} a €${price.toStringAsFixed(2)}/$period.',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '⚠️ RevenueCat non configurato',
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentOrange,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Configura RevenueCat per abilitare i pagamenti reali.',
+              style: GoogleFonts.inter(
+                color: CleanTheme.textTertiary,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -347,18 +508,5 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ],
       ),
     );
-  }
-
-  String _getTierName(SubscriptionTier tier) {
-    switch (tier) {
-      case SubscriptionTier.free:
-        return 'Free';
-      case SubscriptionTier.premium:
-        return 'Premium';
-      case SubscriptionTier.gold:
-        return 'Gold';
-      case SubscriptionTier.platinum:
-        return 'Platinum';
-    }
   }
 }

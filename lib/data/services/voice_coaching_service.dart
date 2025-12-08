@@ -1,4 +1,5 @@
 import '../models/voice_coaching_model.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class VoiceCoachingService {
@@ -19,7 +20,7 @@ class VoiceCoachingService {
 
       return null;
     } catch (e) {
-      print('Error getting voice coaching: $e');
+      debugPrint('Error getting voice coaching: $e');
       return null;
     }
   }
@@ -51,7 +52,7 @@ class VoiceCoachingService {
 
       return null;
     } catch (e) {
-      print('Error generating voice coaching: $e');
+      debugPrint('Error generating voice coaching: $e');
       return null;
     }
   }
@@ -69,7 +70,7 @@ class VoiceCoachingService {
 
       return null;
     } catch (e) {
-      print('Error regenerating voice coaching: $e');
+      debugPrint('Error regenerating voice coaching: $e');
       return null;
     }
   }
@@ -91,7 +92,7 @@ class VoiceCoachingService {
 
       return false;
     } catch (e) {
-      print('Error checking voice coaching access: $e');
+      debugPrint('Error checking voice coaching access: $e');
       return false;
     }
   }

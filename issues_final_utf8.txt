@@ -1,0 +1,130 @@
+﻿Analyzing fitgenius...                                          
+
+   info - Statements in an if should be enclosed in a block - lib\data\models\addiction_mechanics_model.dart:604:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\data\models\addiction_mechanics_model.dart:606:7 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\data\models\gamification_model.dart:37:9 - curly_braces_in_flow_control_structures
+   info - Use interpolation to compose strings and values - lib\data\services\workout_service.dart:191:13 - prefer_interpolation_to_compose_strings
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\auth\auth_screen.dart:87:43 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\auth\auth_screen.dart:87:47 - unnecessary_underscores
+   info - Unnecessary use of string interpolation - lib\presentation\screens\community\community_goals_screen.dart:438:17 - unnecessary_string_interpolations
+   info - The private field _selectedExerciseIds could be 'final' - lib\presentation\screens\custom_workout\exercise_search_screen.dart:23:15 - prefer_final_fields
+   info - The private field _celebrationStyle could be 'final' - lib\presentation\screens\home\enhanced_home_screen.dart:29:20 - prefer_final_fields
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\onboarding\enhanced_onboarding_screen.dart:176:41 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\onboarding\enhanced_onboarding_screen.dart:176:45 - unnecessary_underscores
+   info - Unnecessary use of string interpolation - lib\presentation\screens\workout\cardio_exercise_screen.dart:323:21 - unnecessary_string_interpolations
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:88:21 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:89:21 - deprecated_member_use
+  error - The named parameter 'fillColor' isn't defined - lib\presentation\screens\workout\post_trial_assessment_screen.dart:106:21 - undefined_named_parameter
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:170:21 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:171:21 - deprecated_member_use
+   info - The private field _totalRestTime could be 'final' - lib\presentation\screens\workout\trial_workout_screen.dart:29:7 - prefer_final_fields
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:460:17 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:461:17 - deprecated_member_use
+  error - Expected to find ')' - lib\presentation\screens\workout\workout_session_screen.dart:150:19 - expected_token
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:961:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:964:19 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1000:31 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1001:38 - use_build_context_synchronously
+warning - The declaration '<unnamed>' isn't referenced - lib\presentation\widgets\clean_widgets.dart:837:7 - unused_element
+  error - The named parameter 'height' isn't defined - lib\presentation\widgets\clean_widgets.dart:872:9 - undefined_named_parameter
+  error - The named parameter 'decoration' isn't defined - lib\presentation\widgets\clean_widgets.dart:873:9 - undefined_named_parameter
+  error - The named parameter 'child' isn't defined - lib\presentation\widgets\clean_widgets.dart:877:9 - undefined_named_parameter
+  error - Undefined name 'size' - lib\presentation\widgets\clean_widgets.dart:882:27 - undefined_identifier
+  error - Expected to find ')' - lib\presentation\widgets\clean_widgets.dart:882:31 - expected_token
+  error - Expected to find ']' - lib\presentation\widgets\clean_widgets.dart:882:31 - expected_token
+  error - Expected to find ')' - lib\presentation\widgets\clean_widgets.dart:886:22 - expected_token
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:887:20 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:888:17 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:889:15 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:889:20 - expected_class_member
+  error - Expected an identifier - lib\presentation\widgets\clean_widgets.dart:889:23 - missing_identifier
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:889:24 - strict_top_level_inference
+  error - Expected to find ')' - lib\presentation\widgets\clean_widgets.dart:889:33 - expected_token
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:890:17 - missing_function_body
+  error - All final variables must be initialized, but 'assetImage', 'badge', and 10 others aren't - lib\presentation\widgets\clean_widgets.dart:890:17 - final_not_initialized_constructor
+  error - The name of a constructor must match the name of the enclosing class - lib\presentation\widgets\clean_widgets.dart:890:17 - invalid_constructor_name
+   info - Constructors for public widgets should have a named 'key' parameter - lib\presentation\widgets\clean_widgets.dart:890:23 - use_key_in_widget_constructors
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:891:19 - strict_top_level_inference
+  error - Expected to find ')' - lib\presentation\widgets\clean_widgets.dart:891:27 - expected_token
+   info - Empty constructor bodies should be written using a ';' rather than '{}' - lib\presentation\widgets\clean_widgets.dart:902:15 - empty_constructor_bodies
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:902:15 - missing_function_body
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:902:15 - expected_class_member
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:903:17 - strict_top_level_inference
+   info - The variable name 'Container' isn't a lowerCamelCase identifier - lib\presentation\widgets\clean_widgets.dart:903:17 - non_constant_identifier_names
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:903:27 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:903:32 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:903:32 - obsolete_colon_for_default_value
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:903:57 - missing_function_body
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:903:57 - expected_class_member
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:906:15 - strict_top_level_inference
+   info - The variable name 'Container' isn't a lowerCamelCase identifier - lib\presentation\widgets\clean_widgets.dart:906:15 - non_constant_identifier_names
+  error - The name 'Container' is already defined - lib\presentation\widgets\clean_widgets.dart:906:15 - duplicate_definition
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:907:17 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:907:27 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:907:27 - obsolete_colon_for_default_value
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:910:16 - missing_function_body
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:910:16 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:913:15 - expected_class_member
+  error - onFavorite isn't a type - lib\presentation\widgets\clean_widgets.dart:913:19 - not_a_type
+  error - Expected to find ')' - lib\presentation\widgets\clean_widgets.dart:913:30 - expected_token
+  error - A record type with exactly one positional field requires a trailing comma - lib\presentation\widgets\clean_widgets.dart:913:37 - record_type_one_positional_no_trailing_comma
+   info - The variable name 'Positioned' isn't a lowerCamelCase identifier - lib\presentation\widgets\clean_widgets.dart:914:17 - non_constant_identifier_names
+  error - The body might complete normally, causing 'null' to be returned, but the return type, '(dynamic,)', is a potentially non-nullable type - lib\presentation\widgets\clean_widgets.dart:914:17 - body_might_complete_normally
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:915:19 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:915:22 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:915:22 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:916:19 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:916:24 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:916:24 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:917:19 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:917:24 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:917:24 - obsolete_colon_for_default_value
+  error - The default value of an optional parameter must be constant - lib\presentation\widgets\clean_widgets.dart:917:26 - non_constant_default_value
+  error - The named parameter 'padding' isn't defined - lib\presentation\widgets\clean_widgets.dart:920:23 - undefined_named_parameter
+  error - The named parameter 'decoration' isn't defined - lib\presentation\widgets\clean_widgets.dart:921:23 - undefined_named_parameter
+  error - The named parameter 'child' isn't defined - lib\presentation\widgets\clean_widgets.dart:925:23 - undefined_named_parameter
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:934:18 - missing_function_body
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:934:18 - expected_class_member
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:937:15 - strict_top_level_inference
+   info - The variable name 'Positioned' isn't a lowerCamelCase identifier - lib\presentation\widgets\clean_widgets.dart:937:15 - non_constant_identifier_names
+  error - The name 'Positioned' is already defined - lib\presentation\widgets\clean_widgets.dart:937:15 - duplicate_definition
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:938:17 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:938:21 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:938:21 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:939:17 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:939:22 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:939:22 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:940:17 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:940:23 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:940:23 - obsolete_colon_for_default_value
+   info - Missing type annotation - lib\presentation\widgets\clean_widgets.dart:941:17 - strict_top_level_inference
+  error - Named parameters must be enclosed in curly braces ('{' and '}') - lib\presentation\widgets\clean_widgets.dart:941:22 - named_parameter_outside_group
+  error - Using a colon as the separator before a default value is no longer supported - lib\presentation\widgets\clean_widgets.dart:941:22 - obsolete_colon_for_default_value
+  error - The default value of an optional parameter must be constant - lib\presentation\widgets\clean_widgets.dart:941:24 - non_constant_default_value
+  error - The named parameter 'padding' isn't defined - lib\presentation\widgets\clean_widgets.dart:948:25 - undefined_named_parameter
+  error - The named parameter 'margin' isn't defined - lib\presentation\widgets\clean_widgets.dart:952:25 - undefined_named_parameter
+  error - The named parameter 'decoration' isn't defined - lib\presentation\widgets\clean_widgets.dart:953:25 - undefined_named_parameter
+  error - The named parameter 'child' isn't defined - lib\presentation\widgets\clean_widgets.dart:957:25 - undefined_named_parameter
+  error - The named parameter 'padding' isn't defined - lib\presentation\widgets\clean_widgets.dart:1024:29 - undefined_named_parameter
+  error - The named parameter 'decoration' isn't defined - lib\presentation\widgets\clean_widgets.dart:1025:29 - undefined_named_parameter
+  error - The named parameter 'child' isn't defined - lib\presentation\widgets\clean_widgets.dart:1029:29 - undefined_named_parameter
+  error - A function body must be provided - lib\presentation\widgets\clean_widgets.dart:1040:16 - missing_function_body
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1040:16 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1041:13 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1041:14 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1042:11 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1042:12 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1043:9 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1043:10 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1044:7 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1044:8 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1045:5 - expected_class_member
+  error - Expected a class member - lib\presentation\widgets\clean_widgets.dart:1045:6 - expected_class_member
+  error - Expected a method, getter, setter or operator declaration - lib\presentation\widgets\clean_widgets.dart:1047:1 - expected_executable
+   info - Unnecessary use of multiple underscores - lib\presentation\widgets\clean_widgets.dart:1074:31 - unnecessary_underscores
+   info - The imported package 'xml' isn't a dependency of the importing package - lib\presentation\widgets\workout\anatomical_muscle_view.dart:4:8 - depend_on_referenced_packages
+   info - Don't invoke 'print' in production code - lib\presentation\widgets\workout\anatomical_muscle_view.dart:66:7 - avoid_print
+   info - Statements in an if should be enclosed in a block - lib\presentation\widgets\workout\immersive_workout_widgets.dart:52:27 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\presentation\widgets\workout\immersive_workout_widgets.dart:54:27 - curly_braces_in_flow_control_structures
+   info - The private field _recentlyUnlocked could be 'final' - lib\providers\gamification_provider.dart:12:21 - prefer_final_fields
+

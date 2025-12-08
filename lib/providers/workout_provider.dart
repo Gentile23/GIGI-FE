@@ -41,44 +41,46 @@ class WorkoutProvider with ChangeNotifier {
   }
 
   Future<void> fetchCurrentPlan() async {
-    print('DEBUG: fetchCurrentPlan called');
+    debugPrint('DEBUG: fetchCurrentPlan called');
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       final result = await _workoutService.getCurrentPlan();
-      print('DEBUG: getCurrentPlan result: ${result['success']}');
+      debugPrint('DEBUG: getCurrentPlan result: ${result['success']}');
 
       _isLoading = false;
 
       if (result['success']) {
         _currentPlan = result['plan'];
-        print('DEBUG: Current plan loaded: ${_currentPlan?.id}');
-        print('DEBUG: Plan status: ${_currentPlan?.status}');
-        print('DEBUG: Number of workouts: ${_currentPlan?.workouts.length}');
+        debugPrint('DEBUG: Current plan loaded: ${_currentPlan?.id}');
+        debugPrint('DEBUG: Plan status: ${_currentPlan?.status}');
+        debugPrint(
+          'DEBUG: Number of workouts: ${_currentPlan?.workouts.length}',
+        );
 
         if (_currentPlan != null && _currentPlan!.workouts.isNotEmpty) {
-          print('DEBUG: First workout: ${_currentPlan!.workouts[0].name}');
-          print(
+          debugPrint('DEBUG: First workout: ${_currentPlan!.workouts[0].name}');
+          debugPrint(
             'DEBUG: First workout exercises: ${_currentPlan!.workouts[0].exercises.length}',
           );
         }
 
         // If plan is processing, start polling
         if (_currentPlan?.status == 'processing') {
-          print('DEBUG: Plan is processing, starting poll');
+          debugPrint('DEBUG: Plan is processing, starting poll');
           _isGenerating = true;
           _pollPlanStatus(_currentPlan!.id);
         }
       } else {
         // No plan found is not an error - it's expected for new users
-        print('DEBUG: No current plan found: ${result['message']}');
+        debugPrint('DEBUG: No current plan found: ${result['message']}');
         _currentPlan = null;
         _error = null; // Don't show error for "no plan found"
       }
     } catch (e) {
-      print('ERROR fetching current plan: $e');
+      debugPrint('ERROR fetching current plan: $e');
       _isLoading = false;
       _currentPlan = null;
       _error = null; // Don't show error for new users without plans
@@ -142,7 +144,7 @@ class WorkoutProvider with ChangeNotifier {
       await Future.delayed(const Duration(seconds: 3));
 
       try {
-        print('Polling attempt $attempts for plan $planId...');
+        debugPrint('Polling attempt $attempts for plan $planId...');
 
         // Fetch specific plan by ID
         final result = await _workoutService.getPlanById(planId);
@@ -151,10 +153,10 @@ class WorkoutProvider with ChangeNotifier {
           final plan = result['plan'] as WorkoutPlan?;
 
           if (plan != null) {
-            print('Fetched plan: ${plan.id}, Status: ${plan.status}');
+            debugPrint('Fetched plan: ${plan.id}, Status: ${plan.status}');
 
             if (plan.status == 'completed') {
-              print('Plan generation completed!');
+              debugPrint('Plan generation completed!');
               _currentPlan = plan;
               _isGenerating = false;
               _isLoading = false;
@@ -164,7 +166,7 @@ class WorkoutProvider with ChangeNotifier {
               onGenerationComplete?.call();
               return;
             } else if (plan.status == 'failed') {
-              print('Plan generation failed: ${plan.errorMessage}');
+              debugPrint('Plan generation failed: ${plan.errorMessage}');
               _error = plan.errorMessage ?? 'Generation failed';
               _isGenerating = false;
               _isLoading = false;
@@ -175,7 +177,7 @@ class WorkoutProvider with ChangeNotifier {
           }
         }
       } catch (e) {
-        print('Polling error: $e');
+        debugPrint('Polling error: $e');
         // Continue polling even if one request fails
       }
       attempts++;
@@ -183,7 +185,7 @@ class WorkoutProvider with ChangeNotifier {
 
     // Timeout - but check one last time with getCurrentPlan
     try {
-      print('Polling timed out, checking current plan one last time...');
+      debugPrint('Polling timed out, checking current plan one last time...');
       final result = await _workoutService.getCurrentPlan();
       if (result['success'] && result['plan'] != null) {
         _currentPlan = result['plan'];
@@ -193,7 +195,7 @@ class WorkoutProvider with ChangeNotifier {
         return;
       }
     } catch (e) {
-      print('Final check failed: $e');
+      debugPrint('Final check failed: $e');
     }
 
     _error = 'Generation timed out. Please refresh to check status.';

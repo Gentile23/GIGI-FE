@@ -453,11 +453,9 @@ class WorkoutDetailScreen extends StatelessWidget {
               children: [
                 _buildStatItem('Sets', '${workoutExercise.sets}'),
                 _buildDivider(),
-                _buildStatItem('Reps', workoutExercise.reps ?? '-'),
-                if (workoutExercise.restSeconds != null) ...[
-                  _buildDivider(),
-                  _buildStatItem('Rest', '${workoutExercise.restSeconds}s'),
-                ],
+                _buildStatItem('Reps', workoutExercise.reps),
+                _buildDivider(),
+                _buildStatItem('Rest', '${workoutExercise.restSeconds}s'),
               ],
             ),
           ),

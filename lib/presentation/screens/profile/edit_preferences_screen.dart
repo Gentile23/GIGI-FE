@@ -442,7 +442,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<T>(
-        value: value,
+        key: ValueKey(value),
+        initialValue: value,
         style: GoogleFonts.inter(color: CleanTheme.textPrimary),
         decoration: InputDecoration(
           labelText: label,

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 import 'openai_service.dart';
 import '../../core/constants/api_config.dart';
@@ -34,39 +35,41 @@ class WorkoutService {
 
   Future<Map<String, dynamic>> getCurrentPlan() async {
     try {
-      print('DEBUG: Calling API: ${ApiConfig.workoutPlansCurrent}');
+      debugPrint('DEBUG: Calling API: ${ApiConfig.workoutPlansCurrent}');
       final response = await _apiClient.dio.get(ApiConfig.workoutPlansCurrent);
-      print('DEBUG: API Response status: ${response.statusCode}');
-      print('DEBUG: API Response data type: ${response.data.runtimeType}');
+      debugPrint('DEBUG: API Response status: ${response.statusCode}');
+      debugPrint('DEBUG: API Response data type: ${response.data.runtimeType}');
 
       if (response.statusCode == 200 && response.data != null) {
         final planData =
             response.data is Map && response.data.containsKey('data')
             ? response.data['data']
             : response.data;
-        print(
+        debugPrint(
           'DEBUG: Plan data keys: ${planData is Map ? planData.keys : "not a map"}',
         );
 
         final plan = WorkoutPlan.fromJson(planData);
-        print('DEBUG: Parsed plan ID: ${plan.id}');
-        print('DEBUG: Parsed plan workouts count: ${plan.workouts.length}');
+        debugPrint('DEBUG: Parsed plan ID: ${plan.id}');
+        debugPrint(
+          'DEBUG: Parsed plan workouts count: ${plan.workouts.length}',
+        );
 
         return {'success': true, 'plan': plan};
       }
 
-      print('DEBUG: No plan found - status: ${response.statusCode}');
+      debugPrint('DEBUG: No plan found - status: ${response.statusCode}');
       return {'success': false, 'message': 'No current plan found'};
     } on DioException catch (e) {
-      print('ERROR: DioException in getCurrentPlan: ${e.message}');
-      print('ERROR: Response data: ${e.response?.data}');
+      debugPrint('ERROR: DioException in getCurrentPlan: ${e.message}');
+      debugPrint('ERROR: Response data: ${e.response?.data}');
       return {
         'success': false,
         'message':
             e.response?.data['message'] ?? 'Failed to fetch current plan',
       };
     } catch (e) {
-      print('ERROR: Unexpected error in getCurrentPlan: $e');
+      debugPrint('ERROR: Unexpected error in getCurrentPlan: $e');
       return {'success': false, 'message': 'Unexpected error: $e'};
     }
   }
@@ -103,7 +106,9 @@ class WorkoutService {
       if (response.statusCode == 200 && response.data != null) {
         // Backend returns the plan directly
         if (response.data is Map<String, dynamic>) {
-          print('DEBUG: Fetched Plan JSON: ${response.data}'); // DEBUG PRINT
+          debugPrint(
+            'DEBUG: Fetched Plan JSON: ${response.data}',
+          ); // DEBUG PRINT
           return {'success': true, 'plan': WorkoutPlan.fromJson(response.data)};
         }
       }
@@ -182,10 +187,7 @@ class WorkoutService {
       final estimatedDuration = _calculateDuration(workoutExercises);
 
       return WorkoutDay(
-        id:
-            DateTime.now().millisecondsSinceEpoch.toString() +
-            '_' +
-            day['dayName'],
+        id: '${DateTime.now().millisecondsSinceEpoch}_${day['dayName']}',
         name: day['dayName'] as String,
         focus: focusAreas.join(', '),
         exercises: workoutExercises,

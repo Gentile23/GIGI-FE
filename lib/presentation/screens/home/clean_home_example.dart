@@ -136,7 +136,7 @@ class _CleanHomeExampleState extends State<CleanHomeExample> {
                         child: Icon(
                           Icons.fitness_center,
                           size: 64,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -378,7 +378,7 @@ class _CleanHomeExampleState extends State<CleanHomeExample> {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [color, color.withOpacity(0.8)],
+                  colors: [color, color.withValues(alpha: 0.8)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -436,7 +436,7 @@ class _CleanHomeExampleState extends State<CleanHomeExample> {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -466,7 +466,7 @@ class _CleanHomeExampleState extends State<CleanHomeExample> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),

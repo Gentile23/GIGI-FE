@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:fitgenius/data/models/workout_log_model.dart';
 import 'package:fitgenius/data/services/api_service.dart';
-import 'package:fitgenius/data/services/api_client.dart';
 
 class WorkoutLogService extends ApiService {
-  WorkoutLogService(ApiClient apiClient) : super(apiClient);
+  WorkoutLogService(super.apiClient);
 
   /// Start a new workout session
   Future<WorkoutLog> startWorkout({

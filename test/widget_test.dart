@@ -5,7 +5,7 @@ import 'package:fitgenius/presentation/screens/onboarding/onboarding_screen.dart
 void main() {
   testWidgets('App starts with Onboarding screen', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FitGeniusApp());
+    await tester.pumpWidget(const GigiApp());
 
     // Verify that OnboardingScreen is present
     expect(find.byType(OnboardingScreen), findsOneWidget);

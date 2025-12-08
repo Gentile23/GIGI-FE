@@ -14,11 +14,11 @@ import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
 
 void main() {
-  runApp(const FitGeniusApp());
+  runApp(const GigiApp());
 }
 
-class FitGeniusApp extends StatelessWidget {
-  const FitGeniusApp({super.key});
+class GigiApp extends StatelessWidget {
+  const GigiApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class FitGeniusApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SocialProvider(apiClient)),
       ],
       child: MaterialApp(
-        title: 'FitGenius',
+        title: 'GIGI',
         debugShowCheckedModeBanner: false,
         theme: CleanTheme.lightTheme,
         // Start with onboarding, then: auth -> questionnaire -> main app

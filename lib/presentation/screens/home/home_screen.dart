@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
+import '../../../presentation/widgets/addiction_mechanics_widgets.dart';
+import '../../../presentation/widgets/onboarding_overlay.dart';
+import '../../../data/models/addiction_mechanics_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../workout/workout_session_screen.dart';
 import '../workout/trial_workout_generation_screen.dart';
 import '../workout/preferences_review_screen.dart';
+import '../form_analysis/form_analysis_screen.dart';
 import '../../../data/models/user_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkFirstTimeUser();
+
       final workoutProvider = Provider.of<WorkoutProvider>(
         context,
         listen: false,
@@ -50,6 +57,30 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
     });
+  }
+
+  Future<void> _checkFirstTimeUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenWelcome = prefs.getBool('has_seen_welcome_gigi_v2') ?? false;
+
+    if (!hasSeenWelcome && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.transparent,
+        builder: (context) => OnboardingOverlay(
+          onStartTrial: () {
+            prefs.setBool('has_seen_welcome_gigi_v2', true);
+            Navigator.pop(context);
+            _navigateToTrialWorkout();
+          },
+          onDismiss: () {
+            prefs.setBool('has_seen_welcome_gigi_v2', true);
+            Navigator.pop(context);
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -87,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Benvenuto in FitGenius',
+                              'Benvenuto in GIGI',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 color: CleanTheme.textSecondary,
@@ -128,7 +159,62 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // ═══════════════════════════════════════════
+                  // LIVE ACTIVITY BANNER - Social Proof
+                  // ═══════════════════════════════════════════
+                  const LiveActivityBanner(),
+
+                  const SizedBox(height: 8),
+
+                  // ═══════════════════════════════════════════
+                  // STREAK DISPLAY - Compact
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        StreakDisplayWidget(
+                          streakData: StreakData(
+                            currentStreak: 7,
+                            longestStreak: 14,
+                            xpMultiplier: StreakData.calculateMultiplier(7),
+                          ),
+                          compact: true,
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: CleanTheme.accentGreen.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('⭐', style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 6),
+                              Text(
+                                '2,450 XP',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: CleanTheme.accentGreen,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // ═══════════════════════════════════════════
                   // SECTION: Il Tuo Allenamento
@@ -291,18 +377,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildQuickAction(
-                            icon: Icons.auto_awesome,
-                            label: 'Genera Piano',
-                            onTap: () =>
-                                _generatePlan(context, workoutProvider),
+                            icon: Icons.videocam_outlined,
+                            label: 'AI Form Check',
+                            color: CleanTheme.accentPurple,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const FormAnalysisScreen(),
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildQuickAction(
-                            icon: Icons.history,
-                            label: 'Cronologia',
-                            onTap: () {},
+                            icon: Icons.auto_awesome,
+                            label: 'Genera Piano',
+                            onTap: () =>
+                                _generatePlan(context, workoutProvider),
                           ),
                         ),
                       ],
@@ -327,7 +420,6 @@ class _HomeScreenState extends State<HomeScreen> {
     WorkoutProvider workoutProvider,
     dynamic currentPlan,
   ) {
-    // Loading state
     if (workoutProvider.isLoading) {
       return Container(
         height: 280,
@@ -342,7 +434,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Generating state
     if (workoutProvider.isGenerating ||
         (currentPlan != null && currentPlan.status == 'processing')) {
       return Container(
@@ -379,7 +470,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Has plan - show next workout
     if (currentPlan != null && currentPlan.workouts.isNotEmpty) {
       final nextWorkout = currentPlan.workouts.first;
       return FeaturedImageCard(
@@ -402,7 +492,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // No plan - show trial workout CTA
     return FeaturedImageCard(
       assetImage: 'assets/images/cardio.png',
       title: 'Inizia il Tuo Percorso',
@@ -415,9 +504,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // WORKOUT CARD (Small)
-  // ═══════════════════════════════════════════════════════════
   Widget _buildWorkoutCard({
     required String title,
     required String subtitle,
@@ -437,9 +523,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // SCHEDULE ITEM
-  // ═══════════════════════════════════════════════════════════
   Widget _buildScheduleItem({
     required String day,
     required String title,
@@ -452,7 +535,6 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          // Icon
           Container(
             width: 50,
             height: 50,
@@ -467,7 +549,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 14),
-          // Content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,21 +581,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          // Arrow
           const Icon(Icons.chevron_right, color: CleanTheme.textSecondary),
         ],
       ),
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // QUICK ACTION BUTTON
-  // ═══════════════════════════════════════════════════════════
   Widget _buildQuickAction({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    Color? color,
   }) {
+    final iconColor = color ?? CleanTheme.textPrimary;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -529,10 +608,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: CleanTheme.textPrimary.withValues(alpha: 0.05),
+                color: iconColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: CleanTheme.textPrimary, size: 22),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(height: 8),
             Text(
@@ -550,9 +629,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // NAVIGATION HELPERS
-  // ═══════════════════════════════════════════════════════════
   void _navigateToTrialWorkout() {
     Navigator.push(
       context,

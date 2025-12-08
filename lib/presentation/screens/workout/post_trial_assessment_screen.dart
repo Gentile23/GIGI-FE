@@ -79,15 +79,20 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
-                  return RadioListTile<int>(
+                  return ListTile(
                     title: Text(
                       _getFeelingLabel(value),
                       style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                     ),
-                    value: value,
-                    groupValue: _overallFeeling,
-                    onChanged: (val) => setState(() => _overallFeeling = val!),
-                    activeColor: CleanTheme.primaryColor,
+                    leading: Radio<int>(
+                      value: value,
+                      groupValue: _overallFeeling,
+                      onChanged: (val) =>
+                          setState(() => _overallFeeling = val!),
+                      activeColor: CleanTheme.primaryColor,
+                    ),
+                    onTap: () => setState(() => _overallFeeling = value),
+                    contentPadding: EdgeInsets.zero,
                   );
                 }),
               ),
@@ -132,7 +137,7 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
                     value: _hadMuscleSoreness,
                     onChanged: (val) =>
                         setState(() => _hadMuscleSoreness = val),
-                    activeColor: CleanTheme.primaryColor,
+                    activeThumbColor: CleanTheme.primaryColor,
                   ),
                   if (_hadMuscleSoreness) ...[
                     const SizedBox(height: 16),
@@ -161,15 +166,19 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
-                  return RadioListTile<int>(
+                  return ListTile(
                     title: Text(
                       _getEnergyLabel(value),
                       style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                     ),
-                    value: value,
-                    groupValue: _energyLevel,
-                    onChanged: (val) => setState(() => _energyLevel = val!),
-                    activeColor: CleanTheme.primaryColor,
+                    leading: Radio<int>(
+                      value: value,
+                      groupValue: _energyLevel,
+                      onChanged: (val) => setState(() => _energyLevel = val!),
+                      activeColor: CleanTheme.primaryColor,
+                    ),
+                    onTap: () => setState(() => _energyLevel = value),
+                    contentPadding: EdgeInsets.zero,
                   );
                 }),
               ),
@@ -184,7 +193,7 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
                 ),
                 value: _couldDoMore,
                 onChanged: (val) => setState(() => _couldDoMore = val),
-                activeColor: CleanTheme.primaryColor,
+                activeTrackColor: CleanTheme.primaryColor,
               ),
             ),
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 /// Widget per social proof counter animato
 /// Mostra quanti workout sono stati completati oggi dalla community

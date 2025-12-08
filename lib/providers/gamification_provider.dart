@@ -9,7 +9,7 @@ class GamificationProvider with ChangeNotifier {
   UserStats? _stats;
   List<Achievement> _unlockedAchievements = [];
   List<Achievement> _lockedAchievements = [];
-  List<Achievement> _recentlyUnlocked = [];
+  final List<Achievement> _recentlyUnlocked = [];
   bool _isLoading = false;
 
   GamificationProvider()

@@ -14,7 +14,8 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends State<AuthScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLogin = true;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -22,9 +23,31 @@ class _AuthScreenState extends State<AuthScreen> {
   final _nameController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String? _errorMessage;
+
+  // Animation controller for logo
+  late AnimationController _logoAnimationController;
+  late Animation<double> _logoOpacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _logoAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _logoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoAnimationController, curve: Curves.easeIn),
+    );
+
+    // Start animation
+    _logoAnimationController.forward();
+  }
 
   @override
   void dispose() {
+    _logoAnimationController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
@@ -45,30 +68,29 @@ class _AuthScreenState extends State<AuthScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                // Logo
+                // Logo GIGI with fade-in animation
                 Center(
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: CleanTheme.primaryLight,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                          blurRadius: 30,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
+                  child: AnimatedBuilder(
+                    animation: _logoAnimationController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _logoOpacityAnimation.value,
+                        child: child,
+                      );
+                    },
+                    child: SizedBox(
+                      width: 200,
+                      height: 80,
                       child: Image.asset(
-                        'assets/images/gigi_logo.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.fitness_center,
-                          size: 48,
-                          color: CleanTheme.primaryColor,
+                        'assets/images/gigi_full_logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => Text(
+                          'GIGI',
+                          style: GoogleFonts.outfit(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -168,7 +190,56 @@ class _AuthScreenState extends State<AuthScreen> {
                   },
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                // Error message
+                if (_errorMessage != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CleanTheme.accentRed.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: CleanTheme.accentRed,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.accentRed,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: CleanTheme.accentRed,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _errorMessage = null;
+                            });
+                          },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Submit button
                 CleanButton(
@@ -235,6 +306,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       onTap: () {
                         setState(() {
                           _isLogin = !_isLogin;
+                          _errorMessage = null;
                         });
                       },
                       child: Text(
@@ -328,6 +400,11 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    // Clear previous error
+    setState(() {
+      _errorMessage = null;
+    });
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -355,19 +432,54 @@ class _AuthScreenState extends State<AuthScreen> {
     if (mounted) {
       setState(() {
         _isLoading = false;
+        if (!success) {
+          _errorMessage = _translateError(authProvider.error);
+        }
       });
 
       if (success) {
         widget.onComplete?.call();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.error ?? 'Autenticazione fallita'),
-            backgroundColor: CleanTheme.accentRed,
-          ),
-        );
       }
     }
+  }
+
+  String _translateError(String? error) {
+    if (error == null) {
+      return _isLogin
+          ? 'Credenziali non valide. Controlla email e password.'
+          : 'Registrazione fallita. Riprova più tardi.';
+    }
+
+    // Translate common error messages to Italian
+    final lowerError = error.toLowerCase();
+
+    if (lowerError.contains('invalid credentials') ||
+        lowerError.contains('unauthorized')) {
+      return 'Credenziali non valide. Controlla email e password.';
+    }
+    if (lowerError.contains('email already') ||
+        lowerError.contains('email has already')) {
+      return 'Questa email è già registrata. Prova ad accedere.';
+    }
+    if (lowerError.contains('connection') ||
+        lowerError.contains('connect to server')) {
+      return 'Impossibile connettersi al server. Controlla la connessione internet.';
+    }
+    if (lowerError.contains('timeout')) {
+      return 'Connessione scaduta. Riprova più tardi.';
+    }
+    if (lowerError.contains('password') && lowerError.contains('short')) {
+      return 'La password è troppo corta. Usa almeno 6 caratteri.';
+    }
+    if (lowerError.contains('user not found')) {
+      return 'Utente non trovato. Verifica l\'email inserita.';
+    }
+    if (lowerError.contains('too many')) {
+      return 'Troppi tentativi. Riprova tra qualche minuto.';
+    }
+
+    // Return the original error if no translation found
+    return error;
   }
 
   Future<void> _handleGoogleSignIn() async {

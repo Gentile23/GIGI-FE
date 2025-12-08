@@ -26,7 +26,7 @@ class EnhancedHomeScreen extends StatefulWidget {
 
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
-  CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
+  final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
   @override
   void initState() {

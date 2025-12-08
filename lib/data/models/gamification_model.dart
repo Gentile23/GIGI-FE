@@ -33,10 +33,11 @@ class UserStats {
       if (value == null) return defaultValue;
       if (value is int) return value;
       if (value is double) return value.toInt();
-      if (value is String)
+      if (value is String) {
         return int.tryParse(value) ??
             double.tryParse(value)?.toInt() ??
             defaultValue;
+      }
       return defaultValue;
     }
 

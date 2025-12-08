@@ -103,7 +103,7 @@ class WorkoutLogProvider with ChangeNotifier {
 
       return exerciseLog;
     } catch (e) {
-      print('Error adding exercise log: $e');
+      debugPrint('Error adding exercise log: $e');
       return null;
     }
   }
@@ -142,7 +142,7 @@ class WorkoutLogProvider with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      print('Error adding set log: $e');
+      debugPrint('Error adding set log: $e');
     }
   }
 
@@ -167,7 +167,7 @@ class WorkoutLogProvider with ChangeNotifier {
       _stats = await _statsService.getOverviewStats(period: period);
       notifyListeners();
     } catch (e) {
-      print('Error fetching stats: $e');
+      debugPrint('Error fetching stats: $e');
     }
   }
 

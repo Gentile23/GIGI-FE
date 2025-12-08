@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/nutrition_model.dart';
 import 'api_client.dart';
 
@@ -25,7 +26,7 @@ class NutritionService {
 
       return response.data;
     } catch (e) {
-      print('Error quick logging: $e');
+      debugPrint('Error quick logging: $e');
       return null;
     }
   }
@@ -39,7 +40,7 @@ class NutritionService {
       }
       return null;
     } catch (e) {
-      print('Error fetching nutrition goals: $e');
+      debugPrint('Error fetching nutrition goals: $e');
       return null;
     }
   }
@@ -56,7 +57,7 @@ class NutritionService {
       );
       return NutritionGoal.fromJson(response.data['goal']);
     } catch (e) {
-      print('Error setting nutrition goals: $e');
+      debugPrint('Error setting nutrition goals: $e');
       return null;
     }
   }
@@ -94,7 +95,7 @@ class NutritionService {
       );
       return Meal.fromJson(response.data['meal']);
     } catch (e) {
-      print('Error logging meal: $e');
+      debugPrint('Error logging meal: $e');
       return null;
     }
   }
@@ -110,7 +111,7 @@ class NutritionService {
           .map((json) => Meal.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching meals: $e');
+      debugPrint('Error fetching meals: $e');
       return null;
     }
   }
@@ -121,7 +122,7 @@ class NutritionService {
       final response = await _apiClient.dio.get('/nutrition/meals/$mealId');
       return Meal.fromJson(response.data['meal']);
     } catch (e) {
-      print('Error fetching meal: $e');
+      debugPrint('Error fetching meal: $e');
       return null;
     }
   }
@@ -154,7 +155,7 @@ class NutritionService {
       );
       return true;
     } catch (e) {
-      print('Error updating meal: $e');
+      debugPrint('Error updating meal: $e');
       return false;
     }
   }
@@ -165,7 +166,7 @@ class NutritionService {
       await _apiClient.dio.delete('/nutrition/meals/$mealId');
       return true;
     } catch (e) {
-      print('Error deleting meal: $e');
+      debugPrint('Error deleting meal: $e');
       return false;
     }
   }
@@ -188,7 +189,7 @@ class NutritionService {
         'progress': response.data['summary']['progress'],
       };
     } catch (e) {
-      print('Error fetching daily summary: $e');
+      debugPrint('Error fetching daily summary: $e');
       return null;
     }
   }
@@ -199,7 +200,7 @@ class NutritionService {
       final response = await _apiClient.dio.get('/nutrition/weekly-summary');
       return response.data['summary'];
     } catch (e) {
-      print('Error fetching weekly summary: $e');
+      debugPrint('Error fetching weekly summary: $e');
       return null;
     }
   }
@@ -212,7 +213,7 @@ class NutritionService {
           .map((json) => NutritionInsight.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching insights: $e');
+      debugPrint('Error fetching insights: $e');
       return null;
     }
   }
@@ -236,7 +237,7 @@ class NutritionService {
           .map((json) => Recipe.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching recipes: $e');
+      debugPrint('Error fetching recipes: $e');
       return null;
     }
   }
@@ -247,7 +248,7 @@ class NutritionService {
       final response = await _apiClient.dio.get('/nutrition/recipes/$recipeId');
       return Recipe.fromJson(response.data['recipe']);
     } catch (e) {
-      print('Error fetching recipe: $e');
+      debugPrint('Error fetching recipe: $e');
       return null;
     }
   }
@@ -258,7 +259,7 @@ class NutritionService {
       await _apiClient.dio.post('/nutrition/recipes/$recipeId/save');
       return true;
     } catch (e) {
-      print('Error saving recipe: $e');
+      debugPrint('Error saving recipe: $e');
       return false;
     }
   }
@@ -271,7 +272,7 @@ class NutritionService {
           .map((json) => Recipe.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching saved recipes: $e');
+      debugPrint('Error fetching saved recipes: $e');
       return null;
     }
   }
@@ -285,7 +286,7 @@ class NutritionService {
       );
       return true;
     } catch (e) {
-      print('Error updating water: $e');
+      debugPrint('Error updating water: $e');
       return false;
     }
   }

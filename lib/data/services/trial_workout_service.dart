@@ -1,4 +1,5 @@
 import '../models/trial_workout_model.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class TrialWorkoutService {
@@ -17,7 +18,7 @@ class TrialWorkoutService {
 
       return null;
     } catch (e) {
-      print('Error generating trial workout: $e');
+      debugPrint('Error generating trial workout: $e');
       return null;
     }
   }
@@ -38,7 +39,7 @@ class TrialWorkoutService {
 
       return null;
     } catch (e) {
-      print('Error submitting trial results: $e');
+      debugPrint('Error submitting trial results: $e');
       return null;
     }
   }
@@ -54,7 +55,7 @@ class TrialWorkoutService {
 
       return null;
     } catch (e) {
-      print('Error getting trial status: $e');
+      debugPrint('Error getting trial status: $e');
       return null;
     }
   }

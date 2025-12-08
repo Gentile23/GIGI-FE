@@ -26,7 +26,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
   final List<String> _skippedExercises = [];
   final List<String> _formIssues = [];
   int _currentExerciseIndex = 0;
-  int _totalRestTime = 0;
+  final int _totalRestTime = 0;
   int _overallFatigue = 3;
   bool _isSubmitting = false;
 
@@ -261,7 +261,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
                   ),
                   value: isBodyweight,
                   onChanged: (value) => setState(() => isBodyweight = value),
-                  activeColor: CleanTheme.primaryColor,
+                  activeThumbColor: CleanTheme.primaryColor,
                 ),
                 if (!isBodyweight) ...[
                   const SizedBox(height: 8),
@@ -451,17 +451,21 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
             const SizedBox(height: 24),
             ...List.generate(5, (index) {
               final level = index + 1;
-              return RadioListTile<int>(
+              return ListTile(
                 title: Text(
                   _getFatigueLabel(level),
                   style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                 ),
-                value: level,
-                groupValue: _overallFatigue,
-                onChanged: (value) {
-                  setState(() => _overallFatigue = value!);
-                },
-                activeColor: CleanTheme.primaryColor,
+                leading: Radio<int>(
+                  value: level,
+                  groupValue: _overallFatigue,
+                  onChanged: (value) {
+                    setState(() => _overallFatigue = value!);
+                  },
+                  activeColor: CleanTheme.primaryColor,
+                ),
+                onTap: () => setState(() => _overallFatigue = level),
+                contentPadding: EdgeInsets.zero,
               );
             }),
           ],

@@ -1,0 +1,181 @@
+
+warning - The value 
+of the field '_market
+ingNotificationsEnabl
+ed' isn't used - lib\
+core\services\notific
+ation_service.dart:63
+:8 - unused_field
+warning - The value 
+of the field '_prefer
+redWorkoutHour' 
+isn't used - lib\core
+\services\notificatio
+n_service.dart:64:7 
+- unused_field
+warning - Unused 
+import: 'dart:math' 
+- lib\core\theme\adva
+nced_theme.dart:2:8 
+- unused_import
+warning - Unused 
+import: 
+'dart:convert' - lib\
+data\services\workout
+_log_service.dart:1:8
+ - unused_import
+warning - The 
+declaration '_buildTr
+ainingHistoryPage' 
+isn't referenced - li
+b\presentation\screen
+s\questionnaire\unifi
+ed_questionnaire_scre
+en.dart:2391:10 - 
+unused_element
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+exercise_detail_scree
+n.dart:105:45 - unnec
+essary_null_compariso
+n
+warning - Dead code 
+- lib\presentation\sc
+reens\workout\exercis
+e_detail_screen.dart:
+105:53 - dead_code
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+exercise_detail_scree
+n.dart:106:45 - unnec
+essary_null_compariso
+n
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+exercise_detail_scree
+n.dart:333:43 - unnec
+essary_null_compariso
+n
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+exercise_detail_scree
+n.dart:339:43 - unnec
+essary_null_compariso
+n
+warning - The '!' 
+will have no effect 
+because the receiver 
+can't be null - lib\p
+resentation\screens\w
+orkout\exercise_detai
+l_screen.dart:343:49 
+- unnecessary_non_nul
+l_assertion
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+exercise_detail_scree
+n.dart:345:50 - unnec
+essary_null_compariso
+n
+warning - Dead code 
+- lib\presentation\sc
+reens\workout\workout
+_screen.dart:456:61 
+- dead_code
+warning - The left 
+operand can't be 
+null, so the right 
+operand is never 
+executed - lib\presen
+tation\screens\workou
+t\workout_screen.dart
+:456:64 - dead_null_a
+ware_expression
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+workout_screen.dart:4
+57:49 - unnecessary_n
+ull_comparison
+warning - The 
+operand can't be 
+'null', so the 
+condition is always 
+'true' - lib\presenta
+tion\screens\workout\
+workout_session_scree
+n.dart:745:50 - unnec
+essary_null_compariso
+n
+warning - Unused 
+import: 'dart:math' 
+- lib\presentation\wi
+dgets\engagement\dail
+y_challenge_widget.da
+rt:2:8 - 
+unused_import
+warning - Unused 
+import: 'dart:math' 
+- lib\presentation\wi
+dgets\engagement\soci
+al_proof_widgets.dart
+:2:8 - unused_import
+warning - Unused 
+import: 'dart:math' 
+- lib\presentation\wi
+dgets\navigation\prem
+ium_navigation.dart:2
+:8 - unused_import
+warning - Unused 
+import: 
+'clean_widgets.dart' 
+- lib\presentation\wi
+dgets\onboarding_over
+lay.dart:4:8 - 
+unused_import
+warning - The value 
+of the field 
+'_isPressed' isn't 
+used - lib\presentati
+on\widgets\premium\pr
+emium_components.dart
+:40:8 - unused_field
+warning - Unused 
+import: 'dart:math' 
+- lib\presentation\wi
+dgets\progress\body_p
+rogress_widget.dart:2
+:8 - unused_import
+warning - The value 
+of the field 
+'_currentEquipment' 
+isn't used - lib\pres
+entation\widgets\work
+out\alternative_exerc
+ises_sheet.dart:45:16
+ - unused_field
+
+

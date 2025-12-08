@@ -105,7 +105,7 @@ class _CardioExerciseScreenState extends State<CardioExerciseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${_completedExercises.length}',
+                      _completedExercises.length.toString(),
                       style: GoogleFonts.outfit(
                         fontSize: 56,
                         fontWeight: FontWeight.w700,

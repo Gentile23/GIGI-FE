@@ -1,9 +1,8 @@
 import 'package:fitgenius/data/models/workout_log_model.dart';
 import 'package:fitgenius/data/services/api_service.dart';
-import 'package:fitgenius/data/services/api_client.dart';
 
 class WorkoutStatsService extends ApiService {
-  WorkoutStatsService(ApiClient apiClient) : super(apiClient);
+  WorkoutStatsService(super.apiClient);
 
   /// Get overview statistics
   Future<WorkoutStats> getOverviewStats({String period = 'all'}) async {

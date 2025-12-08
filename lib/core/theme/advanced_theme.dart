@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 /// Tema avanzato con effetti glassmorphism, neon glow e gradienti premium
 class AdvancedTheme {
@@ -76,15 +75,15 @@ class AdvancedTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withOpacity(opacity),
-          Colors.white.withOpacity(opacity * 0.5),
+          Colors.white.withValues(alpha: opacity),
+          Colors.white.withValues(alpha: opacity * 0.5),
         ],
       ),
       borderRadius: BorderRadius.circular(borderRadius),
-      border: Border.all(color: Colors.white.withOpacity(borderOpacity)),
+      border: Border.all(color: Colors.white.withValues(alpha: borderOpacity)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha: 0.2),
           blurRadius: 20,
           spreadRadius: 5,
         ),
@@ -98,15 +97,15 @@ class AdvancedTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withOpacity(0.05),
-          Colors.white.withOpacity(0.02),
+          Colors.white.withValues(alpha: 0.05),
+          Colors.white.withValues(alpha: 0.02),
         ],
       ),
       borderRadius: BorderRadius.circular(borderRadius),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.black.withValues(alpha: 0.3),
           blurRadius: 30,
           offset: const Offset(0, 10),
         ),
@@ -118,17 +117,17 @@ class AdvancedTheme {
   static List<BoxShadow> neonGlow(Color color, {double intensity = 1.0}) {
     return [
       BoxShadow(
-        color: color.withOpacity(0.6 * intensity),
+        color: color.withValues(alpha: 0.6 * intensity),
         blurRadius: 20,
         spreadRadius: 2,
       ),
       BoxShadow(
-        color: color.withOpacity(0.3 * intensity),
+        color: color.withValues(alpha: 0.3 * intensity),
         blurRadius: 40,
         spreadRadius: 4,
       ),
       BoxShadow(
-        color: color.withOpacity(0.1 * intensity),
+        color: color.withValues(alpha: 0.1 * intensity),
         blurRadius: 60,
         spreadRadius: 8,
       ),
@@ -137,7 +136,11 @@ class AdvancedTheme {
 
   static List<BoxShadow> subtleGlow(Color color) {
     return [
-      BoxShadow(color: color.withOpacity(0.3), blurRadius: 15, spreadRadius: 1),
+      BoxShadow(
+        color: color.withValues(alpha: 0.3),
+        blurRadius: 15,
+        spreadRadius: 1,
+      ),
     ];
   }
 
@@ -150,15 +153,15 @@ class AdvancedTheme {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [cardColor, cardColor.withOpacity(0.8)],
+        colors: [cardColor, cardColor.withValues(alpha: 0.8)],
       ),
       borderRadius: BorderRadius.circular(borderRadius),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
+      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       boxShadow: glowColor != null
           ? subtleGlow(glowColor)
           : [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -192,10 +195,10 @@ class AdvancedTheme {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [glowColor.withOpacity(0.15), cardColor],
+        colors: [glowColor.withValues(alpha: 0.15), cardColor],
       ),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: glowColor.withOpacity(0.5), width: 2),
+      border: Border.all(color: glowColor.withValues(alpha: 0.5), width: 2),
       boxShadow: neonGlow(glowColor, intensity: glowIntensity),
     );
   }
@@ -211,7 +214,7 @@ class AdvancedTheme {
           ? []
           : [
               BoxShadow(
-                color: primaryColor.withOpacity(0.4),
+                color: primaryColor.withValues(alpha: 0.4),
                 blurRadius: 15,
                 offset: const Offset(0, 4),
               ),
@@ -236,9 +239,9 @@ class AdvancedTheme {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
       prefixIcon: prefixIcon != null
-          ? Icon(prefixIcon, color: Colors.white.withOpacity(0.5))
+          ? Icon(prefixIcon, color: Colors.white.withValues(alpha: 0.5))
           : null,
       suffix: suffix,
       filled: true,
@@ -249,7 +252,7 @@ class AdvancedTheme {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -280,15 +283,15 @@ class AdvancedTheme {
   );
 
   static TextStyle get bodyLarge =>
-      TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.9));
+      TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.9));
 
   static TextStyle get bodyMedium =>
-      TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.7));
+      TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7));
 
   static TextStyle get labelSmall => TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w500,
-    color: Colors.white.withOpacity(0.5),
+    color: Colors.white.withValues(alpha: 0.5),
     letterSpacing: 0.5,
   );
 

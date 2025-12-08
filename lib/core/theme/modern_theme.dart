@@ -57,12 +57,12 @@ class ModernTheme {
         secondary: secondaryColor,
         tertiary: accentCyan,
         surface: surfaceColor,
-        background: backgroundColor,
+
         error: accentRed,
         onPrimary: Color(0xFF000000),
         onSecondary: Color(0xFF000000),
         onSurface: textPrimary,
-        onBackground: textPrimary,
+
         onError: textPrimary,
       ),
 
@@ -347,7 +347,7 @@ class ModernTheme {
       chipTheme: ChipThemeData(
         backgroundColor: surfaceColor,
         deleteIconColor: textPrimary,
-        disabledColor: surfaceColor.withOpacity(0.5),
+        disabledColor: surfaceColor.withValues(alpha: 0.5),
         selectedColor: primaryColor,
         secondarySelectedColor: secondaryColor,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -418,12 +418,12 @@ class ModernTheme {
   // Neon Green Glow
   static List<BoxShadow> get neonGlowPrimary => [
     BoxShadow(
-      color: primaryColor.withOpacity(0.5),
+      color: primaryColor.withValues(alpha: 0.5),
       blurRadius: 20,
       spreadRadius: 2,
     ),
     BoxShadow(
-      color: primaryColor.withOpacity(0.3),
+      color: primaryColor.withValues(alpha: 0.3),
       blurRadius: 40,
       spreadRadius: 4,
     ),
@@ -432,12 +432,12 @@ class ModernTheme {
   // Gold Glow
   static List<BoxShadow> get neonGlowSecondary => [
     BoxShadow(
-      color: secondaryColor.withOpacity(0.5),
+      color: secondaryColor.withValues(alpha: 0.5),
       blurRadius: 20,
       spreadRadius: 2,
     ),
     BoxShadow(
-      color: secondaryColor.withOpacity(0.3),
+      color: secondaryColor.withValues(alpha: 0.3),
       blurRadius: 40,
       spreadRadius: 4,
     ),
@@ -446,12 +446,12 @@ class ModernTheme {
   // Cyan Glow
   static List<BoxShadow> get neonGlowCyan => [
     BoxShadow(
-      color: accentCyan.withOpacity(0.5),
+      color: accentCyan.withValues(alpha: 0.5),
       blurRadius: 20,
       spreadRadius: 2,
     ),
     BoxShadow(
-      color: accentCyan.withOpacity(0.3),
+      color: accentCyan.withValues(alpha: 0.3),
       blurRadius: 40,
       spreadRadius: 4,
     ),
@@ -460,12 +460,12 @@ class ModernTheme {
   // Red Glow
   static List<BoxShadow> get neonGlowRed => [
     BoxShadow(
-      color: accentRed.withOpacity(0.5),
+      color: accentRed.withValues(alpha: 0.5),
       blurRadius: 20,
       spreadRadius: 2,
     ),
     BoxShadow(
-      color: accentRed.withOpacity(0.3),
+      color: accentRed.withValues(alpha: 0.3),
       blurRadius: 40,
       spreadRadius: 4,
     ),
@@ -474,7 +474,7 @@ class ModernTheme {
   // Subtle Elevation
   static List<BoxShadow> get subtleElevation => [
     BoxShadow(
-      color: Colors.black.withOpacity(0.3),
+      color: Colors.black.withValues(alpha: 0.3),
       blurRadius: 10,
       offset: const Offset(0, 4),
     ),

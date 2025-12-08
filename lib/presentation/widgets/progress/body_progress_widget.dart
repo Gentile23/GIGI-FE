@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+
 import '../../../core/theme/advanced_theme.dart';
 
 /// Widget per visualizzare silhouette corporea con muscoli lavorati

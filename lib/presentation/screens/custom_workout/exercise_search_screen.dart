@@ -20,7 +20,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
 
   List<Exercise> _allExercises = [];
   List<Exercise> _filteredExercises = [];
-  Set<String> _selectedExerciseIds = {};
+  final Set<String> _selectedExerciseIds = {};
 
   String? _selectedMuscleGroup;
   String? _selectedEquipment;
@@ -239,7 +239,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: hasActiveFilters
-                              ? CleanTheme.primaryColor.withOpacity(0.2)
+                              ? CleanTheme.primaryColor.withValues(alpha: 0.2)
                               : CleanTheme.cardColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
@@ -330,7 +330,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
       margin: const EdgeInsets.only(right: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: CleanTheme.primaryColor.withOpacity(0.2),
+        color: CleanTheme.primaryColor.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -425,7 +425,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? CleanTheme.primaryColor.withOpacity(0.15)
+                  ? CleanTheme.primaryColor.withValues(alpha: 0.15)
                   : CleanTheme.cardColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(

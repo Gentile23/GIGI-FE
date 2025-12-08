@@ -374,7 +374,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: CleanTheme.primaryColor.withOpacity(0.2),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(

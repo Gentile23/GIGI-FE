@@ -1,4 +1,5 @@
 import '../models/adaptive_training_model.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class AdaptiveTrainingService {
@@ -11,7 +12,7 @@ class AdaptiveTrainingService {
       final response = await _apiClient.dio.get('/adaptive/analysis');
       return PerformanceAnalysis.fromJson(response.data);
     } catch (e) {
-      print('Error fetching analysis: $e');
+      debugPrint('Error fetching analysis: $e');
       return null;
     }
   }
@@ -24,7 +25,7 @@ class AdaptiveTrainingService {
           .map((json) => TrainingRecommendation.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching recommendations: $e');
+      debugPrint('Error fetching recommendations: $e');
       return null;
     }
   }
@@ -36,7 +37,7 @@ class AdaptiveTrainingService {
       );
       return true;
     } catch (e) {
-      print('Error applying recommendation: $e');
+      debugPrint('Error applying recommendation: $e');
       return false;
     }
   }
@@ -48,7 +49,7 @@ class AdaptiveTrainingService {
       );
       return true;
     } catch (e) {
-      print('Error dismissing recommendation: $e');
+      debugPrint('Error dismissing recommendation: $e');
       return false;
     }
   }
@@ -72,7 +73,7 @@ class AdaptiveTrainingService {
 
       return RecoveryScore.fromJson(response.data['recovery_score']);
     } catch (e) {
-      print('Error submitting recovery data: $e');
+      debugPrint('Error submitting recovery data: $e');
       return null;
     }
   }
@@ -92,7 +93,7 @@ class AdaptiveTrainingService {
         'average_readiness': response.data['average_readiness'],
       };
     } catch (e) {
-      print('Error fetching recovery history: $e');
+      debugPrint('Error fetching recovery history: $e');
       return null;
     }
   }

@@ -216,7 +216,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: CleanTheme.primaryColor.withOpacity(0.1),
+                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -287,7 +287,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: plan.isActive
-                ? CleanTheme.primaryColor.withOpacity(0.3)
+                ? CleanTheme.primaryColor.withValues(alpha: 0.3)
                 : Colors.grey[700]!,
             width: 1,
           ),
@@ -301,7 +301,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: CleanTheme.primaryColor.withOpacity(0.2),
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(

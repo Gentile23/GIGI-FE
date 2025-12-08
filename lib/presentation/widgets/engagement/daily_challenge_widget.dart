@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 /// Widget per Daily Challenge con countdown timer
 class DailyChallengeWidget extends StatefulWidget {

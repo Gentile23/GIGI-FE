@@ -66,7 +66,7 @@ class ModernButton extends StatelessWidget {
               backgroundColor ??
               (isPrimary
                   ? ModernTheme.primaryColor
-                  : Colors.white.withOpacity(0.2)),
+                  : Colors.white.withValues(alpha: 0.2)),
           width: 2,
         ),
         // Sharp shadow effect
@@ -74,7 +74,7 @@ class ModernButton extends StatelessWidget {
             ? [
                 BoxShadow(
                   color: (backgroundColor ?? ModernTheme.primaryColor)
-                      .withOpacity(0.4),
+                      .withValues(alpha: 0.4),
                   offset: const Offset(0, 4),
                   blurRadius: 0, // No blur for sharp shadow
                   spreadRadius: 0,
@@ -155,7 +155,7 @@ class ModernCard extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: ModernTheme.primaryColor.withOpacity(0.3),
+                    color: ModernTheme.primaryColor.withValues(alpha: 0.3),
                     offset: const Offset(0, 4),
                     blurRadius: 0, // Sharp shadow
                     spreadRadius: 0,
@@ -195,12 +195,12 @@ class ModernStepIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             color: isActive
                 ? ModernTheme.primaryColor
-                : Colors.white.withOpacity(0.2),
+                : Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(1), // Almost square
             border: Border.all(
               color: isActive
                   ? ModernTheme.primaryColor
-                  : Colors.white.withOpacity(0.1),
+                  : Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),

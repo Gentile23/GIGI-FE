@@ -5,6 +5,11 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
+import '../challenges/challenges_screen.dart';
+import '../referral/referral_screen.dart';
+import '../progress/transformation_tracker_screen.dart';
+import '../leaderboard/leaderboard_screen.dart';
+import '../community/community_goals_screen.dart';
 import 'edit_preferences_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -187,6 +192,97 @@ class ProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
+          // ═══════════════════════════════════════════
+          // NEW: Quick Actions Section
+          // ═══════════════════════════════════════════
+          CleanSectionHeader(title: 'Funzionalità'),
+          const SizedBox(height: 12),
+
+          CleanCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildSettingsTile(
+                  icon: Icons.emoji_events_outlined,
+                  title: 'Sfide',
+                  subtitle: 'Daily, Weekly, Community',
+                  color: CleanTheme.accentOrange,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChallengesScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.leaderboard_outlined,
+                  title: 'Classifica',
+                  subtitle: 'XP, Workout, Streak',
+                  color: CleanTheme.accentBlue,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LeaderboardScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.public_outlined,
+                  title: 'Community',
+                  subtitle: 'Obiettivi collettivi',
+                  color: CleanTheme.accentPurple,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CommunityGoalsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.card_giftcard_outlined,
+                  title: 'Invita Amici',
+                  subtitle: 'Guadagna Premium gratis',
+                  color: const Color(0xFFE91E63),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReferralScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.photo_library_outlined,
+                  title: 'Trasformazione',
+                  subtitle: 'Before/After tracking',
+                  color: CleanTheme.accentGreen,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const TransformationTrackerScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // Settings section
           CleanSectionHeader(title: 'Impostazioni'),
           const SizedBox(height: 12),
@@ -297,16 +393,21 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildSettingsTile({
     required IconData icon,
     required String title,
+    String? subtitle,
+    Color? color,
     required VoidCallback onTap,
   }) {
+    final tileColor = color ?? CleanTheme.primaryColor;
+    final bgColor = color?.withValues(alpha: 0.1) ?? CleanTheme.primaryLight;
+
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: CleanTheme.primaryLight,
+          color: bgColor,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: CleanTheme.primaryColor, size: 20),
+        child: Icon(icon, color: tileColor, size: 20),
       ),
       title: Text(
         title,
@@ -315,6 +416,15 @@ class ProfileScreen extends StatelessWidget {
           color: CleanTheme.textPrimary,
         ),
       ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: CleanTheme.textSecondary,
+              ),
+            )
+          : null,
       trailing: const Icon(
         Icons.chevron_right,
         color: CleanTheme.textTertiary,

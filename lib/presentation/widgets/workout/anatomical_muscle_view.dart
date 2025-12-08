@@ -54,16 +54,15 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
 
       // Get highlight color in hex format
       final highlightHex =
-          '#${widget.highlightColor.value.toRadixString(16).substring(2, 8)}';
+          '#${widget.highlightColor.toARGB32().toRadixString(16).substring(2, 8)}';
 
       // Modify SVG to highlight specific muscles
       _highlightMusclesInXml(document, elementsToHighlight, highlightHex);
-
       setState(() {
         _svgContent = document.toXmlString();
       });
     } catch (e) {
-      print('Error loading SVG: $e');
+      debugPrint('Error loading SVG: $e');
     }
   }
 

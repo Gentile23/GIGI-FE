@@ -48,10 +48,11 @@ class ImmersiveWorkoutScaffold extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         HapticService.lightTap();
-                        if (onBack != null)
+                        if (onBack != null) {
                           onBack!();
-                        else
+                        } else {
                           Navigator.pop(context);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(10),

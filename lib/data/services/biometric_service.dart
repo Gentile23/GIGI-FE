@@ -1,4 +1,5 @@
 import '../models/biometric_model.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class BiometricService {
@@ -18,7 +19,7 @@ class BiometricService {
       );
       return response.data;
     } catch (e) {
-      print('Error syncing biometric data: $e');
+      debugPrint('Error syncing biometric data: $e');
       return null;
     }
   }
@@ -29,7 +30,7 @@ class BiometricService {
       final response = await _apiClient.dio.get('/biometric/latest');
       return response.data['data'];
     } catch (e) {
-      print('Error fetching latest biometric data: $e');
+      debugPrint('Error fetching latest biometric data: $e');
       return null;
     }
   }
@@ -46,7 +47,7 @@ class BiometricService {
           .map((json) => BiometricData.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching biometric history: $e');
+      debugPrint('Error fetching biometric history: $e');
       return null;
     }
   }
@@ -82,7 +83,7 @@ class BiometricService {
 
       return SleepSession.fromJson(response.data['session']);
     } catch (e) {
-      print('Error storing sleep session: $e');
+      debugPrint('Error storing sleep session: $e');
       return null;
     }
   }
@@ -102,7 +103,7 @@ class BiometricService {
         'statistics': response.data['statistics'],
       };
     } catch (e) {
-      print('Error fetching sleep history: $e');
+      debugPrint('Error fetching sleep history: $e');
       return null;
     }
   }
@@ -129,7 +130,7 @@ class BiometricService {
 
       return HeartRateData.fromJson(response.data['data']);
     } catch (e) {
-      print('Error storing heart rate data: $e');
+      debugPrint('Error storing heart rate data: $e');
       return null;
     }
   }
@@ -144,7 +145,7 @@ class BiometricService {
 
       return HRVTrend.fromJson(response.data['trend']);
     } catch (e) {
-      print('Error fetching HRV trend: $e');
+      debugPrint('Error fetching HRV trend: $e');
       return null;
     }
   }
@@ -190,7 +191,7 @@ class BiometricService {
         'latest_data': response.data['latest_data'],
       };
     } catch (e) {
-      print('Error fetching biometric insights: $e');
+      debugPrint('Error fetching biometric insights: $e');
       return null;
     }
   }
@@ -201,7 +202,7 @@ class BiometricService {
       final response = await _apiClient.dio.get('/biometric/settings');
       return response.data['settings'];
     } catch (e) {
-      print('Error fetching biometric settings: $e');
+      debugPrint('Error fetching biometric settings: $e');
       return null;
     }
   }
@@ -229,7 +230,7 @@ class BiometricService {
       );
       return true;
     } catch (e) {
-      print('Error updating biometric settings: $e');
+      debugPrint('Error updating biometric settings: $e');
       return false;
     }
   }

@@ -173,7 +173,7 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
                     child: Image.asset(
                       page.imagePath!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
+                      errorBuilder: (_, _, _) =>
                           Icon(page.icon, size: 64, color: page.accentColor),
                     ),
                   )

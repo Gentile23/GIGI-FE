@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import '../../../core/theme/advanced_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
@@ -37,7 +37,6 @@ class _PremiumButtonState extends State<PremiumButton>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _glowAnimation;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -65,18 +64,15 @@ class _PremiumButtonState extends State<PremiumButton>
   }
 
   void _onTapDown(TapDownDetails details) {
-    setState(() => _isPressed = true);
     _controller.forward();
     HapticService.lightTap();
   }
 
   void _onTapUp(TapUpDetails details) {
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 
   void _onTapCancel() {
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 

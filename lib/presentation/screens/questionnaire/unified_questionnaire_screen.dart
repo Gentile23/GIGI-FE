@@ -470,7 +470,10 @@ class _UnifiedQuestionnaireScreenState
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: CleanTheme.textPrimary,
+                    ),
                     onPressed: () {
                       if (_currentStep > 0) {
                         _previousPage();
@@ -2378,52 +2381,6 @@ class _UnifiedQuestionnaireScreenState
           isSelected: _nutritionApproach == n,
           onTap: () {
             setState(() => _nutritionApproach = n);
-            _nextPage();
-          },
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildTrainingHistoryPage() {
-    return _buildSelectionPage(
-      title: 'Storico Allenamento',
-      subtitle: 'Quanto sei stato costante negli ultimi 6 mesi?',
-      options: TrainingHistory.values.map((h) {
-        String label;
-        String description;
-        IconData icon;
-
-        switch (h) {
-          case TrainingHistory.veryConsistent:
-            label = 'Molto Costante';
-            description = '3-6 allenamenti/settimana, raramente saltati';
-            icon = Icons.check_circle;
-            break;
-          case TrainingHistory.somewhatConsistent:
-            label = 'Abbastanza Costante';
-            description = '2-4 allenamenti/settimana, qualche pausa';
-            icon = Icons.check;
-            break;
-          case TrainingHistory.inconsistent:
-            label = 'Incostante';
-            description = '1-2 allenamenti/settimana, pause frequenti';
-            icon = Icons.warning_amber;
-            break;
-          case TrainingHistory.inactive:
-            label = 'Inattivo';
-            description = 'Non mi alleno da 3+ mesi';
-            icon = Icons.bed;
-            break;
-        }
-
-        return _Option(
-          label: label,
-          description: description,
-          icon: icon,
-          isSelected: _trainingHistory == h,
-          onTap: () {
-            setState(() => _trainingHistory = h);
             _nextPage();
           },
         );

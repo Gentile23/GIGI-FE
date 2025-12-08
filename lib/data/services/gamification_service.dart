@@ -1,4 +1,5 @@
 import '../models/gamification_model.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class GamificationService {
@@ -11,7 +12,7 @@ class GamificationService {
       final response = await _apiClient.dio.get('/gamification/stats');
       return UserStats.fromJson(response.data['stats']);
     } catch (e) {
-      print('Error fetching stats: $e');
+      debugPrint('Error fetching stats: $e');
       return null;
     }
   }
@@ -30,7 +31,7 @@ class GamificationService {
 
       return {'unlocked': unlocked, 'locked': locked};
     } catch (e) {
-      print('Error fetching achievements: $e');
+      debugPrint('Error fetching achievements: $e');
       return null;
     }
   }
@@ -48,7 +49,7 @@ class GamificationService {
           .map((json) => LeaderboardEntry.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching leaderboard: $e');
+      debugPrint('Error fetching leaderboard: $e');
       return null;
     }
   }

@@ -102,11 +102,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ],
 
             // Sets, Reps, Rest
-            if (widget.workoutExercise.sets != null ||
-                widget.workoutExercise.reps != null) ...[
-              _buildWorkoutInfo(),
-              const SizedBox(height: 24),
-            ],
+            _buildWorkoutInfo(),
+            const SizedBox(height: 24),
 
             // Equipment
             if (widget.workoutExercise.exercise.equipment.isNotEmpty) ...[
@@ -194,7 +191,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 color: CleanTheme.cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: CleanTheme.primaryColor.withOpacity(0.3),
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -236,8 +233,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 color: CleanTheme.cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: (isBodyweight ? Colors.blue : Colors.green)
-                      .withOpacity(0.3),
+                  color: (isBodyweight ? Colors.blue : Colors.green).withValues(
+                    alpha: 0.3,
+                  ),
                   width: 1,
                 ),
               ),
@@ -330,24 +328,21 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          if (widget.workoutExercise.sets != null)
-            _buildInfoColumn(
-              icon: Icons.repeat,
-              label: 'Serie',
-              value: widget.workoutExercise.sets.toString(),
-            ),
-          if (widget.workoutExercise.reps != null)
-            _buildInfoColumn(
-              icon: Icons.fitness_center_outlined,
-              label: 'Ripetizioni',
-              value: widget.workoutExercise.reps!,
-            ),
-          if (widget.workoutExercise.restSeconds != null)
-            _buildInfoColumn(
-              icon: Icons.timer_outlined,
-              label: 'Recupero',
-              value: '${widget.workoutExercise.restSeconds}s',
-            ),
+          _buildInfoColumn(
+            icon: Icons.repeat,
+            label: 'Serie',
+            value: widget.workoutExercise.sets.toString(),
+          ),
+          _buildInfoColumn(
+            icon: Icons.fitness_center_outlined,
+            label: 'Ripetizioni',
+            value: widget.workoutExercise.reps,
+          ),
+          _buildInfoColumn(
+            icon: Icons.timer_outlined,
+            label: 'Recupero',
+            value: '${widget.workoutExercise.restSeconds}s',
+          ),
         ],
       ),
     );

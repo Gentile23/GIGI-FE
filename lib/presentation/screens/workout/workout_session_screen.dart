@@ -144,10 +144,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       decoration: BoxDecoration(
                         color: CleanTheme.primaryLight,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: CleanTheme.primaryColor,
-                          width: 1.5,
-                        ),
+                        border: Border.all(width: 1.5),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -742,13 +739,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         _buildMiniStat(Icons.repeat, '${exercise.sets}'),
                         const SizedBox(width: 12),
                         _buildMiniStat(Icons.fitness_center, exercise.reps),
-                        if (exercise.restSeconds != null) ...[
-                          const SizedBox(width: 12),
-                          _buildMiniStat(
-                            Icons.timer,
-                            '${exercise.restSeconds}s',
-                          ),
-                        ],
+                        const SizedBox(width: 12),
+                        _buildMiniStat(Icons.timer, '${exercise.restSeconds}s'),
                       ],
                     ),
                   ),
@@ -977,11 +969,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               );
 
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
               try {
                 await provider.completeWorkout();
 
                 if (!mounted) return;
-                Navigator.pop(context);
+                navigator.pop(); // Close success dialog or loading
 
                 await showDialog(
                   context: context,
@@ -1020,8 +1015,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 );
               } catch (e) {
                 if (!mounted) return;
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
+                navigator.pop();
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text('Errore durante il salvataggio: $e'),
                     backgroundColor: CleanTheme.accentRed,

@@ -69,30 +69,37 @@ class UserService {
       if (location != null) data['location'] = location;
       if (equipment != null) data['equipment'] = equipment;
       if (limitations != null) data['limitations'] = limitations;
-      if (detailedInjuries != null)
+      if (detailedInjuries != null) {
         data['detailed_injuries'] = detailedInjuries;
+      }
       // New preference fields
       if (trainingSplit != null) data['training_split'] = trainingSplit;
       if (sessionDuration != null) data['session_duration'] = sessionDuration;
-      if (cardioPreference != null)
+      if (cardioPreference != null) {
         data['cardio_preference'] = cardioPreference;
-      if (mobilityPreference != null)
+      }
+      if (mobilityPreference != null) {
         data['mobility_preference'] = mobilityPreference;
+      }
       if (workoutType != null) data['workout_type'] = workoutType;
-      if (specificMachines != null)
+      if (specificMachines != null) {
         data['specific_machines'] = specificMachines;
+      }
 
       // Professional Trainer Fields
       if (trainingHistory != null) data['training_history'] = trainingHistory;
       if (preferredDays != null) data['preferred_days'] = preferredDays;
       if (timePreference != null) data['time_preference'] = timePreference;
       if (sleepHours != null) data['sleep_hours'] = sleepHours;
-      if (recoveryCapacity != null)
+      if (recoveryCapacity != null) {
         data['recovery_capacity'] = recoveryCapacity;
-      if (nutritionApproach != null)
+      }
+      if (nutritionApproach != null) {
         data['nutrition_approach'] = nutritionApproach;
-      if (bodyFatPercentage != null)
+      }
+      if (bodyFatPercentage != null) {
         data['body_fat_percentage'] = bodyFatPercentage;
+      }
 
       final response = await _apiClient.dio.post(
         ApiConfig.userProfile,
