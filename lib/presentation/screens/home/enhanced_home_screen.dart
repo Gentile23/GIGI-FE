@@ -15,6 +15,7 @@ import '../custom_workout/exercise_search_screen.dart';
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
 import '../social/activity_feed_screen.dart';
+import '../form_analysis/form_analysis_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -796,6 +797,21 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ActivityFeedScreen()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        // Fourth row: AI Form Check (Premium feature)
+        _buildActionCardWide(
+          Icons.camera_alt_outlined,
+          'AI Form Check',
+          'Analizza la tua esecuzione con Gemini',
+          CleanTheme.accentPurple,
+          () {
+            HapticService.lightTap();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => FormAnalysisScreen()),
             );
           },
         ),

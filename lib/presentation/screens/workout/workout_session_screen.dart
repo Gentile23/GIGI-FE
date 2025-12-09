@@ -12,6 +12,7 @@ import '../../widgets/workout/set_logging_widget.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
+import '../form_analysis/form_analysis_screen.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -849,6 +850,48 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         backgroundColor: CleanTheme.primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // AI Form Check - Premium Feature
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FormAnalysisScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.camera_alt_outlined,
+                        color: CleanTheme.accentPurple,
+                      ),
+                      label: Text(
+                        'Analizza Esecuzione con AI',
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.accentPurple,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(
+                          color: CleanTheme.accentPurple,
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
