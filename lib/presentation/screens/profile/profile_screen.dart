@@ -50,144 +50,199 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           // User info card
-          CleanCard(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                const CleanAvatar(
-                  initials: 'M',
-                  size: 100,
-                  backgroundColor: CleanTheme.primaryLight,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Marco Rossi',
-                  style: GoogleFonts.outfit(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'marco@example.com',
-                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              final user = authProvider.user;
+              final name = user?.name ?? 'Utente';
+              final email = user?.email ?? '';
+              final initials = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+
+              String height = user?.height != null
+                  ? '${user!.height!.toInt()} cm'
+                  : '--';
+              String weight = user?.weight != null
+                  ? '${user!.weight!.toInt()} kg'
+                  : '--';
+
+              String age = '--';
+              if (user?.dateOfBirth != null) {
+                final dob = user!.dateOfBirth!;
+                final today = DateTime.now();
+                int ageVal = today.year - dob.year;
+                if (today.month < dob.month ||
+                    (today.month == dob.month && today.day < dob.day)) {
+                  ageVal--;
+                }
+                age = ageVal.toString();
+              }
+
+              return CleanCard(
+                padding: const EdgeInsets.all(24),
+                child: Column(
                   children: [
-                    _buildStatColumn('Altezza', '180 cm'),
-                    _buildDivider(),
-                    _buildStatColumn('Peso', '75 kg'),
-                    _buildDivider(),
-                    _buildStatColumn('Età', '28'),
+                    CleanAvatar(
+                      initials: initials,
+                      size: 100,
+                      backgroundColor: CleanTheme.primaryLight,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    if (email.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        email,
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildStatColumn('Altezza', height),
+                        _buildDivider(),
+                        _buildStatColumn('Peso', weight),
+                        _buildDivider(),
+                        _buildStatColumn('Età', age),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
 
           const SizedBox(height: 20),
 
           // Subscription card
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [CleanTheme.primaryColor, Color(0xFF10B981)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PaywallScreen(),
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, _) {
+              final isPremium =
+                  authProvider.user?.subscription?.isActive ?? false;
+              final planName = isPremium ? 'Premium' : 'Free Tier';
+
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isPremium
+                        ? [
+                            const Color(0xFFFFD700),
+                            const Color(0xFFFFA000),
+                          ] // Gold for premium
+                        : [CleanTheme.primaryColor, const Color(0xFF10B981)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (isPremium
+                                  ? const Color(0xFFFFD700)
+                                  : CleanTheme.primaryColor)
+                              .withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(24),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      if (!isPremium) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PaywallScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.workspace_premium_outlined,
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.workspace_premium_outlined,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Piano Attuale',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            planName,
+                            style: GoogleFonts.outfit(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
-                              size: 24,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(height: 8),
                           Text(
-                            'Piano Attuale',
+                            isPremium
+                                ? 'Hai accesso a tutte le funzionalità Premium.'
+                                : 'Passa a Premium per sbloccare il coaching AI, l\'analisi della forma e altro ancora.',
                             style: GoogleFonts.inter(
                               color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w600,
+                              height: 1.4,
                             ),
                           ),
+                          if (!isPremium) ...[
+                            const SizedBox(height: 20),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Passa a Premium',
+                                  style: GoogleFonts.inter(
+                                    color: CleanTheme.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Free Tier',
-                        style: GoogleFonts.outfit(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Passa a Premium per sbloccare il coaching AI, l\'analisi della forma e altro ancora.',
-                        style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Passa a Premium',
-                            style: GoogleFonts.inter(
-                              color: CleanTheme.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
 
           const SizedBox(height: 24),
@@ -518,10 +573,22 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'Marco Rossi');
-  final _emailController = TextEditingController(text: 'marco@example.com');
-  final _heightController = TextEditingController(text: '180');
-  final _weightController = TextEditingController(text: '75');
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      _nameController.text = user.name;
+      _emailController.text = user.email;
+      _heightController.text = user.height?.toString() ?? '';
+      _weightController.text = user.weight?.toString() ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -558,10 +625,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Avatar
               Stack(
                 children: [
-                  const CleanAvatar(
-                    initials: 'M',
-                    size: 100,
-                    backgroundColor: CleanTheme.primaryLight,
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) {
+                      final name = auth.user?.name ?? 'U';
+                      return CleanAvatar(
+                        initials: name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                        size: 100,
+                        backgroundColor: CleanTheme.primaryLight,
+                      );
+                    },
                   ),
                   Positioned(
                     bottom: 0,

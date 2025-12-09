@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/social_provider.dart';
 
 /// Screen per il feed delle attività della community
 class ActivityFeedScreen extends StatefulWidget {
@@ -16,97 +18,18 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Demo data - Replace with real API integration when backend is ready
-  final List<ActivityItem> _activities = [
-    ActivityItem(
-      id: '1',
-      type: ActivityType.workout,
-      userName: 'Marco R.',
-      userAvatar: null,
-      message: 'ha completato un workout di 45 minuti',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-      likes: 12,
-      comments: 3,
-      isLiked: false,
-      xpEarned: 150,
-    ),
-    ActivityItem(
-      id: '2',
-      type: ActivityType.achievement,
-      userName: 'Laura B.',
-      userAvatar: null,
-      message: 'ha sbloccato "Guerriero della Settimana" 🏆',
-      timestamp: DateTime.now().subtract(const Duration(minutes: 23)),
-      likes: 24,
-      comments: 8,
-      isLiked: true,
-      achievementName: 'Guerriero della Settimana',
-      achievementRarity: 'rare',
-    ),
-    ActivityItem(
-      id: '3',
-      type: ActivityType.streak,
-      userName: 'Giovanni F.',
-      userAvatar: null,
-      message: 'ha raggiunto una streak di 30 giorni! 🔥',
-      timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-      likes: 45,
-      comments: 12,
-      isLiked: false,
-      streakDays: 30,
-    ),
-    ActivityItem(
-      id: '4',
-      type: ActivityType.personalRecord,
-      userName: 'Sofia M.',
-      userAvatar: null,
-      message: 'ha battuto il suo record personale in Panca Piana',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      likes: 18,
-      comments: 5,
-      isLiked: false,
-      recordValue: '85kg',
-      previousRecord: '80kg',
-    ),
-    ActivityItem(
-      id: '5',
-      type: ActivityType.challenge,
-      userName: 'Andrea P.',
-      userAvatar: null,
-      message: 'ha completato la sfida "Guerriero del Mattino"',
-      timestamp: DateTime.now().subtract(const Duration(hours: 3)),
-      likes: 8,
-      comments: 2,
-      isLiked: false,
-    ),
-  ];
-
-  final List<ChallengeItem> _activeChallenges = [
-    ChallengeItem(
-      id: '1',
-      title: 'Sfida della Settimana',
-      description: 'Completa 5 workout questa settimana',
-      participants: 127,
-      progress: 0.6,
-      endsAt: DateTime.now().add(const Duration(days: 3)),
-      reward: 500,
-    ),
-    ChallengeItem(
-      id: '2',
-      title: '1v1 vs Marco R.',
-      description: 'Chi solleva più kg questa settimana?',
-      participants: 2,
-      progress: 0.45,
-      endsAt: DateTime.now().add(const Duration(days: 5)),
-      reward: 200,
-      isPrivate: true,
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
+
+    // Load data from provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<SocialProvider>(context, listen: false);
+      provider.loadFeed();
+      provider.loadChallenges();
+      provider.loadLeaderboard();
+    });
   }
 
   @override
@@ -167,12 +90,16 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                   color: CleanTheme.textPrimary,
                 ),
               ),
-              Text(
-                '${_activities.length} attività oggi',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: CleanTheme.textSecondary,
-                ),
+              Consumer<SocialProvider>(
+                builder: (context, provider, child) {
+                  return Text(
+                    '${provider.activities.length} attività oggi',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -231,17 +158,34 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   }
 
   Widget _buildFeedTab() {
-    return RefreshIndicator(
-      onRefresh: _refreshFeed,
-      color: CleanTheme.primaryColor,
-      backgroundColor: CleanTheme.surfaceColor,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: _activities.length,
-        itemBuilder: (context, index) {
-          return _buildActivityCard(_activities[index]);
-        },
-      ),
+    return Consumer<SocialProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading && provider.activities.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.activities.isEmpty) {
+          return Center(
+            child: Text(
+              'Nessuna attività recente',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: _refreshFeed,
+          color: CleanTheme.primaryColor,
+          backgroundColor: CleanTheme.surfaceColor,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: provider.activities.length,
+            itemBuilder: (context, index) {
+              return _buildActivityCard(provider.activities[index]);
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -302,11 +246,11 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           ),
 
           // Extra content based on type
-          if (activity.type == ActivityType.achievement) ...[
+          if (activity.type == 'achievement') ...[
             const SizedBox(height: 12),
             _buildAchievementBadge(activity),
           ],
-          if (activity.type == ActivityType.personalRecord) ...[
+          if (activity.type == 'personalRecord') ...[
             const SizedBox(height: 12),
             _buildRecordComparison(activity),
           ],
@@ -339,12 +283,14 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 icon: activity.isLiked ? Icons.favorite : Icons.favorite_border,
                 label: activity.likes.toString(),
                 color: activity.isLiked ? CleanTheme.accentRed : null,
-                onTap: () {
+                onTap: () async {
                   HapticService.lightTap();
-                  setState(() {
-                    activity.isLiked = !activity.isLiked;
-                    activity.likes += activity.isLiked ? 1 : -1;
-                  });
+                  final provider = Provider.of<SocialProvider>(
+                    context,
+                    listen: false,
+                  );
+                  await provider.toggleLike(activity.id);
+                  // UI update is handled by provider notification or we canoptimistically update here if provider doesn't re-emit immediately
                 },
               ),
               const SizedBox(width: 16),
@@ -409,26 +355,28 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     );
   }
 
-  Widget _buildActivityTypeIcon(ActivityType type) {
+  Widget _buildActivityTypeIcon(String type) {
     IconData icon;
     Color color = _getActivityColor(type);
 
     switch (type) {
-      case ActivityType.workout:
+      case 'workout':
         icon = Icons.fitness_center;
         break;
-      case ActivityType.achievement:
+      case 'achievement':
         icon = Icons.emoji_events;
         break;
-      case ActivityType.streak:
+      case 'streak':
         icon = Icons.local_fire_department;
         break;
-      case ActivityType.personalRecord:
+      case 'personalRecord':
         icon = Icons.trending_up;
         break;
-      case ActivityType.challenge:
+      case 'challenge':
         icon = Icons.flag;
         break;
+      default:
+        icon = Icons.circle;
     }
 
     return Container(
@@ -441,18 +389,20 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     );
   }
 
-  Color _getActivityColor(ActivityType type) {
+  Color _getActivityColor(String type) {
     switch (type) {
-      case ActivityType.workout:
+      case 'workout':
         return CleanTheme.primaryColor;
-      case ActivityType.achievement:
+      case 'achievement':
         return CleanTheme.accentYellow;
-      case ActivityType.streak:
+      case 'streak':
         return CleanTheme.accentOrange;
-      case ActivityType.personalRecord:
+      case 'personalRecord':
         return CleanTheme.accentBlue;
-      case ActivityType.challenge:
+      case 'challenge':
         return Colors.purple;
+      default:
+        return CleanTheme.textSecondary;
     }
   }
 
@@ -554,41 +504,56 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   }
 
   Widget _buildChallengesTab() {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        // Active challenges
-        CleanSectionHeader(title: 'Sfide Attive'),
-        const SizedBox(height: 16),
-        ..._activeChallenges.map((challenge) => _buildChallengeCard(challenge)),
+    return Consumer<SocialProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading && provider.activeChallenges.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        const SizedBox(height: 24),
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // Active challenges
+            if (provider.activeChallenges.isNotEmpty) ...[
+              CleanSectionHeader(title: 'Sfide Attive'),
+              const SizedBox(height: 16),
+              ...provider.activeChallenges.map(
+                (challenge) => _buildChallengeCard(challenge),
+              ),
+              const SizedBox(height: 24),
+            ],
 
-        // Available challenges
-        CleanSectionHeader(
-          title: 'Sfide Disponibili',
-          actionText: 'Vedi tutte',
-          onAction: () {},
-        ),
-        const SizedBox(height: 16),
-        _buildAvailableChallengeCard(
-          title: 'Maratona Settimanale',
-          description: '20 workout in 7 giorni',
-          participants: 45,
-          reward: 1000,
-        ),
-        const SizedBox(height: 12),
-        _buildAvailableChallengeCard(
-          title: 'Iron Man',
-          description: 'Solleva 10.000kg in una settimana',
-          participants: 89,
-          reward: 750,
-        ),
-      ],
+            // Available challenges
+            if (provider.availableChallenges.isNotEmpty) ...[
+              CleanSectionHeader(
+                title: 'Sfide Disponibili',
+                actionText: 'Vedi tutte',
+                onAction: () {},
+              ),
+              const SizedBox(height: 16),
+              ...provider.availableChallenges.map(
+                (challenge) => _buildAvailableChallengeCard(challenge),
+              ),
+            ],
+
+            if (provider.activeChallenges.isEmpty &&
+                provider.availableChallenges.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: Center(
+                  child: Text(
+                    'Nessuna sfida attiva al momento',
+                    style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildChallengeCard(ChallengeItem challenge) {
+  Widget _buildChallengeCard(ChallengeData challenge) {
     final daysRemaining = challenge.endsAt.difference(DateTime.now()).inDays;
 
     return CleanCard(
@@ -744,12 +709,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     );
   }
 
-  Widget _buildAvailableChallengeCard({
-    required String title,
-    required String description,
-    required int participants,
-    required int reward,
-  }) {
+  Widget _buildAvailableChallengeCard(ChallengeData challenge) {
     return CleanCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -759,7 +719,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  challenge.title,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -768,7 +728,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  challenge.description,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: CleanTheme.textSecondary,
@@ -778,7 +738,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 Row(
                   children: [
                     Text(
-                      '$participants partecipanti',
+                      '${challenge.participants} partecipanti',
                       style: GoogleFonts.inter(
                         color: CleanTheme.textTertiary,
                         fontSize: 12,
@@ -786,7 +746,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      '⚡ $reward XP',
+                      '⚡ ${challenge.reward} XP',
                       style: GoogleFonts.inter(
                         color: CleanTheme.accentYellow,
                         fontSize: 12,
@@ -802,7 +762,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             text: 'Unisciti',
             onPressed: () {
               HapticService.mediumTap();
-              _joinChallengeByName(title, reward);
+              _joinChallenge(challenge);
             },
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
@@ -833,12 +793,10 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
 
   Future<void> _refreshFeed() async {
     HapticService.lightTap();
-    // Simulate API call to refresh feed
-    await Future.delayed(const Duration(seconds: 1));
+    final provider = Provider.of<SocialProvider>(context, listen: false);
+    await provider.loadFeed(refresh: true);
+
     if (mounted) {
-      setState(() {
-        // In a real app, this would fetch fresh data from the API
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Feed aggiornato!'),
@@ -1011,6 +969,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   }
 
   void _sendKudos(ActivityItem activity) {
+    // Optimistic UI update
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Kudos inviato a ${activity.userName}! 🎉'),
@@ -1018,12 +977,19 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
         duration: const Duration(seconds: 2),
       ),
     );
+
+    final provider = Provider.of<SocialProvider>(context, listen: false);
+    provider.sendKudos(
+      userId: activity.userId,
+      activityId: activity.id,
+      type: activity.type,
+    );
   }
 
-  void _joinChallengeByName(String title, int reward) {
+  void _joinChallenge(ChallengeData challenge) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
@@ -1034,12 +1000,12 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           ),
         ),
         content: Text(
-          'Vuoi unirti a "$title"?\n\nPremio: $reward XP',
+          'Vuoi unirti a "${challenge.title}"?\n\nPremio: ${challenge.reward} XP',
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Annulla',
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
@@ -1047,14 +1013,36 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              HapticService.celebrationPattern();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Ti sei unito a "$title"! 🎯'),
-                  backgroundColor: CleanTheme.primaryColor,
-                ),
+              Navigator.pop(dialogContext);
+
+              final provider = Provider.of<SocialProvider>(
+                context,
+                listen: false,
               );
+              provider.joinChallenge(challenge.id).then((success) {
+                if (success) {
+                  HapticService.celebrationPattern();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Ti sei unito a "${challenge.title}"! 🎯',
+                        ),
+                        backgroundColor: CleanTheme.primaryColor,
+                      ),
+                    );
+                  }
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Errore: impossibile unirsi alla sfida.'),
+                        backgroundColor: CleanTheme.accentRed,
+                      ),
+                    );
+                  }
+                }
+              });
             },
             child: Text(
               'Unisciti',
@@ -1068,64 +1056,4 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
       ),
     );
   }
-}
-
-enum ActivityType { workout, achievement, streak, personalRecord, challenge }
-
-class ActivityItem {
-  final String id;
-  final ActivityType type;
-  final String userName;
-  final String? userAvatar;
-  final String message;
-  final DateTime timestamp;
-  int likes;
-  int comments;
-  bool isLiked;
-  final int? xpEarned;
-  final String? achievementName;
-  final String? achievementRarity;
-  final int? streakDays;
-  final String? recordValue;
-  final String? previousRecord;
-
-  ActivityItem({
-    required this.id,
-    required this.type,
-    required this.userName,
-    this.userAvatar,
-    required this.message,
-    required this.timestamp,
-    this.likes = 0,
-    this.comments = 0,
-    this.isLiked = false,
-    this.xpEarned,
-    this.achievementName,
-    this.achievementRarity,
-    this.streakDays,
-    this.recordValue,
-    this.previousRecord,
-  });
-}
-
-class ChallengeItem {
-  final String id;
-  final String title;
-  final String description;
-  final int participants;
-  final double progress;
-  final DateTime endsAt;
-  final int reward;
-  final bool isPrivate;
-
-  ChallengeItem({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.participants,
-    required this.progress,
-    required this.endsAt,
-    required this.reward,
-    this.isPrivate = false,
-  });
 }

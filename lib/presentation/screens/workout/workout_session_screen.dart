@@ -93,133 +93,123 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          widget.workoutDay.name,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        backgroundColor: CleanTheme.surfaceColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: CleanTheme.textPrimary),
-          onPressed: () => _confirmExit(),
-        ),
-      ),
-      body: Column(
+      backgroundColor: Colors.black, // Dark background behind image
+      body: Stack(
         children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CleanTheme.surfaceColor,
-              border: Border(
-                bottom: BorderSide(color: CleanTheme.borderPrimary),
+          // 1. Full Screen Image Header
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: const AssetImage(
+                    'assets/images/placeholder_workout.jpg',
+                  ),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withValues(alpha: 0.3),
+                    BlendMode.darken,
+                  ),
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                Row(
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.timer_outlined,
-                      color: CleanTheme.primaryColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${widget.workoutDay.estimatedDuration} min stimati',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: CleanTheme.textSecondary,
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
                       ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(width: 1.5),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('💪', style: TextStyle(fontSize: 16)),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Allenamento',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: CleanTheme.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      onPressed: () => _confirmExit(),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${widget.workoutDay.mainWorkout.where((e) => _completedExercises.contains(e.exercise.id)).length}/${widget.workoutDay.mainExerciseCount} esercizi completati',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Exercise List with Navigation Cards
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Pre-Workout Navigation
-                  if (widget.workoutDay.warmupCardio.isNotEmpty ||
-                      widget.workoutDay.preWorkoutMobility.isNotEmpty) ...[
-                    _buildPreWorkoutNavigationCard(),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Main Workout Section
-                  _buildSectionHeader('Allenamento Principale', '💪'),
-                  ...widget.workoutDay.mainWorkout.map((exercise) {
-                    return _buildExerciseCard(exercise);
-                  }),
-
-                  // Post-Workout Navigation
-                  if (widget.workoutDay.postWorkoutExercises.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _buildPostWorkoutNavigationCard(),
-                  ],
-
-                  const SizedBox(height: 16),
-                ],
               ),
             ),
           ),
 
-          // Finish Button
-          Padding(
-            padding: const EdgeInsets.all(16),
+          // 2. Sliding Content Sheet
+          DraggableScrollableSheet(
+            initialChildSize: 0.65,
+            minChildSize: 0.6,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: CleanTheme
+                      .scaffoldBackgroundColor, // Light gray for contrast with white cards
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    24,
+                    20,
+                    100,
+                  ), // Bottom padding for floating button
+                  children: [
+                    // Handle Bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Title & Info
+                    Text(
+                      widget.workoutDay.name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildStatsHeader(),
+                    const SizedBox(height: 24),
+
+                    // Pre-Workout Navigation
+                    if (widget.workoutDay.warmupCardio.isNotEmpty ||
+                        widget.workoutDay.preWorkoutMobility.isNotEmpty) ...[
+                      _buildPreWorkoutNavigationCard(),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Main Workout Section
+                    _buildSectionHeader('Allenamento Principale', '💪'),
+                    ...widget.workoutDay.mainWorkout.map((exercise) {
+                      return _buildExerciseCard(exercise);
+                    }),
+
+                    // Post-Workout Navigation
+                    if (widget.workoutDay.postWorkoutExercises.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildPostWorkoutNavigationCard(),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+
+          // 3. Floating Action Button (Finish)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 24,
             child: SizedBox(
-              width: double.infinity,
+              height: 56,
               child: ElevatedButton(
                 onPressed: _completedExercises.isNotEmpty
                     ? _finishWorkout
@@ -230,23 +220,72 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           widget.workoutDay.mainExerciseCount
                       ? CleanTheme.accentGreen
                       : CleanTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 8,
+                  shadowColor: Colors.black26,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(100), // Pill shape
                   ),
                 ),
                 child: Text(
                   _completedExercises.length ==
                           widget.workoutDay.mainExerciseCount
-                      ? 'Completa Allenamento'
-                      : 'Termina in Anticipo',
-                  style: GoogleFonts.inter(
+                      ? 'COMPLETA ALLENAMENTO'
+                      : 'TERMINA SESSIONE',
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsHeader() {
+    return Row(
+      children: [
+        _buildStatBadge(
+          Icons.timer_outlined,
+          '${widget.workoutDay.estimatedDuration} min',
+        ),
+        const SizedBox(width: 12),
+        _buildStatBadge(
+          Icons.fitness_center,
+          '${widget.workoutDay.exercises.length} Esercizi',
+        ),
+        const SizedBox(width: 12),
+        _buildStatBadge(
+          Icons.local_fire_department,
+          '${widget.workoutDay.estimatedDuration * 7} Kcal',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatBadge(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.borderSecondary),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: CleanTheme.textSecondary),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textPrimary,
             ),
           ),
         ],

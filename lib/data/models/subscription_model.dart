@@ -10,6 +10,9 @@ class SubscriptionModel {
   final SubscriptionStatus status;
   final DateTime? lastPlanGenerated;
 
+  // Added getter for simplified status check
+  bool get isActive => status == SubscriptionStatus.active;
+
   SubscriptionModel({
     required this.id,
     required this.userId,

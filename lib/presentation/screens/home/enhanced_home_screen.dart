@@ -8,10 +8,11 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../workout/trial_workout_generation_screen.dart';
-import '../workout/workout_screen.dart';
+
+import '../workout/workout_session_screen.dart'; // Added import
 import '../custom_workout/custom_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
-import '../custom_workout/exercise_search_screen.dart';
+// import '../custom_workout/exercise_search_screen.dart'; // Removed unused import or comment it out if you plan to use it
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
 import '../social/activity_feed_screen.dart';
@@ -29,32 +30,15 @@ class EnhancedHomeScreen extends StatefulWidget {
   State<EnhancedHomeScreen> createState() => _EnhancedHomeScreenState();
 }
 
-class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _breathingController;
-  late Animation<double> _breathingAnimation;
+class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
   @override
   void initState() {
     super.initState();
-    _breathingController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-
-    _breathingAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
-  }
-
-  @override
-  void dispose() {
-    _breathingController.dispose();
-    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -73,9 +57,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
+      backgroundColor: CleanTheme.scaffoldBackgroundColor,
       body: Stack(
         children: [
+          // Background Color
+          Container(color: CleanTheme.scaffoldBackgroundColor),
+
           SafeArea(
             child: Consumer2<AuthProvider, WorkoutProvider>(
               builder: (context, authProvider, workoutProvider, _) {
@@ -91,26 +78,158 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                   color: CleanTheme.primaryColor,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          _buildCompactHeader(user),
-                          const SizedBox(height: 24),
-                          _buildStreakMotivator(),
-                          const SizedBox(height: 24),
-                          _buildHeroWorkoutCard(workoutProvider),
-                          const SizedBox(height: 24),
-                          _buildQuickStatsRow(),
-                          const SizedBox(height: 28),
-                          _buildWeeklyProgress(),
-                          const SizedBox(height: 28),
-                          _buildQuickActions(user),
-                          const SizedBox(height: 48),
-                        ],
-                      ),
+                    padding: const EdgeInsets.fromLTRB(
+                      24,
+                      16,
+                      24,
+                      100,
+                    ), // Bottom padding for navbar
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 1. Header (Hello, Name + Avatar)
+                        _buildCompactHeader(user),
+
+                        const SizedBox(height: 24),
+
+                        // 2. Search Bar
+                        _buildSearchBar(),
+
+                        const SizedBox(height: 24),
+
+                        // 3. Filter Chips (Categories)
+                        _buildFilterChips(),
+
+                        const SizedBox(height: 32),
+
+                        // 4. Hero Section
+                        Text(
+                          'Il tuo prossimo workout',
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildHeroWorkoutCard(workoutProvider),
+
+                        const SizedBox(height: 32),
+
+                        // 5. Weekly Stats (Upcoming tours/stats)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'I tuoi progressi',
+                              style: GoogleFonts.outfit(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: CleanTheme.textPrimary,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Vedi tutti',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: CleanTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _buildQuickStatsRow(),
+
+                        const SizedBox(height: 24),
+                        _buildStreakMotivator(),
+
+                        const SizedBox(height: 24),
+                        // 6. Quick Actions
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionCardWide(
+                                Icons.auto_awesome,
+                                'Genera Scheda AI',
+                                'Piano su misura',
+                                const Color(0xFF00D26A),
+                                () {
+                                  HapticService.lightTap();
+                                  _showGeneratePlanDialog();
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Community & Form Check
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionCardWide(
+                                Icons.people_alt_rounded,
+                                'Community',
+                                'Entra nel gruppo',
+                                CleanTheme.accentOrange,
+                                () {
+                                  HapticService.lightTap();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ActivityFeedScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Custom & History
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionCard(
+                                Icons.edit_note_rounded,
+                                'Custom',
+                                const Color(0xFF9B59B6),
+                                () {
+                                  HapticService.lightTap();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const CustomWorkoutListScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionCard(
+                                Icons.camera_alt_outlined,
+                                'Form Check',
+                                CleanTheme.accentPurple,
+                                () {
+                                  HapticService.lightTap();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => FormAnalysisScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -132,116 +251,153 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     final name = user?.name ?? 'Atleta';
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$greeting,',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              name,
+              style: GoogleFonts.outfit(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
         GestureDetector(
           onTap: () {
-            HapticService.lightTap();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             );
           },
           child: Container(
-            width: 48,
-            height: 48,
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  CleanTheme.primaryColor,
-                  CleanTheme.primaryColor.withValues(alpha: 0.7),
-                ],
-              ),
               shape: BoxShape.circle,
+              border: Border.all(color: CleanTheme.borderPrimary, width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: CleanTheme.primaryColor,
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 2. Search Bar - Pill Shape
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(100), // Pill shape
+              border: Border.all(color: CleanTheme.borderSecondary),
               boxShadow: [
                 BoxShadow(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Center(
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : 'A',
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$greeting,',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: CleanTheme.textSecondary,
-                  height: 1.2,
-                ),
-              ),
-              Text(
-                '$name 👋',
-                style: GoogleFonts.outfit(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search,
                   color: CleanTheme.textPrimary,
-                  height: 1.2,
+                  size: 22,
                 ),
-              ),
-            ],
-          ),
-        ),
-        // Search Icon
-        GestureDetector(
-          onTap: () {
-            HapticService.lightTap();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    const ExerciseSearchScreen(isSelectionMode: false),
-              ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: CleanTheme.cardColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: CleanTheme.borderSecondary),
-            ),
-            child: const Icon(
-              Icons.search,
-              color: CleanTheme.textSecondary,
-              size: 24,
+                const SizedBox(width: 12),
+                Text(
+                  'Cerca workout...',
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.textTertiary,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 12),
-        // Notification Icon
-        GestureDetector(
-          onTap: () => HapticService.lightTap(),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: CleanTheme.cardColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: CleanTheme.borderSecondary),
-            ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: CleanTheme.textSecondary,
-              size: 24,
-            ),
+        Container(
+          height: 52,
+          width: 52,
+          decoration: BoxDecoration(
+            color: CleanTheme.primaryColor, // Black
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
+          child: const Icon(Icons.tune_rounded, color: Colors.white, size: 22),
         ),
       ],
+    );
+  }
+
+  // 3. Filter Chips
+  Widget _buildFilterChips() {
+    final filters = ['Tutti', 'Cardio', 'Forza', 'Flex', 'HIIT'];
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final isSelected = index == 0; // Mock selection
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isSelected ? CleanTheme.primaryColor : Colors.white,
+              borderRadius: BorderRadius.circular(100),
+              border: isSelected
+                  ? null
+                  : Border.all(color: CleanTheme.borderSecondary),
+            ),
+            child: Text(
+              filters[index],
+              style: GoogleFonts.inter(
+                color: isSelected ? Colors.white : CleanTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -346,42 +502,29 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     );
   }
 
+  // 4. Immersive Hero Card
   Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
     if (workoutProvider.isGenerating) return _buildGeneratingCard();
 
-    // Context-Aware Logic
-    final hour = DateTime.now().hour;
-    final isMorning = hour < 12;
-    final isEvening = hour > 18;
-
-    String title = 'Workout del Giorno';
-    String subtitle = 'Full Body Power 💪';
-    List<Color> gradientColors = [
-      const Color(0xFF1A1A2E),
-      const Color(0xFF16213E),
-    ];
-
-    if (isMorning) {
-      title = 'Morning Energy ☀️';
-      subtitle = 'Carica la tua giornata';
-      gradientColors = [const Color(0xFFFF9966), const Color(0xFFFF5E62)];
-    } else if (isEvening) {
-      title = 'Evening Decompress 🌙';
-      subtitle = 'Rilassati e scarica';
-      gradientColors = [const Color(0xFF2B5876), const Color(0xFF4E4376)];
-    }
-
-    // Check if user has a trial or active plan
     final hasActivePlan = workoutProvider.currentPlan != null;
-    if (!hasActivePlan) {
-      title = 'Prova Gratuita';
-      subtitle = 'Scopri il tuo livello 🚀';
-      gradientColors = [CleanTheme.primaryColor, const Color(0xFF00BFA5)];
-    }
+    final currentWorkout =
+        hasActivePlan && workoutProvider.currentPlan!.workouts.isNotEmpty
+        ? workoutProvider.currentPlan!.workouts.first
+        : null;
+
+    final title = (hasActivePlan && currentWorkout != null)
+        ? currentWorkout.name
+        : 'Prova Gratuita';
+    final subtitle = (hasActivePlan && currentWorkout != null)
+        ? '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min'
+        : 'Scopri il tuo livello';
+
+    final gradientColors = (hasActivePlan && currentWorkout != null)
+        ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+        : [CleanTheme.primaryColor, Colors.black87];
 
     return GestureDetector(
       onTap: () {
-        HapticService.mediumTap();
         if (!hasActivePlan) {
           Navigator.push(
             context,
@@ -389,145 +532,180 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
               builder: (_) => const TrialWorkoutGenerationScreen(),
             ),
           );
-        } else {
-          // Future: Navigate to actual workout
-          // For now, we can show a toast or navigation placeholder
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Navigation to workout plan implementation pending',
-              ),
+        } else if (currentWorkout != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => WorkoutSessionScreen(workoutDay: currentWorkout),
             ),
           );
         }
       },
       child: Container(
+        height: 380, // Taller, more square
+        width: double.infinity,
         decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
           gradient: LinearGradient(
             colors: gradientColors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: gradientColors[0].withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          boxShadow: CleanTheme.cardShadow,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  title.toUpperCase(),
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white70,
-                    letterSpacing: 1,
+        child: Stack(
+          children: [
+            // Background Pattern/Image Placeholder
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.2,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                        'assets/images/placeholder_workout.jpg',
+                      ), // Ensure this exists or use network
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                subtitle,
-                style: GoogleFonts.outfit(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+            ),
+
+            // Gradient Overlay
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.4, 1.0],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              if (hasActivePlan) // Show stats only if plan exists
-                Row(
-                  children: [
-                    _buildDetail(Icons.timer_outlined, '45 min'),
-                    const SizedBox(width: 16),
-                    _buildDetail(Icons.local_fire_department, '320 kcal'),
-                    const SizedBox(width: 16),
-                    _buildDetail(Icons.fitness_center, '12 esercizi'),
-                  ],
-                )
-              else
-                Row(
-                  children: [
-                    _buildDetail(Icons.timer_outlined, '15 min'),
-                    const SizedBox(width: 16),
-                    _buildDetail(Icons.bolt, 'Intensità Media'),
-                  ],
+            ),
+
+            // Heart Icon
+            Positioned(
+              top: 24,
+              right: 24,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
                 ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ScaleTransition(
-                  scale: _breathingAnimation,
-                  child: Container(
+                child: const Icon(
+                  Icons.favorite_border,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+
+            // Content at Bottom
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 24,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.6),
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'AI PLAN',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: gradientColors[1].withValues(alpha: 0.4),
-                          blurRadius: 15,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    title,
+                    style: GoogleFonts.outfit(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action Button embedded in card
+                  Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(100),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.play_arrow_rounded,
-                          color: Colors.white,
-                          size: 28,
+                        Padding(
+                          padding: const EdgeInsets.only(left: 24),
+                          child: Text(
+                            'Inizia ora',
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: CleanTheme.textPrimary,
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          hasActivePlan ? 'INIZIA ORA' : 'INIZIA PROVA',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: const BoxDecoration(
+                              color: CleanTheme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDetail(IconData icon, String text) => Row(
-    children: [
-      Icon(icon, size: 16, color: Colors.white60),
-      const SizedBox(width: 4),
-      Text(text, style: GoogleFonts.inter(fontSize: 13, color: Colors.white70)),
-    ],
-  );
+  // Method _buildDetail removed as it was unused
 
   Widget _buildGeneratingCard() {
     return Container(
@@ -632,192 +810,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     );
   }
 
-  Widget _buildWeeklyProgress() {
-    final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-    final today = DateTime.now().weekday - 1;
-    final completed = [true, true, true, false, false, false, false];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Questa Settimana',
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: CleanTheme.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: CleanTheme.borderPrimary),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(7, (i) {
-              final isToday = i == today;
-              final isDone = completed[i];
-              return Column(
-                children: [
-                  Text(
-                    days[i],
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isToday
-                          ? CleanTheme.primaryColor
-                          : CleanTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: isDone
-                          ? CleanTheme.primaryColor
-                          : isToday
-                          ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-                          : CleanTheme.borderSecondary,
-                      shape: BoxShape.circle,
-                      border: isToday && !isDone
-                          ? Border.all(color: CleanTheme.primaryColor, width: 2)
-                          : null,
-                    ),
-                    child: Icon(
-                      isDone ? Icons.check : Icons.circle,
-                      size: isDone ? 18 : 6,
-                      color: isDone ? Colors.white : CleanTheme.textTertiary,
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActions(UserModel? user) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Azioni Rapide',
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        // Trial Workout Action (only if not completed)
-        if (user != null && !user.trialWorkoutCompleted) ...[
-          _buildActionCardWide(
-            Icons.fitness_center,
-            'Trial Workout',
-            'Calibra il tuo livello con un test rapido',
-            CleanTheme.primaryColor,
-            () {
-              HapticService.lightTap();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const TrialWorkoutGenerationScreen(),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-        ],
-        // First row: Generate AI Plan (full width)
-        _buildActionCardWide(
-          Icons.auto_awesome,
-          'Genera Scheda AI',
-          'Crea un piano personalizzato con AI',
-          const Color(0xFF00D26A),
-          () {
-            HapticService.lightTap();
-            _showGeneratePlanDialog();
-          },
-        ),
-        const SizedBox(height: 12),
-        // Second row: Custom + History
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionCard(
-                Icons.edit_note_rounded,
-                'Schede Custom',
-                const Color(0xFF9B59B6),
-                () {
-                  HapticService.lightTap();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CustomWorkoutListScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                Icons.history_rounded,
-                'Storico',
-                const Color(0xFF3498DB),
-                () {
-                  HapticService.lightTap();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const WorkoutListScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Third row: Community (full width or single)
-        _buildActionCardWide(
-          Icons.people_alt_rounded,
-          'Community',
-          'Feed, Sfide e Classifiche',
-          CleanTheme.accentOrange,
-          () {
-            HapticService.lightTap();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ActivityFeedScreen()),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        // Fourth row: AI Form Check (Premium feature)
-        _buildActionCardWide(
-          Icons.camera_alt_outlined,
-          'AI Form Check',
-          'Analizza la tua esecuzione con Gemini',
-          CleanTheme.accentPurple,
-          () {
-            HapticService.lightTap();
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => FormAnalysisScreen()),
-            );
-          },
-        ),
-      ],
-    );
-  }
+  // _buildWeeklyProgress and _buildQuickActions removed as they are unused.
 
   Widget _buildActionCardWide(
     IconData icon,
