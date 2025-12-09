@@ -11,6 +11,7 @@ class AuthProvider with ChangeNotifier {
 
   UserModel? _user;
   bool _isLoading = false;
+  bool _isInitializing = true;
   String? _error;
 
   AuthProvider(this._apiClient) {
@@ -21,6 +22,7 @@ class AuthProvider with ChangeNotifier {
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isInitializing => _isInitializing;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
 
@@ -29,6 +31,8 @@ class AuthProvider with ChangeNotifier {
     if (isLoggedIn) {
       await fetchUser();
     }
+    _isInitializing = false;
+    notifyListeners();
   }
 
   Future<bool> register({
@@ -40,20 +44,28 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _authService.register(
-      name: name,
-      email: email,
-      password: password,
-    );
+    try {
+      final result = await _authService.register(
+        name: name,
+        email: email,
+        password: password,
+      );
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (result['success']) {
-      _user = result['user'];
-      notifyListeners();
-      return true;
-    } else {
-      _error = result['message'];
+      if (result['success']) {
+        _user = result['user'];
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      debugPrint('AuthProvider Register Error: $e');
+      _isLoading = false;
+      _error = 'Si è verificato un errore inatteso: $e';
       notifyListeners();
       return false;
     }
@@ -64,16 +76,24 @@ class AuthProvider with ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    final result = await _authService.login(email: email, password: password);
+    try {
+      final result = await _authService.login(email: email, password: password);
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (result['success']) {
-      _user = result['user'];
-      notifyListeners();
-      return true;
-    } else {
-      _error = result['message'];
+      if (result['success']) {
+        _user = result['user'];
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      debugPrint('AuthProvider Login Error: $e');
+      _isLoading = false;
+      _error = 'Si è verificato un errore inatteso: $e';
       notifyListeners();
       return false;
     }
@@ -86,10 +106,14 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> fetchUser() async {
-    final result = await _userService.getUser();
-    if (result['success']) {
-      _user = result['user'];
-      notifyListeners();
+    try {
+      final result = await _userService.getUser();
+      if (result['success']) {
+        _user = result['user'];
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching user: $e');
     }
   }
 
@@ -129,44 +153,52 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
 
-    final result = await _userService.updateProfile(
-      gender: gender,
-      age: age,
-      height: height,
-      weight: weight,
-      bodyShape: bodyShape,
-      goal: goal,
-      goals: goals,
-      level: level,
-      weeklyFrequency: weeklyFrequency,
-      location: location,
-      equipment: equipment,
-      limitations: limitations,
-      detailedInjuries: detailedInjuries,
-      trainingSplit: trainingSplit,
-      sessionDuration: sessionDuration,
-      cardioPreference: cardioPreference,
-      mobilityPreference: mobilityPreference,
-      workoutType: workoutType,
-      specificMachines: specificMachines,
-      // Professional Trainer Fields
-      trainingHistory: trainingHistory,
-      preferredDays: preferredDays,
-      timePreference: timePreference,
-      sleepHours: sleepHours,
-      recoveryCapacity: recoveryCapacity,
-      nutritionApproach: nutritionApproach,
-      bodyFatPercentage: bodyFatPercentage,
-    );
+    try {
+      final result = await _userService.updateProfile(
+        gender: gender,
+        age: age,
+        height: height,
+        weight: weight,
+        bodyShape: bodyShape,
+        goal: goal,
+        goals: goals,
+        level: level,
+        weeklyFrequency: weeklyFrequency,
+        location: location,
+        equipment: equipment,
+        limitations: limitations,
+        detailedInjuries: detailedInjuries,
+        trainingSplit: trainingSplit,
+        sessionDuration: sessionDuration,
+        cardioPreference: cardioPreference,
+        mobilityPreference: mobilityPreference,
+        workoutType: workoutType,
+        specificMachines: specificMachines,
+        // Professional Trainer Fields
+        trainingHistory: trainingHistory,
+        preferredDays: preferredDays,
+        timePreference: timePreference,
+        sleepHours: sleepHours,
+        recoveryCapacity: recoveryCapacity,
+        nutritionApproach: nutritionApproach,
+        bodyFatPercentage: bodyFatPercentage,
+      );
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (result['success']) {
-      _user = result['user'];
-      notifyListeners();
-      return true;
-    } else {
-      _error = result['message'];
+      if (result['success']) {
+        _user = result['user'];
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      debugPrint('AuthProvider UpdateProfile Error: $e');
+      _isLoading = false;
+      _error = 'Si è verificato un errore durante l\'aggiornamento del profilo';
       notifyListeners();
       return false;
     }

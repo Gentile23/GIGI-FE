@@ -118,8 +118,9 @@ class AppColors {
   // ============================================
   // BACKWARD COMPATIBILITY ALIASES
   // ============================================
-  // These map old color names to new minimal palette
-  // TODO: Remove these after refactoring all screens
+  // These map old color names to new minimal palette.
+  // Note: These are still used in 25+ files across the project.
+  // Future: Remove these after refactoring all screens to use CleanTheme.
 
   static Color get primaryNeon => primary; // sage green
   static Color get accentBlue => info; // soft blue

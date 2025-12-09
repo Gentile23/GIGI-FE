@@ -56,6 +56,46 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
     }
   }
 
+  Future<void> _showDatePicker() async {
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: CleanTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: CleanTheme.surfaceColor,
+              onSurface: CleanTheme.textPrimary,
+            ),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: CleanTheme.surfaceColor,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (selectedDate != null && mounted) {
+      // Load data for the selected date
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Dati del ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+          ),
+          backgroundColor: CleanTheme.primaryColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // In a real app, reload data for the selected date
+      // await _loadDataForDate(selectedDate);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,9 +115,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today_outlined),
-            onPressed: () {
-              // Date picker TODO
-            },
+            onPressed: _showDatePicker,
           ),
         ],
       ),

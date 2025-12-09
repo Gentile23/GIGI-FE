@@ -137,7 +137,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 2,
                             ),
                             image: const DecorationImage(
-                              image: AssetImage('assets/images/gigi_logo.png'),
+                              image: AssetImage(
+                                'assets/images/gigi_new_logo.png',
+                              ),
                               fit: BoxFit.cover,
                             ),
                           ),

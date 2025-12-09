@@ -320,7 +320,7 @@ class _CardioExerciseScreenState extends State<CardioExerciseScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${exercise.reps}',
+                    exercise.reps,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: CleanTheme.textSecondary,

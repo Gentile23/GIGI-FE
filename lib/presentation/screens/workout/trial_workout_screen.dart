@@ -441,34 +441,64 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
             color: CleanTheme.textPrimary,
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Come ti senti dopo questo allenamento?',
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-            const SizedBox(height: 24),
-            ...List.generate(5, (index) {
-              final level = index + 1;
-              return ListTile(
-                title: Text(
-                  _getFatigueLabel(level),
-                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Come ti senti dopo questo allenamento?',
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                 ),
-                leading: Radio<int>(
-                  value: level,
-                  groupValue: _overallFatigue,
-                  onChanged: (value) {
-                    setState(() => _overallFatigue = value!);
-                  },
-                  activeColor: CleanTheme.primaryColor,
-                ),
-                onTap: () => setState(() => _overallFatigue = level),
-                contentPadding: EdgeInsets.zero,
-              );
-            }),
-          ],
+                const SizedBox(height: 24),
+                ...List.generate(5, (index) {
+                  final level = index + 1;
+                  final isSelected = _overallFatigue == level;
+                  return ListTile(
+                    title: Text(
+                      _getFatigueLabel(level),
+                      style: GoogleFonts.inter(
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    leading: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.borderPrimary,
+                          width: 2,
+                        ),
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                    onTap: () {
+                      setState(() => _overallFatigue = level);
+                      setDialogState(() {});
+                    },
+                    contentPadding: EdgeInsets.zero,
+                  );
+                }),
+              ],
+            );
+          },
         ),
         actions: [CleanButton(text: 'Completa Trial', onPressed: _submitTrial)],
       ),

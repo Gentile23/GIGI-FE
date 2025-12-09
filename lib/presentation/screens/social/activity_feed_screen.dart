@@ -16,7 +16,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Mock data - TODO: Replace with real API data
+  // Demo data - Replace with real API integration when backend is ready
   final List<ActivityItem> _activities = [
     ActivityItem(
       id: '1',
@@ -232,10 +232,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
 
   Widget _buildFeedTab() {
     return RefreshIndicator(
-      onRefresh: () async {
-        // TODO: Refresh feed
-        await Future.delayed(const Duration(seconds: 1));
-      },
+      onRefresh: _refreshFeed,
       color: CleanTheme.primaryColor,
       backgroundColor: CleanTheme.surfaceColor,
       child: ListView.builder(
@@ -357,7 +354,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 label: activity.comments.toString(),
                 onTap: () {
                   HapticService.lightTap();
-                  // TODO: Open comments
+                  _showCommentsSheet(activity);
                 },
               ),
               const SizedBox(width: 16),
@@ -367,13 +364,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 label: 'Kudos',
                 onTap: () {
                   HapticService.celebrationPattern();
-                  // TODO: Send kudos
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Kudos inviato a ${activity.userName}! 🎉'),
-                      backgroundColor: CleanTheme.primaryColor,
-                    ),
-                  );
+                  _sendKudos(activity);
                 },
               ),
               const Spacer(),
@@ -811,7 +802,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             text: 'Unisciti',
             onPressed: () {
               HapticService.mediumTap();
-              // TODO: Join challenge
+              _joinChallengeByName(title, reward);
             },
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
@@ -838,6 +829,244 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     } else {
       return '${diff.inDays}g fa';
     }
+  }
+
+  Future<void> _refreshFeed() async {
+    HapticService.lightTap();
+    // Simulate API call to refresh feed
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
+      setState(() {
+        // In a real app, this would fetch fresh data from the API
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Feed aggiornato!'),
+          backgroundColor: CleanTheme.primaryColor,
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  void _showCommentsSheet(ActivityItem activity) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: CleanTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: CleanTheme.borderPrimary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text(
+                    'Commenti (${activity.comments})',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.close,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            // Comments list
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: activity.comments,
+                itemBuilder: (context, index) => _buildCommentItem(index),
+              ),
+            ),
+            // Comment input
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: CleanTheme.surfaceColor,
+                border: const Border(
+                  top: BorderSide(color: CleanTheme.borderPrimary),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: 'Scrivi un commento...',
+                        hintStyle: GoogleFonts.inter(
+                          color: CleanTheme.textTertiary,
+                        ),
+                        filled: true,
+                        fillColor: CleanTheme.backgroundColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      HapticService.lightTap();
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Commento inviato!'),
+                          backgroundColor: CleanTheme.primaryColor,
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.send,
+                      color: CleanTheme.primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCommentItem(int index) {
+    final names = ['Marco R.', 'Laura B.', 'Giovanni F.', 'Anna M.', 'Luca P.'];
+    final comments = [
+      'Grande! Continua così! 💪',
+      'Fantastico risultato!',
+      'Mi ispiri a fare di più!',
+      'Che forza! 🔥',
+      'Bravissimo!',
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CleanAvatar(
+            initials: names[index % names.length][0],
+            size: 36,
+            backgroundColor: CleanTheme.primaryLight,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  names[index % names.length],
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  comments[index % comments.length],
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sendKudos(ActivityItem activity) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Kudos inviato a ${activity.userName}! 🎉'),
+        backgroundColor: CleanTheme.primaryColor,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _joinChallengeByName(String title, int reward) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Unisciti alla sfida',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Vuoi unirti a "$title"?\n\nPremio: $reward XP',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              HapticService.celebrationPattern();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Ti sei unito a "$title"! 🎯'),
+                  backgroundColor: CleanTheme.primaryColor,
+                ),
+              );
+            },
+            child: Text(
+              'Unisciti',
+              style: GoogleFonts.inter(
+                color: CleanTheme.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

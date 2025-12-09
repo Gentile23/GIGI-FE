@@ -73,7 +73,7 @@ class _AppNavigatorState extends State<AppNavigator> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        if (authProvider.isLoading) {
+        if (authProvider.isInitializing) {
           return Scaffold(
             backgroundColor: CleanTheme.backgroundColor,
             body: Center(
@@ -97,7 +97,7 @@ class _AppNavigatorState extends State<AppNavigator> {
                     ),
                     child: ClipOval(
                       child: Image.asset(
-                        'assets/images/gigi_logo.png',
+                        'assets/images/gigi_new_logo.png',
                         fit: BoxFit.cover,
                       ),
                     ),

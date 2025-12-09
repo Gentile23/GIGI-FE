@@ -82,7 +82,7 @@ class _AuthScreenState extends State<AuthScreen>
                       width: 200,
                       height: 80,
                       child: Image.asset(
-                        'assets/images/gigi_full_logo.png',
+                        'assets/images/gigi_new_logo.png',
                         fit: BoxFit.contain,
                         errorBuilder: (_, _, _) => Text(
                           'GIGI',

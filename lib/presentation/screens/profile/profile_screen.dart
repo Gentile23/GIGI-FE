@@ -686,16 +686,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement save logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profilo aggiornato con successo'),
-          backgroundColor: CleanTheme.primaryColor,
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: CleanTheme.primaryColor),
         ),
       );
-      Navigator.pop(context);
+
+      try {
+        final success = await authProvider.updateProfile(
+          height: double.tryParse(_heightController.text),
+          weight: double.tryParse(_weightController.text),
+        );
+
+        if (!mounted) return;
+        Navigator.pop(context); // Close loading dialog
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profilo aggiornato con successo'),
+              backgroundColor: CleanTheme.primaryColor,
+            ),
+          );
+          Navigator.pop(context); // Return to profile screen
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                authProvider.error ?? 'Errore durante il salvataggio',
+              ),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
     }
   }
 }

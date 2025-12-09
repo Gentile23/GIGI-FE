@@ -23,7 +23,7 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
   // Reduced to 3 pages for faster onboarding (Psychology: reduce friction)
   final List<OnboardingPageData> _pages = [
     OnboardingPageData(
-      imagePath: 'assets/images/gigi_logo.png',
+      imagePath: 'assets/images/gigi_new_logo.png',
       title: 'Benvenuto in GIGI',
       description:
           'Il tuo coach AI personale. Preparati a trasformare il tuo corpo e la tua vita.',

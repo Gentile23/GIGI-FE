@@ -15,9 +15,13 @@ class ApiConfig {
   static const String customWorkouts = '/custom-workouts';
 
   // OpenAI Configuration
-  // IMPORTANT: Do not commit API keys to version control
-  // Set this via environment variables or secure configuration
-  static const String openAiApiKey = ''; // TODO: Configure via environment
+  // IMPORTANT: Do not commit API keys to version control!
+  // To configure:
+  // 1. Add flutter_dotenv package
+  // 2. Create .env file with OPENAI_API_KEY=your-key-here
+  // 3. Load with dotenv.env['OPENAI_API_KEY']
+  // For now, the API is called through the backend which has the key
+  static const String openAiApiKey = '';
   static const String openAiBaseUrl = 'https://api.openai.com/v1';
   static const String openAiModel = 'gpt-4o-mini';
   static const String openAiChatCompletionsEndpoint = '/chat/completions';

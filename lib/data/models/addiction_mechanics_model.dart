@@ -255,13 +255,25 @@ class RewardChest {
     return RewardChest(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       rarity: rarity,
-      rewards: _generateRewards(rarity, random),
+      rewards: _generateRewards(
+        rarity,
+        random,
+        workoutDuration: workoutDuration,
+        exercisesCompleted: exercisesCompleted,
+        currentStreak: currentStreak,
+      ),
       earnedAt: DateTime.now(),
       workoutId: workoutId,
     );
   }
 
-  static List<Reward> _generateRewards(ChestRarity rarity, Random random) {
+  static List<Reward> _generateRewards(
+    ChestRarity rarity,
+    Random random, {
+    int? workoutDuration,
+    int? exercisesCompleted,
+    int? currentStreak,
+  }) {
     final rewards = <Reward>[];
 
     // XP reward based on rarity
@@ -284,6 +296,39 @@ class RewardChest {
         value: xpAmount,
       ),
     );
+
+    // SURPRISE MEDALS LOGIC (Performance Based)
+    // These checks allow medals to appear even in lower tier chests if performance was high
+    if (workoutDuration != null && workoutDuration >= 60) {
+      if (random.nextDouble() < 0.3) {
+        // 30% chance
+        rewards.add(
+          const Reward(
+            type: RewardType.badge,
+            name: 'Medaglia Resistenza',
+            description: 'Workout durato più di 1 ora!',
+            iconEmoji: '🥇',
+            value: 'endurance_medal',
+            isRare: true,
+          ),
+        );
+      }
+    }
+
+    if (exercisesCompleted != null && exercisesCompleted >= 15) {
+      if (random.nextDouble() < 0.3) {
+        rewards.add(
+          const Reward(
+            type: RewardType.badge,
+            name: 'Medaglia Guerriero',
+            description: 'Completati più di 15 esercizi!',
+            iconEmoji: '⚔️',
+            value: 'warrior_medal',
+            isRare: true,
+          ),
+        );
+      }
+    }
 
     // Additional rewards for higher rarities
     if (rarity == ChestRarity.gold || rarity == ChestRarity.legendary) {
@@ -312,14 +357,17 @@ class RewardChest {
         ),
       ];
 
-      rewards.add(bonusRewards[random.nextInt(bonusRewards.length)]);
+      // Ensure we don't duplicate if a medal was already added above
+      if (rewards.length < 3) {
+        rewards.add(bonusRewards[random.nextInt(bonusRewards.length)]);
+      }
     }
 
     if (rarity == ChestRarity.legendary) {
       rewards.add(
         const Reward(
           type: RewardType.badge,
-          name: 'Badge Leggendario',
+          name: 'Medaglia Leggendaria',
           description: 'Hai trovato un chest leggendario!',
           iconEmoji: '🏆',
           value: 'legendary_finder',

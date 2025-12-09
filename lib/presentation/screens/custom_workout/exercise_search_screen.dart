@@ -5,10 +5,13 @@ import '../../../core/constants/muscle_groups.dart';
 import '../../../data/models/workout_model.dart';
 import '../../../data/services/exercise_service.dart';
 import '../../../data/services/api_client.dart';
+import '../../screens/workout/exercise_detail_screen.dart';
 
 /// Screen for searching and selecting exercises from the database
 class ExerciseSearchScreen extends StatefulWidget {
-  const ExerciseSearchScreen({super.key});
+  final bool isSelectionMode;
+
+  const ExerciseSearchScreen({super.key, this.isSelectionMode = true});
 
   @override
   State<ExerciseSearchScreen> createState() => _ExerciseSearchScreenState();
@@ -173,7 +176,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
         actions: [
-          if (_selectedExerciseIds.isNotEmpty)
+          if (widget.isSelectionMode && _selectedExerciseIds.isNotEmpty)
             TextButton(
               onPressed: _confirmSelection,
               child: Text(
@@ -420,7 +423,25 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         final isSelected = _selectedExerciseIds.contains(exercise.id);
 
         return GestureDetector(
-          onTap: () => _toggleSelection(exercise),
+          onTap: () {
+            if (widget.isSelectionMode) {
+              _toggleSelection(exercise);
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ExerciseDetailScreen(
+                    workoutExercise: WorkoutExercise(
+                      exercise: exercise,
+                      sets: 3,
+                      reps: '10',
+                      restSeconds: 60,
+                    ),
+                  ),
+                ),
+              );
+            }
+          },
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -436,26 +457,28 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             child: Row(
               children: [
                 // Selection indicator
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? CleanTheme.primaryColor
-                        : Colors.transparent,
-                    border: Border.all(
+                if (widget.isSelectionMode) ...[
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       color: isSelected
                           ? CleanTheme.primaryColor
-                          : Colors.grey[600]!,
-                      width: 2,
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : Colors.grey[600]!,
+                        width: 2,
+                      ),
                     ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
                   ),
-                  child: isSelected
-                      ? const Icon(Icons.check, size: 16, color: Colors.white)
-                      : null,
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
+                ],
                 // Exercise info
                 Expanded(
                   child: Column(

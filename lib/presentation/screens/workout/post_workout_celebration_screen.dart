@@ -414,6 +414,14 @@ class _PostWorkoutCelebrationScreenState
                   // Show rewards
                   Column(
                     children: _chest.rewards.map((reward) {
+                      final isMedal = reward.type == RewardType.badge;
+                      final isRare = reward.isRare || isMedal;
+                      final glowColor = isMedal
+                          ? const Color(0xFFFFD700)
+                          : (isRare
+                                ? CleanTheme.accentPurple
+                                : CleanTheme.borderPrimary);
+
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Container(
@@ -422,15 +430,29 @@ class _PostWorkoutCelebrationScreenState
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: reward.isRare
-                                ? CleanTheme.accentPurple.withValues(alpha: 0.1)
-                                : CleanTheme.backgroundColor,
+                            color: isMedal
+                                ? const Color(
+                                    0xFFFFD700,
+                                  ).withValues(alpha: 0.15)
+                                : (isRare
+                                      ? CleanTheme.accentPurple.withValues(
+                                          alpha: 0.1,
+                                        )
+                                      : CleanTheme.backgroundColor),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: reward.isRare
-                                  ? CleanTheme.accentPurple
-                                  : CleanTheme.borderPrimary,
+                              color: glowColor,
+                              width: isMedal ? 2 : 1,
                             ),
+                            boxShadow: isMedal
+                                ? [
+                                    BoxShadow(
+                                      color: glowColor.withValues(alpha: 0.3),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : [],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -445,12 +467,16 @@ class _PostWorkoutCelebrationScreenState
                                 style: GoogleFonts.inter(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
-                                  color: reward.isRare
-                                      ? CleanTheme.accentPurple
-                                      : CleanTheme.textPrimary,
+                                  color: isMedal
+                                      ? const Color(
+                                          0xFFC5A000,
+                                        ) // Darker gold for text
+                                      : (isRare
+                                            ? CleanTheme.accentPurple
+                                            : CleanTheme.textPrimary),
                                 ),
                               ),
-                              if (reward.isRare) ...[
+                              if (isRare) ...[
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -458,15 +484,20 @@ class _PostWorkoutCelebrationScreenState
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: CleanTheme.accentPurple,
+                                    color: isMedal
+                                        ? const Color(0xFFFFD700)
+                                        : CleanTheme.accentPurple,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    'RARE',
+                                    isMedal ? 'MEDAL' : 'RARE',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: isMedal
+                                          ? Colors.black87
+                                          : Colors.white,
+                                      letterSpacing: 0.5,
                                     ),
                                   ),
                                 ),

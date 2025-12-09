@@ -11,6 +11,10 @@ import '../workout/trial_workout_generation_screen.dart';
 import '../workout/workout_screen.dart';
 import '../custom_workout/custom_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
+import '../custom_workout/exercise_search_screen.dart';
+import '../../widgets/skeleton_box.dart';
+import '../profile/profile_screen.dart';
+import '../social/activity_feed_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -24,14 +28,32 @@ class EnhancedHomeScreen extends StatefulWidget {
   State<EnhancedHomeScreen> createState() => _EnhancedHomeScreenState();
 }
 
-class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
+class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _breathingController;
+  late Animation<double> _breathingAnimation;
   bool _showCelebration = false;
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
   @override
   void initState() {
     super.initState();
+    _breathingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _breathingAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+  }
+
+  @override
+  void dispose() {
+    _breathingController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -57,6 +79,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             child: Consumer2<AuthProvider, WorkoutProvider>(
               builder: (context, authProvider, workoutProvider, _) {
                 final user = authProvider.user;
+
+                // SKELETON LOADING STATE
+                if (workoutProvider.isLoading) {
+                  return _buildSkeletonLoading();
+                }
+
                 return RefreshIndicator(
                   onRefresh: _loadData,
                   color: CleanTheme.primaryColor,
@@ -69,17 +97,17 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         children: [
                           const SizedBox(height: 16),
                           _buildCompactHeader(user),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           _buildStreakMotivator(),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           _buildHeroWorkoutCard(workoutProvider),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           _buildQuickStatsRow(),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 28),
                           _buildWeeklyProgress(),
-                          const SizedBox(height: 24),
-                          _buildQuickActions(),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 28),
+                          _buildQuickActions(user),
+                          const SizedBox(height: 48),
                         ],
                       ),
                     ),
@@ -104,64 +132,111 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                CleanTheme.primaryColor,
-                CleanTheme.primaryColor.withValues(alpha: 0.7),
+        GestureDetector(
+          onTap: () {
+            HapticService.lightTap();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
+          },
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  CleanTheme.primaryColor,
+                  CleanTheme.primaryColor.withValues(alpha: 0.7),
+                ],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : 'A',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+            child: Center(
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$greeting, $name 👋',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-              Text(
-                'Pronto per allenarti?',
+                '$greeting,',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: CleanTheme.textSecondary,
+                  height: 1.2,
+                ),
+              ),
+              Text(
+                '$name 👋',
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                  height: 1.2,
                 ),
               ),
             ],
           ),
         ),
+        // Search Icon
+        GestureDetector(
+          onTap: () {
+            HapticService.lightTap();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const ExerciseSearchScreen(isSelectionMode: false),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: CleanTheme.cardColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: CleanTheme.borderSecondary),
+            ),
+            child: const Icon(
+              Icons.search,
+              color: CleanTheme.textSecondary,
+              size: 24,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Notification Icon
         GestureDetector(
           onTap: () => HapticService.lightTap(),
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: CleanTheme.borderSecondary,
-              borderRadius: BorderRadius.circular(12),
+              color: CleanTheme.cardColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: CleanTheme.borderSecondary),
             ),
             child: const Icon(
               Icons.notifications_none_rounded,
               color: CleanTheme.textSecondary,
-              size: 22,
+              size: 24,
             ),
           ),
         ),
@@ -171,6 +246,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;
+    if (hour < 5) return 'Sei mattiniero';
     if (hour < 12) return 'Buongiorno';
     if (hour < 18) return 'Buon pomeriggio';
     return 'Buonasera';
@@ -182,53 +258,85 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         final streak = provider.stats?.currentStreak ?? 0;
         final isActive = streak > 0;
 
+        // Color Psychology
+        List<Color> gradientColors;
+        if (streak < 3) {
+          gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
+        } else if (streak < 7) {
+          gradientColors = [const Color(0xFFFF9800), const Color(0xFFFF6D00)];
+        } else {
+          gradientColors = [const Color(0xFFFF3D00), const Color(0xFFD500F9)];
+        }
+
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             gradient: isActive
-                ? const LinearGradient(
-                    colors: [Color(0xFFFF6B35), Color(0xFFFF8C5A)],
+                ? LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   )
                 : null,
-            color: isActive ? null : CleanTheme.borderSecondary,
-            borderRadius: BorderRadius.circular(16),
+            color: isActive ? null : CleanTheme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isActive
+                ? null
+                : Border.all(color: CleanTheme.borderSecondary),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: gradientColors[0].withValues(alpha: 0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
-              Text('🔥', style: TextStyle(fontSize: isActive ? 28 : 24)),
-              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  '🔥',
+                  style: TextStyle(fontSize: isActive ? 24 : 20),
+                ),
+              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       isActive
-                          ? 'STREAK: $streak GIORNI'
-                          : 'Inizia la tua serie!',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                          ? '$streak GIORNI DI FILA'
+                          : 'INIZIA LA TUA SERIE',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
                         color: isActive ? Colors.white : CleanTheme.textPrimary,
-                        letterSpacing: 0.5,
+                        letterSpacing: 1.0,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       isActive
-                          ? 'Non rompere la serie!'
-                          : 'Completa un workout oggi',
+                          ? 'Non fermarti ora! Manca poco al prossimo livello.'
+                          : 'Completa un workout oggi per accendere la fiamma.',
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: isActive
                             ? Colors.white.withValues(alpha: 0.9)
                             : CleanTheme.textSecondary,
+                        height: 1.4,
                       ),
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: isActive ? Colors.white : CleanTheme.textTertiary,
               ),
             ],
           ),
@@ -240,27 +348,69 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
     if (workoutProvider.isGenerating) return _buildGeneratingCard();
 
+    // Context-Aware Logic
+    final hour = DateTime.now().hour;
+    final isMorning = hour < 12;
+    final isEvening = hour > 18;
+
+    String title = 'Workout del Giorno';
+    String subtitle = 'Full Body Power 💪';
+    List<Color> gradientColors = [
+      const Color(0xFF1A1A2E),
+      const Color(0xFF16213E),
+    ];
+
+    if (isMorning) {
+      title = 'Morning Energy ☀️';
+      subtitle = 'Carica la tua giornata';
+      gradientColors = [const Color(0xFFFF9966), const Color(0xFFFF5E62)];
+    } else if (isEvening) {
+      title = 'Evening Decompress 🌙';
+      subtitle = 'Rilassati e scarica';
+      gradientColors = [const Color(0xFF2B5876), const Color(0xFF4E4376)];
+    }
+
+    // Check if user has a trial or active plan
+    final hasActivePlan = workoutProvider.currentPlan != null;
+    if (!hasActivePlan) {
+      title = 'Prova Gratuita';
+      subtitle = 'Scopri il tuo livello 🚀';
+      gradientColors = [CleanTheme.primaryColor, const Color(0xFF00BFA5)];
+    }
+
     return GestureDetector(
       onTap: () {
         HapticService.mediumTap();
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const TrialWorkoutGenerationScreen(),
-          ),
-        );
+        if (!hasActivePlan) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const TrialWorkoutGenerationScreen(),
+            ),
+          );
+        } else {
+          // Future: Navigate to actual workout
+          // For now, we can show a toast or navigation placeholder
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Navigation to workout plan implementation pending',
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+          gradient: LinearGradient(
+            colors: gradientColors,
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1A1A2E).withValues(alpha: 0.3),
+              color: gradientColors[0].withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -281,7 +431,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  "WORKOUT DEL GIORNO",
+                  title.toUpperCase(),
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -292,7 +442,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Full Body Power 💪',
+                subtitle,
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -300,42 +450,67 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildDetail(Icons.timer_outlined, '45 min'),
-                  const SizedBox(width: 16),
-                  _buildDetail(Icons.local_fire_department, '320 kcal'),
-                  const SizedBox(width: 16),
-                  _buildDetail(Icons.fitness_center, '12 esercizi'),
-                ],
-              ),
+              if (hasActivePlan) // Show stats only if plan exists
+                Row(
+                  children: [
+                    _buildDetail(Icons.timer_outlined, '45 min'),
+                    const SizedBox(width: 16),
+                    _buildDetail(Icons.local_fire_department, '320 kcal'),
+                    const SizedBox(width: 16),
+                    _buildDetail(Icons.fitness_center, '12 esercizi'),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    _buildDetail(Icons.timer_outlined, '15 min'),
+                    const SizedBox(width: 16),
+                    _buildDetail(Icons.bolt, 'Intensità Media'),
+                  ],
+                ),
               const SizedBox(height: 24),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00D26A),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'INIZIA ORA',
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
+                child: ScaleTransition(
+                  scale: _breathingAnimation,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.6),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: gradientColors[1].withValues(alpha: 0.4),
+                          blurRadius: 15,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          hasActivePlan ? 'INIZIA ORA' : 'INIZIA PROVA',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -527,7 +702,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(UserModel? user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -540,6 +715,25 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
         ),
         const SizedBox(height: 12),
+        // Trial Workout Action (only if not completed)
+        if (user != null && !user.trialWorkoutCompleted) ...[
+          _buildActionCardWide(
+            Icons.fitness_center,
+            'Trial Workout',
+            'Calibra il tuo livello con un test rapido',
+            CleanTheme.primaryColor,
+            () {
+              HapticService.lightTap();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const TrialWorkoutGenerationScreen(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+        ],
         // First row: Generate AI Plan (full width)
         _buildActionCardWide(
           Icons.auto_awesome,
@@ -589,6 +783,21 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        // Third row: Community (full width or single)
+        _buildActionCardWide(
+          Icons.people_alt_rounded,
+          'Community',
+          'Feed, Sfide e Classifiche',
+          CleanTheme.accentOrange,
+          () {
+            HapticService.lightTap();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ActivityFeedScreen()),
+            );
+          },
         ),
       ],
     );
@@ -816,6 +1025,59 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               ),
             ),
             Icon(Icons.chevron_right, color: CleanTheme.textTertiary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonLoading() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Header Skeleton
+            Row(
+              children: [
+                const SkeletonBox(width: 48, height: 48, radius: 24),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SkeletonBox(width: 100, height: 14),
+                    SizedBox(height: 8),
+                    SkeletonBox(width: 160, height: 20),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            // Streak Skeleton
+            const SkeletonBox(width: double.infinity, height: 80, radius: 20),
+            const SizedBox(height: 24),
+            // Hero Card Skeleton
+            const SkeletonBox(width: double.infinity, height: 280, radius: 24),
+            const SizedBox(height: 24),
+            // Stats Row Skeleton
+            Row(
+              children: List.generate(
+                3,
+                (index) => Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: index < 2 ? 12.0 : 0),
+                    child: const SkeletonBox(
+                      width: double.infinity,
+                      height: 80,
+                      radius: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

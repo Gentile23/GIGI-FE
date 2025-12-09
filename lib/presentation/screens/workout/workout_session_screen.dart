@@ -978,9 +978,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 if (!mounted) return;
                 navigator.pop(); // Close success dialog or loading
 
+                // ignore: use_build_context_synchronously
                 await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
+                  context: navigator.context,
+                  builder: (dialogContext) => AlertDialog(
                     backgroundColor: CleanTheme.surfaceColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -999,8 +1000,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     actions: [
                       TextButton(
                         onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.pop(context);
+                          Navigator.pop(dialogContext);
+                          navigator.pop();
                         },
                         child: Text(
                           'Fantastico!',

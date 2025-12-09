@@ -19,7 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingPage> _pages = [
     OnboardingPage(
-      imagePath: 'assets/images/gigi_logo.png',
+      imagePath: 'assets/images/gigi_new_logo.png',
       title: 'Benvenuto in GIGI',
       description:
           'Il tuo coach fitness AI personale. Ottieni piani di allenamento personalizzati in base ai tuoi obiettivi e livello.',

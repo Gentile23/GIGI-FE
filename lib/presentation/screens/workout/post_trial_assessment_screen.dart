@@ -79,17 +79,41 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
+                  final isSelected = _overallFeeling == value;
                   return ListTile(
                     title: Text(
                       _getFeelingLabel(value),
-                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                      style: GoogleFonts.inter(
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
-                    leading: Radio<int>(
-                      value: value,
-                      groupValue: _overallFeeling,
-                      onChanged: (val) =>
-                          setState(() => _overallFeeling = val!),
-                      activeColor: CleanTheme.primaryColor,
+                    leading: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.borderPrimary,
+                          width: 2,
+                        ),
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
                     onTap: () => setState(() => _overallFeeling = value),
                     contentPadding: EdgeInsets.zero,
@@ -166,16 +190,41 @@ class _PostTrialAssessmentScreenState extends State<PostTrialAssessmentScreen> {
               Column(
                 children: List.generate(5, (index) {
                   final value = index + 1;
+                  final isSelected = _energyLevel == value;
                   return ListTile(
                     title: Text(
                       _getEnergyLabel(value),
-                      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                      style: GoogleFonts.inter(
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
                     ),
-                    leading: Radio<int>(
-                      value: value,
-                      groupValue: _energyLevel,
-                      onChanged: (val) => setState(() => _energyLevel = val!),
-                      activeColor: CleanTheme.primaryColor,
+                    leading: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.borderPrimary,
+                          width: 2,
+                        ),
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
                     ),
                     onTap: () => setState(() => _energyLevel = value),
                     contentPadding: EdgeInsets.zero,

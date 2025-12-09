@@ -1,0 +1,13 @@
+Analyzing fitgenius...                                          
+
+   info - Unnecessary use of string interpolation - lib\presentation\screens\workout\cardio_exercise_screen.dart:323:21 - unnecessary_string_interpolations
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:89:23 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:90:23 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:176:23 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\post_trial_assessment_screen.dart:177:23 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:461:19 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\presentation\screens\workout\trial_workout_screen.dart:462:19 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:982:19 - use_build_context_synchronously
+warning - The asset file 'assets/images/gigi_logo.png' doesn't exist - pubspec.yaml:131:7 - asset_does_not_exist
+warning - The asset file 'assets/images/gigi_full_logo.png' doesn't exist - pubspec.yaml:133:7 - asset_does_not_exist
+
