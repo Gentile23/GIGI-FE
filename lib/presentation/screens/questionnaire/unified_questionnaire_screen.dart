@@ -1424,7 +1424,7 @@ class _UnifiedQuestionnaireScreenState
           TextField(
             controller: _painfulExercisesController,
             maxLines: 2,
-            style: GoogleFonts.outfit(color: Colors.white),
+            style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Es: Squat, Panca piana, Stacchi...',
               fillColor: CleanTheme.surfaceColor,
@@ -1446,7 +1446,7 @@ class _UnifiedQuestionnaireScreenState
           TextField(
             controller: _injuryNotesController,
             maxLines: 3,
-            style: GoogleFonts.outfit(color: Colors.white),
+            style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Dettagli aggiuntivi...',
               fillColor: CleanTheme.surfaceColor,
@@ -1669,9 +1669,9 @@ class _UnifiedQuestionnaireScreenState
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: CleanTheme.borderPrimary),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1695,7 +1695,7 @@ class _UnifiedQuestionnaireScreenState
           TextField(
             controller: _prefNotesController,
             maxLines: 5,
-            style: GoogleFonts.outfit(color: Colors.white),
+            style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
               hintText: 'Scrivi qui le tue note...',
               fillColor: CleanTheme.surfaceColor,
@@ -1721,11 +1721,14 @@ class _UnifiedQuestionnaireScreenState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(color: Colors.white70)),
+          const Text('• ', style: TextStyle(color: CleanTheme.textSecondary)),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              style: const TextStyle(
+                color: CleanTheme.textSecondary,
+                fontSize: 14,
+              ),
             ),
           ),
         ],

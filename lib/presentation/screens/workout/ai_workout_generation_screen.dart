@@ -41,10 +41,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
         listen: false,
       );
 
-      final success = await workoutProvider.generateCustomPlan(
-        user: widget.user,
-        profile: widget.profile,
-      );
+      final success = await workoutProvider.generatePlan();
 
       if (success) {
         setState(() {

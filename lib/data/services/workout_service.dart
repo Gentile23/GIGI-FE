@@ -74,10 +74,13 @@ class WorkoutService {
     }
   }
 
-  Future<Map<String, dynamic>> generatePlan() async {
+  Future<Map<String, dynamic>> generatePlan({
+    Map<String, dynamic>? filters,
+  }) async {
     try {
       final response = await _apiClient.dio.post(
         ApiConfig.workoutPlansGenerate,
+        data: filters, // Pass filters in body if present
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

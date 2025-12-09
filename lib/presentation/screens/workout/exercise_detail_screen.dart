@@ -31,6 +31,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final videoId = YoutubePlayer.convertUrlToId(url);
     if (videoId == null) return;
 
+    // Dispose previous controller if exists
+    _videoController?.dispose();
+
     _videoController = YoutubePlayerController(
       initialVideoId: videoId,
       flags: const YoutubePlayerFlags(

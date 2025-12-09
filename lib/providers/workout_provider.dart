@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/models/workout_model.dart';
 import '../data/models/user_model.dart';
-import '../data/models/user_profile_model.dart';
 import '../data/services/api_client.dart';
 import '../data/services/workout_service.dart';
 
@@ -98,35 +97,88 @@ class WorkoutProvider with ChangeNotifier {
 
     if (result['success']) {
       final plan = result['plan'];
+      _currentPlan = plan;
 
       // If plan is processing, start polling
       if (plan.status == 'processing') {
-        _isLoading =
-            false; // Stop global loading, but maybe set a specific generating flag?
-        // Actually, let's keep isLoading true or use a separate flag.
-        // For better UX, let's use a separate flag so we can show a specific UI.
         _isGenerating = true;
-        notifyListeners();
         _pollPlanStatus(plan.id);
-        return true;
       }
 
-      _currentPlan = plan;
       _isLoading = false;
-      await fetchWorkoutPlans(); // Refresh the list
       notifyListeners();
       return true;
     } else {
+      _error = result['message'];
       _isLoading = false;
-      // Check if error is due to trial requirement
-      if (result['trial_required'] == true) {
-        _error = 'trial_required';
-      } else {
-        _error = result['message'];
-      }
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> generateCustomPlan(Map<String, dynamic> filters) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    debugPrint('DEBUG: Generating custom plan with filters: $filters');
+    final result = await _workoutService.generatePlan(filters: filters);
+
+    if (result['success']) {
+      final plan = result['plan'];
+      _currentPlan = plan;
+      // If plan is processing, start polling
+      if (plan.status == 'processing') {
+        _isGenerating = true;
+        _pollPlanStatus(plan.id);
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } else {
+      _error = result['message'];
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Filter existing workouts by category
+  List<WorkoutDay> getWorkoutsByCategory(String category) {
+    if (_currentPlan == null) return [];
+
+    // Normalize category
+    final cat = category.toLowerCase().trim();
+    if (cat == 'tutti' || cat.isEmpty) return _currentPlan!.workouts;
+
+    return _currentPlan!.workouts.where((workout) {
+      final name = workout.name.toLowerCase();
+      final focus = workout.focus.toLowerCase();
+
+      // Basic matching logic
+      if (cat == 'cardio' &&
+          (focus.contains('cardio') || name.contains('cardio'))) {
+        return true;
+      }
+      if (cat == 'forza' &&
+          (focus.contains('forza') ||
+              focus.contains('strength') ||
+              name.contains('strength'))) {
+        return true;
+      }
+      if (cat == 'flex' &&
+          (focus.contains('mobility') ||
+              focus.contains('yoga') ||
+              name.contains('flex'))) {
+        return true;
+      }
+      if (cat == 'hiit' &&
+          (focus.contains('hiit') || name.contains('tabata'))) {
+        return true;
+      }
+
+      return false;
+    }).toList();
   }
 
   // Add isGenerating flag
@@ -202,19 +254,6 @@ class WorkoutProvider with ChangeNotifier {
     _isGenerating = false;
     _isLoading = false;
     notifyListeners();
-  }
-
-  Future<bool> generateCustomPlan({
-    required UserModel user,
-    required UserProfile profile,
-  }) async {
-    // This method seems redundant if generatePlan handles everything,
-    // but let's update it just in case it's used.
-    // Actually, looking at the code, generatePlan calls _workoutService.generatePlan()
-    // which calls the endpoint we modified.
-    // generateCustomPlan calls _workoutService.generateAIPlan() which might be different?
-    // Let's check WorkoutService.
-    return generatePlan();
   }
 
   void clearError() {

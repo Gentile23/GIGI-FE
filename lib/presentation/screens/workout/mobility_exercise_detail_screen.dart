@@ -6,7 +6,7 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 
-class MobilityExerciseDetailScreen extends StatelessWidget {
+class MobilityExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
   final String? duration;
 
@@ -16,8 +16,42 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
     this.duration,
   });
 
+  @override
+  State<MobilityExerciseDetailScreen> createState() =>
+      _MobilityExerciseDetailScreenState();
+}
+
+class _MobilityExerciseDetailScreenState
+    extends State<MobilityExerciseDetailScreen> {
   static const Color _mobilityColor = CleanTheme.accentPurple;
   static const Color _breathingColor = CleanTheme.accentGreen;
+
+  YoutubePlayerController? _videoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  void _initializeVideo() {
+    final videoUrl = widget.workoutExercise.exercise.videoUrl;
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      final videoId = YoutubePlayer.convertUrlToId(videoUrl);
+      if (videoId != null) {
+        _videoController = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +76,7 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              workoutExercise.exercise.name,
+              widget.workoutExercise.exercise.name,
               style: GoogleFonts.outfit(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -53,13 +87,13 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
             _buildTypeBadge(),
             const SizedBox(height: 24),
 
-            if (workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
+            if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
               CleanSectionHeader(title: 'Aree da Allungare'),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
                 child: AnatomicalMuscleView(
-                  muscleGroups: workoutExercise.exercise.muscleGroups,
+                  muscleGroups: widget.workoutExercise.exercise.muscleGroups,
                   height: 280,
                   highlightColor: _mobilityColor,
                 ),
@@ -70,18 +104,18 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
             _buildBreathingGuide(),
             const SizedBox(height: 24),
 
-            if (duration != null) ...[
+            if (widget.duration != null) ...[
               _buildDurationCard(),
               const SizedBox(height: 24),
             ],
 
-            if (workoutExercise.exercise.description.isNotEmpty) ...[
+            if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
               CleanSectionHeader(title: 'Istruzioni'),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  workoutExercise.exercise.description,
+                  widget.workoutExercise.exercise.description,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     height: 1.7,
@@ -92,11 +126,10 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
               const SizedBox(height: 24),
             ],
 
-            if (workoutExercise.exercise.videoUrl != null &&
-                workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
+            if (_videoController != null) ...[
               CleanSectionHeader(title: 'Video Dimostrazione'),
               const SizedBox(height: 12),
-              _buildVideoPlayer(workoutExercise.exercise.videoUrl!),
+              _buildVideoPlayer(),
             ],
             const SizedBox(height: 24),
           ],
@@ -238,7 +271,7 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                duration!,
+                widget.duration!,
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -252,9 +285,8 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoPlayer(String url) {
-    final videoId = YoutubePlayer.convertUrlToId(url);
-    if (videoId == null) {
+  Widget _buildVideoPlayer() {
+    if (_videoController == null) {
       return CleanCard(
         padding: const EdgeInsets.all(16),
         child: Text(
@@ -267,10 +299,7 @@ class MobilityExerciseDetailScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: YoutubePlayer(
-        controller: YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
-        ),
+        controller: _videoController!,
         showVideoProgressIndicator: true,
         progressIndicatorColor: CleanTheme.primaryColor,
       ),

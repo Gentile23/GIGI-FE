@@ -98,6 +98,8 @@ Regole fondamentali:
 4. Adatta il volume alle capacità di recupero
 5. Includi sempre riscaldamento e defaticamento appropriati
 6. Fornisci progressioni chiare e sicure
+7. I nomi degli esercizi devono essere SEMPRE in INGLESE (es. "Bench Press" non "Panca Piana")
+8. Rispetta RIGOROSAMENTE l'ordine di Cardio e Mobilità indicato nelle preferenze
 ''';
   }
 
@@ -164,6 +166,30 @@ Regole fondamentali:
       buffer.writeln('  ${prefs.cardioPreference.description}');
       buffer.writeln('- Mobilità: ${prefs.mobilityPreference.displayName}');
       buffer.writeln('  ${prefs.mobilityPreference.description}');
+
+      // ORDERING INSTRUCTIONS
+      buffer.writeln('');
+      buffer.writeln('ISTRUZIONI ORDINE ESERCIZI:');
+
+      // Cardio Ordering
+      if (prefs.cardioPreference.toString().contains('warmUp')) {
+        buffer.writeln(
+          '- INCLUDI il Cardio nel campo "warmup" (Riscaldamento)',
+        );
+      } else if (prefs.cardioPreference.toString().contains('postWorkout')) {
+        buffer.writeln(
+          '- INCLUDI il Cardio nel campo "cooldown" o come ultimo esercizio',
+        );
+      }
+
+      // Mobility Ordering
+      if (prefs.mobilityPreference.toString().contains('preWorkout')) {
+        buffer.writeln(
+          '- INCLUDI la Mobilità nel campo "warmup" PRIMA del workouot principale',
+        );
+      } else if (prefs.mobilityPreference.toString().contains('postWorkout')) {
+        buffer.writeln('- INCLUDI lo Stretching/Mobilità nel campo "cooldown"');
+      }
       buffer.writeln('');
     }
 

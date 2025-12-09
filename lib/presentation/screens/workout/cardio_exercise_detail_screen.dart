@@ -6,7 +6,7 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 
-class CardioExerciseDetailScreen extends StatelessWidget {
+class CardioExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
   final String? duration;
   final String? intensity;
@@ -18,8 +18,42 @@ class CardioExerciseDetailScreen extends StatelessWidget {
     this.intensity,
   });
 
+  @override
+  State<CardioExerciseDetailScreen> createState() =>
+      _CardioExerciseDetailScreenState();
+}
+
+class _CardioExerciseDetailScreenState
+    extends State<CardioExerciseDetailScreen> {
   static const Color _cardioColor = CleanTheme.accentRed;
   static const Color _accentColor = CleanTheme.accentOrange;
+
+  YoutubePlayerController? _videoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  void _initializeVideo() {
+    final videoUrl = widget.workoutExercise.exercise.videoUrl;
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      final videoId = YoutubePlayer.convertUrlToId(videoUrl);
+      if (videoId != null) {
+        _videoController = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +78,7 @@ class CardioExerciseDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              workoutExercise.exercise.name,
+              widget.workoutExercise.exercise.name,
               style: GoogleFonts.outfit(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -61,13 +95,13 @@ class CardioExerciseDetailScreen extends StatelessWidget {
             _buildIntensityCard(),
             const SizedBox(height: 24),
 
-            if (workoutExercise.exercise.description.isNotEmpty) ...[
+            if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
               CleanSectionHeader(title: 'Istruzioni'),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  workoutExercise.exercise.description,
+                  widget.workoutExercise.exercise.description,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     height: 1.6,
@@ -81,11 +115,10 @@ class CardioExerciseDetailScreen extends StatelessWidget {
             _buildBenefitsCard(),
             const SizedBox(height: 24),
 
-            if (workoutExercise.exercise.videoUrl != null &&
-                workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
+            if (_videoController != null) ...[
               CleanSectionHeader(title: 'Video Dimostrazione'),
               const SizedBox(height: 12),
-              _buildVideoPlayer(workoutExercise.exercise.videoUrl!),
+              _buildVideoPlayer(),
             ],
             const SizedBox(height: 24),
           ],
@@ -155,18 +188,18 @@ class CardioExerciseDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          if (intensity != null)
+          if (widget.intensity != null)
             _buildInfoColumn(
               icon: Icons.local_fire_department_outlined,
               label: 'Intensità',
-              value: intensity!,
+              value: widget.intensity!,
               color: _cardioColor,
             ),
-          if (duration != null)
+          if (widget.duration != null)
             _buildInfoColumn(
               icon: Icons.timer_outlined,
               label: 'Durata',
-              value: duration!,
+              value: widget.duration!,
               color: _accentColor,
             ),
           _buildInfoColumn(
@@ -278,9 +311,8 @@ class CardioExerciseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoPlayer(String url) {
-    final videoId = YoutubePlayer.convertUrlToId(url);
-    if (videoId == null) {
+  Widget _buildVideoPlayer() {
+    if (_videoController == null) {
       return CleanCard(
         padding: const EdgeInsets.all(16),
         child: Text(
@@ -293,10 +325,7 @@ class CardioExerciseDetailScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: YoutubePlayer(
-        controller: YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
-        ),
+        controller: _videoController!,
         showVideoProgressIndicator: true,
         progressIndicatorColor: CleanTheme.primaryColor,
       ),
