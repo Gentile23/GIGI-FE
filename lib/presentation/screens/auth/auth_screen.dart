@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
+import '../legal/privacy_policy_screen.dart';
+import '../legal/terms_of_service_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -24,6 +26,11 @@ class _AuthScreenState extends State<AuthScreen>
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+
+  // GDPR Consent checkboxes
+  bool _acceptedPrivacyPolicy = false;
+  bool _acceptedTerms = false;
+  bool _acceptedHealthData = false;
 
   // Animation controller for logo
   late AnimationController _logoAnimationController;
@@ -53,6 +60,9 @@ class _AuthScreenState extends State<AuthScreen>
     _nameController.dispose();
     super.dispose();
   }
+
+  bool get _allConsentsAccepted =>
+      _acceptedPrivacyPolicy && _acceptedTerms && _acceptedHealthData;
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen>
                       child: Image.asset(
                         'assets/images/gigi_new_logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => Text(
+                        errorBuilder: (_, __, ___) => Text(
                           'GIGI',
                           style: GoogleFonts.outfit(
                             fontSize: 48,
@@ -190,6 +200,12 @@ class _AuthScreenState extends State<AuthScreen>
                   },
                 ),
 
+                // GDPR Consent checkboxes (only for registration)
+                if (!_isLogin) ...[
+                  const SizedBox(height: 24),
+                  _buildConsentSection(),
+                ],
+
                 const SizedBox(height: 24),
 
                 // Error message
@@ -244,9 +260,26 @@ class _AuthScreenState extends State<AuthScreen>
                 // Submit button
                 CleanButton(
                   text: _isLogin ? 'Accedi' : 'Registrati',
-                  onPressed: _isLoading ? null : _handleSubmit,
+                  onPressed: _isLoading
+                      ? null
+                      : (_isLogin || _allConsentsAccepted)
+                      ? _handleSubmit
+                      : null,
                   width: double.infinity,
                 ),
+
+                // Consent reminder for registration
+                if (!_isLogin && !_allConsentsAccepted) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Accetta tutti i consensi per procedere',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.accentOrange,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
 
                 const SizedBox(height: 24),
 
@@ -324,6 +357,171 @@ class _AuthScreenState extends State<AuthScreen>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildConsentSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.shield_outlined,
+                color: CleanTheme.primaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Consensi richiesti',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Privacy Policy
+          _buildConsentCheckbox(
+            value: _acceptedPrivacyPolicy,
+            onChanged: (val) => setState(() => _acceptedPrivacyPolicy = val!),
+            label: 'Ho letto e accetto la ',
+            linkText: 'Privacy Policy',
+            onLinkTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+            ),
+            required: true,
+          ),
+
+          const SizedBox(height: 12),
+
+          // Terms of Service
+          _buildConsentCheckbox(
+            value: _acceptedTerms,
+            onChanged: (val) => setState(() => _acceptedTerms = val!),
+            label: 'Accetto i ',
+            linkText: 'Termini di Servizio',
+            onLinkTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+            ),
+            required: true,
+          ),
+
+          const SizedBox(height: 12),
+
+          // Health Data Consent (Art. 9 GDPR)
+          _buildConsentCheckbox(
+            value: _acceptedHealthData,
+            onChanged: (val) => setState(() => _acceptedHealthData = val!),
+            label: 'Acconsento al trattamento dei miei ',
+            linkText: 'dati sulla salute',
+            sublabel:
+                '(peso, altezza, infortuni) per personalizzare '
+                'i piani di allenamento',
+            onLinkTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+            ),
+            required: true,
+            isHealthData: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConsentCheckbox({
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+    required String label,
+    required String linkText,
+    required VoidCallback onLinkTap,
+    String? sublabel,
+    bool required = false,
+    bool isHealthData = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: value,
+            onChanged: onChanged,
+            activeColor: isHealthData
+                ? CleanTheme.accentPurple
+                : CleanTheme.primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: onLinkTap,
+                    child: Text(
+                      linkText,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: isHealthData
+                            ? CleanTheme.accentPurple
+                            : CleanTheme.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                  if (required)
+                    Text(
+                      ' *',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.accentRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              ),
+              if (sublabel != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  sublabel,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: CleanTheme.textTertiary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -406,6 +604,14 @@ class _AuthScreenState extends State<AuthScreen>
     });
 
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Check consents for registration
+    if (!_isLogin && !_allConsentsAccepted) {
+      setState(() {
+        _errorMessage = 'Devi accettare tutti i consensi per registrarti.';
+      });
       return;
     }
 

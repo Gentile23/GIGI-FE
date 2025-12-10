@@ -76,7 +76,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         });
 
         final result = await _nutritionService.quickLog(
-          imagePath: pickedFile.path,
+          imageFile: pickedFile,
           mealType: _selectedMealType,
         );
 

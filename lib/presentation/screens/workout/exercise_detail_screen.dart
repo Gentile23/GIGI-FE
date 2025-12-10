@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
@@ -23,23 +23,25 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   @override
   void dispose() {
-    _videoController?.dispose();
+    _videoController?.close();
     super.dispose();
   }
 
   void _initializeVideoPlayer(String url) {
-    final videoId = YoutubePlayer.convertUrlToId(url);
+    final videoId = YoutubePlayerController.convertUrlToId(url);
     if (videoId == null) return;
 
     // Dispose previous controller if exists
-    _videoController?.dispose();
+    _videoController?.close();
 
-    _videoController = YoutubePlayerController(
-      initialVideoId: videoId,
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
+    _videoController = YoutubePlayerController.fromVideoId(
+      videoId: videoId,
+      autoPlay: true,
+      params: const YoutubePlayerParams(
+        showControls: true,
         mute: false,
         enableCaption: false,
+        showFullscreenButton: true,
       ),
     );
 
@@ -387,7 +389,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   }
 
   Widget _buildVideoSection(String url) {
-    final videoId = YoutubePlayer.convertUrlToId(url);
+    final videoId = YoutubePlayerController.convertUrlToId(url);
     if (videoId == null) {
       return CleanCard(
         padding: const EdgeInsets.all(16),
@@ -401,10 +403,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     if (_showVideoPlayer && _videoController != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: YoutubePlayer(
-          controller: _videoController!,
-          showVideoProgressIndicator: true,
-          progressIndicatorColor: CleanTheme.primaryColor,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: YoutubePlayer(
+            controller: _videoController!,
+            aspectRatio: 16 / 9,
+          ),
         ),
       );
     }

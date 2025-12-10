@@ -62,7 +62,6 @@ dependencies:
   path_provider: ^2.1.0
 
   # Video Playback (Exercise Demonstrations)
-  youtube_player_flutter: ^9.0.3
 
   # SVG Rendering (Anatomical Diagrams)
   flutter_svg: ^2.0.9
@@ -88,6 +87,7 @@ dependencies:
   # In-App Purchases (RevenueCat)
   purchases_flutter: ^8.0.0
   xml: ^6.6.1
+  youtube_player_iframe: ^5.2.2
 
 dev_dependencies:
   flutter_test:

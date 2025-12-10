@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/nutrition_model.dart';
 import 'api_client.dart';
 
@@ -10,12 +11,28 @@ class NutritionService {
 
   /// Quick log from photo
   Future<Map<String, dynamic>?> quickLog({
-    required String imagePath,
+    required XFile imageFile,
     required String mealType,
   }) async {
     try {
+      MultipartFile photoPart;
+
+      if (kIsWeb) {
+        // On Web, use bytes
+        photoPart = MultipartFile.fromBytes(
+          await imageFile.readAsBytes(),
+          filename: 'meal_photo.jpg',
+        );
+      } else {
+        // On Mobile/Desktop, use file path
+        photoPart = await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'meal_photo.jpg',
+        );
+      }
+
       final formData = FormData.fromMap({
-        'photo': await MultipartFile.fromFile(imagePath),
+        'photo': photoPart,
         'meal_type': mealType,
       });
 

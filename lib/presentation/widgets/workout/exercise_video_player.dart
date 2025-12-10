@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../core/theme/clean_theme.dart';
 
 class ExerciseVideoPlayer extends StatefulWidget {
@@ -18,7 +18,7 @@ class ExerciseVideoPlayer extends StatefulWidget {
 
 class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
   YoutubePlayerController? _controller;
-  bool _isPlayerReady = false;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -30,27 +30,26 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
     if (widget.videoUrl == null || widget.videoUrl!.isEmpty) return;
 
     try {
-      final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl!);
+      final videoId = YoutubePlayerController.convertUrlToId(widget.videoUrl!);
       if (videoId != null) {
-        _controller = YoutubePlayerController(
-          initialVideoId: videoId,
-          flags: const YoutubePlayerFlags(
-            autoPlay: false,
+        _controller = YoutubePlayerController.fromVideoId(
+          videoId: videoId,
+          autoPlay: false,
+          params: const YoutubePlayerParams(
+            showControls: true,
             mute: false,
-            enableCaption: false,
+            showFullscreenButton: true,
             loop: true,
+            enableCaption: false,
+            playsInline: true,
           ),
         );
-        _controller!.addListener(() {
-          if (_controller!.value.isReady && !_isPlayerReady) {
-            setState(() {
-              _isPlayerReady = true;
-            });
-          }
-        });
+      } else {
+        _hasError = true;
       }
     } catch (e) {
       debugPrint('Error initializing YouTube player: $e');
+      _hasError = true;
     }
   }
 
@@ -58,16 +57,17 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
   void didUpdateWidget(ExerciseVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoUrl != widget.videoUrl) {
-      _controller?.dispose();
+      _controller?.close();
       _controller = null;
-      _isPlayerReady = false;
+      _hasError = false;
       _initializePlayer();
+      setState(() {});
     }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller?.close();
     super.dispose();
   }
 
@@ -77,7 +77,7 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
       return const SizedBox.shrink();
     }
 
-    if (_controller == null) {
+    if (_controller == null || _hasError) {
       return _buildErrorWidget();
     }
 
@@ -87,29 +87,10 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
         borderRadius: BorderRadius.circular(12),
         color: Colors.black,
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: YoutubePlayer(
-          controller: _controller!,
-          showVideoProgressIndicator: true,
-          progressIndicatorColor: CleanTheme.primaryColor,
-          progressColors: const ProgressBarColors(
-            playedColor: CleanTheme.primaryColor,
-            handleColor: CleanTheme.primaryColor,
-          ),
-          onReady: () {
-            setState(() {
-              _isPlayerReady = true;
-            });
-          },
-          bottomActions: [
-            CurrentPosition(),
-            ProgressBar(isExpanded: true),
-            RemainingDuration(),
-            const PlaybackSpeedButton(),
-            FullScreenButton(),
-          ],
-        ),
+      clipBehavior: Clip.antiAlias,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9),
       ),
     );
   }
@@ -122,14 +103,38 @@ class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
         borderRadius: BorderRadius.circular(12),
         color: CleanTheme.borderSecondary,
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.videocam_off, color: CleanTheme.textTertiary),
-          SizedBox(width: 12),
+          const Icon(Icons.videocam_off, color: CleanTheme.textTertiary),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Video non disponibile',
-              style: TextStyle(color: CleanTheme.textTertiary, fontSize: 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Video non disponibile',
+                  style: TextStyle(
+                    color: CleanTheme.textTertiary,
+                    fontSize: 14,
+                  ),
+                ),
+                if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      // Open in external browser on mobile, or new tab on web
+                      // You can add url_launcher here if needed
+                    },
+                    child: Text(
+                      'Apri su YouTube',
+                      style: TextStyle(
+                        color: CleanTheme.accentBlue,
+                        fontSize: 12,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

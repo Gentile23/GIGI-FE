@@ -11,6 +11,7 @@ import '../progress/transformation_tracker_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../community/community_goals_screen.dart';
 import 'edit_preferences_screen.dart';
+import 'privacy_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -381,7 +382,14 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsTile(
                   icon: Icons.security_outlined,
                   title: 'Privacy & Sicurezza',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacySettingsScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(

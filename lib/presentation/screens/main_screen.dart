@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home/enhanced_home_screen.dart';
-import 'workout/workout_screen.dart';
+import 'workout/unified_workout_list_screen.dart';
 import 'nutrition/nutrition_dashboard_screen.dart';
 import 'social/activity_feed_screen.dart';
 import 'gamification/gamification_screen.dart';
@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = const [
     EnhancedHomeScreen(), // Tab 0: Home
-    WorkoutListScreen(), // Tab 1: Workout
+    UnifiedWorkoutListScreen(), // Tab 1: Workout
     NutritionDashboardScreen(), // Tab 2: Nutrition
     ActivityFeedScreen(), // Tab 3: Social
     GamificationScreen(), // Tab 4: Rewards
