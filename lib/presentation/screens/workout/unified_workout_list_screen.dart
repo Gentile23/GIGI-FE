@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -7,6 +9,7 @@ import '../../../data/models/custom_workout_model.dart';
 import '../../../data/services/custom_workout_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../providers/workout_provider.dart';
+import '../../../providers/workout_log_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_screen.dart';
@@ -550,7 +553,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen>
   }
 }
 
-/// Screen for executing a custom workout
+/// Screen for executing a custom workout with full logging capabilities
 class CustomWorkoutExecutionScreen extends StatefulWidget {
   final CustomWorkoutPlan plan;
 
@@ -566,14 +569,72 @@ class _CustomWorkoutExecutionScreenState
   int _currentExerciseIndex = 0;
   YoutubePlayerController? _videoController;
 
+  // Set logging data: Map<exerciseIndex, Map<setNumber, SetLogData>>
+  final Map<int, Map<int, _SetLogData>> _setData = {};
+
+  // Previous workout data per exercise
+  final Map<int, Map<int, Map<String, dynamic>>> _previousData = {};
+  bool _loadingPrevious = true;
+
+  // Rest timer
+  Timer? _restTimer;
+  int _restSecondsRemaining = 0;
+  bool _isRestTimerActive = false;
+
   @override
   void initState() {
     super.initState();
+    _initializeSetData();
     _initializeVideoIfAvailable();
+    _loadPreviousData();
+  }
+
+  void _initializeSetData() {
+    for (int i = 0; i < widget.plan.exercises.length; i++) {
+      final exercise = widget.plan.exercises[i];
+      _setData[i] = {};
+      for (int s = 1; s <= exercise.sets; s++) {
+        _setData[i]![s] = _SetLogData(reps: int.tryParse(exercise.reps) ?? 10);
+      }
+    }
+  }
+
+  Future<void> _loadPreviousData() async {
+    setState(() => _loadingPrevious = true);
+
+    try {
+      final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+
+      for (int i = 0; i < widget.plan.exercises.length; i++) {
+        final exercise = widget.plan.exercises[i].exercise;
+        final data = await provider.getExerciseLastPerformance(exercise.id);
+
+        if (data != null && data['sets'] != null) {
+          _previousData[i] = {};
+          for (var setData in data['sets'] as List) {
+            final setNumber = setData['set_number'] as int;
+            _previousData[i]![setNumber] = {
+              'weight': (setData['weight_kg'] as num?)?.toDouble() ?? 0,
+              'reps': setData['reps'] as int? ?? 0,
+            };
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading previous data: $e');
+    }
+
+    if (mounted) {
+      setState(() => _loadingPrevious = false);
+    }
   }
 
   void _initializeVideoIfAvailable() {
-    if (widget.plan.exercises.isNotEmpty) {
+    _videoController?.close();
+    _videoController = null;
+
+    if (widget.plan.exercises.isNotEmpty &&
+        _currentExerciseIndex < widget.plan.exercises.length) {
       final exercise = widget.plan.exercises[_currentExerciseIndex].exercise;
       if (exercise.videoUrl != null && exercise.videoUrl!.isNotEmpty) {
         String? videoId = _extractYoutubeId(exercise.videoUrl!);
@@ -599,8 +660,36 @@ class _CustomWorkoutExecutionScreenState
     return match?.group(1);
   }
 
+  void _startRestTimer(int seconds) {
+    _restTimer?.cancel();
+    setState(() {
+      _restSecondsRemaining = seconds;
+      _isRestTimerActive = true;
+    });
+
+    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_restSecondsRemaining <= 0) {
+        timer.cancel();
+        setState(() => _isRestTimerActive = false);
+        // Vibrate or play sound when timer ends
+        HapticFeedback.heavyImpact();
+      } else {
+        setState(() => _restSecondsRemaining--);
+      }
+    });
+  }
+
+  void _stopRestTimer() {
+    _restTimer?.cancel();
+    setState(() {
+      _isRestTimerActive = false;
+      _restSecondsRemaining = 0;
+    });
+  }
+
   @override
   void dispose() {
+    _restTimer?.cancel();
     _videoController?.close();
     super.dispose();
   }
@@ -620,6 +709,9 @@ class _CustomWorkoutExecutionScreenState
     }
 
     final currentExercise = widget.plan.exercises[_currentExerciseIndex];
+    final restSeconds = currentExercise.restSeconds > 0
+        ? currentExercise.restSeconds
+        : 60;
 
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
@@ -645,6 +737,50 @@ class _CustomWorkoutExecutionScreenState
               CleanTheme.primaryColor,
             ),
           ),
+
+          // Rest Timer Banner
+          if (_isRestTimerActive)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              color: CleanTheme.primaryColor,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.timer, color: Colors.white, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Riposo: ${_restSecondsRemaining}s',
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () =>
+                            _startRestTimer(_restSecondsRemaining + 30),
+                        child: const Text(
+                          '+30s',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.stop, color: Colors.white),
+                        onPressed: _stopRestTimer,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -660,6 +796,7 @@ class _CustomWorkoutExecutionScreenState
                     ),
                   ),
                   const SizedBox(height: 8),
+
                   // Exercise name
                   Text(
                     currentExercise.exercise.name,
@@ -670,6 +807,7 @@ class _CustomWorkoutExecutionScreenState
                     ),
                   ),
                   const SizedBox(height: 20),
+
                   // Video player
                   if (_videoController != null)
                     ClipRRect(
@@ -680,30 +818,22 @@ class _CustomWorkoutExecutionScreenState
                       ),
                     ),
                   const SizedBox(height: 24),
-                  // Sets and reps info
-                  CleanCard(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatColumn('Serie', '${currentExercise.sets}'),
-                        Container(
-                          height: 40,
-                          width: 1,
-                          color: CleanTheme.borderPrimary,
-                        ),
-                        _buildStatColumn('Rep', currentExercise.reps),
-                        Container(
-                          height: 40,
-                          width: 1,
-                          color: CleanTheme.borderPrimary,
-                        ),
-                        _buildStatColumn(
-                          'Riposo',
-                          '${currentExercise.restSeconds}s',
-                        ),
-                      ],
-                    ),
-                  ),
+
+                  // Set Logging Table Header
+                  _buildSetTableHeader(),
+                  const SizedBox(height: 8),
+
+                  // Set Rows
+                  ...List.generate(currentExercise.sets, (index) {
+                    final setNumber = index + 1;
+                    return _buildSetRow(
+                      setNumber,
+                      currentExercise,
+                      restSeconds,
+                    );
+                  }),
+
+                  // Notes
                   if (currentExercise.notes != null &&
                       currentExercise.notes!.isNotEmpty) ...[
                     const SizedBox(height: 16),
@@ -731,65 +861,55 @@ class _CustomWorkoutExecutionScreenState
               ),
             ),
           ),
+
           // Bottom navigation
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: CleanTheme.surfaceColor,
-              border: Border(top: BorderSide(color: CleanTheme.borderPrimary)),
+          _buildBottomNavigation(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSetTableHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 40), // Checkbox space
+          Expanded(flex: 1, child: Text('SET', style: _headerStyle())),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'PREC',
+              style: _headerStyle(),
+              textAlign: TextAlign.center,
             ),
-            child: Row(
-              children: [
-                if (_currentExerciseIndex > 0)
-                  Expanded(
-                    child: CleanButton(
-                      text: 'Precedente',
-                      icon: Icons.arrow_back,
-                      backgroundColor: CleanTheme.borderSecondary,
-                      textColor: CleanTheme.textPrimary,
-                      onPressed: () {
-                        setState(() {
-                          _currentExerciseIndex--;
-                          _videoController?.close();
-                          _initializeVideoIfAvailable();
-                        });
-                      },
-                    ),
-                  )
-                else
-                  const Spacer(),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CleanButton(
-                    text:
-                        _currentExerciseIndex < widget.plan.exercises.length - 1
-                        ? 'Prossimo'
-                        : 'Completa',
-                    icon:
-                        _currentExerciseIndex < widget.plan.exercises.length - 1
-                        ? Icons.arrow_forward
-                        : Icons.check,
-                    onPressed: () {
-                      if (_currentExerciseIndex <
-                          widget.plan.exercises.length - 1) {
-                        setState(() {
-                          _currentExerciseIndex++;
-                          _videoController?.close();
-                          _initializeVideoIfAvailable();
-                        });
-                      } else {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('🎉 ${widget.plan.name} completato!'),
-                            backgroundColor: CleanTheme.accentGreen,
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'KG',
+              style: _headerStyle(),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'REP',
+              style: _headerStyle(),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'RPE',
+              style: _headerStyle(),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -797,26 +917,370 @@ class _CustomWorkoutExecutionScreenState
     );
   }
 
-  Widget _buildStatColumn(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: CleanTheme.primaryColor,
-          ),
+  TextStyle _headerStyle() => GoogleFonts.outfit(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: CleanTheme.textSecondary,
+  );
+
+  Widget _buildSetRow(
+    int setNumber,
+    CustomWorkoutExercise exercise,
+    int restSeconds,
+  ) {
+    final setLog = _setData[_currentExerciseIndex]?[setNumber];
+    final prevData = _previousData[_currentExerciseIndex]?[setNumber];
+    final isCompleted = setLog?.isCompleted ?? false;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: isCompleted
+            ? CleanTheme.accentGreen.withValues(alpha: 0.1)
+            : CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCompleted
+              ? CleanTheme.accentGreen
+              : CleanTheme.borderPrimary,
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
+      ),
+      child: Row(
+        children: [
+          // Checkbox
+          SizedBox(
+            width: 40,
+            child: Checkbox(
+              value: isCompleted,
+              onChanged: (value) => _toggleSet(setNumber, value, restSeconds),
+              activeColor: CleanTheme.accentGreen,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
           ),
-        ),
-      ],
+
+          // Set number
+          Expanded(
+            flex: 1,
+            child: Text(
+              '$setNumber',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ),
+
+          // Previous data
+          Expanded(
+            flex: 2,
+            child: _loadingPrevious
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    prevData != null
+                        ? '${prevData['weight']}×${prevData['reps']}'
+                        : '-',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: CleanTheme.textTertiary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+          ),
+
+          // Weight input
+          Expanded(
+            flex: 2,
+            child: _buildNumberInput(
+              value: setLog?.weight ?? 0,
+              onChanged: (v) => setState(() => setLog?.weight = v),
+              suffix: '',
+            ),
+          ),
+
+          // Reps input
+          Expanded(
+            flex: 2,
+            child: _buildNumberInput(
+              value: (setLog?.reps ?? 0).toDouble(),
+              onChanged: (v) => setState(() => setLog?.reps = v.toInt()),
+              suffix: '',
+              isInt: true,
+            ),
+          ),
+
+          // RPE
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => _showRPEPicker(setNumber),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _getRPEColor(setLog?.rpe ?? 7).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${setLog?.rpe ?? 7}',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _getRPEColor(setLog?.rpe ?? 7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+  Widget _buildNumberInput({
+    required double value,
+    required ValueChanged<double> onChanged,
+    required String suffix,
+    bool isInt = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: () => onChanged(value > 0 ? value - (isInt ? 1 : 2.5) : 0),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              child: const Icon(
+                Icons.remove,
+                size: 16,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              isInt ? value.toInt().toString() : value.toStringAsFixed(1),
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => onChanged(value + (isInt ? 1 : 2.5)),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              child: const Icon(
+                Icons.add,
+                size: 16,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getRPEColor(int rpe) {
+    if (rpe <= 5) return Colors.green;
+    if (rpe <= 7) return Colors.orange;
+    if (rpe <= 8) return Colors.deepOrange;
+    return Colors.red;
+  }
+
+  void _toggleSet(int setNumber, bool? value, int restSeconds) {
+    setState(() {
+      _setData[_currentExerciseIndex]?[setNumber]?.isCompleted = value ?? false;
+    });
+
+    // Auto-start rest timer when completing a set
+    if (value == true) {
+      _startRestTimer(restSeconds);
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  void _showRPEPicker(int setNumber) {
+    final setLog = _setData[_currentExerciseIndex]?[setNumber];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CleanTheme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'RPE - Rate of Perceived Exertion',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Quanto è stato difficile questo set?',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(10, (index) {
+                final rpe = index + 1;
+                final isSelected = setLog?.rpe == rpe;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => setLog?.rpe = rpe);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: 60,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? _getRPEColor(rpe)
+                          : _getRPEColor(rpe).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '$rpe',
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? Colors.white
+                                : _getRPEColor(rpe),
+                          ),
+                        ),
+                        if (rpe == 10)
+                          Text(
+                            'MAX',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isSelected
+                                  ? Colors.white
+                                  : _getRPEColor(rpe),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation() {
+    final allSetsCompleted =
+        _setData[_currentExerciseIndex]?.values.every((s) => s.isCompleted) ??
+        false;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        border: Border(top: BorderSide(color: CleanTheme.borderPrimary)),
+      ),
+      child: Row(
+        children: [
+          if (_currentExerciseIndex > 0)
+            Expanded(
+              child: CleanButton(
+                text: 'Precedente',
+                icon: Icons.arrow_back,
+                backgroundColor: CleanTheme.borderSecondary,
+                textColor: CleanTheme.textPrimary,
+                onPressed: _goToPreviousExercise,
+              ),
+            )
+          else
+            const Spacer(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CleanButton(
+              text: _currentExerciseIndex < widget.plan.exercises.length - 1
+                  ? (allSetsCompleted ? 'Prossimo ✓' : 'Prossimo')
+                  : (allSetsCompleted ? 'Completa 🎉' : 'Completa'),
+              icon: _currentExerciseIndex < widget.plan.exercises.length - 1
+                  ? Icons.arrow_forward
+                  : Icons.check,
+              backgroundColor: allSetsCompleted
+                  ? CleanTheme.accentGreen
+                  : CleanTheme.primaryColor,
+              onPressed: _goToNextOrComplete,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _goToPreviousExercise() {
+    _stopRestTimer();
+    setState(() {
+      _currentExerciseIndex--;
+      _videoController?.close();
+      _initializeVideoIfAvailable();
+    });
+  }
+
+  void _goToNextOrComplete() {
+    _stopRestTimer();
+    if (_currentExerciseIndex < widget.plan.exercises.length - 1) {
+      setState(() {
+        _currentExerciseIndex++;
+        _videoController?.close();
+        _initializeVideoIfAvailable();
+      });
+    } else {
+      // TODO: Save workout log to backend
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🎉 ${widget.plan.name} completato!'),
+          backgroundColor: CleanTheme.accentGreen,
+        ),
+      );
+    }
+  }
+}
+
+/// Data class for tracking set logging
+class _SetLogData {
+  double weight;
+  int reps;
+  int rpe;
+  bool isCompleted;
+
+  _SetLogData({
+    this.weight = 0,
+    this.reps = 10,
+    this.rpe = 7,
+    this.isCompleted = false,
+  });
 }

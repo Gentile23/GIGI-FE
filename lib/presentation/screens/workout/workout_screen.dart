@@ -6,6 +6,7 @@ import '../../../data/models/workout_model.dart';
 import '../../../providers/workout_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
+import '../../../presentation/widgets/workout/set_logging_widget.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
@@ -778,13 +779,11 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
 
             const SizedBox(height: 32),
 
-            // Sets
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: currentExercise.sets,
-              itemBuilder: (context, setIndex) {
-                return _buildSetRow(setIndex, currentExercise);
+            // Sets - Use SetLoggingWidget for full logging
+            SetLoggingWidget(
+              exercise: currentExercise,
+              onCompletionChanged: (completed) {
+                // Optionally track overall exercise completion
               },
             ),
 

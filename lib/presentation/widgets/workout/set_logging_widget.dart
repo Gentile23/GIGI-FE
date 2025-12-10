@@ -250,14 +250,10 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           ),
         ),
 
-        // Sets
         ...List.generate(widget.exercise.sets, (index) {
           final setNumber = index + 1;
           return _buildSetRow(setNumber);
         }),
-
-        // Rest Timer Button
-        if (!_isRestTimerActive) _buildStartRestTimerButton(),
       ],
     );
   }
@@ -334,22 +330,6 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStartRestTimerButton() {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      child: OutlinedButton.icon(
-        onPressed: _startRestTimer,
-        icon: const Icon(Icons.timer_outlined, size: 18),
-        label: Text('Avvia Timer Recupero (${_defaultRestSeconds}s)'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: CleanTheme.accentBlue,
-          side: BorderSide(color: CleanTheme.accentBlue.withValues(alpha: 0.5)),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
       ),
     );
   }
