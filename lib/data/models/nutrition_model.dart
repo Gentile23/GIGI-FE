@@ -248,10 +248,36 @@ class DailyNutritionLog {
     return 0.0;
   }
 
+  static DateTime _parseDate(dynamic value) {
+    if (value == null) return DateTime.now();
+    if (value is DateTime) return value;
+    if (value is String) {
+      // Handle various date formats
+      try {
+        // First, clean up the string - take only the date part if malformed
+        String dateStr = value.trim();
+        // If it contains a space after the timezone, take only the first part
+        if (dateStr.contains('Z ')) {
+          dateStr = dateStr.split('Z ').first + 'Z';
+        }
+        // Try standard ISO parse
+        return DateTime.parse(dateStr);
+      } catch (_) {
+        // Fallback: try to extract just the date
+        try {
+          return DateTime.parse(value.substring(0, 10));
+        } catch (_) {
+          return DateTime.now();
+        }
+      }
+    }
+    return DateTime.now();
+  }
+
   factory DailyNutritionLog.fromJson(Map<String, dynamic> json) {
     return DailyNutritionLog(
-      id: json['id'],
-      logDate: DateTime.parse(json['log_date']),
+      id: json['id'] ?? 0,
+      logDate: _parseDate(json['log_date']),
       totalCalories: json['total_calories'] is String
           ? int.tryParse(json['total_calories']) ?? 0
           : (json['total_calories'] as num?)?.toInt() ?? 0,
