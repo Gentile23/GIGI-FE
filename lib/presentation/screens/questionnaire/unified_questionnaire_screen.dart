@@ -1103,8 +1103,8 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 8),
           Text(
             _injuries.isEmpty
-                ? 'Hai infortuni recenti o passati? Inserisci anche quelli passati se rilevanti.'
-                : 'Hai aggiunto ${_injuries.length} infortuni. Ne hai altri?',
+                ? 'Hai infortuni attuali o passati?\n\n💡 Inserisci anche infortuni PASSATI se potrebbero influenzare il tuo allenamento (es. vecchie fratture, interventi chirurgici, problemi cronici).'
+                : 'Hai aggiunto ${_injuries.length} infortuni. Vuoi aggiungerne altri?',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 48),
@@ -1165,8 +1165,8 @@ class _UnifiedQuestionnaireScreenState
                 const SizedBox(width: 16),
                 Text(
                   _injuries.isEmpty
-                      ? 'Sì, ho un infortunio'
-                      : 'Aggiungi un altro',
+                      ? 'Sì, ho un infortunio da segnalare'
+                      : 'Aggiungi un altro infortunio',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ],
@@ -1359,30 +1359,89 @@ class _UnifiedQuestionnaireScreenState
             const SizedBox(height: 24),
           ],
 
-          // Overcome status (only for past injuries)
+          // Overcome status (only for past injuries) - TWO SEPARATE BUTTONS
           if (_tempInjuryTiming == InjuryTiming.past) ...[
             Text(
-              'È stato superato?',
+              'Stato attuale dell\'infortunio',
               style: Theme.of(context).textTheme.displayMedium,
             ),
+            const SizedBox(height: 8),
+            Text(
+              'L\'infortunio è stato completamente superato?',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
+            // Button: Superato
             CleanCard(
-              isSelected: _tempInjuryOvercome,
-              onTap: () =>
-                  setState(() => _tempInjuryOvercome = !_tempInjuryOvercome),
+              isSelected: _tempInjuryOvercome == true,
+              onTap: () => setState(() => _tempInjuryOvercome = true),
               child: Row(
                 children: [
                   Icon(
-                    _tempInjuryOvercome ? Icons.check_circle : Icons.cancel,
-                    color: _tempInjuryOvercome ? Colors.green : Colors.orange,
+                    Icons.check_circle,
+                    color: _tempInjuryOvercome == true
+                        ? Colors.green
+                        : CleanTheme.textSecondary,
                     size: 28,
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    _tempInjuryOvercome
-                        ? 'Sì, superato'
-                        : 'No, ancora presente',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '✅ Superato',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: _tempInjuryOvercome == true
+                                    ? Colors.green
+                                    : CleanTheme.textPrimary,
+                              ),
+                        ),
+                        Text(
+                          'Non ho più problemi, ma meglio saperlo',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Button: Ancora Presente
+            CleanCard(
+              isSelected: _tempInjuryOvercome == false,
+              onTap: () => setState(() => _tempInjuryOvercome = false),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber,
+                    color: _tempInjuryOvercome == false
+                        ? Colors.orange
+                        : CleanTheme.textSecondary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '⚠️ Ancora presente',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: _tempInjuryOvercome == false
+                                    ? Colors.orange
+                                    : CleanTheme.textPrimary,
+                              ),
+                        ),
+                        Text(
+                          'Ho ancora fastidi o limitazioni',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
