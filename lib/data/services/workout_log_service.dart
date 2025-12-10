@@ -176,4 +176,23 @@ class WorkoutLogService extends ApiService {
       throw Exception('Failed to delete workout log');
     }
   }
+
+  /// Get last performance for an exercise (previous workout data)
+  Future<Map<String, dynamic>?> getExerciseLastPerformance(
+    String exerciseId,
+  ) async {
+    try {
+      final response = await get('exercises/$exerciseId/last-performance');
+
+      if (response['success'] == true && response['has_previous'] == true) {
+        return {
+          'workout_date': response['workout_date'],
+          'sets': response['sets'] as List,
+        };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }

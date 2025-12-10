@@ -640,20 +640,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         ),
         child: Stack(
           children: [
-            // Background Pattern
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.2,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/pattern_bg.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // Background Pattern (removed - asset doesn't exist)
+            // Could be replaced with a gradient or other decoration
 
             // Gradient Overlay
             Positioned.fill(

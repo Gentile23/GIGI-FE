@@ -171,6 +171,13 @@ class WorkoutLogProvider with ChangeNotifier {
     }
   }
 
+  /// Get last performance for an exercise (previous workout data)
+  Future<Map<String, dynamic>?> getExerciseLastPerformance(
+    String exerciseId,
+  ) async {
+    return await _logService.getExerciseLastPerformance(exerciseId);
+  }
+
   // Helper to update local state deeply
   void _updateLocalSetLog(String exerciseLogId, SetLogModel setLog) {
     if (_currentWorkoutLog == null) return;
