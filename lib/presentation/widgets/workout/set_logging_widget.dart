@@ -171,90 +171,152 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     });
   }
 
+  // Get color based on exercise type
+  Color _getExerciseTypeColor() {
+    switch (widget.exercise.exerciseType) {
+      case 'cardio':
+        return const Color(0xFFFF6B35); // Orange for cardio
+      case 'mobility':
+        return const Color(0xFF26A69A); // Teal for mobility
+      case 'warmup':
+        return const Color(0xFFFFB74D); // Amber for warmup
+      default:
+        return CleanTheme.primaryColor; // Default blue for strength
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (_showCoachingControls) _buildCoachingControls(),
+    final typeColor = _getExerciseTypeColor();
+    final isSpecialType = widget.exercise.exerciseType != 'strength';
 
-        // Rest Timer (if active)
-        if (_isRestTimerActive) _buildRestTimerWidget(),
+    return Container(
+      decoration: isSpecialType
+          ? BoxDecoration(
+              color: typeColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: typeColor.withValues(alpha: 0.3)),
+            )
+          : null,
+      padding: isSpecialType ? const EdgeInsets.all(12) : EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Exercise Type Badge
+          if (isSpecialType)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: typeColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    widget.exercise.exerciseType == 'cardio'
+                        ? Icons.directions_run
+                        : widget.exercise.exerciseType == 'mobility'
+                        ? Icons.self_improvement
+                        : Icons.whatshot,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    widget.exercise.exerciseType.toUpperCase(),
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 32,
-                child: Text(
-                  'SET',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textSecondary,
+          if (_showCoachingControls) _buildCoachingControls(),
+
+          // Rest Timer (if active)
+          if (_isRestTimerActive) _buildRestTimerWidget(),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 32,
+                  child: Text(
+                    'SET',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                width: 55,
-                child: Text(
-                  'PREC.',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: CleanTheme.textTertiary,
+                SizedBox(
+                  width: 55,
+                  child: Text(
+                    'PREC.',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: CleanTheme.textTertiary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              SizedBox(
-                width: 55,
-                child: Text(
-                  'KG',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textSecondary,
+                SizedBox(
+                  width: 55,
+                  child: Text(
+                    'KG',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(width: 6),
-              SizedBox(
-                width: 50,
-                child: Text(
-                  'REPS',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textSecondary,
+                const SizedBox(width: 6),
+                SizedBox(
+                  width: 50,
+                  child: Text(
+                    'REPS',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(width: 6),
-              SizedBox(
-                width: 45,
-                child: Text(
-                  'RPE',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textSecondary,
+                const SizedBox(width: 6),
+                SizedBox(
+                  width: 45,
+                  child: Text(
+                    'RPE',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(width: 28),
-            ],
+                const SizedBox(width: 28),
+              ],
+            ),
           ),
-        ),
 
-        ...List.generate(widget.exercise.sets, (index) {
-          final setNumber = index + 1;
-          return _buildSetRow(setNumber);
-        }),
-      ],
+          ...List.generate(widget.exercise.sets, (index) {
+            final setNumber = index + 1;
+            return _buildSetRow(setNumber);
+          }),
+        ],
+      ),
     );
   }
 
