@@ -133,10 +133,28 @@ class WorkoutService {
     required UserProfile profile,
   }) async {
     try {
-      // Generate plan using OpenAI
+      // Fetch latest body measurements for personalization
+      Map<String, dynamic>? bodyMeasurements;
+      try {
+        final measurementsResponse = await _apiClient.dio.get(
+          '/progress/measurements',
+        );
+        if (measurementsResponse.statusCode == 200 &&
+            measurementsResponse.data['success'] == true &&
+            measurementsResponse.data['latest'] != null) {
+          bodyMeasurements =
+              measurementsResponse.data['latest'] as Map<String, dynamic>;
+          debugPrint('DEBUG: Found body measurements for AI personalization');
+        }
+      } catch (e) {
+        debugPrint('DEBUG: No body measurements found, continuing without: $e');
+      }
+
+      // Generate plan using OpenAI with body measurements
       final aiResponse = await _openAIService.generateWorkoutPlan(
         user: user,
         profile: profile,
+        bodyMeasurements: bodyMeasurements,
       );
 
       // Convert OpenAI response to WorkoutPlan model
@@ -145,7 +163,12 @@ class WorkoutService {
       // Create WorkoutPlan from AI response
       final plan = _convertAIResponseToWorkoutPlan(workoutPlanData, user.id);
 
-      return {'success': true, 'plan': plan, 'aiGenerated': true};
+      return {
+        'success': true,
+        'plan': plan,
+        'aiGenerated': true,
+        'usedMeasurements': bodyMeasurements != null,
+      };
     } catch (e) {
       return {'success': false, 'message': 'Failed to generate AI plan: $e'};
     }

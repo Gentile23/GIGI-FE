@@ -5,6 +5,8 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
+import '../progress/body_measurements_screen.dart';
+import '../progress/progress_photos_screen.dart';
 
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -420,10 +422,30 @@ class _UnifiedQuestionnaireScreenState
 
       if (success) {
         if (mounted) {
-          // Navigate to MainScreen (Dashboard) instead of TrialWorkoutChoiceScreen
-          Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil('/main', (route) => false);
+          // Navigate to BodyMeasurementsScreen first, then to main
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => BodyMeasurementsScreen(
+                isOnboarding: true,
+                onComplete: () {
+                  // After measurements, go to photos
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => ProgressPhotosScreen(
+                        isOnboarding: true,
+                        onComplete: () {
+                          // After photos, go to main screen
+                          Navigator.of(
+                            context,
+                          ).pushNamedAndRemoveUntil('/main', (route) => false);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
         }
       } else {
         if (mounted) {
