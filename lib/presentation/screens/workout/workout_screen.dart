@@ -7,6 +7,7 @@ import '../../../providers/workout_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../presentation/widgets/workout/set_logging_widget.dart';
+import '../../../presentation/widgets/workout/anatomical_muscle_view.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
@@ -728,34 +729,24 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Video Player
-            if (_videoController != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: YoutubePlayer(
-                    controller: _videoController!,
-                    aspectRatio: 16 / 9,
-                  ),
-                ),
-              )
-            else
-              Container(
-                height: 200,
+            // Anatomical Muscle View
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 220,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: CleanTheme.borderSecondary,
+                  color: CleanTheme.surfaceColor,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: CleanTheme.borderPrimary),
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.play_circle_outline,
-                    size: 48,
-                    color: CleanTheme.textTertiary,
-                  ),
+                child: AnatomicalMuscleView(
+                  muscleGroups: currentExercise.exercise.muscleGroups,
+                  height: 200,
+                  highlightColor: CleanTheme.primaryColor,
                 ),
               ),
+            ),
 
             const SizedBox(height: 24),
 

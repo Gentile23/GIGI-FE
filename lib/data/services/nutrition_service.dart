@@ -307,4 +307,122 @@ class NutritionService {
       return false;
     }
   }
+
+  /// Calculate TDEE based on user data
+  Future<Map<String, dynamic>?> calculateTDEE({
+    required double weightKg,
+    required double heightCm,
+    required int age,
+    required String gender,
+    required String activityLevel,
+    required String goalType,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/nutrition/tdee/calculate',
+        data: {
+          'weight_kg': weightKg,
+          'height_cm': heightCm,
+          'age': age,
+          'gender': gender,
+          'activity_level': activityLevel,
+          'goal_type': goalType,
+        },
+      );
+      return response.data;
+    } catch (e) {
+      debugPrint('Error calculating TDEE: $e');
+      return null;
+    }
+  }
+
+  /// Set comprehensive nutrition goals
+  Future<bool> setComprehensiveGoals({
+    required int dailyCalories,
+    required int proteinGrams,
+    required int carbsGrams,
+    required int fatGrams,
+    required String goalType,
+    String? dietType,
+    int? waterGoalMl,
+  }) async {
+    try {
+      await _apiClient.dio.post(
+        '/nutrition/goals/comprehensive',
+        data: {
+          'daily_calories': dailyCalories,
+          'protein_grams': proteinGrams,
+          'carbs_grams': carbsGrams,
+          'fat_grams': fatGrams,
+          'goal_type': goalType,
+          if (dietType != null) 'diet_type': dietType,
+          if (waterGoalMl != null) 'water_goal_ml': waterGoalMl,
+        },
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error setting comprehensive goals: $e');
+      return false;
+    }
+  }
+
+  /// Get smart meal suggestions based on remaining macros
+  Future<Map<String, dynamic>?> getSmartSuggestions() async {
+    try {
+      final response = await _apiClient.dio.get('/nutrition/suggestions');
+      return response.data;
+    } catch (e) {
+      debugPrint('Error getting smart suggestions: $e');
+      return null;
+    }
+  }
+
+  /// What to cook - AI recipe suggestions based on ingredients
+  Future<Map<String, dynamic>?> whatToCook({
+    required List<String> ingredients,
+    int? maxTimeMinutes,
+    String? dietType,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/nutrition/what-to-cook',
+        data: {
+          'ingredients': ingredients,
+          if (maxTimeMinutes != null) 'max_time_minutes': maxTimeMinutes,
+          if (dietType != null) 'diet_type': dietType,
+        },
+      );
+      return response.data;
+    } catch (e) {
+      debugPrint('Error getting what to cook: $e');
+      return null;
+    }
+  }
+
+  /// Search foods database
+  Future<List<Map<String, dynamic>>?> searchFoods(String query) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/nutrition/foods/search',
+        queryParameters: {'query': query},
+      );
+      return List<Map<String, dynamic>>.from(response.data['results'] ?? []);
+    } catch (e) {
+      debugPrint('Error searching foods: $e');
+      return null;
+    }
+  }
+
+  /// Get recent foods logged by user
+  Future<List<Map<String, dynamic>>?> getRecentFoods() async {
+    try {
+      final response = await _apiClient.dio.get('/nutrition/foods/recent');
+      return List<Map<String, dynamic>>.from(
+        response.data['recent_foods'] ?? [],
+      );
+    } catch (e) {
+      debugPrint('Error getting recent foods: $e');
+      return null;
+    }
+  }
 }
