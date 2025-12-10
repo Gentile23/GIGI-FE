@@ -23,6 +23,7 @@ class AnatomicalMuscleView extends StatefulWidget {
 
 class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   String? _svgContent;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -60,9 +61,13 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       _highlightMusclesInXml(document, elementsToHighlight, highlightHex);
       setState(() {
         _svgContent = document.toXmlString();
+        _hasError = false;
       });
     } catch (e) {
       debugPrint('Error loading SVG: $e');
+      setState(() {
+        _hasError = true;
+      });
     }
   }
 
@@ -177,6 +182,33 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
 
   @override
   Widget build(BuildContext context) {
+    // Show fallback when SVG fails to load
+    if (_hasError) {
+      return Container(
+        height: widget.height,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.fitness_center, size: 48, color: widget.highlightColor),
+            const SizedBox(height: 8),
+            Text(
+              widget.muscleGroups.join(', '),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: widget.highlightColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (_svgContent == null) {
       return Container(
         height: widget.height,

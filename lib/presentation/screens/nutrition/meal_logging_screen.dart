@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,7 +26,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   final _fatController = TextEditingController();
 
   bool _isSubmitting = false;
-  File? _imageFile;
+  XFile? _imageFile;
+  Uint8List? _imageBytes; // For web display
   final ImagePicker _picker = ImagePicker();
   int? _createdMealId;
 
@@ -65,8 +66,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       );
 
       if (pickedFile != null) {
+        // Read bytes for web display
+        final bytes = await pickedFile.readAsBytes();
+
         setState(() {
-          _imageFile = File(pickedFile.path);
+          _imageFile = pickedFile;
+          _imageBytes = bytes;
           _isSubmitting = true;
         });
 
@@ -300,13 +305,13 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               _buildMealTypeSelector(),
               const SizedBox(height: 24),
 
-              if (_imageFile != null)
+              if (_imageBytes != null)
                 Stack(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: Image.file(
-                        _imageFile!,
+                      child: Image.memory(
+                        _imageBytes!,
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -319,6 +324,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         icon: Icons.close,
                         onTap: () => setState(() {
                           _imageFile = null;
+                          _imageBytes = null;
                           _createdMealId = null;
                           _foodNameController.clear();
                           _caloriesController.clear();
