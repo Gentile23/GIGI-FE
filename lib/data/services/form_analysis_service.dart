@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/form_analysis_model.dart';
 import 'api_client.dart';
 
@@ -21,17 +22,30 @@ class FormAnalysisService {
 
   /// Submit video for analysis
   Future<FormAnalysis?> analyzeVideo({
-    required String videoPath,
+    required XFile videoFile,
     required String exerciseName,
     int? exerciseId,
     Function(int, int)? onProgress,
   }) async {
     try {
-      final formData = FormData.fromMap({
-        'video': await MultipartFile.fromFile(
-          videoPath,
+      MultipartFile videoPart;
+
+      if (kIsWeb) {
+        // On Web, use bytes
+        videoPart = MultipartFile.fromBytes(
+          await videoFile.readAsBytes(),
           filename: 'exercise_video.mp4',
-        ),
+        );
+      } else {
+        // On Mobile/Desktop, use file path
+        videoPart = await MultipartFile.fromFile(
+          videoFile.path,
+          filename: 'exercise_video.mp4',
+        );
+      }
+
+      final formData = FormData.fromMap({
+        'video': videoPart,
         'exercise_name': exerciseName,
         if (exerciseId != null) 'exercise_id': exerciseId,
       });

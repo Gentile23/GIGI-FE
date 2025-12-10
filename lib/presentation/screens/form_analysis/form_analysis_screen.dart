@@ -25,7 +25,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   final TextEditingController _exerciseController = TextEditingController();
 
   FormAnalysisQuota? _quota;
-  File? _videoFile;
+  XFile? _videoFile;
   bool _isLoading = false;
   bool _isAnalyzing = false;
   double _uploadProgress = 0.0;
@@ -62,8 +62,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       );
 
       if (pickedFile != null) {
-        final file = File(pickedFile.path);
-        final fileSize = await file.length();
+        // Use XFile.length() which works on Web too
+        final fileSize = await pickedFile.length();
 
         if (fileSize > 50 * 1024 * 1024) {
           if (mounted) {
@@ -77,7 +77,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           return;
         }
 
-        setState(() => _videoFile = file);
+        setState(() => _videoFile = pickedFile);
       }
     } catch (e) {
       if (mounted) {
@@ -110,7 +110,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
     try {
       final analysis = await _service.analyzeVideo(
-        videoPath: _videoFile!.path,
+        videoFile: _videoFile!,
         exerciseName: _exerciseController.text,
         exerciseId: widget.exerciseId,
         onProgress: (sent, total) {

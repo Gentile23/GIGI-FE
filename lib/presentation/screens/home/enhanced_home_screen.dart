@@ -197,7 +197,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             Expanded(
                               child: _buildActionCard(
                                 Icons.edit_note_rounded,
-                                'Custom',
+                                'Le Mie Schede',
                                 const Color(0xFF9B59B6),
                                 () {
                                   HapticService.lightTap();
@@ -1130,6 +1130,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     int duration = 30;
     String difficulty = 'Intermedio';
     String equipment = 'Corpo Libero';
+    final parentContext = context;
 
     showModalBottomSheet(
       context: context,
@@ -1138,7 +1139,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      builder: (context) => StatefulBuilder(
+      builder: (modalContext) => StatefulBuilder(
         builder: (context, setStateModal) => DraggableScrollableSheet(
           initialChildSize: 0.6,
           minChildSize: 0.4,
@@ -1332,14 +1333,14 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () async {
-                      Navigator.pop(context); // Close modal
+                      Navigator.pop(modalContext); // Close modal
 
                       final provider = Provider.of<WorkoutProvider>(
-                        context,
+                        parentContext,
                         listen: false,
                       );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(parentContext).showSnackBar(
                         const SnackBar(
                           content: Text(
                             'Generazione piano personalizzato... 🤖',
@@ -1358,7 +1359,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       if (mounted) {
                         if (success) _loadData(); // Refresh UI
 
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(parentContext).showSnackBar(
                           SnackBar(
                             content: Text(
                               success
