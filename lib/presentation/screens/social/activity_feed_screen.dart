@@ -21,7 +21,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
     // Load data from provider
     WidgetsBinding.instance.addPostFrameCallback((_) {

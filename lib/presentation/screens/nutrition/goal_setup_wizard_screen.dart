@@ -24,7 +24,6 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
   double _weight = 70;
   double _height = 175;
   int _age = 30;
-  String _activityLevel = 'moderate';
   String _dietType = 'standard';
 
   // Calculated results
@@ -72,7 +71,6 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
               children: [
                 _buildGoalStep(),
                 _buildBodyInfoStep(),
-                _buildActivityStep(),
                 _buildDietStep(),
                 _buildResultStep(),
               ],
@@ -87,7 +85,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
-        children: List.generate(5, (index) {
+        children: List.generate(4, (index) {
           final isActive = index <= _currentStep;
           return Expanded(
             child: Container(
@@ -330,110 +328,6 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     );
   }
 
-  Widget _buildActivityStep() {
-    return _buildStepContainer(
-      title: '🏃 Livello di attività',
-      subtitle: 'Quanto ti muovi durante la settimana?',
-      child: Column(
-        children: [
-          _buildActivityOption(
-            'sedentary',
-            '🛋️',
-            'Sedentario',
-            'Poco o nessun esercizio',
-          ),
-          _buildActivityOption(
-            'light',
-            '🚶',
-            'Leggero',
-            'Esercizio 1-3 giorni/settimana',
-          ),
-          _buildActivityOption(
-            'moderate',
-            '🏃',
-            'Moderato',
-            'Esercizio 3-5 giorni/settimana',
-          ),
-          _buildActivityOption(
-            'active',
-            '💪',
-            'Attivo',
-            'Esercizio 6-7 giorni/settimana',
-          ),
-          _buildActivityOption(
-            'very_active',
-            '🔥',
-            'Molto attivo',
-            'Intenso, lavoro fisico',
-          ),
-        ],
-      ),
-      onNext: () => _goToStep(3),
-      onBack: () => _goToStep(1),
-    );
-  }
-
-  Widget _buildActivityOption(
-    String value,
-    String emoji,
-    String title,
-    String subtitle,
-  ) {
-    final isSelected = _activityLevel == value;
-    return GestureDetector(
-      onTap: () => setState(() => _activityLevel = value),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-              : CleanTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? CleanTheme.primaryColor
-                : CleanTheme.borderPrimary,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: CleanTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: CleanTheme.primaryColor,
-                size: 20,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildDietStep() {
     return _buildStepContainer(
       title: '🥗 Tipo di dieta',
@@ -459,7 +353,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         ],
       ),
       onNext: _calculateAndShowResults,
-      onBack: () => _goToStep(2),
+      onBack: () => _goToStep(1),
     );
   }
 
@@ -605,7 +499,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       ),
       onNext: _saveGoals,
       nextLabel: 'Salva Obiettivi',
-      onBack: () => _goToStep(3),
+      onBack: () => _goToStep(2),
     );
   }
 
@@ -747,7 +641,6 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         heightCm: _height,
         age: _age,
         gender: _gender,
-        activityLevel: _activityLevel,
         goalType: _goalType,
       );
 
@@ -756,7 +649,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
           _tdeeResult = result;
           _isLoading = false;
         });
-        _goToStep(4);
+        _goToStep(3);
       }
     } catch (e) {
       if (mounted) {

@@ -308,13 +308,12 @@ class NutritionService {
     }
   }
 
-  /// Calculate TDEE based on user data
+  /// Calculate TDEE based on user data (activity level is auto-calculated from workout history)
   Future<Map<String, dynamic>?> calculateTDEE({
     required double weightKg,
     required double heightCm,
     required int age,
     required String gender,
-    required String activityLevel,
     required String goalType,
   }) async {
     try {
@@ -325,7 +324,6 @@ class NutritionService {
           'height_cm': heightCm,
           'age': age,
           'gender': gender,
-          'activity_level': activityLevel,
           'goal_type': goalType,
         },
       );
