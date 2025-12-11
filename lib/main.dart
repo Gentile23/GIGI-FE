@@ -5,6 +5,7 @@ import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
 import 'presentation/screens/main_screen.dart';
+import 'presentation/screens/progress/progress_dashboard_screen.dart';
 import 'data/services/api_client.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workout_provider.dart';
@@ -44,6 +45,7 @@ class GigiApp extends StatelessWidget {
           '/auth': (context) => const AuthScreen(),
           '/questionnaire': (context) => const UnifiedQuestionnaireScreen(),
           '/main': (context) => const MainScreen(),
+          '/progress': (context) => const ProgressDashboardScreen(),
         },
       ),
     );

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../widgets/clean_widgets.dart';
+import '../../../providers/auth_provider.dart';
 
 class GoalSetupWizardScreen extends StatefulWidget {
   const GoalSetupWizardScreen({super.key});
@@ -17,8 +18,9 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
   bool _isLoading = false;
+  bool _dataLoaded = false;
 
-  // Form data
+  // Form data - will be loaded from user profile
   String _goalType = 'maintain';
   String _gender = 'male';
   double _weight = 70;
@@ -29,10 +31,52 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
   // Calculated results
   Map<String, dynamic>? _tdeeResult;
 
+  // Steps: 0=Goal, 1=Diet, 2=Results (bodyInfo data comes from profile)
+  static const int _totalSteps = 3;
+
   @override
   void initState() {
     super.initState();
     _nutritionService = NutritionService(ApiClient());
+    _loadUserDataFromProfile();
+  }
+
+  void _loadUserDataFromProfile() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+
+      if (user != null) {
+        setState(() {
+          // Load existing data from user profile
+          if (user.height != null && user.height! > 0) {
+            _height = user.height!.toDouble();
+          }
+          if (user.weight != null && user.weight! > 0) {
+            _weight = user.weight!.toDouble();
+          }
+          // Calculate age from dateOfBirth
+          if (user.dateOfBirth != null) {
+            final now = DateTime.now();
+            int calculatedAge = now.year - user.dateOfBirth!.year;
+            if (now.month < user.dateOfBirth!.month ||
+                (now.month == user.dateOfBirth!.month &&
+                    now.day < user.dateOfBirth!.day)) {
+              calculatedAge--;
+            }
+            if (calculatedAge > 0) {
+              _age = calculatedAge;
+            }
+          }
+          if (user.gender != null && user.gender!.isNotEmpty) {
+            _gender = user.gender!.toLowerCase();
+          }
+          _dataLoaded = true;
+        });
+      } else {
+        setState(() => _dataLoaded = true);
+      }
+    });
   }
 
   @override
@@ -43,6 +87,15 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_dataLoaded) {
+      return Scaffold(
+        backgroundColor: CleanTheme.backgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
@@ -59,10 +112,13 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       ),
       body: Column(
         children: [
+          // User data summary card
+          _buildUserDataSummary(),
+
           // Step indicator
           _buildStepIndicator(),
 
-          // Pages
+          // Pages - Only 3 steps now (Goal, Diet, Results)
           Expanded(
             child: PageView(
               controller: _pageController,
@@ -70,10 +126,43 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
               onPageChanged: (index) => setState(() => _currentStep = index),
               children: [
                 _buildGoalStep(),
-                _buildBodyInfoStep(),
                 _buildDietStep(),
                 _buildResultStep(),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows a summary of data loaded from user profile
+  Widget _buildUserDataSummary() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CleanTheme.accentGreen.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle,
+            color: CleanTheme.accentGreen,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Dati dal profilo: ${_height.toInt()} cm • ${_weight.toInt()} kg • $_age anni',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textPrimary,
+              ),
             ),
           ),
         ],
@@ -85,7 +174,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
-        children: List.generate(4, (index) {
+        children: List.generate(_totalSteps, (index) {
           final isActive = index <= _currentStep;
           return Expanded(
             child: Container(
@@ -198,136 +287,6 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     );
   }
 
-  Widget _buildBodyInfoStep() {
-    return _buildStepContainer(
-      title: '📊 I tuoi dati',
-      subtitle: 'Inserisci le tue informazioni di base',
-      child: Column(
-        children: [
-          // Gender
-          Row(
-            children: [
-              Expanded(child: _buildGenderOption('male', '👨', 'Uomo')),
-              const SizedBox(width: 12),
-              Expanded(child: _buildGenderOption('female', '👩', 'Donna')),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Weight
-          _buildSliderRow(
-            'Peso',
-            '${_weight.toInt()} kg',
-            40,
-            150,
-            _weight,
-            (v) => setState(() => _weight = v),
-          ),
-          const SizedBox(height: 16),
-
-          // Height
-          _buildSliderRow(
-            'Altezza',
-            '${_height.toInt()} cm',
-            140,
-            220,
-            _height,
-            (v) => setState(() => _height = v),
-          ),
-          const SizedBox(height: 16),
-
-          // Age
-          _buildSliderRow(
-            'Età',
-            '$_age anni',
-            14,
-            80,
-            _age.toDouble(),
-            (v) => setState(() => _age = v.toInt()),
-          ),
-        ],
-      ),
-      onNext: () => _goToStep(2),
-      onBack: () => _goToStep(0),
-    );
-  }
-
-  Widget _buildGenderOption(String value, String emoji, String label) {
-    final isSelected = _gender == value;
-    return GestureDetector(
-      onTap: () => setState(() => _gender = value),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-              : CleanTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? CleanTheme.primaryColor
-                : CleanTheme.borderPrimary,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 36)),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? CleanTheme.primaryColor
-                    : CleanTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliderRow(
-    String label,
-    String value,
-    double min,
-    double max,
-    double current,
-    ValueChanged<double> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-            Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.primaryColor,
-              ),
-            ),
-          ],
-        ),
-        Slider(
-          value: current,
-          min: min,
-          max: max,
-          activeColor: CleanTheme.primaryColor,
-          inactiveColor: CleanTheme.borderSecondary,
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-
   Widget _buildDietStep() {
     return _buildStepContainer(
       title: '🥗 Tipo di dieta',
@@ -353,7 +312,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         ],
       ),
       onNext: _calculateAndShowResults,
-      onBack: () => _goToStep(1),
+      onBack: () => _goToStep(0),
     );
   }
 

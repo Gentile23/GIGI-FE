@@ -3,7 +3,7 @@ import 'home/enhanced_home_screen.dart';
 import 'workout/unified_workout_list_screen.dart';
 import 'nutrition/nutrition_dashboard_screen.dart';
 import 'social/activity_feed_screen.dart';
-import 'gamification/gamification_screen.dart';
+import 'progress/progress_dashboard_screen.dart';
 import 'profile/profile_screen.dart';
 import '../../core/theme/clean_theme.dart';
 import '../../core/services/haptic_service.dart';
@@ -28,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     UnifiedWorkoutListScreen(), // Tab 1: Workout
     NutritionDashboardScreen(), // Tab 2: Nutrition
     ActivityFeedScreen(), // Tab 3: Social
-    GamificationScreen(), // Tab 4: Rewards
+    ProgressDashboardScreen(), // Tab 4: Progress (was Rewards)
     ProfileScreen(), // Tab 5: Profile
   ];
 
@@ -75,9 +75,9 @@ class _MainScreenState extends State<MainScreen> {
                 label: 'Social',
               ),
               FloatingNavItem(
-                icon: Icons.emoji_events_outlined,
-                activeIcon: Icons.emoji_events,
-                label: 'Rewards',
+                icon: Icons.trending_up_outlined,
+                activeIcon: Icons.trending_up,
+                label: 'Progressi',
               ),
               FloatingNavItem(
                 icon: Icons.person_outline,

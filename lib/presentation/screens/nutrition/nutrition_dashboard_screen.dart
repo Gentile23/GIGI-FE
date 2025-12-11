@@ -720,7 +720,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   ),
                 ),
                 Text(
-                  '${meal.totalCalories} kcal • P:${meal.proteinGrams?.toInt() ?? 0}g C:${meal.carbsGrams?.toInt() ?? 0}g F:${meal.fatGrams?.toInt() ?? 0}g',
+                  '${meal.totalCalories} kcal • P:${meal.proteinGrams.toInt()}g C:${meal.carbsGrams.toInt()}g F:${meal.fatGrams.toInt()}g',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: CleanTheme.textSecondary,

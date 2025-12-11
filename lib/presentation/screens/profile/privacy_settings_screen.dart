@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../data/services/api_client.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
@@ -15,6 +16,7 @@ class PrivacySettingsScreen extends StatefulWidget {
 }
 
 class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
+  final ApiClient _apiClient = ApiClient();
   bool _notificationsEnabled = true;
   bool _marketingEnabled = false;
   bool _analyticsEnabled = true;
@@ -348,17 +350,23 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     setState(() => _isExporting = true);
 
     try {
-      // TODO: Call backend API to export data
-      await Future.delayed(const Duration(seconds: 2));
+      final response = await _apiClient.get('/gdpr/export');
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'I tuoi dati verranno inviati via email entro 24 ore.',
+      if (response != null && response['success'] == true) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                response['message'] ??
+                    'I tuoi dati verranno inviati via email entro 24 ore.',
+              ),
+              backgroundColor: CleanTheme.primaryColor,
             ),
-            backgroundColor: CleanTheme.primaryColor,
-          ),
+          );
+        }
+      } else {
+        throw Exception(
+          response?['message'] ?? 'Errore durante l\'esportazione',
         );
       }
     } catch (e) {
@@ -453,16 +461,21 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     setState(() => _isDeleting = true);
 
     try {
-      // TODO: Call backend API to delete account
-      await Future.delayed(const Duration(seconds: 2));
+      final response = await _apiClient.delete('/gdpr/account');
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.logout();
+      if (response != null && response['success'] == true) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.logout();
 
-      if (mounted) {
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/auth', (route) => false);
+        if (mounted) {
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/auth', (route) => false);
+        }
+      } else {
+        throw Exception(
+          response?['message'] ?? 'Errore durante l\'eliminazione',
+        );
       }
     } catch (e) {
       if (mounted) {

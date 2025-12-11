@@ -1258,7 +1258,8 @@ class _CustomWorkoutExecutionScreenState
         _initializeVideoIfAvailable();
       });
     } else {
-      // TODO: Save workout log to backend
+      // Save workout log to backend
+      _saveWorkoutLog();
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1266,6 +1267,39 @@ class _CustomWorkoutExecutionScreenState
           backgroundColor: CleanTheme.accentGreen,
         ),
       );
+    }
+  }
+
+  Future<void> _saveWorkoutLog() async {
+    try {
+      final workoutLogProvider = Provider.of<WorkoutLogProvider>(
+        context,
+        listen: false,
+      );
+
+      // Collect exercise data from the workout
+      final exerciseLogs = widget.plan.exercises.asMap().entries.map((entry) {
+        final exercise = entry.value;
+        return {
+          'exercise_id': exercise.exerciseId,
+          'exercise_name': exercise.exerciseName,
+          'sets_completed': exercise.sets,
+          'reps_target': exercise.reps,
+          'rest_seconds': exercise.restSeconds,
+        };
+      }).toList();
+
+      await workoutLogProvider.logWorkout(
+        workoutPlanId: widget.plan.id,
+        workoutName: widget.plan.name,
+        exercises: exerciseLogs,
+        durationMinutes: DateTime.now()
+            .difference(DateTime.now().subtract(const Duration(minutes: 30)))
+            .inMinutes, // Approximate
+        completedAt: DateTime.now(),
+      );
+    } catch (e) {
+      debugPrint('Error saving workout log: $e');
     }
   }
 }

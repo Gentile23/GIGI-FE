@@ -6,7 +6,9 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../presentation/widgets/addiction_mechanics_widgets.dart';
 import '../../../presentation/widgets/onboarding_overlay.dart';
+import '../../../presentation/widgets/progress/progress_summary_widget.dart';
 import '../../../data/models/addiction_mechanics_model.dart';
+import '../../../data/services/api_client.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
@@ -27,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
   final List<String> _categories = ['Tutti', 'Forza', 'Cardio', 'Mobilità'];
 
+  // Progress data
+  Map<String, dynamic>? _progressData;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       gamificationProvider.refresh();
 
+      // Load progress data
+      _loadProgressData();
+
       workoutProvider.onGenerationComplete = () {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -57,6 +65,20 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       };
     });
+  }
+
+  Future<void> _loadProgressData() async {
+    try {
+      final apiClient = ApiClient();
+      final response = await apiClient.dio.get('/progress/summary');
+      if (mounted && response.data['success'] == true) {
+        setState(() {
+          _progressData = response.data['summary'];
+        });
+      }
+    } catch (e) {
+      debugPrint('Could not load progress data: $e');
+    }
   }
 
   Future<void> _checkFirstTimeUser() async {
@@ -401,6 +423,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // ═══════════════════════════════════════════
+                  // SECTION: I Tuoi Progressi
+                  // ═══════════════════════════════════════════
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CleanSectionHeader(
+                      title: 'I tuoi progressi',
+                      actionText: 'Dashboard',
+                      onAction: () => Navigator.pushNamed(context, '/progress'),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ProgressSummaryWidget(
+                      latestMeasurements: _progressData?['latest_measurements'],
+                      changes: _progressData?['changes'],
+                      streak: _progressData?['streak'] ?? 0,
+                      totalMeasurements:
+                          _progressData?['total_measurements'] ?? 0,
                     ),
                   ),
 

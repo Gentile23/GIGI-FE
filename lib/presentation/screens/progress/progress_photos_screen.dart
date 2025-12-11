@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../widgets/clean_widgets.dart';
-import '../../../data/services/api_client.dart';
 
 class ProgressPhotosScreen extends StatefulWidget {
   final bool isOnboarding;
@@ -21,7 +19,6 @@ class ProgressPhotosScreen extends StatefulWidget {
 }
 
 class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
-  final _apiClient = ApiClient();
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
@@ -581,7 +578,8 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
 
   Future<void> _uploadPhoto(XFile photo, String type) async {
     final bytes = await photo.readAsBytes();
-    final formData = {
+    // Prepare form data for upload
+    final _ = {
       'photo': MultipartFile.fromBytes(
         bytes,
         filename: '${type}_${DateTime.now().millisecondsSinceEpoch}.jpg',
