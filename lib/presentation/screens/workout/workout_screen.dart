@@ -817,6 +817,7 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
               ],
             ),
           ],
+        ),
       ),
     );
   }

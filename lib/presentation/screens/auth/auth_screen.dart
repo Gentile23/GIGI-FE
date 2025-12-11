@@ -94,7 +94,7 @@ class _AuthScreenState extends State<AuthScreen>
                       child: Image.asset(
                         'assets/images/gigi_new_logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Text(
+                        errorBuilder: (context, error, stackTrace) => Text(
                           'GIGI',
                           style: GoogleFonts.outfit(
                             fontSize: 48,

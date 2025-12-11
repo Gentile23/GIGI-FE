@@ -258,7 +258,7 @@ class DailyNutritionLog {
         String dateStr = value.trim();
         // If it contains a space after the timezone, take only the first part
         if (dateStr.contains('Z ')) {
-          dateStr = dateStr.split('Z ').first + 'Z';
+          dateStr = '${dateStr.split('Z ').first}Z';
         }
         // Try standard ISO parse
         return DateTime.parse(dateStr);

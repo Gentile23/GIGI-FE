@@ -220,7 +220,7 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
                     child: Image.network(
                       latestUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (ctx, err, stack) => Container(
                         color: CleanTheme.surfaceColor,
                         child: const Icon(Icons.broken_image),
                       ),
@@ -234,7 +234,7 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
                       child: Image.network(
                         initialUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (ctx, err, stack) => Container(
                           color: CleanTheme.surfaceColor,
                           child: const Icon(Icons.broken_image),
                         ),

@@ -174,7 +174,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen>
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         itemCount: _customPlans.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           return _buildCustomWorkoutCard(_customPlans[index]);
         },
@@ -1272,31 +1272,29 @@ class _CustomWorkoutExecutionScreenState
 
   Future<void> _saveWorkoutLog() async {
     try {
-      final workoutLogProvider = Provider.of<WorkoutLogProvider>(
-        context,
-        listen: false,
-      );
+      final apiClient = ApiClient();
 
       // Collect exercise data from the workout
       final exerciseLogs = widget.plan.exercises.asMap().entries.map((entry) {
         final exercise = entry.value;
         return {
-          'exercise_id': exercise.exerciseId,
-          'exercise_name': exercise.exerciseName,
+          'exercise_id': exercise.exercise.id,
+          'exercise_name': exercise.exercise.name,
           'sets_completed': exercise.sets,
           'reps_target': exercise.reps,
           'rest_seconds': exercise.restSeconds,
         };
       }).toList();
 
-      await workoutLogProvider.logWorkout(
-        workoutPlanId: widget.plan.id,
-        workoutName: widget.plan.name,
-        exercises: exerciseLogs,
-        durationMinutes: DateTime.now()
-            .difference(DateTime.now().subtract(const Duration(minutes: 30)))
-            .inMinutes, // Approximate
-        completedAt: DateTime.now(),
+      await apiClient.post(
+        '/workout-logs',
+        body: {
+          'workout_plan_id': widget.plan.id,
+          'workout_name': widget.plan.name,
+          'exercises': exerciseLogs,
+          'duration_minutes': 30, // Approximate
+          'completed_at': DateTime.now().toIso8601String(),
+        },
       );
     } catch (e) {
       debugPrint('Error saving workout log: $e');

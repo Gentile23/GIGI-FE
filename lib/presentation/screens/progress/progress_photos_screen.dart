@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../widgets/clean_widgets.dart';
 
 class ProgressPhotosScreen extends StatefulWidget {
   final bool isOnboarding;

@@ -269,7 +269,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeColor: CleanTheme.primaryColor,
+        activeTrackColor: CleanTheme.primaryColor,
       ),
     );
   }
