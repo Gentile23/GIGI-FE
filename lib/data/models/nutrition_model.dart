@@ -29,7 +29,7 @@ class NutritionGoal {
       carbsGrams: json['carbs_grams'],
       fatGrams: json['fat_grams'],
       goalType: json['goal_type'],
-      tdee: json['tdee']?.toDouble(),
+      tdee: safeDouble(json['tdee']),
       activityLevel: json['activity_level'],
     );
   }
@@ -108,10 +108,10 @@ class Meal {
       mealDate: parsedDate,
       mealTime: parsedTime,
       totalCalories: json['total_calories'],
-      proteinGrams: (json['protein_grams'] ?? 0).toDouble(),
-      carbsGrams: (json['carbs_grams'] ?? 0).toDouble(),
-      fatGrams: (json['fat_grams'] ?? 0).toDouble(),
-      fiberGrams: json['fiber_grams']?.toDouble(),
+      proteinGrams: safeDouble(json['protein_grams']),
+      carbsGrams: safeDouble(json['carbs_grams']),
+      fatGrams: safeDouble(json['fat_grams']),
+      fiberGrams: safeDouble(json['fiber_grams']),
       photoUrl: json['photo_url'],
       notes: json['notes'],
       foodItems: json['food_items'] != null
@@ -209,13 +209,13 @@ class FoodItem {
     return FoodItem(
       id: json['id'],
       foodName: json['food_name'],
-      quantity: (json['quantity'] ?? 0).toDouble(),
+      quantity: safeDouble(json['quantity']),
       unit: json['unit'],
       calories: json['calories'],
-      proteinGrams: (json['protein_grams'] ?? 0).toDouble(),
-      carbsGrams: (json['carbs_grams'] ?? 0).toDouble(),
-      fatGrams: (json['fat_grams'] ?? 0).toDouble(),
-      fiberGrams: json['fiber_grams']?.toDouble(),
+      proteinGrams: safeDouble(json['protein_grams']),
+      carbsGrams: safeDouble(json['carbs_grams']),
+      fatGrams: safeDouble(json['fat_grams']),
+      fiberGrams: safeDouble(json['fiber_grams']),
       source: json['source'],
     );
   }
@@ -250,13 +250,6 @@ class DailyNutritionLog {
     this.goalFat,
   });
 
-  static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value) ?? 0.0;
-    return 0.0;
-  }
-
   static DateTime _parseDate(dynamic value) {
     return parseNutritionDate(value);
   }
@@ -268,19 +261,19 @@ class DailyNutritionLog {
       totalCalories: json['total_calories'] is String
           ? int.tryParse(json['total_calories']) ?? 0
           : (json['total_calories'] as num?)?.toInt() ?? 0,
-      totalProtein: _parseDouble(json['total_protein']),
-      totalCarbs: _parseDouble(json['total_carbs']),
-      totalFat: _parseDouble(json['total_fat']),
-      totalFiber: _parseDouble(json['total_fiber']),
+      totalProtein: safeDouble(json['total_protein']),
+      totalCarbs: safeDouble(json['total_carbs']),
+      totalFat: safeDouble(json['total_fat']),
+      totalFiber: safeDouble(json['total_fiber']),
       waterMl: json['water_ml'] is String
           ? int.tryParse(json['water_ml']) ?? 0
           : (json['water_ml'] as num?)?.toInt() ?? 0,
       goalCalories: json['goal_calories'] is String
           ? int.tryParse(json['goal_calories'])
           : (json['goal_calories'] as num?)?.toInt(),
-      goalProtein: _parseDouble(json['goal_protein']),
-      goalCarbs: _parseDouble(json['goal_carbs']),
-      goalFat: _parseDouble(json['goal_fat']),
+      goalProtein: safeDouble(json['goal_protein']),
+      goalCarbs: safeDouble(json['goal_carbs']),
+      goalFat: safeDouble(json['goal_fat']),
     );
   }
 
@@ -381,9 +374,9 @@ class Recipe {
       cookTimeMinutes: json['cook_time_minutes'],
       difficulty: json['difficulty'],
       caloriesPerServing: json['calories_per_serving'],
-      proteinPerServing: (json['protein_per_serving'] ?? 0).toDouble(),
-      carbsPerServing: (json['carbs_per_serving'] ?? 0).toDouble(),
-      fatPerServing: (json['fat_per_serving'] ?? 0).toDouble(),
+      proteinPerServing: safeDouble(json['protein_per_serving']),
+      carbsPerServing: safeDouble(json['carbs_per_serving']),
+      fatPerServing: safeDouble(json['fat_per_serving']),
       tags: (json['tags'] as List?)?.cast<String>() ?? [],
       isPublic: json['is_public'] ?? false,
       imageUrl: json['image_url'],
@@ -444,4 +437,15 @@ class NutritionInsight {
         return Colors.blue;
     }
   }
+}
+
+/// Helper for safe double parsing
+double safeDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    if (value.isEmpty) return 0.0;
+    return double.tryParse(value) ?? 0.0;
+  }
+  return 0.0;
 }

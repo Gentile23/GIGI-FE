@@ -154,23 +154,26 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               ),
             ),
       floatingActionButton: _goal != null
-          ? FloatingActionButton.extended(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MealLoggingScreen(),
-                  ),
-                );
-                if (result == true) _loadData();
-              },
-              backgroundColor: CleanTheme.primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              icon: const Icon(Icons.add_a_photo),
-              label: Text(
-                'Registra Pasto',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: FloatingActionButton.extended(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MealLoggingScreen(),
+                    ),
+                  );
+                  if (result == true) _loadData();
+                },
+                backgroundColor: CleanTheme.primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 4,
+                icon: const Icon(Icons.add_a_photo),
+                label: Text(
+                  'Registra Pasto',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
               ),
             )
           : null,
