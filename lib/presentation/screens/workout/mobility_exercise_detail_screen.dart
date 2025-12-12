@@ -4,7 +4,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
-import '../../widgets/workout/anatomical_muscle_view.dart';
+// import '../../widgets/workout/anatomical_muscle_view.dart';
 
 class MobilityExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -92,20 +92,7 @@ class _MobilityExerciseDetailScreenState
             _buildTypeBadge(),
             const SizedBox(height: 24),
 
-            if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Aree da Allungare'),
-              const SizedBox(height: 12),
-              CleanCard(
-                padding: const EdgeInsets.all(16),
-                child: AnatomicalMuscleView(
-                  muscleGroups: widget.workoutExercise.exercise.muscleGroups,
-                  height: 280,
-                  highlightColor: _mobilityColor,
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
+            // Anatomical View removed for Mobility exercises
             _buildBreathingGuide(),
             const SizedBox(height: 24),
 

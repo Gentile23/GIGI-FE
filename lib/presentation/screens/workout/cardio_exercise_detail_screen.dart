@@ -4,7 +4,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
-import '../../widgets/workout/anatomical_muscle_view.dart';
+// import '../../widgets/workout/anatomical_muscle_view.dart';
 
 class CardioExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -171,12 +171,7 @@ class _CardioExerciseDetailScreenState
               color: CleanTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 12),
-          AnatomicalMuscleView(
-            muscleGroups: const ['Cardio', 'Full Body'],
-            height: 280,
-            highlightColor: _accentColor,
-          ),
+          // Anatomical view removed for Cardio
         ],
       ),
     );

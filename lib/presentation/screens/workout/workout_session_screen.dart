@@ -860,17 +860,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                if (exercise.exerciseType != 'cardio' &&
+                    exercise.exerciseType != 'mobility')
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: DualAnatomicalView(
+                      muscleGroups: exercise.exercise.muscleGroups,
+                      height: 150,
+                      highlightColor: CleanTheme.primaryColor,
+                    ),
                   ),
-                  child: DualAnatomicalView(
-                    muscleGroups: exercise.exercise.muscleGroups,
-                    height: 150,
-                    highlightColor: CleanTheme.accentRed,
-                  ),
-                ),
 
                 const Divider(color: CleanTheme.borderPrimary),
 

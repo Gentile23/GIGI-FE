@@ -92,7 +92,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             const SizedBox(height: 24),
 
             // Anatomical Diagram
-            if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty) ...[
+            if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty &&
+                widget.workoutExercise.exerciseType != 'cardio' &&
+                widget.workoutExercise.exerciseType != 'mobility') ...[
               CleanSectionHeader(title: 'Muscoli Coinvolti'),
               const SizedBox(height: 12),
               CleanCard(
@@ -100,7 +102,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 child: AnatomicalMuscleView(
                   muscleGroups: widget.workoutExercise.exercise.muscleGroups,
                   height: 300,
-                  highlightColor: CleanTheme.accentRed,
+                  highlightColor: CleanTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 24),

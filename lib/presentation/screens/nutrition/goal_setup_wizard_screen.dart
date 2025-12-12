@@ -199,42 +199,17 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       subtitle: 'Scegli cosa vuoi raggiungere',
       child: Column(
         children: [
-          _buildGoalOption(
-            'lose_weight',
-            '🔥',
-            'Perdere Peso',
-            '-0.5kg/settimana',
-          ),
-          _buildGoalOption(
-            'maintain',
-            '⚖️',
-            'Mantenere Peso',
-            'Equilibrio calorico',
-          ),
-          _buildGoalOption(
-            'gain_muscle',
-            '💪',
-            'Aumentare Massa',
-            '+0.25kg/settimana',
-          ),
-          _buildGoalOption(
-            'gain_weight',
-            '📈',
-            'Aumentare Peso',
-            '+0.5kg/settimana',
-          ),
+          _buildGoalOption('lose_weight', '🔥', 'Perdere Peso'),
+          _buildGoalOption('maintain', '⚖️', 'Mantenere Peso'),
+          _buildGoalOption('gain_muscle', '💪', 'Aumentare Massa Muscolare'),
+          _buildGoalOption('gain_weight', '📈', 'Aumentare Peso Corporeo'),
         ],
       ),
       onNext: () => _goToStep(1),
     );
   }
 
-  Widget _buildGoalOption(
-    String value,
-    String emoji,
-    String title,
-    String subtitle,
-  ) {
+  Widget _buildGoalOption(String value, String emoji, String title) {
     final isSelected = _goalType == value;
     return GestureDetector(
       onTap: () => setState(() => _goalType = value),
@@ -258,25 +233,13 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
             Text(emoji, style: const TextStyle(fontSize: 32)),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: CleanTheme.textSecondary,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
             ),
             if (isSelected)

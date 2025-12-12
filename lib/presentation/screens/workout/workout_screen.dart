@@ -733,25 +733,27 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Anatomical Muscle View
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  height: 220,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: CleanTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: CleanTheme.borderPrimary),
-                  ),
-                  child: AnatomicalMuscleView(
-                    muscleGroups: currentExercise.exercise.muscleGroups,
-                    height: 200,
-                    highlightColor: CleanTheme.primaryColor,
+              if (currentExercise.exerciseType != 'cardio' &&
+                  currentExercise.exerciseType != 'mobility') ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    height: 220,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: CleanTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: CleanTheme.borderPrimary),
+                    ),
+                    child: AnatomicalMuscleView(
+                      muscleGroups: currentExercise.exercise.muscleGroups,
+                      height: 200,
+                      highlightColor: CleanTheme.primaryColor,
+                    ),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
+              ],
 
               // Exercise Info
               Text(

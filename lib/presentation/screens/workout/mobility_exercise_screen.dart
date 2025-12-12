@@ -4,7 +4,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/exercise_video_player.dart';
-import '../../widgets/workout/dual_anatomical_view.dart';
+// import '../../widgets/workout/dual_anatomical_view.dart';
 
 class MobilityExerciseScreen extends StatefulWidget {
   final List<WorkoutExercise> mobilityExercises;
@@ -327,15 +327,7 @@ class _MobilityExerciseScreenState extends State<MobilityExerciseScreen> {
                       color: CleanTheme.textSecondary,
                     ),
                   ),
-                  // Anatomical Muscle Visualization
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: DualAnatomicalView(
-                      muscleGroups: exercise.exercise.muscleGroups,
-                      height: 220,
-                      highlightColor: _mobilityColor,
-                    ),
-                  ),
+                  // Anatomical Muscle Visualization removed for Mobility
                   // Video Player
                   if (exercise.exercise.videoUrl != null &&
                       exercise.exercise.videoUrl!.isNotEmpty)

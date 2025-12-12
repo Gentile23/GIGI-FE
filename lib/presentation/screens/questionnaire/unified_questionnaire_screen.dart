@@ -929,28 +929,63 @@ class _UnifiedQuestionnaireScreenState
 
   Widget _buildEquipmentPage() {
     // Different equipment options based on location
-    final List<(Equipment, String, IconData)> equipmentOptions;
+    final List<(Equipment, String, IconData, String)> equipmentOptions;
 
     if (_selectedLocation == TrainingLocation.gym) {
       // For gym: only show Machines and Bodyweight
       equipmentOptions = [
-        (Equipment.machines, 'Macchine', Icons.settings),
-        (Equipment.bodyweight, 'Corpo Libero', Icons.accessibility),
+        (
+          Equipment.machines,
+          'Macchine',
+          Icons.fitness_center,
+          'Macchinari isotonici, cavi e stazioni multifunzione',
+        ),
+        (
+          Equipment.bodyweight,
+          'Corpo Libero',
+          Icons.accessibility_new,
+          'Calisthenics, sbarre, anelli e corpo libero',
+        ),
       ];
     } else {
       // For home and outdoor: show all equipment options
       equipmentOptions = [
-        (Equipment.bench, 'Panca', Icons.chair_alt),
-        (Equipment.dumbbells, 'Manubri', Icons.fitness_center),
-        (Equipment.barbell, 'Bilanciere', Icons.horizontal_rule),
-        (Equipment.resistanceBands, 'Elastici', Icons.waves),
-        (Equipment.machines, 'Macchine', Icons.settings),
-        (Equipment.bodyweight, 'Corpo Libero', Icons.accessibility),
+        (Equipment.bench, 'Panca', Icons.chair_alt, 'Piana o inclinata'),
+        (
+          Equipment.dumbbells,
+          'Manubri',
+          Icons.fitness_center,
+          'Manubri fissi o componibili',
+        ),
+        (
+          Equipment.barbell,
+          'Bilanciere',
+          Icons.horizontal_rule,
+          'Bilanciere olimpico o standard',
+        ),
+        (
+          Equipment.resistanceBands,
+          'Elastici',
+          Icons.waves,
+          'Bande elastiche di varie resistenze',
+        ),
+        (
+          Equipment.machines,
+          'Macchine',
+          Icons.settings,
+          'Eventuali macchinari home gym',
+        ),
+        (
+          Equipment.bodyweight,
+          'Corpo Libero',
+          Icons.accessibility_new,
+          'Sbarra trazioni o corpo libero',
+        ),
       ];
     }
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -961,18 +996,25 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 8),
           Text(
             _selectedLocation == TrainingLocation.gym
-                ? 'Puoi selezionare sia Macchine che Corpo Libero.'
-                : 'Cosa hai a disposizione?',
-            style: Theme.of(context).textTheme.bodyMedium,
+                ? 'Seleziona gli stili di allenamento che preferisci.'
+                : 'Cosa hai a disposizione nel tuo spazio?',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: CleanTheme.textSecondary,
+              height: 1.5,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Expanded(
             child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.1,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: (_selectedLocation == TrainingLocation.gym)
+                    ? 2
+                    : 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: (_selectedLocation == TrainingLocation.gym)
+                    ? 0.75
+                    : 0.85,
               ),
               itemCount: equipmentOptions.length,
               itemBuilder: (context, index) {
@@ -980,6 +1022,7 @@ class _UnifiedQuestionnaireScreenState
                 final isSelected = _selectedEquipment.contains(item.$1);
                 return CleanCard(
                   isSelected: isSelected,
+                  padding: const EdgeInsets.all(16),
                   onTap: () {
                     setState(() {
                       if (isSelected) {
@@ -992,37 +1035,72 @@ class _UnifiedQuestionnaireScreenState
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        item.$3,
-                        size: 32,
-                        color: isSelected
-                            ? CleanTheme.primaryColor
-                            : CleanTheme.textSecondary,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.surfaceColor,
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.transparent
+                                : CleanTheme.borderSecondary,
+                          ),
+                        ),
+                        child: Icon(
+                          item.$3,
+                          size: 32,
+                          color: isSelected
+                              ? CleanTheme.surfaceColor
+                              : CleanTheme.textPrimary,
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Text(
                         item.$2,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
+                              fontWeight: FontWeight.w700,
                               color: isSelected
-                                  ? CleanTheme.primaryColor
+                                  ? CleanTheme.textPrimary
                                   : CleanTheme.textPrimary,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
                             ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item.$4,
+                        textAlign: TextAlign.center,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: CleanTheme.textSecondary,
+                          height: 1.3,
+                        ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(height: 12),
+                        const Icon(
+                          Icons.check_circle,
+                          color: CleanTheme.primaryColor,
+                          size: 20,
+                        ),
+                      ],
                     ],
                   ),
                 );
               },
             ),
           ),
-          const SizedBox(height: 16),
-          CleanButton(
-            text: 'Continua',
-            onPressed: _selectedEquipment.isNotEmpty ? _nextPage : null,
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: CleanButton(
+              text: 'Continua',
+              onPressed: _selectedEquipment.isNotEmpty ? _nextPage : null,
+            ),
           ),
         ],
       ),
