@@ -48,7 +48,7 @@ class FormCheckWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Analizza la tua esecuzione con Gemini AI',
+                    'Gigi analizza la tua esecuzione',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: CleanTheme.textSecondary,

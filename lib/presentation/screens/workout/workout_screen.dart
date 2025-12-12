@@ -98,7 +98,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             const CircularProgressIndicator(color: CleanTheme.primaryColor),
             const SizedBox(height: 24),
             Text(
-              '🤖 AI sta analizzando il tuo profilo',
+              '🧠 Gigi sta analizzando il tuo profilo',
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -108,7 +108,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Generazione piano in corso...\nAttendi mentre l\'AI crea il tuo allenamento personalizzato.',
+              'Generazione piano in corso...\nAttendi mentre Gigi crea il tuo allenamento personalizzato.',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: CleanTheme.textSecondary,

@@ -387,7 +387,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Analisi pasto in corso...',
+                        'Gigi sta analizzando il pasto...',
                         style: GoogleFonts.inter(
                           color: CleanTheme.textSecondary,
                         ),

@@ -275,7 +275,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'Generazione in corso...',
+                              'Gigi sta creando la tua scheda...',
                               style: TextStyle(fontSize: 16),
                             ),
                           ],
@@ -313,7 +313,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Stiamo creando la tua scheda personalizzata. Questo potrebbe richiedere alcuni secondi...',
+                      'Gigi sta creando la tua scheda personalizzata. Questo potrebbe richiedere alcuni secondi...',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.blue.shade900,

@@ -174,7 +174,9 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
 
               // Search button
               CleanButton(
-                text: _isLoading ? 'Cerco ricette...' : 'Trova Ricette 🔍',
+                text: _isLoading
+                    ? 'Gigi sta cercando ricette...'
+                    : 'Trova Ricette 🔍',
                 onPressed: _isLoading ? null : _searchRecipes,
                 icon: Icons.search,
               ),

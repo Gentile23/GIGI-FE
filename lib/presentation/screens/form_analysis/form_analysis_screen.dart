@@ -461,7 +461,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           Text(
             _uploadProgress < 1.0
                 ? 'Caricamento... ${(_uploadProgress * 100).toInt()}%'
-                : 'Gemini sta analizzando...',
+                : 'Gigi sta analizzando la tua tecnica...',
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -525,7 +525,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           ),
           const SizedBox(height: 16),
           _buildInfoItem('📹', 'Registra o carica un video (max 15 sec)'),
-          _buildInfoItem('🤖', 'Gemini AI analizza la tua esecuzione'),
+          _buildInfoItem('🤖', 'Gigi analizza la tua esecuzione'),
           _buildInfoItem('📊', 'Ricevi feedback su postura ed errori'),
           _buildInfoItem('💡', 'Migliora con suggerimenti personalizzati'),
         ],

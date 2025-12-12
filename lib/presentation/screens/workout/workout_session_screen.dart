@@ -919,7 +919,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         color: CleanTheme.accentPurple,
                       ),
                       label: Text(
-                        'Analizza Esecuzione con AI',
+                        'Analizza con Gigi',
                         style: GoogleFonts.inter(
                           color: CleanTheme.accentPurple,
                           fontWeight: FontWeight.w600,
