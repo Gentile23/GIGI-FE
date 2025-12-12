@@ -91,13 +91,22 @@ class Meal {
   });
 
   factory Meal.fromJson(Map<String, dynamic> json) {
+    final parsedDate = parseNutritionDate(json['meal_date']);
+    DateTime? parsedTime;
+
+    if (json['meal_time'] != null) {
+      try {
+        // Only take the YYYY-MM-DD part to combine with HH:MM:SS
+        final dateStr = parsedDate.toIso8601String().substring(0, 10);
+        parsedTime = DateTime.parse('$dateStr ${json['meal_time']}');
+      } catch (_) {}
+    }
+
     return Meal(
       id: json['id'],
       mealType: json['meal_type'],
-      mealDate: DateTime.parse(json['meal_date']),
-      mealTime: json['meal_time'] != null
-          ? DateTime.parse('${json['meal_date']} ${json['meal_time']}')
-          : null,
+      mealDate: parsedDate,
+      mealTime: parsedTime,
       totalCalories: json['total_calories'],
       proteinGrams: (json['protein_grams'] ?? 0).toDouble(),
       carbsGrams: (json['carbs_grams'] ?? 0).toDouble(),
@@ -274,34 +283,6 @@ class DailyNutritionLog {
       goalFat: _parseDouble(json['goal_fat']),
     );
   }
-}
-
-/// Helper for robust date parsing
-DateTime parseNutritionDate(dynamic value) {
-  if (value == null) return DateTime.now();
-  if (value is DateTime) return value;
-  if (value is String) {
-    try {
-      // First, clean up the string - take only the date part if malformed
-      String dateStr = value.trim();
-      // If it contains a space after the timezone, take only the first part
-      if (dateStr.contains('Z ')) {
-        dateStr = '${dateStr.split('Z ').first}Z';
-      }
-      // Try standard ISO parse
-      return DateTime.parse(dateStr);
-    } catch (_) {
-      // Fallback: try to extract just the date YYYY-MM-DD
-      try {
-        if (value.length >= 10) {
-           return DateTime.parse(value.substring(0, 10));
-        }
-      } catch (_) {}
-      return DateTime.now();
-    }
-  }
-  return DateTime.now();
-}
 
   double get calorieProgress {
     if (goalCalories == null || goalCalories == 0) return 0;
@@ -322,6 +303,33 @@ DateTime parseNutritionDate(dynamic value) {
     if (goalFat == null || goalFat == 0) return 0;
     return (totalFat / goalFat!) * 100;
   }
+}
+
+/// Helper for robust date parsing
+DateTime parseNutritionDate(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is DateTime) return value;
+  if (value is String) {
+    try {
+      // First, clean up the string - take only the date part if malformed
+      String dateStr = value.trim();
+      // If it contains a space after the timezone, take only the first part
+      if (dateStr.contains('Z ')) {
+        dateStr = '${dateStr.split('Z ').first}Z';
+      }
+      // Try standard ISO parse
+      return DateTime.parse(dateStr);
+    } catch (_) {
+      // Fallback: try to extract just the date YYYY-MM-DD
+      try {
+        if (value.length >= 10) {
+          return DateTime.parse(value.substring(0, 10));
+        }
+      } catch (_) {}
+      return DateTime.now();
+    }
+  }
+  return DateTime.now();
 }
 
 class Recipe {
