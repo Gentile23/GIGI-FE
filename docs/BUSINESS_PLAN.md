@@ -27,7 +27,7 @@ Il modello di business è **freemium** con 4 tier di abbonamento (Free, Premium 
 - Feedback motivazionale personalizzato
 - **USP**: Prima impressione "wow" per convertire utenti free
 
-### 1.2 Generazione Piani AI (OpenAI GPT-4)
+### 1.2 Generazione Piani AI (OpenAI gpt-5)
 - Questionario dettagliato (obiettivi, esperienza, disponibilità, attrezzatura)
 - Piano personalizzato generato in tempo reale
 - Adattamento automatico basato su progressi

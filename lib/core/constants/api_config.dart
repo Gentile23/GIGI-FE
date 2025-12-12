@@ -23,6 +23,6 @@ class ApiConfig {
   // For now, the API is called through the backend which has the key
   static const String openAiApiKey = '';
   static const String openAiBaseUrl = 'https://api.openai.com/v1';
-  static const String openAiModel = 'gpt-4o-mini';
+  static const String openAiModel = 'gpt-5-nano';
   static const String openAiChatCompletionsEndpoint = '/chat/completions';
 }

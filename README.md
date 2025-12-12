@@ -31,7 +31,7 @@ GIGI is a comprehensive **Flutter** mobile/web/desktop fitness application that 
 
 ### Core Pillars
 
-- **🤖 AI-Powered Personalization** – Workout generation with OpenAI GPT-4, voice coaching with TTS, form analysis with Gemini 2.0 Flash
+- **🤖 AI-Powered Personalization** – Workout generation with OpenAI gpt-5, voice coaching with TTS, form analysis with Gemini 2.0 Flash
 - **🎮 Gamification** – XP system, achievements, streaks, leaderboards, and community challenges
 - **👥 Social Features** – Activity feed, community goals, referral program
 - **📊 Progress Tracking** – Detailed statistics, transformation tracker, workout history
@@ -149,7 +149,7 @@ GIGI is a comprehensive **Flutter** mobile/web/desktop fitness application that 
 
 | Service | Purpose |
 |---------|---------|
-| **OpenAI GPT-4** | Workout plan generation |
+| **OpenAI gpt-5** | Workout plan generation |
 | **Gemini 2.0 Flash** | Real-time pose detection & form analysis |
 | **OpenAI TTS** | Voice coaching audio generation |
 
@@ -376,7 +376,7 @@ flutter build macos --release
 
 ## 🤖 AI Features
 
-### Workout Generation (OpenAI GPT-4)
+### Workout Generation (OpenAI gpt-5)
 - Analyzes user profile: goals, experience, equipment, limitations
 - Generates periodized training plans
 - Adapts difficulty based on performance feedback
@@ -489,7 +489,7 @@ For questions, feature requests, or support:
 ## 🙏 Acknowledgments
 
 - Flutter team for the amazing framework
-- OpenAI for GPT-4 and TTS APIs
+- OpenAI for gpt-5 and TTS APIs
 - Google for Gemini 2.0 Flash
 - RevenueCat for simplified subscription management
 - All contributors and beta testers
