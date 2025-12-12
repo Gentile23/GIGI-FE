@@ -61,6 +61,10 @@ class FormAnalysisService {
       }
       return null;
     } catch (e) {
+      if (e is DioException && e.response != null) {
+        debugPrint('Analysis API Error: ${e.response?.data}');
+        debugPrint('Status Code: ${e.response?.statusCode}');
+      }
       debugPrint('Error analyzing video: $e');
       rethrow;
     }

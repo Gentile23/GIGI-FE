@@ -76,7 +76,7 @@ class OnboardingOverlay extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   Text(
-                    'Benvenuto in FitGenius.\nPer iniziare al meglio e calibrare il tuo livello, ti consiglio di effettuare subito il Trial Workout.',
+                    'Benvenuto in GIGI.\nPer iniziare al meglio e calibrare il tuo livello, ti consiglio di effettuare subito il Trial Workout.',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       color: Colors.white.withValues(alpha: 0.9),

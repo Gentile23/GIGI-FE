@@ -4,7 +4,7 @@
 
 Sono state create 3 nuove schermate per l'integrazione OpenAI:
 
-### 1. [injury_selection_screen.dart](file:///c:/Users/genti/Progetti/fitgenius/lib/presentation/screens/questionnaire/injury_selection_screen.dart)
+### 1. [injury_selection_screen.dart](file:///c:/Users/genti/Progetti/GIGI/lib/presentation/screens/questionnaire/injury_selection_screen.dart)
 Schermata per selezionare e gestire infortuni con:
 - Selezione categoria (Muscolare/Articolare/Osseo)
 - Grid di 60+ aree anatomiche filtrate per categoria
@@ -14,7 +14,7 @@ Schermata per selezionare e gestire infortuni con:
 - Supporto per infortuni multipli
 - UI con cards espandibili e bottom sheet modale
 
-### 2. [training_preferences_screen.dart](file:///c:/Users/genti/Progetti/fitgenius/lib/presentation/screens/questionnaire/training_preferences_screen.dart)
+### 2. [training_preferences_screen.dart](file:///c:/Users/genti/Progetti/GIGI/lib/presentation/screens/questionnaire/training_preferences_screen.dart)
 Schermata per preferenze di allenamento con:
 - Selezione tipo di split (7 opzioni con descrizioni)
 - Slider per durata sessione (30-120 min)
@@ -23,7 +23,7 @@ Schermata per preferenze di allenamento con:
 - Campo note aggiuntive
 - UI con cards interattive e icone
 
-### 3. [ai_workout_generation_screen.dart](file:///c:/Users/genti/Progetti/fitgenius/lib/presentation/screens/workout/ai_workout_generation_screen.dart)
+### 3. [ai_workout_generation_screen.dart](file:///c:/Users/genti/Progetti/GIGI/lib/presentation/screens/workout/ai_workout_generation_screen.dart)
 Schermata per generazione e visualizzazione scheda AI con:
 - Riepilogo completo profilo utente
 - Visualizzazione infortuni evidenziati
@@ -44,9 +44,9 @@ Se hai già un questionario multi-step, aggiungi questi step:
 ```dart
 // Nel tuo questionario esistente (es. questionnaire_screen.dart)
 
-import 'package:fitgenius/presentation/screens/questionnaire/injury_selection_screen.dart';
-import 'package:fitgenius/presentation/screens/questionnaire/training_preferences_screen.dart';
-import 'package:fitgenius/presentation/screens/workout/ai_workout_generation_screen.dart';
+import 'package:GIGI/presentation/screens/questionnaire/injury_selection_screen.dart';
+import 'package:GIGI/presentation/screens/questionnaire/training_preferences_screen.dart';
+import 'package:GIGI/presentation/screens/workout/ai_workout_generation_screen.dart';
 
 // Aggiungi questi step dopo i dati base (goal, level, frequency, etc.)
 

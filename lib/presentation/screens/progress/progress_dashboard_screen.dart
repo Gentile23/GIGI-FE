@@ -57,8 +57,13 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         final historyData = historyResponse.data;
 
         setState(() {
-          _latestMeasurements = measurementsData['latest'];
-          _changes = measurementsData['changes'] ?? {};
+          _latestMeasurements =
+              measurementsData['latest'] is Map<String, dynamic>
+              ? measurementsData['latest']
+              : null;
+          _changes = measurementsData['changes'] is Map<String, dynamic>
+              ? measurementsData['changes']
+              : {};
           _measurementsHistory = historyData['measurements'] ?? [];
           _goals = goalsData?['goals'] ?? [];
           _streak = _calculateStreak();
@@ -157,7 +162,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
 
                     // Quick Actions
                     _buildQuickActions(),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -865,7 +870,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               return Container(
                 width: 90,
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8), // Reduced padding
                 decoration: BoxDecoration(
                   color: unlocked
                       ? CleanTheme.accentYellow.withValues(alpha: 0.1)
@@ -883,11 +888,11 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     Text(
                       unlocked ? achievement['icon'] : '🔒',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 24, // Reduced font size
                         color: unlocked ? null : Colors.grey,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       achievement['title'],
                       style: GoogleFonts.inter(
@@ -898,9 +903,10 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                             : CleanTheme.textTertiary,
                       ),
                       textAlign: TextAlign.center,
-                      maxLines: 2,
+                      maxLines: 2, // Limit lines
                       overflow: TextOverflow.ellipsis,
                     ),
+                    // Removed extra spacer if present or simplified structure
                   ],
                 ),
               );

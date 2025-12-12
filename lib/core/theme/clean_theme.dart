@@ -1,65 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// TRIPGLIDE INSPIRED THEME - FITGENIUS REDESIGN
-/// High Contrast, Rounded, Immersive
-/// Colors: White background, Black primary, Soft Gray accents
+/// TRIPGLIDE INSPIRED THEME - GIGI MONOCHROME
+/// High Contrast, Pure Glass, Minimalist
+/// Colors: White background, Black primary, Silver/Glass accents
 class CleanTheme {
   // ═══════════════════════════════════════════════════════════
-  // REFINED COLOR PALETTE - HIGH CONTRAST & ELEGANT
+  // REFINED COLOR PALETTE - MONOCHROME & GLASS
   // ═══════════════════════════════════════════════════════════
 
-  // Primary - Bold Black for High Contrast
-  static const Color primaryColor = Color(0xFF111111); // Almost Black
+  // Primary - Elegant Black
+  static const Color primaryColor = Color(0xFF000000); // Pure Black
   static const Color primaryLight = Color(
     0xFFF5F5F7,
   ); // Very light gray (Apple style)
-  static const Color primaryDark = Color(0xFF000000); // Pure Black
+  static const Color primaryDark = Color(0xFF1C1C1E); // Apple Dark Grey
 
-  // Backgrounds - Clean & Airy
+  // Backgrounds - Pristine White
   static const Color backgroundColor = Color(0xFFFFFFFF); // Pure White
   static const Color surfaceColor = Color(0xFFFFFFFF); // Pure White
   static const Color cardColor = Color(0xFFFFFFFF); // Pure White
   static const Color scaffoldBackgroundColor = Color(
-    0xFFF2F2F7,
-  ); // Light Gray for contrast
+    0xFFFFFFFF,
+  ); // White for clean look
 
-  // Text Colors - Sharp Legibility
-  static const Color textPrimary = Color(0xFF111111); // Almost Black
-  static const Color textSecondary = Color(0xFF6C6C70); // Medium Gray
-  static const Color textTertiary = Color(0xFFAEAEB2); // Light Gray
-  static const Color textOnPrimary = Color(0xFFFFFFFF); // White on Black
+  // Text Colors - Sharp & Professional
+  static const Color textPrimary = Color(0xFF000000); // Pure Black
+  static const Color textSecondary = Color(0xFF8E8E93); // Apple Gray
+  static const Color textTertiary = Color(0xFFC7C7CC); // Apple Light Gray
+  static const Color textOnPrimary = Color(0xFFFFFFFF); // White
 
   // Border & Divider Colors
-  static const Color borderPrimary = Color(0xFFE5E5EA); // Light separation
-  static const Color borderSecondary = Color(0xFFF2F2F7); // Very subtle
+  static const Color borderPrimary = Color(0xFFD1D1D6); // Visible separation
+  static const Color borderSecondary = Color(0xFFE5E5EA); // Subtle separation
   static const Color dividerColor = Color(0xFFE5E5EA);
 
-  // Accent Colors - Soft & Muted
-  static const Color accentOrange = Color(0xFFFF9500);
-  static const Color accentRed = Color(0xFFFF3B30);
-  static const Color accentBlue = Color(0xFF007AFF);
-  static const Color accentGreen = Color(0xFF34C759);
+  // Accent Colors - Monochromatic/Silver
+  // Keeping functional colors but desaturated or specific where needed
+  static const Color accentOrange = Color(0xFFFF9500); // Keep for warnings
+  static const Color accentRed = Color(0xFFFF3B30); // Errors
+  static const Color accentBlue = Color(0xFF000000); // Links/Active -> Black
+  static const Color accentGreen = Color(0xFF34C759); // Success
   static const Color accentPurple = Color(0xFFAF52DE);
   static const Color accentTeal = Color(0xFF5AC8FA);
 
-  // Legacy/Additional Accents for compatibility
+  // Legacy/Additional Accents
   static const Color accentYellow = Color(0xFFFFCC00);
-  static const Color immersiveDark = Color(0xFF16213E);
-  static const Color immersiveDarkSecondary = Color(0xFF1A1A2E);
-  static const Color immersiveAccent = Color(0xFF5352ED);
+  static const Color immersiveDark = Color(0xFF000000);
+  static const Color immersiveDarkSecondary = Color(0xFF1C1C1E);
+  static const Color immersiveAccent = Color(0xFF98989D); // Silver
 
-  // Emotion Colors (Gamification)
-  static const Color emotionSuccess = Color(0xFF2ECC71);
-  static const Color emotionProgress = Color(0xFF3498DB);
-  static const Color emotionMotivation = Color(0xFF9B59B6);
-  static const Color emotionRecovery = Color(0xFFF1C40F);
+  // Emotion Colors (Gamification) - Refined
+  static const Color emotionSuccess = Color(0xFF34C759);
+  static const Color emotionProgress = Color(0xFF000000); // Black for progress
+  static const Color emotionMotivation = Color(0xFF8E8E93); // Grey
+  static const Color emotionRecovery = Color(0xFFFFCC00);
 
   // Animation Curves & Durations
   static const Duration quickDuration = Duration(milliseconds: 200);
   static const Curve smoothCurve = Curves.easeInOut;
 
-  // Gradients
+  // Gradients - Subtle or removed for flat clean look
   static const LinearGradient imageOverlayGradient = LinearGradient(
     colors: [Colors.transparent, Colors.black87],
     begin: Alignment.topCenter,
@@ -67,12 +68,12 @@ class CleanTheme {
   );
 
   // ═══════════════════════════════════════════════════════════
-  // SHADOWS - DIFFUSED & SOFT
+  // SHADOWS - SOFT GLASS EFFECT
   // ═══════════════════════════════════════════════════════════
 
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.06),
+      color: Colors.black.withValues(alpha: 0.04),
       blurRadius: 24,
       offset: const Offset(0, 8),
       spreadRadius: 0,
@@ -81,7 +82,7 @@ class CleanTheme {
 
   static List<BoxShadow> get imageCardShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.15),
+      color: Colors.black.withValues(alpha: 0.1),
       blurRadius: 20,
       offset: const Offset(0, 8),
       spreadRadius: 2,
@@ -90,7 +91,7 @@ class CleanTheme {
 
   static List<BoxShadow> get floatingShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.12),
+      color: Colors.black.withValues(alpha: 0.08),
       blurRadius: 32,
       offset: const Offset(0, 12),
       spreadRadius: 0,
@@ -99,7 +100,7 @@ class CleanTheme {
 
   static List<BoxShadow> get iconShadow => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.08),
+      color: Colors.black.withValues(alpha: 0.05),
       blurRadius: 12,
       offset: const Offset(0, 4),
       spreadRadius: 0,
@@ -135,7 +136,7 @@ class CleanTheme {
 
       // AppBar
       appBarTheme: AppBarTheme(
-        backgroundColor: surfaceColor,
+        backgroundColor: surfaceColor.withOpacity(0.8), // Glassy
         elevation: 0,
         centerTitle: true,
         scrolledUnderElevation: 0,
@@ -231,8 +232,7 @@ class CleanTheme {
         ),
       ),
 
-      // Card Theme - Very Rounded
-      // Card Theme - Very Rounded
+      // Card Theme - Glass Effect on White
       cardTheme: CardThemeData(
         color: surfaceColor,
         elevation: 0,

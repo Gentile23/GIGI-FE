@@ -1,8 +1,8 @@
-/// Terms of Service for FitGenius App
+/// Terms of Service for GIGI App
 /// Last updated: December 2024
 const String termsOfServiceText = '''
 TERMINI E CONDIZIONI DI SERVIZIO
-FitGenius - App di Fitness Personalizzato
+GIGI - App di Fitness Personalizzato
 
 Ultimo aggiornamento: Dicembre 2024
 
@@ -10,7 +10,7 @@ Ultimo aggiornamento: Dicembre 2024
 
 1. ACCETTAZIONE DEI TERMINI
 
-Utilizzando FitGenius ("App", "Servizio"), accetti 
+Utilizzando GIGI ("App", "Servizio"), accetti 
 i presenti Termini e Condizioni. Se non accetti, 
 non utilizzare il Servizio.
 
@@ -18,7 +18,7 @@ non utilizzare il Servizio.
 
 2. DESCRIZIONE DEL SERVIZIO
 
-FitGenius offre:
+GIGI offre:
 • Piani di allenamento personalizzati generati con AI
 • Monitoraggio progressi fitness
 • Analisi nutrizionale da foto
@@ -108,7 +108,7 @@ Ti impegni a NON:
 
 ⚠️ IMPORTANTE:
 
-• FitGenius NON è un servizio medico
+• GIGI NON è un servizio medico
 • I piani di allenamento sono generati da AI e 
   NON sostituiscono il parere di un medico
 • Consulta un medico prima di iniziare qualsiasi 
@@ -184,19 +184,19 @@ Possiamo sospendere o terminare il tuo account in caso di:
 • Il mancato esercizio di un diritto non costituisce 
   rinuncia
 • Questi Termini rappresentano l'intero accordo tra 
-  te e FitGenius
+  te e GIGI
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 14. CONTATTI
 
 Per domande sui Termini di Servizio:
-📧 Email: legal@fitgenius.app
-🌐 Web: www.fitgenius.app/terms
+📧 Email: legal@GIGI.app
+🌐 Web: www.GIGI.app/terms
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Utilizzando FitGenius, confermi di aver letto e 
+Utilizzando GIGI, confermi di aver letto e 
 accettato i presenti Termini e Condizioni.
 
 ''';

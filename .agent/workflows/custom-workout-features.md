@@ -5,7 +5,7 @@ description: Implementazione delle 3 feature per workout personalizzati - Scheda
 # Custom Workout Features Implementation
 
 ## Overview
-Questo documento descrive l'implementazione di 3 nuove feature per l'app FitGenius:
+Questo documento descrive l'implementazione di 3 nuove feature per l'app GIGI:
 
 1. **Caricamento Scheda Personale** - L'utente crea la propria scheda selezionando esercizi dal database
 2. **Esercizi Simili** - Per ogni esercizio, mostrare alternative che stimolano la stessa zona muscolare
@@ -246,7 +246,7 @@ Aggiungere bottone "Vedi Alternativa" (corpo libero/macchinario)
 - [x] `app/Http/Controllers/Api/ExerciseController.php` (modificare - added similar() and alternatives()) ✅
 - [x] `routes/api.php` (modificare - added custom workouts and exercise endpoints) ✅
 
-### Frontend (fitgenius)
+### Frontend (GIGI)
 - [x] `lib/data/models/custom_workout_model.dart` ✅
 - [x] `lib/data/services/custom_workout_service.dart` ✅
 - [x] `lib/data/services/exercise_service.dart` (modificare - added getSimilarExercises and getAlternativeExercises) ✅

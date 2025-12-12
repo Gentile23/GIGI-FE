@@ -1,4 +1,4 @@
-# 💰 FitGenius - Pricing Strategy Alternatives
+# 💰 GIGI - Pricing Strategy Alternatives
 ## Analisi Modelli di Pricing e Raccomandazioni
 
 ---
@@ -328,9 +328,9 @@ Trovare il balance tra valore gratuito (acquisition) e incentivo a pagare (monet
 
 | Tier | Prezzo | Nuovo Nome | Posizionamento |
 |------|--------|------------|----------------|
-| Free | €0 | **FitGenius Lite** | Discovery |
-| €9.99/m | **FitGenius Core** | Best value |
-| €19.99/m | **FitGenius Pro** | Power users |
+| Free | €0 | **GIGI Lite** | Discovery |
+| €9.99/m | **GIGI Core** | Best value |
+| €19.99/m | **GIGI Pro** | Power users |
 
 ### Cambiamenti Chiave
 
@@ -444,7 +444,7 @@ MA: Cash flow migliore + lower churn
 | Fitbod | Free | €13/m | - |
 | Nike TC | Free | - | - |
 | MyFitnessPal | Free | €10/m | €20/m |
-| **FitGenius** | Free | €9.99/m | €19.99/m |
+| **GIGI** | Free | €9.99/m | €19.99/m |
 
 ### Posizionamento
 - Più economico di SWEAT (premium brand positioning loro)

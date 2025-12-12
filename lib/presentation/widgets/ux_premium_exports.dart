@@ -2,31 +2,31 @@
 // Questo file facilita l'import di tutti i componenti
 
 // Theme
-export 'package:fitgenius/core/theme/advanced_theme.dart';
+export 'package:GIGI/core/theme/advanced_theme.dart';
 
 // Services
-export 'package:fitgenius/core/services/haptic_service.dart';
-export 'package:fitgenius/core/services/audio_manager.dart';
+export 'package:GIGI/core/services/haptic_service.dart';
+export 'package:GIGI/core/services/audio_manager.dart';
 
 // Celebrations
-export 'package:fitgenius/presentation/widgets/celebrations/celebration_overlay.dart';
+export 'package:GIGI/presentation/widgets/celebrations/celebration_overlay.dart';
 
 // Premium Components
-export 'package:fitgenius/presentation/widgets/premium/premium_components.dart';
+export 'package:GIGI/presentation/widgets/premium/premium_components.dart';
 
 // Engagement Widgets
-export 'package:fitgenius/presentation/widgets/engagement/social_proof_widgets.dart';
-export 'package:fitgenius/presentation/widgets/engagement/daily_challenge_widget.dart';
+export 'package:GIGI/presentation/widgets/engagement/social_proof_widgets.dart';
+export 'package:GIGI/presentation/widgets/engagement/daily_challenge_widget.dart';
 
 // Gamification Widgets
-export 'package:fitgenius/presentation/widgets/gamification/gamification_widgets.dart';
+export 'package:GIGI/presentation/widgets/gamification/gamification_widgets.dart';
 
 // Progress Widgets
-export 'package:fitgenius/presentation/widgets/progress/emotional_charts.dart';
-export 'package:fitgenius/presentation/widgets/progress/body_progress_widget.dart';
+export 'package:GIGI/presentation/widgets/progress/emotional_charts.dart';
+export 'package:GIGI/presentation/widgets/progress/body_progress_widget.dart';
 
 // Navigation Widgets
-export 'package:fitgenius/presentation/widgets/navigation/premium_navigation.dart';
+export 'package:GIGI/presentation/widgets/navigation/premium_navigation.dart';
 
 // Provider
-export 'package:fitgenius/providers/engagement_provider.dart';
+export 'package:GIGI/providers/engagement_provider.dart';

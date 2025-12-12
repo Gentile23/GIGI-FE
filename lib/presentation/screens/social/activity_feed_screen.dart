@@ -178,7 +178,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           color: CleanTheme.primaryColor,
           backgroundColor: CleanTheme.surfaceColor,
           child: ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
             itemCount: provider.activities.length,
             itemBuilder: (context, index) {
               return _buildActivityCard(provider.activities[index]);
@@ -511,7 +511,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
         }
 
         return ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             // Active challenges
             if (provider.activeChallenges.isNotEmpty) ...[

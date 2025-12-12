@@ -1,11 +1,11 @@
-# 📱 FitGenius Business Plan
+# 📱 GIGI Business Plan
 ## Piano Strategico di Marketing e Crescita
 
 ---
 
 # 🎯 EXECUTIVE SUMMARY
 
-**FitGenius** è un'applicazione fitness all-in-one che sfrutta l'Intelligenza Artificiale per offrire un'esperienza di allenamento personalizzata e premium. L'app si distingue per la combinazione unica di:
+**GIGI** è un'applicazione fitness all-in-one che sfrutta l'Intelligenza Artificiale per offrire un'esperienza di allenamento personalizzata e premium. L'app si distingue per la combinazione unica di:
 - **AI Coach Vocale** per guida in tempo reale
 - **Analisi della Forma** tramite video con AI (Gemini)
 - **Generazione automatica di piani di allenamento** con OpenAI
@@ -197,7 +197,7 @@ ROI Target: 5x
 
 **Macro-influencer (100K+):**
 - 2-3 partnership strategiche
-- Video completo "1 settimana con FitGenius"
+- Video completo "1 settimana con GIGI"
 - Codice sconto esclusivo 30%
 
 ### 2.3 Paid Acquisition

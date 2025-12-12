@@ -1,8 +1,8 @@
-/// Privacy Policy for FitGenius App
+/// Privacy Policy for GIGI App
 /// Last updated: December 2024
 const String privacyPolicyText = '''
 INFORMATIVA SULLA PRIVACY
-FitGenius - App di Fitness Personalizzato
+GIGI - App di Fitness Personalizzato
 
 Ultimo aggiornamento: Dicembre 2024
 
@@ -12,7 +12,7 @@ Ultimo aggiornamento: Dicembre 2024
 
 Il Titolare del trattamento dei dati personali è:
 [NOME AZIENDA/SVILUPPATORE]
-Email: privacy@fitgenius.app
+Email: privacy@GIGI.app
 Indirizzo: [INDIRIZZO LEGALE]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -126,7 +126,7 @@ Hai diritto di:
 
 Per esercitare questi diritti:
 • Vai a Profilo → Privacy & Sicurezza nell'app
-• Invia email a: privacy@fitgenius.app
+• Invia email a: privacy@GIGI.app
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -153,7 +153,7 @@ del browser o tramite il banner al primo accesso.
 
 10. MINORI
 
-FitGenius è destinato a utenti di età pari o superiore 
+GIGI è destinato a utenti di età pari o superiore 
 a 16 anni. Non raccogliamo consapevolmente dati di minori.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -177,7 +177,7 @@ www.garanteprivacy.it
 CONTATTI
 
 Per domande sulla privacy:
-📧 Email: privacy@fitgenius.app
-🌐 Web: www.fitgenius.app/privacy
+📧 Email: privacy@GIGI.app
+🌐 Web: www.GIGI.app/privacy
 
 ''';

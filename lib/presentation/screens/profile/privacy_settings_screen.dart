@@ -223,7 +223,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Contattaci a: privacy@fitgenius.app',
+                  'Contattaci a: privacy@GIGI.app',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: CleanTheme.textSecondary,

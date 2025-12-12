@@ -1,5 +1,5 @@
-import 'package:fitgenius/data/models/workout_log_model.dart';
-import 'package:fitgenius/data/services/api_service.dart';
+import 'package:GIGI/data/models/workout_log_model.dart';
+import 'package:GIGI/data/services/api_service.dart';
 
 class WorkoutLogService extends ApiService {
   WorkoutLogService(super.apiClient);

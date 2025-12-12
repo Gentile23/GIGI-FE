@@ -58,7 +58,7 @@ class _CleanHomeExampleState extends State<CleanHomeExample> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Welcome to FitGenius',
+                            'Welcome to GIGI',
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w400,

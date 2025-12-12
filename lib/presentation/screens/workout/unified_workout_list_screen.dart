@@ -145,7 +145,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen>
           },
           color: CleanTheme.primaryColor,
           child: ListView.builder(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
             itemCount: workouts.length,
             itemBuilder: (context, index) {
               final workout = workouts[index];

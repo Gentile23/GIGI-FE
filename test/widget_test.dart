@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fitgenius/main.dart';
-import 'package:fitgenius/presentation/screens/onboarding/onboarding_screen.dart';
+import 'package:GIGI/main.dart';
+import 'package:GIGI/presentation/screens/onboarding/onboarding_screen.dart';
 
 void main() {
   testWidgets('App starts with Onboarding screen', (WidgetTester tester) async {

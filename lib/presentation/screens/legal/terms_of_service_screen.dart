@@ -44,7 +44,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Condizioni d\'uso del servizio FitGenius',
+                      'Condizioni d\'uso del servizio GIGI',
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

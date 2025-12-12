@@ -1,4 +1,4 @@
-import 'package:fitgenius/data/models/workout_model.dart';
+import 'package:GIGI/data/models/workout_model.dart';
 
 /// Workout log model - represents a completed workout session
 class WorkoutLog {

@@ -1,4 +1,4 @@
-# 📝 FitGenius - Piano Contenuti SEO Completo
+# 📝 GIGI - Piano Contenuti SEO Completo
 ## Strategia di Content Marketing per Acquisizione Organica
 
 ---
@@ -100,7 +100,7 @@
 ### Mese 3: Conversion Content
 | Settimana | Articolo | Keyword Target | Parole | Focus |
 |-----------|----------|----------------|--------|-------|
-| 1 | FitGenius vs Freeletics: Confronto Completo | freeletics alternative | 2.500 | Comparison |
+| 1 | GIGI vs Freeletics: Confronto Completo | freeletics alternative | 2.500 | Comparison |
 | 2 | Personal Trainer vs App AI: Cosa Scegliere? | personal trainer online | 2.500 | Authority |
 | 3 | Quanto Costa un Personal Trainer? (+ Alternative) | [commercial] | 2.000 | Price anchor |
 | 4 | 5 Motivi per Provare l'Allenamento con AI | [branded] | 1.500 | Conversion |
@@ -148,7 +148,7 @@
 ### Mese 8: Case Studies
 | Articolo | Focus |
 |----------|-------|
-| Come Marco Ha Perso 15kg con FitGenius | Transformation |
+| Come Marco Ha Perso 15kg con GIGI | Transformation |
 | Da Sedentaria a 5k: La Storia di Sara | Beginner success |
 | Atleta Usa AI Coach: Intervista | Social proof |
 | 6 Mesi di Dati: Cosa Abbiamo Imparato | Data story |
@@ -168,9 +168,9 @@
 ### Mese 10: Comparison Content
 | Articolo | Competitor |
 |----------|------------|
-| FitGenius vs Nike Training Club | Nike |
-| FitGenius vs SWEAT | SWEAT |
-| FitGenius vs Fitbod | Fitbod |
+| GIGI vs Nike Training Club | Nike |
+| GIGI vs SWEAT | SWEAT |
+| GIGI vs Fitbod | Fitbod |
 | Le 10 Migliori App Fitness 2025 | Roundup |
 
 ### Mese 11: Holiday Content
@@ -246,7 +246,7 @@ R: [Risposta 50-100 parole]
 
 ## [H2] Conclusione
 - Riepilogo punti chiave
-- **CTA forte**: "Prova FitGenius gratis →"
+- **CTA forte**: "Prova GIGI gratis →"
 - Invito a commentare/condividere
 
 ---
@@ -315,7 +315,7 @@ Grazie!
 | Video | Correlato a | Durata |
 |-------|-------------|--------|
 | 10 Esercizi Casa per Principianti | Art. casa | 8 min |
-| Come Usare FitGenius (Tutorial) | Branded | 5 min |
+| Come Usare GIGI (Tutorial) | Branded | 5 min |
 | Allenamento Completo Full Body | Art. programmi | 25 min |
 | Unboxing AI Coach: Prima Impressione | Review style | 10 min |
 

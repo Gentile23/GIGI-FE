@@ -294,81 +294,83 @@ class WorkoutDetailScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
-      body: Column(
-        children: [
-          // Header card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: CleanTheme.surfaceColor,
-              border: const Border(
-                bottom: BorderSide(color: CleanTheme.borderPrimary),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: CleanTheme.surfaceColor,
+                border: const Border(
+                  bottom: BorderSide(color: CleanTheme.borderPrimary),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    workout.focus,
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.timer_outlined,
+                        color: CleanTheme.textSecondary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${workout.estimatedDuration} minuti',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  workout.focus,
-                  style: GoogleFonts.outfit(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.timer_outlined,
-                      color: CleanTheme.textSecondary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${workout.estimatedDuration} minuti',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
 
-          // Exercise list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _getMockExercises().length,
-              itemBuilder: (context, index) {
-                final exercise = _getMockExercises()[index];
-                return _buildExerciseCard(context, exercise, index + 1);
-              },
+            // Exercise list
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: _getMockExercises().length,
+                itemBuilder: (context, index) {
+                  final exercise = _getMockExercises()[index];
+                  return _buildExerciseCard(context, exercise, index + 1);
+                },
+              ),
             ),
-          ),
 
-          // Start button
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: CleanButton(
-              text: 'Inizia Workout',
-              width: double.infinity,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        ExerciseExecutionScreen(workout: workout),
-                  ),
-                );
-              },
+            // Start button
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: CleanButton(
+                text: 'Inizia Workout',
+                width: double.infinity,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExerciseExecutionScreen(workout: workout),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -724,99 +726,101 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Anatomical Muscle View
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 220,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: CleanTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: CleanTheme.borderPrimary),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Anatomical Muscle View
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 220,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: CleanTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: CleanTheme.borderPrimary),
+                  ),
+                  child: AnatomicalMuscleView(
+                    muscleGroups: currentExercise.exercise.muscleGroups,
+                    height: 200,
+                    highlightColor: CleanTheme.primaryColor,
+                  ),
                 ),
-                child: AnatomicalMuscleView(
-                  muscleGroups: currentExercise.exercise.muscleGroups,
-                  height: 200,
-                  highlightColor: CleanTheme.primaryColor,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Exercise Info
+              Text(
+                currentExercise.exercise.name,
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Exercise Info
-            Text(
-              currentExercise.exercise.name,
-              style: GoogleFonts.outfit(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
+              const SizedBox(height: 8),
+              Text(
+                currentExercise.exercise.description,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currentExercise.exercise.description,
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                color: CleanTheme.textSecondary,
+
+              const SizedBox(height: 32),
+
+              // Sets - Use SetLoggingWidget for full logging
+              SetLoggingWidget(
+                exercise: currentExercise,
+                onCompletionChanged: (completed) {
+                  // Optionally track overall exercise completion
+                },
               ),
-            ),
 
-            const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-            // Sets - Use SetLoggingWidget for full logging
-            SetLoggingWidget(
-              exercise: currentExercise,
-              onCompletionChanged: (completed) {
-                // Optionally track overall exercise completion
-              },
-            ),
-
-            const SizedBox(height: 32),
-
-            // Navigation Buttons
-            Row(
-              children: [
-                if (_currentExerciseIndex > 0)
+              // Navigation Buttons
+              Row(
+                children: [
+                  if (_currentExerciseIndex > 0)
+                    Expanded(
+                      child: CleanButton(
+                        text: 'Precedente',
+                        isOutlined: true,
+                        onPressed: () {
+                          setState(() {
+                            _currentExerciseIndex--;
+                            _initializeVideoController();
+                          });
+                        },
+                      ),
+                    ),
+                  if (_currentExerciseIndex > 0) const SizedBox(width: 16),
                   Expanded(
                     child: CleanButton(
-                      text: 'Precedente',
-                      isOutlined: true,
+                      text: _currentExerciseIndex < exercises.length - 1
+                          ? 'Prossimo'
+                          : 'Termina',
                       onPressed: () {
-                        setState(() {
-                          _currentExerciseIndex--;
-                          _initializeVideoController();
-                        });
+                        if (_currentExerciseIndex < exercises.length - 1) {
+                          setState(() {
+                            _currentExerciseIndex++;
+                            _initializeVideoController();
+                          });
+                        } else {
+                          Navigator.pop(context);
+                        }
                       },
                     ),
                   ),
-                if (_currentExerciseIndex > 0) const SizedBox(width: 16),
-                Expanded(
-                  child: CleanButton(
-                    text: _currentExerciseIndex < exercises.length - 1
-                        ? 'Prossimo'
-                        : 'Termina',
-                    onPressed: () {
-                      if (_currentExerciseIndex < exercises.length - 1) {
-                        setState(() {
-                          _currentExerciseIndex++;
-                          _initializeVideoController();
-                        });
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

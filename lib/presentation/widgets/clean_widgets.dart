@@ -1,5 +1,6 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:fitgenius/core/theme/clean_theme.dart';
+import 'package:GIGI/core/theme/clean_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// ═══════════════════════════════════════════════════════════
@@ -107,7 +108,7 @@ class CleanButton extends StatelessWidget {
 }
 
 /// ═══════════════════════════════════════════════════════════
-/// CLEAN CARD - Rounded with subtle shadow
+/// CLEAN CARD - KINETIC GLASS IMPLEMENTATION
 /// ═══════════════════════════════════════════════════════════
 class CleanCard extends StatelessWidget {
   final Widget child;
@@ -120,6 +121,7 @@ class CleanCard extends StatelessWidget {
   final bool hasBorder;
   final double borderRadius;
   final bool isSelected;
+  final bool enableGlass;
 
   const CleanCard({
     super.key,
@@ -131,36 +133,85 @@ class CleanCard extends StatelessWidget {
     this.borderColor,
     this.hasShadow = true,
     this.hasBorder = true,
-    this.borderRadius = 16,
+    this.borderRadius = 24, // Increased default radius for Gigi ID
     this.isSelected = false,
+    this.enableGlass = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        margin: margin,
-        padding: padding ?? const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color:
-              backgroundColor ??
-              (isSelected
-                  ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-                  : CleanTheme.cardColor),
-          borderRadius: BorderRadius.circular(borderRadius),
-          border: hasBorder
-              ? Border.all(
-                  color: isSelected
-                      ? CleanTheme.primaryColor
-                      : (borderColor ?? CleanTheme.borderPrimary),
-                  width: isSelected ? 2 : 1,
-                )
-              : null,
-          boxShadow: hasShadow ? CleanTheme.cardShadow : null,
+    // Kinetic Gradient - Subtle shine
+    final kineticGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Colors.white.withValues(alpha: 0.1),
+        Colors.white.withValues(alpha: 0.02),
+      ],
+      stops: const [0.0, 1.0],
+    );
+
+    return Padding(
+      padding: margin ?? EdgeInsets.zero,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: hasShadow ? CleanTheme.cardShadow : null,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(borderRadius),
+            child: Stack(
+              children: [
+                // Glassmorphism Blur Layer
+                if (enableGlass)
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(
+                        sigmaX: 10,
+                        sigmaY: 10,
+                      ), // Heavy blur for premium glass
+                      child: Container(color: Colors.transparent),
+                    ),
+                  ),
+
+                // Background & Kinetic Overlay
+                Container(
+                  padding: padding ?? const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color:
+                        backgroundColor ??
+                        (isSelected
+                            ? CleanTheme.primaryColor.withValues(alpha: 0.05)
+                            : CleanTheme.surfaceColor.withOpacity(
+                                0.85,
+                              )), // Semi-transparent for glass
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    border: hasBorder
+                        ? Border.all(
+                            color: isSelected
+                                ? CleanTheme.primaryColor
+                                : (borderColor ??
+                                      Colors.white.withValues(
+                                        alpha: 0.6,
+                                      )), // Glassy border
+                            width: isSelected
+                                ? 2
+                                : 1, // Thicker selected border
+                          )
+                        : null,
+                    gradient: enableGlass && !isSelected
+                        ? kineticGradient
+                        : null,
+                  ),
+                  child: child,
+                ),
+              ],
+            ),
+          ),
         ),
-        child: child,
       ),
     );
   }

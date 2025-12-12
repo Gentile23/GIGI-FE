@@ -9,12 +9,14 @@ class AnatomicalMuscleView extends StatefulWidget {
   final List<String> muscleGroups;
   final double height;
   final Color highlightColor;
+  final Map<String, Color>? colorMap;
 
   const AnatomicalMuscleView({
     super.key,
     required this.muscleGroups,
     this.height = 200,
     this.highlightColor = const Color(0xFFFF0000),
+    this.colorMap,
   });
 
   @override
@@ -35,7 +37,8 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   void didUpdateWidget(AnatomicalMuscleView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.muscleGroups != widget.muscleGroups ||
-        oldWidget.highlightColor != widget.highlightColor) {
+        oldWidget.highlightColor != widget.highlightColor ||
+        oldWidget.colorMap != widget.colorMap) {
       _loadAndModifySvg();
     }
   }
@@ -49,16 +52,31 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       final document = xml.XmlDocument.parse(svgString);
 
       // Map muscle groups to data-elem values
-      final elementsToHighlight = _mapMuscleGroupsToElements(
-        widget.muscleGroups,
-      );
+      // If colorMap is present, we use it directly. Otherwise we use muscleGroups + highlightColor
 
-      // Get highlight color in hex format
-      final highlightHex =
-          '#${widget.highlightColor.toARGB32().toRadixString(16).substring(2, 8)}';
+      final Map<String, String> elementColors = {};
+
+      if (widget.colorMap != null) {
+        // Map based on the provided color map
+        widget.colorMap!.forEach((group, color) {
+          final elements = _mapMuscleGroupToElements(group);
+          final hex = '#${color.toARGB32().toRadixString(16).substring(2, 8)}';
+          for (var elem in elements) {
+            elementColors[elem] = hex;
+          }
+        });
+      } else {
+        // Legacy mode: use muscleGroups and single highlightColor
+        final elements = _mapMuscleGroupsToElements(widget.muscleGroups);
+        final highlightHex =
+            '#${widget.highlightColor.toARGB32().toRadixString(16).substring(2, 8)}';
+        for (var elem in elements) {
+          elementColors[elem] = highlightHex;
+        }
+      }
 
       // Modify SVG to highlight specific muscles
-      _highlightMusclesInXml(document, elementsToHighlight, highlightHex);
+      _highlightMusclesInXml(document, elementColors);
       setState(() {
         _svgContent = document.toXmlString();
         _hasError = false;
@@ -74,7 +92,14 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   /// Maps database muscle group names to SVG data-elem values using precise matching
   Set<String> _mapMuscleGroupsToElements(List<String> groups) {
     final Set<String> elements = {};
+    for (final group in groups) {
+      elements.addAll(_mapMuscleGroupToElements(group));
+    }
+    return elements;
+  }
 
+  /// Maps a SINGLE group to its SVG elements
+  List<String> _mapMuscleGroupToElements(String group) {
     // Strict mapping using the defined constants
     // This allows us to support the "Fixed Names" requested by the user
     // while maintaining some backward compatibility with common variations if needed.
@@ -93,7 +118,7 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       MuscleGroups.glutes.toLowerCase(): ['GLUTES'],
       MuscleGroups.calves.toLowerCase(): ['CALVES'],
       MuscleGroups.traps.toLowerCase(): ['TRAPS'],
-
+      'neck': ['TRAPS'], // Approximate
       // Common Variations (mapped to standard)
       'pectorals': ['CHEST'],
       'deltoids': ['SHOULDERS'],
@@ -126,37 +151,27 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       ],
     };
 
-    for (final group in groups) {
-      final normalizedGroup = group.toLowerCase().trim();
+    final normalizedGroup = group.toLowerCase().trim();
 
-      // 1. Try Exact Match (Prioritize this for the "Fixed Names")
-      if (muscleMap.containsKey(normalizedGroup)) {
-        elements.addAll(muscleMap[normalizedGroup]!);
-        continue;
-      }
+    // 1. Try Exact Match
+    if (muscleMap.containsKey(normalizedGroup)) {
+      return muscleMap[normalizedGroup]!;
+    }
 
-      // 2. Partial match fallback (only if exact match fails)
-      bool found = false;
-      for (final key in muscleMap.keys) {
-        if (normalizedGroup.contains(key)) {
-          elements.addAll(muscleMap[key]!);
-          found = true;
-        }
-      }
-
-      if (!found) {
-        // print('Warning: No anatomical mapping found for muscle group: "$group"');
+    // 2. Partial match fallback
+    for (final key in muscleMap.keys) {
+      if (normalizedGroup.contains(key)) {
+        return muscleMap[key]!;
       }
     }
 
-    return elements;
+    return [];
   }
 
-  /// Modifies XML document to highlight specific muscle groups
+  /// Modifies XML document to highlight specific muscle groups with specific colors
   void _highlightMusclesInXml(
     xml.XmlDocument document,
-    Set<String> elementsToHighlight,
-    String highlightColor,
+    Map<String, String> elementColors,
   ) {
     // Find all elements with data-elem attribute
     final allElements = document.findAllElements('*');
@@ -172,8 +187,8 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
         element.setAttribute('opacity', '1');
 
         // Then, if this muscle should be highlighted, apply the highlight color
-        if (elementsToHighlight.contains(dataElem)) {
-          element.setAttribute('fill', highlightColor);
+        if (elementColors.containsKey(dataElem)) {
+          element.setAttribute('fill', elementColors[dataElem]!);
           element.setAttribute('opacity', '0.8');
         }
       }

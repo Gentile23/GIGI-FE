@@ -2,7 +2,7 @@
 
 ## 📋 Panoramica
 
-Questa implementazione integra OpenAI GPT-5-nano nell'app FitGenius per generare schede di allenamento personalizzate basate su:
+Questa implementazione integra OpenAI GPT-5-nano nell'app GIGI per generare schede di allenamento personalizzate basate su:
 - Obiettivi fitness dell'utente
 - Livello di esperienza
 - Infortuni dettagliati (muscoli, articolazioni, ossa)

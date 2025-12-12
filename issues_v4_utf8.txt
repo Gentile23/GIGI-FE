@@ -1,4 +1,4 @@
-﻿Analyzing fitgenius...                                          
+﻿Analyzing GIGI...                                          
 
    info - Statements in an if should be enclosed in a block - lib\data\models\addiction_mechanics_model.dart:604:7 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\data\models\addiction_mechanics_model.dart:606:7 - curly_braces_in_flow_control_structures
@@ -10,9 +10,9 @@
    info - Statements in an if should be enclosed in a block - lib\data\services\user_service.dart:91:9 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\data\services\user_service.dart:93:9 - curly_braces_in_flow_control_structures
    info - Statements in an if should be enclosed in a block - lib\data\services\user_service.dart:95:9 - curly_braces_in_flow_control_structures
-warning - Unused import: 'package:fitgenius/data/services/api_client.dart' - lib\data\services\workout_log_service.dart:3:8 - unused_import
+warning - Unused import: 'package:GIGI/data/services/api_client.dart' - lib\data\services\workout_log_service.dart:3:8 - unused_import
    info - Use interpolation to compose strings and values - lib\data\services\workout_service.dart:191:13 - prefer_interpolation_to_compose_strings
-warning - Unused import: 'package:fitgenius/data/services/api_client.dart' - lib\data\services\workout_stats_service.dart:3:8 - unused_import
+warning - Unused import: 'package:GIGI/data/services/api_client.dart' - lib\data\services\workout_stats_service.dart:3:8 - unused_import
    info - Unnecessary use of multiple underscores - lib\presentation\screens\auth\auth_screen.dart:87:43 - unnecessary_underscores
    info - Unnecessary use of multiple underscores - lib\presentation\screens\auth\auth_screen.dart:87:47 - unnecessary_underscores
    info - Unnecessary use of string interpolation - lib\presentation\screens\community\community_goals_screen.dart:438:17 - unnecessary_string_interpolations

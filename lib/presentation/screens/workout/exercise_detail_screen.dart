@@ -100,7 +100,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 child: AnatomicalMuscleView(
                   muscleGroups: widget.workoutExercise.exercise.muscleGroups,
                   height: 300,
-                  highlightColor: CleanTheme.primaryColor,
+                  highlightColor: CleanTheme.accentRed,
                 ),
               ),
               const SizedBox(height: 24),

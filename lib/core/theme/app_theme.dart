@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
-/// FitGenius Minimal & Elegant App Theme
+/// GIGI Minimal & Elegant App Theme
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(

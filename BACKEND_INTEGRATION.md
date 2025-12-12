@@ -1,4 +1,4 @@
-# FitGenius - Guida Integrazione Backend
+# GIGI - Guida Integrazione Backend
 
 ## 🚀 Setup Rapido
 

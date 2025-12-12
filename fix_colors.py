@@ -9,7 +9,7 @@ replacements = {
 }
 
 # Directory to search
-lib_dir = r'c:\Users\genti\Progetti\fitgenius\lib'
+lib_dir = r'c:\Users\genti\Progetti\GIGI\lib'
 
 # Counter for replacements
 total_replacements = 0

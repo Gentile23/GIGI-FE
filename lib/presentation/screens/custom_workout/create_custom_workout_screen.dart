@@ -212,115 +212,117 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            // Form fields
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Name field
-                  TextFormField(
-                    controller: _nameController,
-                    style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
-                    decoration: InputDecoration(
-                      labelText: 'Nome Scheda *',
-                      labelStyle: GoogleFonts.outfit(
-                        color: CleanTheme.textSecondary,
-                      ),
-                      filled: true,
-                      fillColor: CleanTheme.cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: CleanTheme.primaryColor,
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Form fields
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Name field
+                    TextFormField(
+                      controller: _nameController,
+                      style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
+                      decoration: InputDecoration(
+                        labelText: 'Nome Scheda *',
+                        labelStyle: GoogleFonts.outfit(
+                          color: CleanTheme.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: CleanTheme.cardColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: CleanTheme.primaryColor,
+                          ),
                         ),
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Inserisci un nome per la scheda';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  // Description field
-                  TextFormField(
-                    controller: _descriptionController,
-                    style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      labelText: 'Descrizione (opzionale)',
-                      labelStyle: GoogleFonts.outfit(
-                        color: CleanTheme.textSecondary,
-                      ),
-                      filled: true,
-                      fillColor: CleanTheme.cardColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: CleanTheme.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Exercises header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Esercizi (${_exercises.length})',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: _addExercises,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(
-                      'Aggiungi',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: CleanTheme.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Exercises list
-            Expanded(
-              child: _exercises.isEmpty
-                  ? _buildEmptyExercises()
-                  : ReorderableListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _exercises.length,
-                      onReorder: _reorderExercises,
-                      itemBuilder: (context, index) {
-                        return _buildExerciseItem(index);
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Inserisci un nome per la scheda';
+                        }
+                        return null;
                       },
                     ),
-            ),
-          ],
+                    const SizedBox(height: 12),
+                    // Description field
+                    TextFormField(
+                      controller: _descriptionController,
+                      style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Descrizione (opzionale)',
+                        labelStyle: GoogleFonts.outfit(
+                          color: CleanTheme.textSecondary,
+                        ),
+                        filled: true,
+                        fillColor: CleanTheme.cardColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: CleanTheme.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Exercises header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Esercizi (${_exercises.length})',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _addExercises,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(
+                        'Aggiungi',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: CleanTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Exercises list
+              Expanded(
+                child: _exercises.isEmpty
+                    ? _buildEmptyExercises()
+                    : ReorderableListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _exercises.length,
+                        onReorder: _reorderExercises,
+                        itemBuilder: (context, index) {
+                          return _buildExerciseItem(index);
+                        },
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

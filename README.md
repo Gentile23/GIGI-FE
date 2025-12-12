@@ -1,4 +1,4 @@
-# FitGenius 🏋️‍♂️
+# GIGI 🏋️‍♂️
 
 > **Your AI-Powered Fitness Coach** – A premium Flutter application that delivers personalized workout plans, real-time AI voice coaching, form analysis, gamification, and a vibrant social experience.
 
@@ -27,7 +27,7 @@
 
 ## 🎯 Project Overview
 
-FitGenius is a comprehensive **Flutter** mobile/web/desktop fitness application that combines cutting-edge AI technology with gamification to create an engaging, personalized workout experience.
+GIGI is a comprehensive **Flutter** mobile/web/desktop fitness application that combines cutting-edge AI technology with gamification to create an engaging, personalized workout experience.
 
 ### Core Pillars
 
@@ -279,8 +279,8 @@ lib/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/fitgenius.git
-cd fitgenius
+git clone https://github.com/yourusername/GIGI.git
+cd GIGI
 
 # Install Flutter dependencies
 flutter pub get
@@ -480,9 +480,9 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 
 For questions, feature requests, or support:
 
-- **Email**: support@fitgenius.app
-- **Twitter**: [@FitGeniusApp](https://twitter.com/FitGeniusApp)
-- **Discord**: [discord.gg/fitgenius](https://discord.gg/fitgenius)
+- **Email**: support@GIGI.app
+- **Twitter**: [@GIGIApp](https://twitter.com/GIGIApp)
+- **Discord**: [discord.gg/GIGI](https://discord.gg/GIGI)
 
 ---
 
@@ -498,4 +498,4 @@ For questions, feature requests, or support:
 
 **Made with ❤️ and Flutter**
 
-*FitGenius – Transform your fitness journey with AI-powered coaching*
+*GIGI – Transform your fitness journey with AI-powered coaching*

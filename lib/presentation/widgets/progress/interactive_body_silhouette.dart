@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../workout/anatomical_muscle_view.dart';
 
 /// Interactive body silhouette widget that shows body measurements
 /// with color-coded areas based on progress
@@ -25,6 +26,36 @@ class InteractiveBodySilhouette extends StatefulWidget {
 
 class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
   String? _selectedPart;
+
+  Map<String, Color> _buildColorMap() {
+    final Map<String, Color> colorMap = {};
+    final changes = widget.changes ?? {};
+
+    // Mapping helper
+    void mapChange(String key, List<String> muscles, {bool isWaist = false}) {
+      if (changes.containsKey(key)) {
+        final change = changes[key] as num;
+        final color = _getColorForChange(change, isWaist: isWaist);
+        for (var m in muscles) {
+          colorMap[m] = color;
+        }
+      }
+    }
+
+    mapChange('neck_cm', ['TRAPS']);
+    mapChange('shoulders_cm', ['SHOULDERS']);
+    mapChange('chest_cm', ['CHEST']);
+    mapChange('bicep_left_cm', ['BICEPS']);
+    mapChange('bicep_right_cm', ['BICEPS']);
+    mapChange('forearm_cm', ['FOREARMS']);
+    mapChange('waist_cm', ['ABDOMINALS', 'OBLIQUES'], isWaist: true);
+    mapChange('hips_cm', ['GLUTES']); // Approx
+    mapChange('thigh_left_cm', ['QUADRICEPS', 'HAMSTRINGS']);
+    mapChange('thigh_right_cm', ['QUADRICEPS', 'HAMSTRINGS']);
+    mapChange('calf_cm', ['CALVES']);
+
+    return colorMap;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +83,11 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
             alignment: Alignment.center,
             children: [
               // Body outline
-              CustomPaint(
-                size: const Size(200, 380),
-                painter: _BodyOutlinePainter(),
+              // Body SVG with highlighting
+              AnatomicalMuscleView(
+                height: 380,
+                muscleGroups: const [], // Using colorMap instead
+                colorMap: _buildColorMap(),
               ),
 
               // Colored body parts
@@ -553,64 +586,4 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
       ],
     );
   }
-}
-
-/// Custom painter for body outline
-class _BodyOutlinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = CleanTheme.borderSecondary.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final path = Path();
-    final w = size.width;
-    // h is available for future use with leg proportions
-    // final _ = size.height;
-
-    // Head
-    path.addOval(
-      Rect.fromCenter(center: Offset(w / 2, 25), width: 50, height: 50),
-    );
-
-    // Neck
-    path.moveTo(w / 2 - 10, 50);
-    path.lineTo(w / 2 - 10, 65);
-    path.moveTo(w / 2 + 10, 50);
-    path.lineTo(w / 2 + 10, 65);
-
-    // Shoulders
-    path.moveTo(w / 2 - 60, 68);
-    path.quadraticBezierTo(w / 2, 60, w / 2 + 60, 68);
-
-    // Torso
-    path.moveTo(w / 2 - 55, 70);
-    path.lineTo(w / 2 - 45, 135);
-    path.lineTo(w / 2 - 55, 200);
-    path.moveTo(w / 2 + 55, 70);
-    path.lineTo(w / 2 + 45, 135);
-    path.lineTo(w / 2 + 55, 200);
-
-    // Arms
-    path.moveTo(w / 2 - 55, 72);
-    path.lineTo(w / 2 - 75, 130);
-    path.lineTo(w / 2 - 80, 175);
-    path.moveTo(w / 2 + 55, 72);
-    path.lineTo(w / 2 + 75, 130);
-    path.lineTo(w / 2 + 80, 175);
-
-    // Legs
-    path.moveTo(w / 2 - 30, 200);
-    path.lineTo(w / 2 - 25, 285);
-    path.lineTo(w / 2 - 20, 350);
-    path.moveTo(w / 2 + 30, 200);
-    path.lineTo(w / 2 + 25, 285);
-    path.lineTo(w / 2 + 20, 350);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
