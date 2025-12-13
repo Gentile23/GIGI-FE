@@ -15,6 +15,7 @@ import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../../data/models/exercise_intro_model.dart';
+import '../../../core/services/gigi_tts_service.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -30,12 +31,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Set<String> _completedSections = {};
   final Set<String> _skippedSections = {};
 
+  // Voice Coaching TTS
+  late GigiTTSService _gigiTTS;
+  CoachingMode _selectedCoachingMode = CoachingMode.voice;
+
   @override
   void initState() {
     super.initState();
+    _gigiTTS = GigiTTSService();
+    _gigiTTS.initialize();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startWorkoutSession();
     });
+  }
+
+  @override
+  void dispose() {
+    _gigiTTS.dispose();
+    super.dispose();
   }
 
   Future<void> _startWorkoutSession() async {
@@ -610,6 +623,60 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => detailScreen));
   }
 
+  /// Start voice coaching for exercise - shows mode selection then plays TTS
+  void _startVoiceCoaching(WorkoutExercise exercise) {
+    ModeSelectionSheet.show(
+      context,
+      exerciseName: exercise.exercise.name,
+      currentMode: _selectedCoachingMode,
+      onModeSelected: (mode, remember) {
+        setState(() {
+          _selectedCoachingMode = mode;
+        });
+
+        // Play intro with TTS
+        _playExerciseIntro(exercise, mode);
+      },
+    );
+  }
+
+  /// Play exercise introduction with TTS
+  Future<void> _playExerciseIntro(
+    WorkoutExercise exercise,
+    CoachingMode mode,
+  ) async {
+    final exerciseName = exercise.exercise.name;
+    final sets = exercise.sets;
+    final reps = exercise.reps;
+
+    if (mode == CoachingMode.voice) {
+      // Full voice mode: detailed intro
+      await _gigiTTS.speak(
+        'Ottimo! Iniziamo con $exerciseName. '
+        'Faremo $sets serie da $reps ripetizioni. '
+        'Ricorda di mantenere la forma corretta. Pronti? Via!',
+      );
+    } else {
+      // Music mode: minimal cue
+      await _gigiTTS.speak('$exerciseName. $sets serie, $reps reps. Via!');
+    }
+
+    // Show confirmation
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            mode == CoachingMode.voice
+                ? '🎤 Voice Mode attivo - Gigi ti guida!'
+                : '🎵 Music Mode attivo - Buon allenamento!',
+          ),
+          backgroundColor: CleanTheme.primaryColor,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   Widget _buildDifficultyBadge(ExerciseDifficulty difficulty) {
     Color badgeColor;
     String label;
@@ -939,6 +1006,84 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
+                    ),
+                  ),
+                ),
+
+                const Divider(color: CleanTheme.borderPrimary),
+
+                // Voice Coaching - Inizia con Gigi
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          CleanTheme.primaryColor.withValues(alpha: 0.1),
+                          CleanTheme.accentPurple.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('🎤', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Gigi Voice Coach',
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: CleanTheme.primaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => _startVoiceCoaching(exercise),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: CleanTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '🎤',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Inizia con Gigi',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
