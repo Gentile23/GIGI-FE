@@ -3,11 +3,16 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
+import '../../../data/models/exercise_intro_model.dart';
 import '../../../providers/workout_provider.dart';
+import '../../../providers/auth_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../presentation/widgets/workout/set_logging_widget.dart';
 import '../../../presentation/widgets/workout/anatomical_muscle_view.dart';
+import '../../../presentation/widgets/voice_coaching/mode_selection_sheet.dart';
+import '../../../core/services/gigi_tts_service.dart';
+import '../../../core/services/synchronized_voice_controller.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
@@ -638,22 +643,56 @@ class ExerciseExecutionScreen extends StatefulWidget {
 
 class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
   int _currentExerciseIndex = 0;
+  int _currentSetNumber = 0;
+  bool _setInProgress = false;
 
   // Track data for each set: Map<exerciseIndex, Map<setIndex, SetData>>
   final Map<int, Map<int, SetData>> _setData = {};
   YoutubePlayerController? _videoController;
+
+  // Synchronized Voice Coaching
+  late SynchronizedVoiceController _voiceController;
+  late GigiTTSService _gigiTTS;
 
   @override
   void initState() {
     super.initState();
     _initializeSetData();
     _initializeVideoController();
+
+    // Initialize voice coaching
+    _gigiTTS = GigiTTSService();
+    _voiceController = SynchronizedVoiceController(_gigiTTS);
+
+    // Get user data from AuthProvider after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeVoiceCoachingWithUserData();
+    });
+
+    _voiceController.addListener(_onVoiceStateChange);
+  }
+
+  void _initializeVoiceCoachingWithUserData() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    _voiceController.initialize(
+      userName: user?.name ?? 'Campione',
+      experienceLevel: user?.experienceLevel,
+    );
   }
 
   @override
   void dispose() {
     _videoController?.close();
+    _voiceController.removeListener(_onVoiceStateChange);
+    _voiceController.dispose();
+    _gigiTTS.dispose();
     super.dispose();
+  }
+
+  void _onVoiceStateChange() {
+    if (mounted) setState(() {});
   }
 
   void _initializeVideoController() {
@@ -697,6 +736,11 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
     final exercises = widget.workout.exercises;
     final currentExercise = exercises[_currentExerciseIndex];
 
+    // Show rest timer overlay if resting
+    if (_voiceController.isResting) {
+      return _buildRestTimerOverlay(currentExercise);
+    }
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
@@ -711,6 +755,20 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
         actions: [
+          // Voice Coaching Toggle
+          IconButton(
+            icon: Icon(
+              _voiceController.isEnabled ? Icons.mic : Icons.mic_off,
+              color: _voiceController.isEnabled
+                  ? CleanTheme.accentGreen
+                  : CleanTheme.textTertiary,
+            ),
+            onPressed: _toggleVoiceCoaching,
+            tooltip: _voiceController.isEnabled
+                ? 'Disattiva Voice Coaching'
+                : 'Attiva Voice Coaching',
+          ),
+          // Info Button
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {
@@ -732,6 +790,12 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Voice Coaching Controls Bar
+              if (_voiceController.isEnabled) ...[
+                _buildVoiceCoachingBar(),
+                const SizedBox(height: 16),
+              ],
+
               // Anatomical Muscle View
               if (currentExercise.exerciseType != 'cardio' &&
                   currentExercise.exerciseType != 'mobility') ...[
@@ -773,15 +837,10 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
-              // Sets - Use SetLoggingWidget for full logging
-              SetLoggingWidget(
-                exercise: currentExercise,
-                onCompletionChanged: (completed) {
-                  // Optionally track overall exercise completion
-                },
-              ),
+              // Synchronized Set Controls
+              _buildSynchronizedSetControls(currentExercise),
 
               const SizedBox(height: 32),
 
@@ -793,12 +852,7 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
                       child: CleanButton(
                         text: 'Precedente',
                         isOutlined: true,
-                        onPressed: () {
-                          setState(() {
-                            _currentExerciseIndex--;
-                            _initializeVideoController();
-                          });
-                        },
+                        onPressed: _goToPreviousExercise,
                       ),
                     ),
                   if (_currentExerciseIndex > 0) const SizedBox(width: 16),
@@ -807,19 +861,376 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
                       text: _currentExerciseIndex < exercises.length - 1
                           ? 'Prossimo'
                           : 'Termina',
-                      onPressed: () {
-                        if (_currentExerciseIndex < exercises.length - 1) {
-                          setState(() {
-                            _currentExerciseIndex++;
-                            _initializeVideoController();
-                          });
-                        } else {
-                          Navigator.pop(context);
-                        }
-                      },
+                      onPressed: _goToNextExercise,
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // NAVIGATION
+  // ==========================================
+
+  void _goToPreviousExercise() {
+    setState(() {
+      _currentExerciseIndex--;
+      _currentSetNumber = 0;
+      _setInProgress = false;
+      _initializeVideoController();
+    });
+    if (_voiceController.isEnabled) {
+      _activateVoiceForCurrentExercise();
+    }
+  }
+
+  void _goToNextExercise() {
+    if (_currentExerciseIndex < widget.workout.exercises.length - 1) {
+      setState(() {
+        _currentExerciseIndex++;
+        _currentSetNumber = 0;
+        _setInProgress = false;
+        _initializeVideoController();
+      });
+      if (_voiceController.isEnabled) {
+        _activateVoiceForCurrentExercise();
+      }
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
+  // ==========================================
+  // SYNCHRONIZED SET CONTROLS
+  // ==========================================
+
+  Widget _buildSynchronizedSetControls(WorkoutExercise exercise) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          children: [
+            Text(
+              'Serie',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${_currentSetNumber}/${exercise.sets}',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: CleanTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Progress dots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(exercise.sets, (index) {
+            final isCompleted = index < _currentSetNumber;
+            final isCurrent = index == _currentSetNumber;
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: isCurrent ? 16 : 12,
+              height: isCurrent ? 16 : 12,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted
+                    ? CleanTheme.accentGreen
+                    : isCurrent
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.borderSecondary,
+                border: isCurrent
+                    ? Border.all(color: CleanTheme.primaryColor, width: 2)
+                    : null,
+              ),
+              child: isCompleted
+                  ? const Icon(Icons.check, size: 8, color: Colors.white)
+                  : null,
+            );
+          }),
+        ),
+        const SizedBox(height: 24),
+
+        // Main Action Button
+        if (_currentSetNumber < exercise.sets) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _setInProgress ? _completeCurrentSet : _startNextSet,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _setInProgress
+                    ? CleanTheme.accentGreen
+                    : CleanTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _setInProgress ? Icons.check : Icons.play_arrow,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _setInProgress
+                        ? 'SERIE COMPLETATA ✓'
+                        : 'INIZIA SERIE ${_currentSetNumber + 1}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ] else ...[
+          // All sets completed
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: CleanTheme.accentGreen),
+            ),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.celebration,
+                  size: 48,
+                  color: CleanTheme.accentGreen,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Esercizio Completato! 🎉',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.accentGreen,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _startNextSet() {
+    setState(() {
+      _setInProgress = true;
+    });
+
+    if (_voiceController.isEnabled) {
+      _voiceController.startSet();
+    }
+  }
+
+  void _completeCurrentSet() {
+    setState(() {
+      _currentSetNumber++;
+      _setInProgress = false;
+    });
+
+    if (_voiceController.isEnabled) {
+      _voiceController.completeSet();
+    }
+  }
+
+  // ==========================================
+  // VOICE COACHING METHODS
+  // ==========================================
+
+  void _toggleVoiceCoaching() {
+    if (_voiceController.isEnabled) {
+      _voiceController.deactivate();
+    } else {
+      _activateVoiceForCurrentExercise();
+    }
+  }
+
+  void _activateVoiceForCurrentExercise() {
+    final exercise = widget.workout.exercises[_currentExerciseIndex];
+
+    // Load exercise script from database
+    _voiceController.loadScriptForExercise(
+      exercise.exercise.name,
+      exercise.exercise.muscleGroups,
+    );
+
+    _voiceController.activate(
+      exerciseName: exercise.exercise.name,
+      sets: exercise.sets,
+      reps: int.tryParse(exercise.reps) ?? 10,
+      restSeconds: exercise.restSeconds,
+    );
+  }
+
+  Widget _buildVoiceCoachingBar() {
+    final phaseText = switch (_voiceController.phase) {
+      VoiceCoachingPhase.activated => 'Voice coaching attivo',
+      VoiceCoachingPhase.preExercise => 'Premi Inizia Serie',
+      VoiceCoachingPhase.explaining => 'Spiegazione in corso...',
+      VoiceCoachingPhase.executing => 'Serie in corso',
+      VoiceCoachingPhase.postSet => 'Serie completata!',
+      VoiceCoachingPhase.resting => 'Riposo...',
+      VoiceCoachingPhase.completed => 'Esercizio completato!',
+      _ => 'Gigi ti guida',
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            CleanTheme.primaryColor.withValues(alpha: 0.1),
+            CleanTheme.accentGreen.withValues(alpha: 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Status Icon
+          Container(
+            width: 40,
+            height: 40,
+            decoration: const BoxDecoration(
+              color: CleanTheme.primaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.record_voice_over,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Status Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🎤 Voice Coaching',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                Text(
+                  phaseText,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Mute Button
+          IconButton(
+            icon: Icon(
+              _voiceController.isMuted ? Icons.volume_off : Icons.volume_up,
+              color: _voiceController.isMuted
+                  ? CleanTheme.textTertiary
+                  : CleanTheme.primaryColor,
+            ),
+            onPressed: () => _voiceController.toggleMute(),
+            tooltip: _voiceController.isMuted ? 'Attiva audio' : 'Muto',
+          ),
+          // Close Button
+          IconButton(
+            icon: const Icon(Icons.close, color: CleanTheme.textTertiary),
+            onPressed: () => _voiceController.deactivate(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRestTimerOverlay(WorkoutExercise exercise) {
+    final minutes = _voiceController.restRemaining ~/ 60;
+    final seconds = _voiceController.restRemaining % 60;
+    final timeString =
+        '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+    return Scaffold(
+      backgroundColor: CleanTheme.backgroundColor,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Timer Icon
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                ),
+                child: const Icon(
+                  Icons.timer,
+                  size: 50,
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Time Display
+              Text(
+                timeString,
+                style: GoogleFonts.outfit(
+                  fontSize: 72,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Message
+              Text(
+                _voiceController.restRemaining <= 10
+                    ? 'Preparati per la prossima serie!'
+                    : 'Riposa e recupera',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 48),
+
+              // Skip Button
+              CleanButton(
+                text: 'SALTA RIPOSO →',
+                isOutlined: true,
+                onPressed: () => _voiceController.skipRest(),
               ),
             ],
           ),

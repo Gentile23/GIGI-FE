@@ -1309,10 +1309,5 @@ class _SetLogData {
   int rpe;
   bool isCompleted;
 
-  _SetLogData({
-    this.weight = 0,
-    this.reps = 10,
-    this.rpe = 7,
-    this.isCompleted = false,
-  });
+  _SetLogData({required this.reps}) : weight = 0, rpe = 7, isCompleted = false;
 }

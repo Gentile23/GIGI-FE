@@ -136,7 +136,7 @@ class CleanTheme {
 
       // AppBar
       appBarTheme: AppBarTheme(
-        backgroundColor: surfaceColor.withOpacity(0.8), // Glassy
+        backgroundColor: surfaceColor.withValues(alpha: 0.8), // Glassy
         elevation: 0,
         centerTitle: true,
         scrolledUnderElevation: 0,

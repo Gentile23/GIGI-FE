@@ -1,4 +1,4 @@
-import 'package:GIGI/data/models/workout_model.dart';
+import 'package:gigi/data/models/workout_model.dart';
 
 /// Workout log model - represents a completed workout session
 class WorkoutLog {

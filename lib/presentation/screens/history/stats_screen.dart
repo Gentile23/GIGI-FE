@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:GIGI/core/theme/clean_theme.dart';
-import 'package:GIGI/presentation/widgets/clean_widgets.dart';
-import 'package:GIGI/providers/workout_log_provider.dart';
+import 'package:gigi/core/theme/clean_theme.dart';
+import 'package:gigi/presentation/widgets/clean_widgets.dart';
+import 'package:gigi/providers/workout_log_provider.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});

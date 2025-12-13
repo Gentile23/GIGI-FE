@@ -352,7 +352,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     try {
       final response = await _apiClient.get('/gdpr/export');
 
-      if (response != null && response['success'] == true) {
+      if (response['success'] == true) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -366,7 +366,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
         }
       } else {
         throw Exception(
-          response?['message'] ?? 'Errore durante l\'esportazione',
+          response['message'] ?? 'Errore durante l\'esportazione',
         );
       }
     } catch (e) {
@@ -463,7 +463,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     try {
       final response = await _apiClient.delete('/gdpr/account');
 
-      if (response != null && response['success'] == true) {
+      if (response['success'] == true) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         await authProvider.logout();
 
@@ -474,7 +474,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
         }
       } else {
         throw Exception(
-          response?['message'] ?? 'Errore durante l\'eliminazione',
+          response['message'] ?? 'Errore durante l\'eliminazione',
         );
       }
     } catch (e) {

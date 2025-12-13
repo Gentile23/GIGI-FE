@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:GIGI/core/theme/clean_theme.dart';
+import 'package:gigi/core/theme/clean_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// ═══════════════════════════════════════════════════════════
@@ -185,8 +185,8 @@ class CleanCard extends StatelessWidget {
                         backgroundColor ??
                         (isSelected
                             ? CleanTheme.primaryColor.withValues(alpha: 0.05)
-                            : CleanTheme.surfaceColor.withOpacity(
-                                0.85,
+                            : CleanTheme.surfaceColor.withValues(
+                                alpha: 0.85,
                               )), // Semi-transparent for glass
                     borderRadius: BorderRadius.circular(borderRadius),
                     border: hasBorder

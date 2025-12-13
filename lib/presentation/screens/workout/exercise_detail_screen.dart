@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import 'package:provider/provider.dart';
+
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
-import '../../../data/services/voice_coaching_service.dart';
+
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
 import '../../widgets/workout/alternative_exercises_sheet.dart';

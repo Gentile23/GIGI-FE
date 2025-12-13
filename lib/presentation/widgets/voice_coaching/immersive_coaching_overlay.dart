@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/workout_audio_orchestrator.dart';
-import '../../../data/models/exercise_intro_model.dart';
 
 /// Immersive Coaching Overlay
 ///

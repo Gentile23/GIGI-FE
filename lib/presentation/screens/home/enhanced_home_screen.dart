@@ -1328,7 +1328,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         listen: false,
                       );
 
-                      ScaffoldMessenger.of(parentContext).showSnackBar(
+                      // Store reference before async gap
+                      final scaffoldMessenger = ScaffoldMessenger.of(
+                        parentContext,
+                      );
+
+                      scaffoldMessenger.showSnackBar(
                         const SnackBar(
                           content: Text(
                             'Generazione piano personalizzato... 🤖',
@@ -1347,7 +1352,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       if (mounted) {
                         if (success) _loadData(); // Refresh UI
 
-                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                        scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(
                               success

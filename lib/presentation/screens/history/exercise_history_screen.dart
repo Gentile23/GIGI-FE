@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:GIGI/core/theme/clean_theme.dart';
-import 'package:GIGI/presentation/widgets/clean_widgets.dart';
+import 'package:gigi/core/theme/clean_theme.dart';
+import 'package:gigi/presentation/widgets/clean_widgets.dart';
 
 class ExerciseHistoryScreen extends StatefulWidget {
   final String exerciseId;

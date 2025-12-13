@@ -1,6 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:GIGI/core/theme/modern_theme.dart';
+import 'package:gigi/core/theme/modern_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Aggressive Modern Button - Sharp & Bold
@@ -191,8 +191,8 @@ class ModernCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? ModernTheme.surfaceColor
-                        : ModernTheme.cardColor.withOpacity(
-                            0.8,
+                        : ModernTheme.cardColor.withValues(
+                            alpha: 0.8,
                           ), // Glassy opacity
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(

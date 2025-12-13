@@ -48,7 +48,6 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
   bool _isPaused = false;
 
   // Exercise context
-  String? _currentExerciseId;
   ExerciseIntroScript? _currentIntro;
   int _currentSet = 0;
   int _totalSets = 0;
@@ -57,17 +56,11 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
   String? _userName;
 
   // Rest countdown
-  Duration _restDuration = Duration.zero;
   Duration _restRemaining = Duration.zero;
   Timer? _restTimer;
 
   // Countdown intervals for voice announcements (in seconds)
   final List<int> _countdownIntervals = [60, 30, 10, 5, 3, 2, 1];
-
-  // Cached audio URLs (for pre-recorded audio fallback)
-  String? _preSetAudioUrl;
-  String? _duringAudioUrl;
-  String? _postSetAudioUrl;
 
   WorkoutAudioOrchestrator(
     this._voiceCoachingService, {
@@ -174,7 +167,6 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
   Future<void> _onExerciseSelected(String? exerciseId) async {
     if (exerciseId == null) return;
 
-    _currentExerciseId = exerciseId;
     _currentPhase = CoachingPhase.exerciseIntro;
     notifyListeners();
 
@@ -247,7 +239,6 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
 
   /// Called when rest period starts
   Future<void> _onRestStarted(Duration duration) async {
-    _restDuration = duration;
     _restRemaining = duration;
     _currentPhase = CoachingPhase.rest;
     notifyListeners();
@@ -332,18 +323,6 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Play audio from URL (fallback for pre-recorded audio)
-  Future<void> _playAudio(String url) async {
-    if (_isMuted || _isPaused) return;
-
-    try {
-      final fullUrl = url.startsWith('http') ? url : '${ApiConfig.baseUrl}$url';
-      await _audioPlayer.play(UrlSource(fullUrl));
-    } catch (e) {
-      debugPrint('Error playing audio: $e');
-    }
-  }
-
   /// Called when audio playback completes
   void _onAudioComplete() {
     // Handle phase transitions after audio completes
@@ -363,16 +342,15 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load cached audio URLs for an exercise
+  /// Load cached audio URLs for an exercise (placeholder for future use)
   Future<void> loadExerciseAudio(
     String exerciseId, {
     String? preUrl,
     String? duringUrl,
     String? postUrl,
   }) async {
-    _preSetAudioUrl = preUrl;
-    _duringAudioUrl = duringUrl;
-    _postSetAudioUrl = postUrl;
+    // Future: cache pre-recorded audio URLs for fallback
+    // Currently all audio is handled via TTS
   }
 
   /// Reset orchestrator state
@@ -381,7 +359,6 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
     _audioPlayer.stop();
     _ttsService.stop();
     _currentPhase = CoachingPhase.idle;
-    _currentExerciseId = null;
     _currentIntro = null;
     _currentSet = 0;
     _totalSets = 0;

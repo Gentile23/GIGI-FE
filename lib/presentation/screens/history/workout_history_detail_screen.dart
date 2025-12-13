@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:GIGI/core/theme/clean_theme.dart';
-import 'package:GIGI/presentation/widgets/clean_widgets.dart';
-import 'package:GIGI/data/models/workout_log_model.dart';
-import 'package:GIGI/presentation/screens/history/exercise_history_screen.dart';
+import 'package:gigi/core/theme/clean_theme.dart';
+import 'package:gigi/presentation/widgets/clean_widgets.dart';
+import 'package:gigi/data/models/workout_log_model.dart';
+import 'package:gigi/presentation/screens/history/exercise_history_screen.dart';
 import 'package:intl/intl.dart';
 
 class WorkoutHistoryDetailScreen extends StatelessWidget {

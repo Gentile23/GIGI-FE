@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:GIGI/data/models/workout_log_model.dart';
-import 'package:GIGI/data/services/workout_log_service.dart';
-import 'package:GIGI/data/services/workout_stats_service.dart';
-import 'package:GIGI/data/services/api_client.dart';
+import 'package:gigi/data/models/workout_log_model.dart';
+import 'package:gigi/data/services/workout_log_service.dart';
+import 'package:gigi/data/services/workout_stats_service.dart';
+import 'package:gigi/data/services/api_client.dart';
 
 class WorkoutLogProvider with ChangeNotifier {
   late final WorkoutLogService _logService;
