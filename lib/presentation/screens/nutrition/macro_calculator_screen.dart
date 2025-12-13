@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class MacroCalculatorScreen extends StatelessWidget {
   const MacroCalculatorScreen({super.key});
@@ -7,6 +8,10 @@ class MacroCalculatorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Calcolatore Macro'),
         actions: [
           IconButton(

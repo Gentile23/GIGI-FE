@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  bool isLogin = true;
 
   @override
   Widget build(BuildContext context) {
@@ -9,6 +17,10 @@ class LoginScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('AI Fitness Coach'),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/welcome'),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -21,8 +33,7 @@ class LoginScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: const DecorationImage(
-                    image: NetworkImage(
-                        'https://lh3.googleusercontent.com/aida-public/AB6AXuC9sSFhWePNQkhc4eOdXuyLolXcleUk9thot4QlQWB_yFBdQU4q3On091U5fhVVckkPdWUywLyT0WE5xT8IU6_OQ_B32fSIRgWpMsoFHLNJjmjOvJRJ8WOl_yYAUX8ZJneJJUhpXcq83mxJ15ArZM_IRC6qGyuXwfgCpaNOes6tpYk97q_WVwpMKhr5tOgCwyW71xwaZN79QZgpEnGdL-_UQwykYphDB0qKMLJNSHEJqJ8jHbbPzaV9ysmnBYip0yZaFWp_p9JzBxo'),
+                    image: AssetImage('assets/images/login_hero.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -71,37 +82,72 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => setState(() => isLogin = true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isLogin
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.grey[800],
+                      ),
                       child: const Text('Accedi'),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () => setState(() => isLogin = false),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: !isLogin
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey,
+                        ),
+                      ),
                       child: const Text('Registrati'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              // Email Field
-              const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
+              // Form Fields
+              if (isLogin) ...[
+                const TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Password Field
-              const TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  suffixIcon: Icon(Icons.visibility_off),
+                const SizedBox(height: 16),
+                const TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock),
+                    suffixIcon: Icon(Icons.visibility_off),
+                  ),
                 ),
-              ),
+              ] else ...[
+                const TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Nome',
+                    prefixIcon: Icon(Icons.person),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               const Align(
                 alignment: Alignment.centerRight,
@@ -111,26 +157,26 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              // Login Button
+              // Action Button
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => context.go('/dashboard'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF13EC5B),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Entra nell\'Arena',
-                      style: TextStyle(
+                      isLogin ? 'Entra nell\'Arena' : 'Crea Account',
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(
+                    const SizedBox(width: 8),
+                    const Icon(
                       Icons.arrow_forward,
                       color: Colors.black,
                     ),
@@ -144,18 +190,9 @@ class LoginScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.facebook),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.apple),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.g_mobiledata),
-                  ),
+                  Image.asset('assets/images/google_logo.png', height: 40),
+                  Image.asset('assets/images/apple_logo.png', height: 40),
+                  Image.asset('assets/images/facebook_logo.png', height: 40),
                 ],
               ),
               const SizedBox(height: 16),

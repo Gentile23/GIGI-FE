@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -22,7 +23,7 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // AI Generated Workout Card
-              _buildWorkoutCard(),
+              _buildWorkoutCard(context),
               const SizedBox(height: 16),
               // Stats Grid
               _buildStatsGrid(),
@@ -44,37 +45,16 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Piano',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            label: 'Camera',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profilo',
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildWorkoutCard() {
+  Widget _buildWorkoutCard(BuildContext context) {
     return Container(
       height: 220,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: const DecorationImage(
-          image: NetworkImage(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuAURPleovNUVyiXDx3ORx9AwCrdgnvT9r88ifDoAoryamUc3SD8-arBI-T1Dq9_RotpfmZ97BJDbsoCEsI-LuFsfP77MFyKvbfcvZu56oka7ysaRRZ-ZPratyt958Yc0yXYtPXyny1XN_bfxvvGnYQ-y4iPSOjwyKpTqsNAOC4b3KZ_snZmzUGpMbHeyUfXAQcdAD6pyFqnkWPeBUBT4-EXJpzcUMgb3-Ke1blF0SXIPiQhz_p84yxrLmWElMfP-8_UET_zkimkaCo'),
+          image: AssetImage('assets/images/workout_card_bg.png'),
           fit: BoxFit.cover,
         ),
       ),
@@ -114,7 +94,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () => context.go('/exercise'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF13EC5B),
                 ),

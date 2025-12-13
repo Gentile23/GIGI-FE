@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
   const ExerciseDetailScreen({super.key});
@@ -7,6 +8,10 @@ class ExerciseDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
         title: const Text('Dettaglio Esercizio'),
         actions: [
           IconButton(
@@ -48,8 +53,7 @@ class ExerciseDetailScreen extends StatelessWidget {
       height: 220,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuDQTTZeqVX749XPTWUC9CEqrM9IZZe7OnL5APgaQO5Z5L9RNYvHhSdURifMEEdG4Fthi-9Mht-KA71WVdAq6xhaHYFtNtxwC6R4AH4_Zvr6agj-Qevlh6Xg5c-9opQb-vxICGp3vNJFV3haq0I5B8f1aeWxwznInWe-JuA-jt9Y7ecCbeVgtOe9qevZ3Pi4dSojiByt-wDpfU2YUw5hgL8s5K0HMH2vZ_5HAl1r0Z6Nv_NoGrQB3pRKgSZRMelcDNteNsIhQenvVBE'),
+          image: AssetImage('assets/images/exercise_media_bg.png'),
           fit: BoxFit.cover,
         ),
       ),

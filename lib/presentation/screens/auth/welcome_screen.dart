@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -12,8 +13,7 @@ class WelcomeScreen extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuDCp5fx3V0z-AQ67Iei2dyjfGdB7wDsxsA8JsBIiiHFWJ3nJubaGLnM5YegD6sW48d-12qMfYfwWtWzl8BwCfGOIfl5_l8AE3xwZK7fY7RAbj6ZZASJaHQu0lhr0Fdakqw-IIrBj1GfAMYlYXbd0RBTAbhgsd4IUUKEj9-mcKq-2VmGF2pR3pQzdEgufvXLx_fJSdiOj826XkgdYtJl6SLI87ahV81t2pNEdsJBhU8R6lkif0UTaL6sr3H5NSXiLCGHuxwObD8xtLQ'),
+                image: AssetImage('assets/images/welcome_bg.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -84,21 +84,18 @@ class WelcomeScreen extends StatelessWidget {
                   child: PageView(
                     children: [
                       _buildCarouselItem(
-                        imageUrl:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuA-3FVZYWeG80O7_tyePg8hFJ4s-jlFQJHCP03K3uz7exEnNgReYZDmMZcfSvYyShbhZTnltYC5xpTp1_1Vo3aktytlOMCK5O3W9Jo79yxE_jRXkiqYkvJK_fRvL7T572CXXo1rDQUr7zTCRKjUo4k_u5cMKq0f3NZjdHmhmgTLxnSzCB0l8MguCfwXG5AYGWhIvWu6-YZaDhoFVgL_e3MWlU5jsTs8mLunHtFWzG193LV_JpbDryZ_D2h4-lW7K5Z2CMzwUO4YJ3s',
+                        imageUrl: 'assets/images/carousel_1.png',
                         title: 'Piani su misura',
                         subtitle:
                             'Allenamenti creati apposta per il tuo corpo.',
                       ),
                       _buildCarouselItem(
-                        imageUrl:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuD2ORRGgaS09zakN1_OCwpUfxT_ndqcrYmZ-w8DDyhOh4Y9XjwmKX530IrbL4EZgNdJFYlPev7qbwO3YOrV0SU6KjdBHaQUpPyfLr4iVgOxxEGgpi7mpqXGTMvzRf7bulJcJDs5IflX85xhTUOTbQqKKQ4dhCrqNqov6kQ2j8kPAeJ8YToGlgMc98WLTszzb5m9BGjdtkIumwoQzeNBk1n4B6lcI1pJO5VHhAqDakoOB5PI8IaQFGNQCCzqqubsvUC7LEhi1ZSbgkc',
+                        imageUrl: 'assets/images/carousel_2.png',
                         title: 'Correzione Live',
                         subtitle: 'Feedback immediato sulla tua postura.',
                       ),
                       _buildCarouselItem(
-                        imageUrl:
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuD1zoOI3Gcwqk6bPYhl2cfjBmjVFiHg597dU-hujBf145h0yeUe0olbqVxRIto-sql1s6VLgbeUo4duIHaclkyrzTwlodMN0mhttWJRAoMkP9VDbgAd6-5iBoorob2Sp0V3urDBwRmrycxxOFBAy4KUW6_xCDkkhFzN-A1f36VmOl_RBvKpqO4NW0-B3eYCKq74QkKt75zBi6OnzekobTlr6UDcUK-WtEdagi4sUYrtS9OIckNILvCOFCkjZ2XZjwyxIHF2wWyrKxs',
+                        imageUrl: 'assets/images/carousel_3.png',
                         title: 'Gamification',
                         subtitle: 'Raggiungi obiettivi sbloccando premi.',
                       ),
@@ -112,9 +109,7 @@ class WelcomeScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          // TODO: Handle create account
-                        },
+                        onPressed: () => context.go('/login'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF13EC5B),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -143,9 +138,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       TextButton(
-                        onPressed: () {
-                          // TODO: Handle login
-                        },
+                        onPressed: () => context.go('/login'),
                         child: const Text(
                           'Hai già un account? Accedi',
                           style: TextStyle(
@@ -176,7 +169,7 @@ class WelcomeScreen extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: DecorationImage(
-          image: NetworkImage(imageUrl),
+          image: AssetImage(imageUrl),
           fit: BoxFit.cover,
         ),
       ),
