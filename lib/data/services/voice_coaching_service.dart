@@ -1,4 +1,5 @@
 import '../models/voice_coaching_model.dart';
+import '../models/exercise_intro_model.dart';
 import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
@@ -21,6 +22,25 @@ class VoiceCoachingService {
       return null;
     } catch (e) {
       debugPrint('Error getting voice coaching: $e');
+      return null;
+    }
+  }
+
+  /// Generate personalized exercise intro with user context
+  /// Calls user by name, references goals, injuries, streak, and personal records
+  Future<ExerciseIntroScript?> getPersonalizedIntro(String exerciseId) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/exercises/$exerciseId/voice-coaching/intro',
+      );
+
+      if (response.statusCode == 200) {
+        return ExerciseIntroScript.fromJson(response.data);
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error getting personalized intro: $e');
       return null;
     }
   }
@@ -94,6 +114,31 @@ class VoiceCoachingService {
     } catch (e) {
       debugPrint('Error checking voice coaching access: $e');
       return false;
+    }
+  }
+
+  /// Get synced voice coaching scripts for workout synchronization
+  /// Returns pre-set scripts, rep cues, rest countdown, etc.
+  Future<Map<String, dynamic>?> getSyncedCoaching(
+    String exerciseId, {
+    int sets = 3,
+    int reps = 10,
+    int restSeconds = 90,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/exercises/$exerciseId/voice-coaching/synced',
+        data: {'sets': sets, 'reps': reps, 'rest_seconds': restSeconds},
+      );
+
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error getting synced coaching: $e');
+      return null;
     }
   }
 }

@@ -13,6 +13,8 @@ import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
+import '../../widgets/voice_coaching/mode_selection_sheet.dart';
+import '../../../data/models/exercise_intro_model.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
