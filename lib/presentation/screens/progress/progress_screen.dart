@@ -1,322 +1,121 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/clean_theme.dart';
 
-/// ═══════════════════════════════════════════════════════════
-/// PROGRESS SCREEN - Unified dashboard for all progress metrics
-/// Replaces separate Nutrition and Social tabs
-/// Psychology: Single place to see growth = mastery motivation
-/// ═══════════════════════════════════════════════════════════
-class ProgressScreen extends StatefulWidget {
+class ProgressScreen extends StatelessWidget {
   const ProgressScreen({super.key});
-
-  @override
-  State<ProgressScreen> createState() => _ProgressScreenState();
-}
-
-class _ProgressScreenState extends State<ProgressScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildOverviewTab(),
-                  _buildWorkoutsTab(),
-                  _buildNutritionTab(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Text(
-            'I Tuoi Progressi',
-            style: GoogleFonts.outfit(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: CleanTheme.textPrimary,
-            ),
+      appBar: AppBar(
+        title: const Text('I Tuoi Progressi'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications),
           ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.trending_up,
-                  size: 16,
-                  color: CleanTheme.primaryColor,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '+12%',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.primaryColor,
-                  ),
-                ),
-              ],
-            ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.settings),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: CleanTheme.borderSecondary,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TabBar(
-        controller: _tabController,
-        indicator: BoxDecoration(
-          color: CleanTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicatorPadding: const EdgeInsets.all(4),
-        labelColor: CleanTheme.textPrimary,
-        unselectedLabelColor: CleanTheme.textTertiary,
-        labelStyle: GoogleFonts.inter(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: GoogleFonts.inter(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-        ),
-        dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Panoramica'),
-          Tab(text: 'Workout'),
-          Tab(text: 'Nutrizione'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOverviewTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Weekly Summary Card
-          _buildWeeklySummaryCard(),
-          const SizedBox(height: 20),
-
-          // Stats Grid
-          _buildStatsGrid(),
-          const SizedBox(height: 24),
-
-          // Weekly Calendar
-          Text(
-            'Questa Settimana',
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildWeeklyCalendar(),
-          const SizedBox(height: 24),
-
-          // Recent Activity
-          Text(
-            'Attività Recente',
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildRecentActivity(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeeklySummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              // Stats Overview
+              _buildStatsOverview(),
+              const SizedBox(height: 16),
+              // AI Quote
+              const Center(
                 child: Text(
-                  'RIEPILOGO SETTIMANALE',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white70,
-                    letterSpacing: 1,
+                  '"Il dolore che senti oggi è la forza che sentirai domani."',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              // Metric Toggles
+              _buildMetricToggles(),
+              const SizedBox(height: 16),
+              // Main Chart
+              _buildMainChart(),
+              const SizedBox(height: 16),
+              // AI Insight
+              _buildAiInsight(),
+              const SizedBox(height: 16),
+              // Recent Personal Records
+              _buildPersonalRecords(),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryItem('Workout', '4', '/5'),
-              _buildSummaryItem('Calorie', '1,840', 'kcal'),
-              _buildSummaryItem('Tempo', '3h 20m', ''),
-            ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: const Color(0xFF13EC5B),
+        child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Piano',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart),
+            label: 'Progressi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profilo',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, String suffix) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(fontSize: 12, color: Colors.white60),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-            if (suffix.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 4),
-                child: Text(
-                  suffix,
-                  style: GoogleFonts.inter(fontSize: 14, color: Colors.white60),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatsGrid() {
+  Widget _buildStatsOverview() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Expanded(
-          child: _buildStatCard(
-            '🔥',
-            'Streak',
-            '7 giorni',
-            const Color(0xFFFF6B35),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard('💪', 'Volume', '+8%', const Color(0xFF00D26A)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard('⚡', 'PR', '3', const Color(0xFF9B59B6)),
-        ),
+        _buildStatCard('Workout', '12'),
+        _buildStatCard('Streak Giorni', '5', isHighlighted: true),
+        _buildStatCard('Punti XP', '1450'),
       ],
     );
   }
 
-  Widget _buildStatCard(String emoji, String label, String value, Color color) {
+  Widget _buildStatCard(String title, String value, {bool isHighlighted = false}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CleanTheme.cardColor,
+        color: isHighlighted ? const Color(0xFF13EC5B) : Colors.grey[800],
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: Column(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
+          Text(
+            title,
+            style: TextStyle(
+              color: isHighlighted ? Colors.black : Colors.white,
+              fontSize: 16,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: CleanTheme.textSecondary,
+            style: TextStyle(
+              color: isHighlighted ? Colors.black : Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -324,159 +123,159 @@ class _ProgressScreenState extends State<ProgressScreen>
     );
   }
 
-  Widget _buildWeeklyCalendar() {
-    final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
-    final completed = [true, true, true, true, false, false, false];
-    final today = 4; // 0-indexed, Friday
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(7, (index) {
-          final isCompleted = completed[index];
-          final isToday = index == today;
-
-          return Column(
-            children: [
-              Text(
-                days[index],
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: isToday
-                      ? CleanTheme.primaryColor
-                      : CleanTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: isCompleted
-                      ? CleanTheme.primaryColor
-                      : isToday
-                      ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-                      : CleanTheme.borderSecondary,
-                  shape: BoxShape.circle,
-                  border: isToday && !isCompleted
-                      ? Border.all(color: CleanTheme.primaryColor, width: 2)
-                      : null,
-                ),
-                child: Icon(
-                  isCompleted ? Icons.check : Icons.circle,
-                  size: isCompleted ? 18 : 6,
-                  color: isCompleted ? Colors.white : CleanTheme.textTertiary,
-                ),
-              ),
-            ],
-          );
-        }),
+  Widget _buildMetricToggles() {
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildMetricToggle('Peso Corporeo', isSelected: true),
+          const SizedBox(width: 8),
+          _buildMetricToggle('Massimale Panca'),
+          const SizedBox(width: 8),
+          _buildMetricToggle('Body Fat %'),
+          const SizedBox(width: 8),
+          _buildMetricToggle('Squat Max'),
+        ],
       ),
     );
   }
 
-  Widget _buildRecentActivity() {
+  Widget _buildMetricToggle(String text, {bool isSelected = false}) {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? const Color(0xFF13EC5B) : Colors.grey[800],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isSelected ? Colors.black : Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainChart() {
+    // This is a placeholder for the chart
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Text(
+          'Chart Placeholder',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiInsight() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.lightbulb,
+            color: Color(0xFF13EC5B),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Ottimo lavoro! La tua forza nello Squat è aumentata del 5% questo mese. Mantieni questo ritmo e raggiungerai il tuo obiettivo di 100kg entro 3 settimane.',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalRecords() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildActivityItem(
-          'Upper Body',
-          'Oggi, 18:30',
-          '45 min • 320 kcal',
-          Icons.fitness_center,
-          CleanTheme.primaryColor,
+        const Text(
+          'Record Personali Recenti',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(height: 12),
-        _buildActivityItem(
-          'Lower Body',
-          'Ieri, 17:45',
-          '50 min • 380 kcal',
-          Icons.fitness_center,
-          CleanTheme.primaryColor,
-        ),
-        const SizedBox(height: 12),
-        _buildActivityItem(
-          'Nuovo PR: Squat',
-          'Ieri',
-          '100kg x 5 reps',
-          Icons.emoji_events,
-          const Color(0xFFFFD700),
+        const SizedBox(height: 8),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          children: [
+            _buildPrCard('Panca Piana', '95 kg', isNew: true),
+            _buildPrCard('Corsa 5k', '24:30'),
+            _buildPrCard('Stacco da Terra', '140 kg'),
+            _buildPrCard('Aggiungi', '+', isAddButton: true),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildActivityItem(
-    String title,
-    String time,
-    String subtitle,
-    IconData icon,
-    Color iconColor,
-  ) {
+  Widget _buildPrCard(String title, String value, {bool isNew = false, bool isAddButton = false}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CleanTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CleanTheme.borderPrimary),
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
+          if (isNew)
+            const Align(
+              alignment: Alignment.topRight,
+              child: Text(
+                'NEW PR',
+                style: TextStyle(
+                  color: Color(0xFF13EC5B),
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: CleanTheme.textSecondary,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+          if (isAddButton)
+            const Icon(
+              Icons.add,
+              size: 40,
+              color: Color(0xFF13EC5B),
+            )
+          else
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 8),
           Text(
-            time,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: CleanTheme.textTertiary,
+            title,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 16,
             ),
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildWorkoutsTab() {
-    return const Center(child: Text('Workout Progress - Coming Soon'));
-  }
-
-  Widget _buildNutritionTab() {
-    return const Center(child: Text('Nutrition Progress - Coming Soon'));
   }
 }

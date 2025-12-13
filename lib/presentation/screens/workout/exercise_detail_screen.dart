@@ -1,327 +1,180 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import '../../../core/theme/clean_theme.dart';
-import '../../../presentation/widgets/clean_widgets.dart';
-import '../../../data/models/workout_model.dart';
-import '../../widgets/workout/anatomical_muscle_view.dart';
-import '../../widgets/workout/similar_exercises_sheet.dart';
-import '../../widgets/workout/alternative_exercises_sheet.dart';
 
-class ExerciseDetailScreen extends StatefulWidget {
-  final WorkoutExercise workoutExercise;
-
-  const ExerciseDetailScreen({super.key, required this.workoutExercise});
-
-  @override
-  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
-}
-
-class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  YoutubePlayerController? _videoController;
-  bool _showVideoPlayer = false;
-
-  @override
-  void dispose() {
-    _videoController?.close();
-    super.dispose();
-  }
-
-  void _initializeVideoPlayer(String url) {
-    final videoId = YoutubePlayerController.convertUrlToId(url);
-    if (videoId == null) return;
-
-    // Dispose previous controller if exists
-    _videoController?.close();
-
-    _videoController = YoutubePlayerController.fromVideoId(
-      videoId: videoId,
-      autoPlay: true,
-      params: const YoutubePlayerParams(
-        showControls: true,
-        mute: false,
-        enableCaption: false,
-        showFullscreenButton: true,
-      ),
-    );
-
-    setState(() {
-      _showVideoPlayer = true;
-    });
-  }
+class ExerciseDetailScreen extends StatelessWidget {
+  const ExerciseDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
-        title: Text(
-          'Dettagli Esercizio',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
+        title: const Text('Dettaglio Esercizio'),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.favorite_border),
           ),
-        ),
-        backgroundColor: CleanTheme.surfaceColor,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+        ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Exercise Name
-            Text(
-              widget.workoutExercise.exercise.name,
-              style: GoogleFonts.outfit(
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Difficulty Badge
-            _buildDifficultyBadge(),
-            const SizedBox(height: 24),
-
-            // Similar & Alternative Exercises Buttons
-            _buildExerciseOptionsButtons(),
-            const SizedBox(height: 24),
-
-            // Anatomical Diagram
-            if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty &&
-                widget.workoutExercise.exerciseType != 'cardio' &&
-                widget.workoutExercise.exerciseType != 'mobility') ...[
-              CleanSectionHeader(title: 'Muscoli Coinvolti'),
-              const SizedBox(height: 12),
-              CleanCard(
-                padding: const EdgeInsets.all(16),
-                child: AnatomicalMuscleView(
-                  muscleGroups: widget.workoutExercise.exercise.muscleGroups,
-                  height: 300,
-                  highlightColor: CleanTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Sets, Reps, Rest
-            _buildWorkoutInfo(),
-            const SizedBox(height: 24),
-
-            // Equipment
-            if (widget.workoutExercise.exercise.equipment.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Attrezzatura Richiesta'),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: widget.workoutExercise.exercise.equipment.map((eq) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: CleanTheme.borderPrimary),
-                    ),
-                    child: Text(
-                      eq,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Description
-            if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Come Eseguire'),
-              const SizedBox(height: 12),
-              CleanCard(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  widget.workoutExercise.exercise.description,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    height: 1.6,
-                    color: CleanTheme.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Video Player / Thumbnail
-            if (widget.workoutExercise.exercise.videoUrl != null &&
-                widget.workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Video Tutorial'),
-              const SizedBox(height: 12),
-              _buildVideoSection(widget.workoutExercise.exercise.videoUrl!),
-            ],
-            const SizedBox(height: 24),
+            // Media Player
+            _buildMediaPlayer(),
+            const SizedBox(height: 16),
+            // Headline & Tags
+            _buildHeadlineAndTags(),
+            const SizedBox(height: 16),
+            // AI Tools
+            _buildAiTools(),
+            const SizedBox(height: 16),
+            // Instructions
+            _buildInstructions(),
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {},
+        label: const Text('Inizia Allenamento'),
+        icon: const Icon(Icons.play_arrow),
+        backgroundColor: const Color(0xFF13EC5B),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  /// Build buttons for similar exercises and alternatives
-  Widget _buildExerciseOptionsButtons() {
-    final isBodyweight = widget.workoutExercise.exercise.equipment.contains(
-      'Bodyweight',
-    );
-
-    return Row(
-      children: [
-        // Similar Exercises Button
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              SimilarExercisesSheet.show(
-                context,
-                exercise: widget.workoutExercise.exercise,
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: CleanTheme.cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.compare_arrows,
-                    color: CleanTheme.primaryColor,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Esercizi Simili',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Alternative Exercises Button
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              AlternativeExercisesSheet.show(
-                context,
-                exercise: widget.workoutExercise.exercise,
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: CleanTheme.cardColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: (isBodyweight ? Colors.blue : Colors.green).withValues(
-                    alpha: 0.3,
-                  ),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isBodyweight
-                        ? Icons.fitness_center
-                        : Icons.accessibility_new,
-                    color: isBodyweight ? Colors.blue : Colors.green,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      isBodyweight ? 'Con Attrezzatura' : 'Corpo Libero',
-                      style: GoogleFonts.outfit(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDifficultyBadge() {
-    Color badgeColor;
-    IconData icon;
-    String label;
-
-    switch (widget.workoutExercise.exercise.difficulty.name.toLowerCase()) {
-      case 'beginner':
-        badgeColor = CleanTheme.accentGreen;
-        icon = Icons.star;
-        label = 'Principiante';
-        break;
-      case 'intermediate':
-        badgeColor = CleanTheme.accentOrange;
-        icon = Icons.star_half;
-        label = 'Intermedio';
-        break;
-      case 'advanced':
-        badgeColor = CleanTheme.accentRed;
-        icon = Icons.star_border;
-        label = 'Avanzato';
-        break;
-      default:
-        badgeColor = CleanTheme.textTertiary;
-        icon = Icons.help_outline;
-        label = widget.workoutExercise.exercise.difficulty.name;
-    }
-
+  Widget _buildMediaPlayer() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      height: 220,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+              'https://lh3.googleusercontent.com/aida-public/AB6AXuDQTTZeqVX749XPTWUC9CEqrM9IZZe7OnL5APgaQO5Z5L9RNYvHhSdURifMEEdG4Fthi-9Mht-KA71WVdAq6xhaHYFtNtxwC6R4AH4_Zvr6agj-Qevlh6Xg5c-9opQb-vxICGp3vNJFV3haq0I5B8f1aeWxwznInWe-JuA-jt9Y7ecCbeVgtOe9qevZ3Pi4dSojiByt-wDpfU2YUw5hgL8s5K0HMH2vZ_5HAl1r0Z6Nv_NoGrQB3pRKgSZRMelcDNteNsIhQenvVBE'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.play_circle_fill,
+          color: Color(0xFF13EC5B),
+          size: 64,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeadlineAndTags() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Barbell Squat',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildTag('Difficile'),
+              const SizedBox(width: 8),
+              _buildTag('Gambe'),
+              const SizedBox(width: 8),
+              _buildTag('Forza'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildAiTools() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Strumenti AI',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildAiToolItem(
+            icon: Icons.graphic_eq,
+            title: 'AI Voice Coach',
+            subtitle: 'Consigli vocali in tempo reale',
+          ),
+          const SizedBox(height: 8),
+          _buildAiToolItem(
+            icon: Icons.videocam,
+            title: 'Correzione Video AI',
+            subtitle: 'Analizza la tua forma con la fotocamera',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiToolItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[800],
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: badgeColor),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: badgeColor,
-              fontWeight: FontWeight.w600,
+          Icon(
+            icon,
+            color: const Color(0xFF13EC5B),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -329,117 +182,87 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
-  Widget _buildWorkoutInfo() {
-    return CleanCard(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+  Widget _buildInstructions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoColumn(
-            icon: Icons.repeat,
-            label: 'Serie',
-            value: widget.workoutExercise.sets.toString(),
+          const Text(
+            'Istruzioni',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          _buildInfoColumn(
-            icon: Icons.fitness_center_outlined,
-            label: 'Ripetizioni',
-            value: widget.workoutExercise.reps,
+          const SizedBox(height: 8),
+          _buildInstructionStep(
+            step: '1',
+            title: 'Posizione Iniziale',
+            description:
+                'Posiziona il bilanciere sulla parte superiore della schiena, piedi alla larghezza delle spalle. Mantieni il petto in fuori e il core contratto.',
           ),
-          _buildInfoColumn(
-            icon: Icons.timer_outlined,
-            label: 'Recupero',
-            value: '${widget.workoutExercise.restSeconds}s',
+          const SizedBox(height: 8),
+          _buildInstructionStep(
+            step: '2',
+            title: 'Discesa',
+            description:
+                'Piega le ginocchia e i fianchi contemporaneamente per abbassarti. Mantieni la schiena dritta e scendi fino a quando le cosce sono parallele al pavimento.',
+          ),
+          const SizedBox(height: 8),
+          _buildInstructionStep(
+            step: '3',
+            title: 'Risalita',
+            description:
+                'Spingi con forza attraverso i talloni per tornare alla posizione di partenza. Espira durante lo sforzo.',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoColumn({
-    required IconData icon,
-    required String label,
-    required String value,
+  Widget _buildInstructionStep({
+    required String step,
+    required String title,
+    required String description,
   }) {
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: CleanTheme.primaryLight,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: CleanTheme.primaryColor, size: 24),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: CleanTheme.textPrimary,
+        CircleAvatar(
+          backgroundColor: const Color(0xFF13EC5B),
+          child: Text(
+            step,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVideoSection(String url) {
-    final videoId = YoutubePlayerController.convertUrlToId(url);
-    if (videoId == null) {
-      return CleanCard(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          'URL video non valido',
-          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-        ),
-      );
-    }
-
-    if (_showVideoPlayer && _videoController != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: YoutubePlayer(
-            controller: _videoController!,
-            aspectRatio: 16 / 9,
-          ),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () => _initializeVideoPlayer(url),
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.black,
-          image: DecorationImage(
-            image: NetworkImage(
-              'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
-          ),
-        ),
-      ),
     );
   }
 }

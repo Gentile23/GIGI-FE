@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/clean_theme.dart';
-import 'presentation/screens/onboarding/onboarding_screen.dart';
-import 'presentation/screens/auth/auth_screen.dart';
-import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
-import 'presentation/screens/main_screen.dart';
-import 'presentation/screens/progress/progress_dashboard_screen.dart';
+import 'presentation/screens/auth/welcome_screen.dart';
+import 'presentation/screens/auth/login_screen.dart';
+import 'presentation/screens/home/dashboard_screen.dart';
+import 'presentation/screens/progress/progress_screen.dart';
+import 'presentation/screens/workout/exercise_detail_screen.dart';
+import 'presentation/screens/nutrition/macro_calculator_screen.dart';
 import 'data/services/api_client.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workout_provider.dart';
@@ -38,104 +39,18 @@ class GigiApp extends StatelessWidget {
         title: 'GIGI',
         debugShowCheckedModeBanner: false,
         theme: CleanTheme.lightTheme,
-        // Start with onboarding, then: auth -> questionnaire -> main app
-        home: const AppNavigator(),
+        darkTheme: CleanTheme.darkTheme,
+        themeMode: ThemeMode.dark, // Start with dark theme
+        home: const WelcomeScreen(), // Start with the new welcome screen
         routes: {
-          '/onboarding': (context) => const OnboardingScreen(),
-          '/auth': (context) => const AuthScreen(),
-          '/questionnaire': (context) => const UnifiedQuestionnaireScreen(),
-          '/main': (context) => const MainScreen(),
-          '/progress': (context) => const ProgressDashboardScreen(),
+          '/welcome': (context) => const WelcomeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/dashboard': (context) => const DashboardScreen(),
+          '/progress': (context) => const ProgressScreen(),
+          '/exercise': (context) => const ExerciseDetailScreen(),
+          '/nutrition': (context) => const MacroCalculatorScreen(),
         },
       ),
-    );
-  }
-}
-
-/// Simple navigator to demonstrate the flow
-/// In production, use go_router or similar
-class AppNavigator extends StatefulWidget {
-  const AppNavigator({super.key});
-
-  @override
-  State<AppNavigator> createState() => _AppNavigatorState();
-}
-
-class _AppNavigatorState extends State<AppNavigator> {
-  @override
-  void initState() {
-    super.initState();
-    // Check auth status on startup
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Auth provider already checks status in constructor, but we can listen to changes
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        if (authProvider.isInitializing) {
-          return Scaffold(
-            backgroundColor: CleanTheme.backgroundColor,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    margin: const EdgeInsets.only(bottom: 32),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/gigi_new_logo.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const CircularProgressIndicator(
-                    color: CleanTheme.primaryColor,
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        if (!authProvider.isAuthenticated) {
-          return const AuthScreen();
-        }
-
-        // Check if user has completed their profile
-        final user = authProvider.user;
-        if (user != null) {
-          // Check if essential profile fields are filled
-          final hasCompletedProfile =
-              user.goal != null &&
-              user.experienceLevel != null &&
-              user.weeklyFrequency != null &&
-              user.trainingLocation != null;
-
-          if (!hasCompletedProfile) {
-            // Redirect to questionnaire if profile is incomplete
-            return const UnifiedQuestionnaireScreen();
-          }
-        }
-
-        // User is authenticated and has completed profile
-        return const MainScreen();
-      },
     );
   }
 }
