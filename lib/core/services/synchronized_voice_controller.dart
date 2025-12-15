@@ -44,6 +44,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
   // Exercise context
   String _userName = 'Campione';
+  String _userGoal =
+      'general'; // muscleGain, weightLoss, toning, strength, wellness
+  String _currentMuscleGroup = '';
   int _currentSet = 0;
   int _totalSets = 0;
   int _restSeconds = 0;
@@ -77,9 +80,11 @@ class SynchronizedVoiceController extends ChangeNotifier {
   Future<void> initialize({
     required String userName,
     String? experienceLevel,
+    String? goal,
   }) async {
     _userName = userName.isNotEmpty ? userName : 'Campione';
     _userLevel = _parseUserLevel(experienceLevel);
+    _userGoal = goal ?? 'general';
 
     // Load saved preferences
     await _loadPreferences();
@@ -164,33 +169,102 @@ class SynchronizedVoiceController extends ChangeNotifier {
   // COACHING LIFECYCLE
   // =====================================
 
-  /// Activate voice coaching (tap mic icon)
-  Future<void> activate({
+  /// Activate voice coaching FIRST TIME (tap mic icon) - says personalized greeting
+  Future<void> activateInitial({
     required String exerciseName,
     required int sets,
     required int reps,
     required int restSeconds,
-    ExerciseCoachingScript? script,
+    List<String>? muscleGroups,
   }) async {
     _isEnabled = true;
     _currentSet = 0;
     _totalSets = sets;
     _restSeconds = restSeconds;
-    _currentScript = script ?? getScriptForExercise(exerciseName);
+    _currentScript = getScriptForExercise(exerciseName);
+    _currentMuscleGroup = muscleGroups?.isNotEmpty == true
+        ? muscleGroups!.first
+        : '';
     _phase = VoiceCoachingPhase.activated;
     notifyListeners();
 
-    // Brief activation greeting
-    final greeting =
-        'Ciao $_userName! '
-        'Voice coaching attivo. '
-        '$sets serie da $reps reps. '
-        'Premi Inizia quando sei pronto!';
-
+    // Build personalized greeting
+    final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
     await _speak(greeting);
 
     _phase = VoiceCoachingPhase.preExercise;
     notifyListeners();
+  }
+
+  /// Build goal-based personalized greeting
+  String _buildPersonalizedGreeting(String exerciseName, int sets, int reps) {
+    final buffer = StringBuffer();
+
+    // Opening
+    buffer.write('Ciao $_userName! Sono Gigi, il tuo coach. ');
+
+    // What we're doing
+    if (_currentMuscleGroup.isNotEmpty) {
+      buffer.write('Oggi alleniamo $_currentMuscleGroup con $exerciseName. ');
+    } else {
+      buffer.write('Facciamo $exerciseName. ');
+    }
+
+    // Goal-based motivation
+    buffer.write(_getGoalMotivation());
+
+    // Call to action
+    buffer.write(
+      'Premi il punto interrogativo per la spiegazione, o inizia quando sei pronto!',
+    );
+
+    return buffer.toString();
+  }
+
+  /// Get motivational phrase based on user goal
+  String _getGoalMotivation() {
+    switch (_userGoal.toLowerCase()) {
+      case 'musclegain':
+      case 'muscle_gain':
+        return 'Costruiamo muscolo oggi! ';
+      case 'weightloss':
+      case 'weight_loss':
+        return 'Bruciamo calorie! ';
+      case 'toning':
+        return 'Definiamoci! ';
+      case 'strength':
+        return 'Diventiamo più forti! ';
+      case 'wellness':
+        return 'Prendiamoci cura di noi! ';
+      default:
+        return '';
+    }
+  }
+
+  /// Change to new exercise WITHOUT greeting (when navigating between exercises)
+  void setExercise({
+    required String exerciseName,
+    required int sets,
+    required int reps,
+    required int restSeconds,
+  }) {
+    _currentSet = 0;
+    _totalSets = sets;
+    _restSeconds = restSeconds;
+    _currentScript = getScriptForExercise(exerciseName);
+    _phase = VoiceCoachingPhase.preExercise;
+    notifyListeners();
+  }
+
+  /// Speak detailed explanation (manual button tap)
+  Future<void> speakExplanation() async {
+    if (_currentScript != null) {
+      await _speak(_currentScript!.getFullExplanation(_userName));
+    } else {
+      await _speak(
+        'Esegui il movimento in modo controllato, mantenendo la postura corretta.',
+      );
+    }
   }
 
   /// Deactivate voice coaching
@@ -237,24 +311,86 @@ class SynchronizedVoiceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Complete set (tap checkbox)
+  /// Complete set (tap checkbox) - basic version
   Future<void> completeSet() async {
+    await completeSetWithData();
+  }
+
+  /// Complete set with performance data for personalized celebration
+  Future<void> completeSetWithData({
+    double? weightKg,
+    int? reps,
+    int? rpe,
+    double? previousWeightKg,
+  }) async {
     _cueTimer?.cancel();
     _phase = VoiceCoachingPhase.postSet;
     notifyListeners();
 
-    // Celebration based on set number
-    await _speakCelebration();
+    // Personalized celebration based on performance
+    await _speakPersonalizedCelebration(
+      weightKg: weightKg,
+      rpe: rpe,
+      previousWeightKg: previousWeightKg,
+    );
 
     if (_currentSet < _totalSets) {
       // Start rest timer
       _startRestTimer();
     } else {
-      // Exercise completed
+      // Exercise completed with summary
       _phase = VoiceCoachingPhase.completed;
-      await _speak('Perfetto $_userName! Esercizio completato!');
+      await _speakExerciseComplete(weightKg: weightKg);
       notifyListeners();
     }
+  }
+
+  /// Personalized celebration based on RPE and weight
+  Future<void> _speakPersonalizedCelebration({
+    double? weightKg,
+    int? rpe,
+    double? previousWeightKg,
+  }) async {
+    final buffer = StringBuffer();
+
+    // Weight increase detection
+    if (weightKg != null &&
+        previousWeightKg != null &&
+        weightKg > previousWeightKg) {
+      buffer.write('Fantastico $_userName! Hai aumentato il peso! ');
+    } else if (_currentSet == 1) {
+      buffer.write('Bene $_userName! Prima serie fatta! ');
+    } else if (_currentSet == _totalSets) {
+      buffer.write('Grande! Ultima serie completata! ');
+    } else {
+      buffer.write('Ottimo! $_currentSet su $_totalSets! ');
+    }
+
+    // RPE-based feedback
+    if (rpe != null) {
+      if (rpe <= 5) {
+        buffer.write('Troppo facile? Prova ad aumentare!');
+      } else if (rpe >= 9) {
+        buffer.write('Grande sforzo! Recupera bene.');
+      }
+    }
+
+    await _speak(buffer.toString());
+  }
+
+  /// Exercise complete announcement with stats
+  Future<void> _speakExerciseComplete({double? weightKg}) async {
+    final buffer = StringBuffer();
+    buffer.write('Eccellente $_userName! Esercizio completato! ');
+
+    if (weightKg != null && weightKg > 0) {
+      buffer.write(
+        '$_totalSets serie a ${weightKg.toStringAsFixed(0)} chili. ',
+      );
+    }
+
+    buffer.write('Passa al prossimo quando vuoi!');
+    await _speak(buffer.toString());
   }
 
   /// Skip rest timer

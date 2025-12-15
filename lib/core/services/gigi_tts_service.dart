@@ -2,12 +2,19 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+// Web-specific imports with conditional
+import 'dart:js_interop' if (dart.library.io) 'dart:js_interop';
+import 'package:web/web.dart'
+    if (dart.library.io) 'package:web/web.dart'
+    as web;
+
 /// Gigi TTS Service
 ///
 /// Local text-to-speech service for voice coaching.
 /// Uses device's TTS engine to speak Gigi's coaching cues.
+/// Supports both native platforms (via flutter_tts) and web (via SpeechSynthesis).
 class GigiTTSService extends ChangeNotifier {
-  final FlutterTts _flutterTts = FlutterTts();
+  FlutterTts? _flutterTts;
 
   bool _isInitialized = false;
   bool _isSpeaking = false;
@@ -31,50 +38,61 @@ class GigiTTSService extends ChangeNotifier {
     if (_isInitialized) return;
 
     try {
-      // Set Italian language
-      await _flutterTts.setLanguage('it-IT');
+      if (kIsWeb) {
+        // Web uses browser's SpeechSynthesis API - no special init needed
+        _isInitialized = true;
+        debugPrint('GigiTTSService initialized for Web (SpeechSynthesis)');
+      } else {
+        // Native platforms use flutter_tts
+        _flutterTts = FlutterTts();
 
-      // Configure voice settings
-      await _flutterTts.setSpeechRate(_speechRate);
-      await _flutterTts.setPitch(_pitch);
-      await _flutterTts.setVolume(_volume);
+        // Set Italian language
+        await _flutterTts!.setLanguage('it-IT');
 
-      // iOS specific
-      await _flutterTts.setIosAudioCategory(
-        IosTextToSpeechAudioCategory.playback,
-        [
-          IosTextToSpeechAudioCategoryOptions.allowBluetooth,
-          IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
-          IosTextToSpeechAudioCategoryOptions.mixWithOthers,
-        ],
-        IosTextToSpeechAudioMode.voicePrompt,
-      );
+        // Configure voice settings
+        await _flutterTts!.setSpeechRate(_speechRate);
+        await _flutterTts!.setPitch(_pitch);
+        await _flutterTts!.setVolume(_volume);
 
-      // Set up handlers
-      _flutterTts.setStartHandler(() {
-        _isSpeaking = true;
-        notifyListeners();
-        onSpeakStart?.call();
-      });
+        // iOS specific
+        await _flutterTts!.setIosAudioCategory(
+          IosTextToSpeechAudioCategory.playback,
+          [
+            IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+            IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+            IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+          ],
+          IosTextToSpeechAudioMode.voicePrompt,
+        );
 
-      _flutterTts.setCompletionHandler(() {
-        _isSpeaking = false;
-        notifyListeners();
-        onSpeakComplete?.call();
-      });
+        // Set up handlers
+        _flutterTts!.setStartHandler(() {
+          _isSpeaking = true;
+          notifyListeners();
+          onSpeakStart?.call();
+        });
 
-      _flutterTts.setErrorHandler((error) {
-        debugPrint('TTS Error: $error');
-        _isSpeaking = false;
-        notifyListeners();
-      });
+        _flutterTts!.setCompletionHandler(() {
+          _isSpeaking = false;
+          notifyListeners();
+          onSpeakComplete?.call();
+        });
+
+        _flutterTts!.setErrorHandler((error) {
+          debugPrint('TTS Error: $error');
+          _isSpeaking = false;
+          notifyListeners();
+        });
+
+        debugPrint('GigiTTSService initialized with Italian voice (native)');
+      }
 
       _isInitialized = true;
       notifyListeners();
-
-      debugPrint('GigiTTSService initialized with Italian voice');
     } catch (e) {
       debugPrint('Error initializing TTS: $e');
+      // Even if there's an error, mark as initialized to prevent crash loops
+      _isInitialized = true;
     }
   }
 
@@ -84,9 +102,44 @@ class GigiTTSService extends ChangeNotifier {
     if (text.isEmpty) return;
 
     try {
-      await _flutterTts.speak(text);
+      if (kIsWeb) {
+        // Use browser's SpeechSynthesis API
+        _speakWeb(text);
+      } else {
+        await _flutterTts?.speak(text);
+      }
     } catch (e) {
       debugPrint('TTS speak error: $e');
+    }
+  }
+
+  /// Web-specific speak using SpeechSynthesis
+  void _speakWeb(String text) {
+    try {
+      final synth = web.window.speechSynthesis;
+      synth.cancel(); // Cancel any ongoing speech
+
+      final utterance = web.SpeechSynthesisUtterance(text);
+      utterance.lang = 'it-IT';
+      utterance.rate = _speechRate + 0.5; // Web rate is 0.1-10, normalize
+      utterance.pitch = _pitch;
+      utterance.volume = _volume;
+
+      utterance.onstart = (web.Event event) {
+        _isSpeaking = true;
+        notifyListeners();
+        onSpeakStart?.call();
+      }.toJS;
+
+      utterance.onend = (web.Event event) {
+        _isSpeaking = false;
+        notifyListeners();
+        onSpeakComplete?.call();
+      }.toJS;
+
+      synth.speak(utterance);
+    } catch (e) {
+      debugPrint('Web TTS error: $e');
     }
   }
 
@@ -112,7 +165,11 @@ class GigiTTSService extends ChangeNotifier {
   /// Stop speaking
   Future<void> stop() async {
     try {
-      await _flutterTts.stop();
+      if (kIsWeb) {
+        web.window.speechSynthesis.cancel();
+      } else {
+        await _flutterTts?.stop();
+      }
       _isSpeaking = false;
       notifyListeners();
     } catch (e) {
@@ -123,7 +180,11 @@ class GigiTTSService extends ChangeNotifier {
   /// Pause speaking (if supported)
   Future<void> pause() async {
     try {
-      await _flutterTts.pause();
+      if (kIsWeb) {
+        web.window.speechSynthesis.pause();
+      } else {
+        await _flutterTts?.pause();
+      }
       _isSpeaking = false;
       notifyListeners();
     } catch (e) {
@@ -134,32 +195,40 @@ class GigiTTSService extends ChangeNotifier {
   /// Set speech rate (0.0 - 1.0, default 0.5)
   Future<void> setSpeechRate(double rate) async {
     _speechRate = rate.clamp(0.0, 1.0);
-    await _flutterTts.setSpeechRate(_speechRate);
+    if (!kIsWeb && _flutterTts != null) {
+      await _flutterTts!.setSpeechRate(_speechRate);
+    }
     notifyListeners();
   }
 
   /// Set pitch (0.5 - 2.0, default 1.0)
   Future<void> setPitch(double pitch) async {
     _pitch = pitch.clamp(0.5, 2.0);
-    await _flutterTts.setPitch(_pitch);
+    if (!kIsWeb && _flutterTts != null) {
+      await _flutterTts!.setPitch(_pitch);
+    }
     notifyListeners();
   }
 
   /// Set volume (0.0 - 1.0, default 1.0)
   Future<void> setVolume(double volume) async {
     _volume = volume.clamp(0.0, 1.0);
-    await _flutterTts.setVolume(_volume);
+    if (!kIsWeb && _flutterTts != null) {
+      await _flutterTts!.setVolume(_volume);
+    }
     notifyListeners();
   }
 
   /// Get available voices
   Future<List<dynamic>> getVoices() async {
-    return await _flutterTts.getVoices;
+    if (kIsWeb || _flutterTts == null) return [];
+    return await _flutterTts!.getVoices;
   }
 
   /// Get available languages
   Future<List<dynamic>> getLanguages() async {
-    return await _flutterTts.getLanguages;
+    if (kIsWeb || _flutterTts == null) return [];
+    return await _flutterTts!.getLanguages;
   }
 
   // ============================================
@@ -226,7 +295,9 @@ class GigiTTSService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _flutterTts.stop();
+    if (!kIsWeb) {
+      _flutterTts?.stop();
+    }
     super.dispose();
   }
 }

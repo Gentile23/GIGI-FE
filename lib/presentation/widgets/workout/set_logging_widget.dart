@@ -9,16 +9,39 @@ import '../../../data/models/workout_log_model.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../core/services/audio/voice_coaching_player.dart';
 
+/// Data passed when a single set is completed
+class SetCompletionData {
+  final int setNumber;
+  final double? weightKg;
+  final int? reps;
+  final int? rpe;
+  final double? previousWeightKg;
+  final bool isLastSet;
+
+  const SetCompletionData({
+    required this.setNumber,
+    this.weightKg,
+    this.reps,
+    this.rpe,
+    this.previousWeightKg,
+    required this.isLastSet,
+  });
+}
+
 class SetLoggingWidget extends StatefulWidget {
   final WorkoutExercise exercise;
   final ExerciseLogModel? exerciseLog;
   final Function(bool) onCompletionChanged;
+
+  /// Called when a single set is checked - for voice coaching sync
+  final Function(SetCompletionData)? onSetCompleted;
 
   const SetLoggingWidget({
     super.key,
     required this.exercise,
     this.exerciseLog,
     required this.onCompletionChanged,
+    this.onSetCompleted,
   });
 
   @override
@@ -739,6 +762,19 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         weightKg: _weights[setNumber],
         rpe: _rpe[setNumber],
         completed: true,
+      );
+
+      // Call voice coaching sync callback with set data
+      final previousSet = _previousData?[setNumber];
+      widget.onSetCompleted?.call(
+        SetCompletionData(
+          setNumber: setNumber,
+          weightKg: _weights[setNumber],
+          reps: _reps[setNumber],
+          rpe: _rpe[setNumber],
+          previousWeightKg: previousSet?['weight_kg'] as double?,
+          isLastSet: setNumber == widget.exercise.sets,
+        ),
       );
 
       // Auto-start rest timer after completing a set (if not last set)

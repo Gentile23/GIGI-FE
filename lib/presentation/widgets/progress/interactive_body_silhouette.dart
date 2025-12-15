@@ -90,8 +90,7 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
                 colorMap: _buildColorMap(),
               ),
 
-              // Colored body parts
-              ..._buildBodyParts(),
+              // Body parts overlay removed - SVG handles coloring
 
               // Measurement labels
               ..._buildMeasurementLabels(),

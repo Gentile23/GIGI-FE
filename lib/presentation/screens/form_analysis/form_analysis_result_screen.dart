@@ -35,9 +35,15 @@ class FormAnalysisResultScreen extends StatelessWidget {
             const SizedBox(height: 16),
             if (analysis.summary != null) _buildSummaryCard(),
             const SizedBox(height: 16),
+            _buildStrengthsCard(),
+            const SizedBox(height: 16),
+            _buildWeaknessesCard(),
+            const SizedBox(height: 16),
             if (analysis.detectedErrors.isNotEmpty) _buildErrorsCard(),
             const SizedBox(height: 16),
             if (analysis.suggestions.isNotEmpty) _buildSuggestionsCard(),
+            const SizedBox(height: 16),
+            _buildBodyAreasCard(),
             const SizedBox(height: 24),
             CleanButton(
               text: 'Nuova Analisi',
@@ -157,6 +163,309 @@ class FormAnalysisResultScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Card showing what's good about the form
+  Widget _buildStrengthsCard() {
+    // Extract strengths from feedback or generate from score
+    final strengths = _extractStrengths();
+    if (strengths.isEmpty) return const SizedBox.shrink();
+
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle_outline,
+                  color: CleanTheme.accentGreen,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '✅ Cosa va bene',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...strengths.map((s) => _buildCheckItem(s, CleanTheme.accentGreen)),
+        ],
+      ),
+    );
+  }
+
+  /// Card showing what needs improvement
+  Widget _buildWeaknessesCard() {
+    // Extract weaknesses from errors or feedback
+    final weaknesses = _extractWeaknesses();
+    if (weaknesses.isEmpty) return const SizedBox.shrink();
+
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.cancel_outlined,
+                  color: CleanTheme.accentRed,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '❌ Da migliorare',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...weaknesses.map((w) => _buildCheckItem(w, CleanTheme.accentRed)),
+        ],
+      ),
+    );
+  }
+
+  /// Card showing body areas analysis
+  Widget _buildBodyAreasCard() {
+    final bodyAreas = _extractBodyAreas();
+    if (bodyAreas.isEmpty) return const SizedBox.shrink();
+
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.accessibility_new,
+                  color: CleanTheme.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '🧑 Analisi per Zona',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...bodyAreas.entries.map((e) => _buildBodyAreaItem(e.key, e.value)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckItem(String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            color == CleanTheme.accentGreen ? Icons.check : Icons.close,
+            color: color,
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                height: 1.4,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBodyAreaItem(String area, String status) {
+    final isGood =
+        status.toLowerCase().contains('buon') ||
+        status.toLowerCase().contains('corrett') ||
+        status.toLowerCase().contains('ottim');
+    final color = isGood ? CleanTheme.accentGreen : CleanTheme.accentOrange;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isGood ? Icons.check : Icons.build,
+              color: color,
+              size: 14,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  area,
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  status,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: CleanTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Extract strengths from feedback
+  List<String> _extractStrengths() {
+    final List<String> strengths = [];
+    final feedback = analysis.feedback;
+    final score = analysis.formScore ?? 0;
+
+    // From feedback map
+    if (feedback['strengths'] is List) {
+      strengths.addAll((feedback['strengths'] as List).cast<String>());
+    }
+    if (feedback['positives'] is List) {
+      strengths.addAll((feedback['positives'] as List).cast<String>());
+    }
+
+    // Generate based on score if no explicit strengths
+    if (strengths.isEmpty && score >= 5) {
+      if (score >= 8) {
+        strengths.add('Ottima esecuzione complessiva');
+        strengths.add('Controllo del movimento eccellente');
+      } else if (score >= 6) {
+        strengths.add('Buona stabilità generale');
+      }
+    }
+
+    return strengths;
+  }
+
+  /// Extract weaknesses from errors/feedback
+  List<String> _extractWeaknesses() {
+    final List<String> weaknesses = [];
+    final feedback = analysis.feedback;
+
+    // From feedback map
+    if (feedback['weaknesses'] is List) {
+      weaknesses.addAll((feedback['weaknesses'] as List).cast<String>());
+    }
+    if (feedback['areas_to_improve'] is List) {
+      weaknesses.addAll((feedback['areas_to_improve'] as List).cast<String>());
+    }
+
+    // From detected errors
+    for (var error in analysis.detectedErrors) {
+      if (!weaknesses.contains(error.issue)) {
+        weaknesses.add(error.issue);
+      }
+    }
+
+    return weaknesses;
+  }
+
+  /// Extract body area analysis from feedback
+  Map<String, String> _extractBodyAreas() {
+    final Map<String, String> areas = {};
+    final feedback = analysis.feedback;
+
+    // Standard body area keys
+    final areaKeys = {
+      'back': '🦾 Schiena',
+      'spine': '🦾 Colonna',
+      'hips': '🎯 Bacino',
+      'core': '💪 Core/Addome',
+      'shoulders': '🤜 Spalle',
+      'head': '🙂 Testa/Collo',
+      'legs': '🦵 Gambe',
+      'arms': '💪 Braccia',
+      'posture': '🧑 Postura',
+    };
+
+    if (feedback['body_areas'] is Map) {
+      final bodyAreas = feedback['body_areas'] as Map;
+      for (var entry in bodyAreas.entries) {
+        final label = areaKeys[entry.key.toString()] ?? entry.key.toString();
+        areas[label] = entry.value.toString();
+      }
+    }
+
+    // Add from analysis if no specific areas
+    if (areas.isEmpty && analysis.summary != null) {
+      // Try to extract from summary
+      if (analysis.summary!.toLowerCase().contains('schiena')) {
+        areas['🦾 Schiena'] = 'Posizione analizzata';
+      }
+      if (analysis.summary!.toLowerCase().contains('bacino')) {
+        areas['🎯 Bacino'] = 'Allineamento verificato';
+      }
+    }
+
+    return areas;
   }
 
   Widget _buildErrorsCard() {

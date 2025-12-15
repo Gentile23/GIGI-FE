@@ -100,6 +100,14 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     return streak;
   }
 
+  /// Safely parse a value to num (handles both String and num)
+  num? _parseNum(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value;
+    if (value is String) return num.tryParse(value);
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -331,30 +339,35 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 100,
+          height: 110,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              if (changes['waist_cm'] != null)
-                _buildChangeCard('Vita', changes['waist_cm'] as num, '⭕', true),
-              if (changes['bicep_right_cm'] != null)
+              if (_parseNum(changes['waist_cm']) != null)
+                _buildChangeCard(
+                  'Vita',
+                  _parseNum(changes['waist_cm'])!,
+                  '⭕',
+                  true,
+                ),
+              if (_parseNum(changes['bicep_right_cm']) != null)
                 _buildChangeCard(
                   'Bicipite',
-                  changes['bicep_right_cm'] as num,
+                  _parseNum(changes['bicep_right_cm'])!,
                   '💪',
                   false,
                 ),
-              if (changes['chest_cm'] != null)
+              if (_parseNum(changes['chest_cm']) != null)
                 _buildChangeCard(
                   'Petto',
-                  changes['chest_cm'] as num,
+                  _parseNum(changes['chest_cm'])!,
                   '👕',
                   false,
                 ),
-              if (changes['weight_kg'] != null)
+              if (_parseNum(changes['weight_kg']) != null)
                 _buildChangeCard(
                   'Peso',
-                  changes['weight_kg'] as num,
+                  _parseNum(changes['weight_kg'])!,
                   '⚖️',
                   true,
                 ),
@@ -378,7 +391,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     return Container(
       width: 120,
       margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
@@ -464,7 +477,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   Widget _buildMiniChart(String title, String field, Color color) {
     final values = _measurementsHistory
         .take(10)
-        .map((m) => (m as Map<String, dynamic>)[field] as num?)
+        .map((m) => _parseNum((m as Map<String, dynamic>)[field]))
         .where((v) => v != null)
         .toList()
         .reversed
@@ -633,9 +646,9 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   }
 
   Widget _buildGoalCard(Map<String, dynamic> goal) {
-    final target = goal['target_value'] as num? ?? 0;
-    final current = goal['current_value'] as num? ?? 0;
-    final initial = goal['initial_value'] as num? ?? current;
+    final target = _parseNum(goal['target_value']) ?? 0;
+    final current = _parseNum(goal['current_value']) ?? 0;
+    final initial = _parseNum(goal['initial_value']) ?? current;
     final progress = (initial - current).abs() / (initial - target).abs();
     final isAchieved = progress >= 1;
 
