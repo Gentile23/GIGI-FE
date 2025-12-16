@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
@@ -35,6 +36,7 @@ class EnhancedHomeScreen extends StatefulWidget {
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
   int _selectedFilterIndex = 0;
+  int _currentWorkoutIndex = 0; // Track which workout to show
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
   @override
@@ -72,12 +74,18 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   @override
   void dispose() {
-    // Clean up callback
-    final workoutProvider = Provider.of<WorkoutProvider>(
-      context,
-      listen: false,
-    );
-    workoutProvider.onGenerationComplete = null;
+    // Clean up callback - use try-catch to avoid deactivated widget error
+    try {
+      if (mounted) {
+        final workoutProvider = Provider.of<WorkoutProvider>(
+          context,
+          listen: false,
+        );
+        workoutProvider.onGenerationComplete = null;
+      }
+    } catch (_) {
+      // Widget already disposed, ignore
+    }
     super.dispose();
   }
 
@@ -92,6 +100,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
     workoutProvider.fetchCurrentPlan();
     gamificationProvider.refresh();
+
+    // Load saved workout index
+    final prefs = await SharedPreferences.getInstance();
+    final savedIndex = prefs.getInt('next_workout_index') ?? 0;
+    if (mounted) {
+      setState(() {
+        _currentWorkoutIndex = savedIndex;
+      });
+    }
   }
 
   @override
@@ -637,10 +654,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     } else {
       // --- "Tutti" (Default Dashboard) ---
       final hasActivePlan = workoutProvider.currentPlan != null;
-      final currentWorkout =
-          hasActivePlan && workoutProvider.currentPlan!.workouts.isNotEmpty
-          ? workoutProvider.currentPlan!.workouts.first
-          : null;
+      final workouts = hasActivePlan
+          ? workoutProvider.currentPlan!.workouts
+          : [];
+
+      // Get next workout based on saved index, with wrap-around
+      final safeIndex = workouts.isNotEmpty
+          ? _currentWorkoutIndex % workouts.length
+          : 0;
+      final currentWorkout = workouts.isNotEmpty ? workouts[safeIndex] : null;
 
       if (hasActivePlan && currentWorkout != null) {
         title = currentWorkout.name;
@@ -649,13 +671,24 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         gradientColors = [const Color(0xFF1A1A2E), const Color(0xFF16213E)];
         showHeart = true;
 
-        onActionTap = () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => WorkoutSessionScreen(workoutDay: currentWorkout),
-            ),
-          );
+        onActionTap = () async {
+          // Increment workout index for next time
+          final prefs = await SharedPreferences.getInstance();
+          final nextIndex = (safeIndex + 1) % workouts.length;
+          await prefs.setInt('next_workout_index', nextIndex);
+
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    WorkoutSessionScreen(workoutDay: currentWorkout),
+              ),
+            ).then((_) {
+              // Refresh index when returning from workout
+              _loadData();
+            });
+          }
         };
       } else {
         // No active plan

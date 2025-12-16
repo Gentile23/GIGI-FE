@@ -40,13 +40,20 @@ class WorkoutLogProvider with ChangeNotifier {
   }) async {
     _setLoading(true);
     try {
+      debugPrint(
+        'DEBUG Provider: Calling startWorkout with dayId=$workoutDayId',
+      );
       _currentWorkoutLog = await _logService.startWorkout(
         workoutPlanId: workoutPlanId,
         workoutDayId: workoutDayId,
       );
+      debugPrint(
+        'DEBUG Provider: Workout log created: ${_currentWorkoutLog?.id}',
+      );
       _recentRecords = []; // Reset records for new session
       notifyListeners();
     } catch (e) {
+      debugPrint('DEBUG Provider: ERROR in startWorkout: $e');
       _setError(e.toString());
     } finally {
       _setLoading(false);

@@ -16,7 +16,7 @@ import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../../data/models/exercise_intro_model.dart';
 import '../../../core/services/gigi_tts_service.dart';
-import 'immersive_session_screen.dart';
+import 'dart:async';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -31,6 +31,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Set<String> _completedExercises = {};
   final Set<String> _completedSections = {};
   final Set<String> _skippedSections = {};
+
+  // Session Timer
+  bool _isSessionActive = false;
+  DateTime? _sessionStartTime;
+  Timer? _sessionTimer;
+  Duration _elapsedTime = Duration.zero;
 
   // Voice Coaching TTS
   late GigiTTSService _gigiTTS;
@@ -48,13 +54,92 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   @override
   void dispose() {
+    _sessionTimer?.cancel();
     _gigiTTS.dispose();
     super.dispose();
   }
 
+  void _startSession() {
+    setState(() {
+      _isSessionActive = true;
+      _sessionStartTime = DateTime.now();
+    });
+    _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_sessionStartTime != null) {
+        setState(() {
+          _elapsedTime = DateTime.now().difference(_sessionStartTime!);
+        });
+      }
+    });
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '${d.inHours > 0 ? '${d.inHours}:' : ''}$minutes:$seconds';
+  }
+
+  Widget _buildSessionStat(String emoji, String value, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 14)),
+        const SizedBox(width: 4),
+        Text(
+          value,
+          style: GoogleFonts.outfit(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: GoogleFonts.inter(fontSize: 10, color: Colors.white60),
+        ),
+      ],
+    );
+  }
+
   Future<void> _startWorkoutSession() async {
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
-    await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+    debugPrint(
+      'DEBUG: Starting workout session for day ID: ${widget.workoutDay.id}',
+    );
+
+    try {
+      await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+
+      if (provider.currentWorkoutLog != null) {
+        debugPrint(
+          'DEBUG: Workout log created with ID: ${provider.currentWorkoutLog!.id}',
+        );
+      } else {
+        debugPrint('DEBUG: WARNING - Workout log is NULL after startWorkout');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                '⚠️ Sessione non registrata - i progressi potrebbero non essere salvati',
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('DEBUG: Error starting workout session: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore avvio sessione: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -217,7 +302,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             },
           ),
 
-          // 3. Floating Action Button - Start Session or Finish
+          // 3. Floating Action Button - Start Session or Timer Display
           Positioned(
             left: 20,
             right: 20,
@@ -225,22 +310,162 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Start Immersive Session Button (when no exercises completed)
-                if (_completedExercises.isEmpty)
+                // Timer Display when session is active
+                if (_isSessionActive)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          CleanTheme.primaryColor,
+                          CleanTheme.accentPurple,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Main timer row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Left: Recording indicator + Timer
+                            Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: CleanTheme.accentRed,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: CleanTheme.accentRed.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                        blurRadius: 6,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _formatDuration(_elapsedTime),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // Center: Workout type
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                widget.workoutDay.name
+                                    .split(' - ')
+                                    .last
+                                    .toUpperCase(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            // Right: Progress
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.fitness_center,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${_completedExercises.length}/${widget.workoutDay.mainExerciseCount}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Progress bar
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: widget.workoutDay.mainExerciseCount > 0
+                                ? _completedExercises.length /
+                                      widget.workoutDay.mainExerciseCount
+                                : 0,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            valueColor: const AlwaysStoppedAnimation(
+                              CleanTheme.accentGreen,
+                            ),
+                            minHeight: 6,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        // Stats row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildSessionStat(
+                              '🔥',
+                              '${(_elapsedTime.inMinutes * 8).clamp(0, 999)}',
+                              'kcal',
+                            ),
+                            _buildSessionStat(
+                              '💪',
+                              '${_completedExercises.length * 3}',
+                              'serie',
+                            ),
+                            _buildSessionStat(
+                              '⏱️',
+                              '${(_elapsedTime.inMinutes / (widget.workoutDay.mainExerciseCount > 0 ? widget.workoutDay.mainExerciseCount : 1)).toStringAsFixed(1)}',
+                              'min/ex',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                // Start Session Button (when session not active)
+                if (!_isSessionActive && _completedExercises.isEmpty)
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ImmersiveSessionScreen(
-                              workoutDay: widget.workoutDay,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: _startSession,
                       icon: const Icon(Icons.play_arrow_rounded, size: 28),
                       label: Text(
                         'INIZIA SESSIONE',
@@ -796,6 +1021,40 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildExerciseCard(WorkoutExercise exercise) {
     return Consumer<WorkoutLogProvider>(
       builder: (context, provider, child) {
@@ -814,327 +1073,175 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         final isCompleted = _completedExercises.contains(exercise.exercise.id);
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: CleanTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isCompleted
                   ? CleanTheme.accentGreen
-                  : CleanTheme.primaryColor,
-              width: isCompleted ? 1.0 : 2.0,
+                  : CleanTheme.primaryColor.withValues(alpha: 0.3),
+              width: isCompleted ? 2.0 : 1.0,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: const EdgeInsets.all(16),
-              childrenPadding: const EdgeInsets.only(
-                bottom: 16,
-                left: 16,
-                right: 16,
-              ),
-              leading: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : CleanTheme.primaryColor,
-                ),
-                child: Center(
-                  child: isCompleted
-                      ? const Icon(Icons.check, size: 18, color: Colors.white)
-                      : Text(
-                          '${widget.workoutDay.exercises.indexOf(exercise) + 1}',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                ),
-              ),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    exercise.exercise.name,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: isCompleted
-                          ? CleanTheme.textTertiary
-                          : CleanTheme.textPrimary,
-                      decoration: isCompleted
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _buildDifficultyBadge(exercise.exercise.difficulty),
-                ],
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.backgroundColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildMiniStat(Icons.repeat, '${exercise.sets}'),
-                        const SizedBox(width: 12),
-                        _buildMiniStat(Icons.fitness_center, exercise.reps),
-                        const SizedBox(width: 12),
-                        _buildMiniStat(Icons.timer, '${exercise.restSeconds}s'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (exercise.exercise.muscleGroups.isNotEmpty)
-                    Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: exercise.exercise.muscleGroups.take(3).map((
-                        muscle,
-                      ) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: CleanTheme.primaryColor.withValues(
-                                alpha: 0.3,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            muscle,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              color: CleanTheme.primaryColor,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  if (exercise.notes != null && exercise.notes!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        exercise.notes!,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: CleanTheme.primaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // HEADER: Exercise name + number + stats
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted
+                            ? CleanTheme.accentGreen
+                            : CleanTheme.primaryColor,
                       ),
-                    ),
-                ],
-              ),
-              trailing: Container(
-                decoration: BoxDecoration(
-                  color: CleanTheme.primaryColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextButton.icon(
-                  onPressed: () => _navigateToExerciseDetail(exercise),
-                  icon: const Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  label: Text(
-                    'Info',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
-                ),
-              ),
-              children: [
-                if (exercise.exerciseType != 'cardio' &&
-                    exercise.exerciseType != 'mobility')
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: DualAnatomicalView(
-                      muscleGroups: exercise.exercise.muscleGroups,
-                      height: 150,
-                      highlightColor: CleanTheme.primaryColor,
-                    ),
-                  ),
-
-                const Divider(color: CleanTheme.borderPrimary),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _navigateToExerciseDetail(exercise),
-                      icon: const Icon(Icons.info_outline),
-                      label: const Text('Vedi Spiegazione Esercizio'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: CleanTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // AI Form Check - Premium Feature
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FormAnalysisScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.camera_alt_outlined,
-                        color: CleanTheme.accentPurple,
-                      ),
-                      label: Text(
-                        'Analizza con Gigi',
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.accentPurple,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(
-                          color: CleanTheme.accentPurple,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const Divider(color: CleanTheme.borderPrimary),
-
-                // Voice Coaching - Inizia con Gigi
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          CleanTheme.primaryColor.withValues(alpha: 0.1),
-                          CleanTheme.accentPurple.withValues(alpha: 0.05),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Text('🎤', style: TextStyle(fontSize: 20)),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Gigi Voice Coach',
-                              style: GoogleFonts.outfit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: CleanTheme.primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => _startVoiceCoaching(exercise),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: CleanTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  '🎤',
-                                  style: TextStyle(fontSize: 16),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                size: 18,
+                                color: Colors.white,
+                              )
+                            : Text(
+                                '${widget.workoutDay.exercises.indexOf(exercise) + 1}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Inizia con Gigi',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            exercise.exercise.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isCompleted
+                                  ? CleanTheme.textTertiary
+                                  : CleanTheme.textPrimary,
+                              decoration: isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              _buildDifficultyBadge(
+                                exercise.exercise.difficulty,
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: CleanTheme.backgroundColor,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${exercise.sets}×${exercise.reps} • ${exercise.restSeconds}s',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: CleanTheme.textSecondary,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ALWAYS VISIBLE: Anatomy + Muscles Row
+              if (exercise.exerciseType != 'cardio' &&
+                  exercise.exerciseType != 'mobility')
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 80,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.backgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: DualAnatomicalView(
+                            muscleGroups: exercise.exercise.muscleGroups,
+                            height: 80,
+                            highlightColor: CleanTheme.primaryColor,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 4,
+                          runSpacing: 4,
+                          children: exercise.exercise.muscleGroups.map((
+                            muscle,
+                          ) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                muscle,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: CleanTheme.primaryColor,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                const Divider(color: CleanTheme.borderPrimary),
+              const SizedBox(height: 12),
 
-                SetLoggingWidget(
+              // ALWAYS VISIBLE: Set Logging Widget
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: SetLoggingWidget(
                   exercise: exercise,
                   exerciseLog: exerciseLog?.id.isNotEmpty == true
                       ? exerciseLog
@@ -1149,8 +1256,61 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     });
                   },
                 ),
-              ],
-            ),
+              ),
+
+              // Divider + Quick Actions
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Divider(
+                  color: CleanTheme.borderPrimary.withValues(alpha: 0.5),
+                  height: 1,
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildQuickActionButton(
+                        icon: Icons.info_outline,
+                        label: 'Info',
+                        color: CleanTheme.primaryColor,
+                        onTap: () => _navigateToExerciseDetail(exercise),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildQuickActionButton(
+                        icon: Icons.camera_alt_outlined,
+                        label: 'AI Check',
+                        color: CleanTheme.accentPurple,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FormAnalysisScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildQuickActionButton(
+                        icon: Icons.mic,
+                        label: 'Gigi',
+                        color: CleanTheme.accentBlue,
+                        onTap: () => _startVoiceCoaching(exercise),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -1248,6 +1408,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               final scaffoldMessenger = ScaffoldMessenger.of(context);
 
               try {
+                debugPrint(
+                  'DEBUG: Completing workout, currentLog exists: ${provider.currentWorkoutLog != null}',
+                );
+                if (provider.currentWorkoutLog != null) {
+                  debugPrint(
+                    'DEBUG: Workout log ID: ${provider.currentWorkoutLog!.id}',
+                  );
+                }
                 await provider.completeWorkout();
 
                 if (!mounted) return;

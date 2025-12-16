@@ -283,7 +283,7 @@ class HealthIntegrationService {
       case 'strength':
         return HealthWorkoutActivityType.TRADITIONAL_STRENGTH_TRAINING;
       case 'cardio':
-        return HealthWorkoutActivityType.CARDIO;
+        return HealthWorkoutActivityType.CROSS_TRAINING;
       case 'hiit':
         return HealthWorkoutActivityType.HIGH_INTENSITY_INTERVAL_TRAINING;
       case 'yoga':
@@ -292,7 +292,7 @@ class HealthIntegrationService {
       case 'running':
         return HealthWorkoutActivityType.RUNNING;
       case 'cycling':
-        return HealthWorkoutActivityType.CYCLING;
+        return HealthWorkoutActivityType.BIKING;
       case 'swimming':
         return HealthWorkoutActivityType.SWIMMING;
       default:

@@ -15,6 +15,7 @@ class ExerciseFocusCard extends StatefulWidget {
   final bool isActive;
   final VoidCallback? onStartWithGigi;
   final VoidCallback? onInfoTap;
+  final VoidCallback? onSkip;
 
   const ExerciseFocusCard({
     super.key,
@@ -24,6 +25,7 @@ class ExerciseFocusCard extends StatefulWidget {
     this.isActive = true,
     this.onStartWithGigi,
     this.onInfoTap,
+    this.onSkip,
   });
 
   @override
@@ -124,26 +126,26 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-              // Exercise video/image placeholder
+              // Exercise video/image placeholder - compact
               Container(
-                height: 160,
+                height: 100,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
                   child: Icon(
                     Icons.fitness_center,
-                    size: 64,
+                    size: 48,
                     color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Exercise name
               Text(
@@ -157,19 +159,19 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
 
               // Muscle groups
               Text(
                 muscleGroups,
                 style: GoogleFonts.inter(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: CleanTheme.accentBlue,
                   fontWeight: FontWeight.w500,
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Set indicator dots
               Row(
@@ -218,7 +220,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Reps and rest info
               Row(
@@ -229,7 +231,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                     '${widget.exercise.reps}',
                     'reps',
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   _buildStatPill(
                     Icons.timer_outlined,
                     '${widget.exercise.restSeconds}s',
@@ -238,7 +240,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Notes (if any)
               if (widget.exercise.notes != null &&
@@ -275,40 +277,42 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                   ),
                 ),
 
-              // Start with Gigi button
-              if (widget.onStartWithGigi != null)
+              // Skip button for cardio/mobility
+              if (widget.onSkip != null)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
                   child: GestureDetector(
                     onTap: () {
                       HapticService.lightTap();
-                      widget.onStartWithGigi?.call();
+                      widget.onSkip?.call();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
-                        vertical: 12,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            CleanTheme.accentPurple,
-                            CleanTheme.accentPurple.withValues(alpha: 0.8),
-                          ],
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
-                        borderRadius: BorderRadius.circular(30),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.mic, color: Colors.white, size: 20),
-                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.skip_next,
+                            color: Colors.white70,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
                           Text(
-                            'Start with Gigi',
+                            'Salta esercizio',
                             style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white70,
                             ),
                           ),
                         ],

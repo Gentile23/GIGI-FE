@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:gigi/data/models/workout_log_model.dart';
 import 'package:gigi/data/services/api_service.dart';
 
@@ -9,6 +10,9 @@ class WorkoutLogService extends ApiService {
     String? workoutPlanId,
     String? workoutDayId,
   }) async {
+    debugPrint(
+      'DEBUG Service: POST workout-logs/start with dayId=$workoutDayId',
+    );
     final response = await post(
       'workout-logs/start',
       body: {
@@ -17,10 +21,15 @@ class WorkoutLogService extends ApiService {
       },
     );
 
+    debugPrint('DEBUG Service: Response = $response');
+
     if (response['success'] == true) {
       return WorkoutLog.fromJson(response['workout_log']);
     } else {
-      throw Exception('Failed to start workout');
+      final error =
+          response['message'] ?? response['error'] ?? 'Failed to start workout';
+      debugPrint('DEBUG Service: API Error = $error');
+      throw Exception(error);
     }
   }
 

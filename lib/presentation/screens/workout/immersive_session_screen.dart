@@ -390,10 +390,26 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
                 exercise: _currentExercise,
                 currentSet: _currentSetNumber,
                 totalSets: _currentExercise.sets,
-                onStartWithGigi: _startVoiceCoaching,
                 onInfoTap: () {
                   // TODO: Navigate to exercise detail
                 },
+                // Show skip button for cardio/mobility exercises
+                onSkip:
+                    (_currentExercise.exerciseType == 'cardio' ||
+                        _currentExercise.exerciseType == 'mobility')
+                    ? () {
+                        HapticService.lightTap();
+                        // Skip to next exercise
+                        if (_currentExerciseIndex < _mainExercises.length - 1) {
+                          setState(() {
+                            _currentExerciseIndex++;
+                            _currentSetNumber = 1;
+                          });
+                        } else {
+                          _completeWorkout();
+                        }
+                      }
+                    : null,
               ),
 
               const Spacer(),

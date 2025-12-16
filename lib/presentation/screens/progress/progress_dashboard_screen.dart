@@ -27,6 +27,12 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   List<dynamic> _goals = [];
   int _streak = 0;
 
+  // Workout History Stats
+  int _totalWorkouts = 0;
+  int _totalSeries = 0;
+  int _totalCalories = 0;
+  Duration _totalWorkoutTime = Duration.zero;
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +75,9 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           _streak = _calculateStreak();
           _isLoading = false;
         });
+
+        // Load workout history stats
+        _loadWorkoutStats();
       }
     } catch (e) {
       if (mounted) {
@@ -106,6 +115,142 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     if (value is num) return value;
     if (value is String) return num.tryParse(value);
     return null;
+  }
+
+  Future<void> _loadWorkoutStats() async {
+    try {
+      final response = await _apiClient.dio.get('/workout-logs');
+      if (response.statusCode == 200 && mounted) {
+        final logs = response.data['logs'] as List<dynamic>? ?? [];
+        int totalWorkouts = logs.length;
+        int totalSeries = 0;
+        int totalCalories = 0;
+        int totalMinutes = 0;
+
+        for (final log in logs) {
+          final logData = log as Map<String, dynamic>;
+          totalSeries += (logData['total_sets'] as int?) ?? 0;
+          totalCalories += (logData['calories_burned'] as int?) ?? 0;
+          totalMinutes += (logData['duration_minutes'] as int?) ?? 0;
+        }
+
+        setState(() {
+          _totalWorkouts = totalWorkouts;
+          _totalSeries = totalSeries;
+          _totalCalories = totalCalories;
+          _totalWorkoutTime = Duration(minutes: totalMinutes);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading workout stats: $e');
+    }
+  }
+
+  Widget _buildWorkoutStatsSection() {
+    final hours = _totalWorkoutTime.inHours;
+    final minutes = _totalWorkoutTime.inMinutes.remainder(60);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '🏋️ Statistiche Allenamenti',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        CleanCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildWorkoutStatItem(
+                      '💪',
+                      '$_totalWorkouts',
+                      'Allenamenti',
+                      CleanTheme.primaryColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildWorkoutStatItem(
+                      '🔄',
+                      '$_totalSeries',
+                      'Serie totali',
+                      CleanTheme.accentBlue,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildWorkoutStatItem(
+                      '🔥',
+                      '$_totalCalories',
+                      'Calorie bruciate',
+                      CleanTheme.accentOrange,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildWorkoutStatItem(
+                      '⏱️',
+                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
+                      'Tempo totale',
+                      CleanTheme.accentPurple,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWorkoutStatItem(
+    String emoji,
+    String value,
+    String label,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: CleanTheme.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -166,6 +311,10 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
 
                     // Achievements
                     _buildAchievementsSection(),
+                    const SizedBox(height: 20),
+
+                    // Workout History Stats
+                    _buildWorkoutStatsSection(),
                     const SizedBox(height: 20),
 
                     // Quick Actions

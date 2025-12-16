@@ -9,8 +9,6 @@ import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
 import '../../widgets/workout/alternative_exercises_sheet.dart';
-import '../../widgets/voice_coaching/mode_selection_sheet.dart';
-import '../../../data/models/exercise_intro_model.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -165,6 +163,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               const SizedBox(height: 24),
             ],
 
+            const SizedBox(height: 24),
+
             // Video Player / Thumbnail
             if (widget.workoutExercise.exercise.videoUrl != null &&
                 widget.workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
@@ -172,111 +172,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               const SizedBox(height: 12),
               _buildVideoSection(widget.workoutExercise.exercise.videoUrl!),
             ],
-            const SizedBox(height: 24),
-
-            // Voice Coaching - Inizia con Gigi
-            _buildVoiceCoachingSection(),
             const SizedBox(height: 32),
           ],
         ),
       ),
-    );
-  }
-
-  /// Build Voice Coaching "Inizia con Gigi" section
-  Widget _buildVoiceCoachingSection() {
-    return CleanCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text('🎤', style: TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Gigi Personal Trainer',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Voice coaching personalizzato',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _showVoiceCoachingOptions(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CleanTheme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('🎤', style: TextStyle(fontSize: 18)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Inizia con Gigi',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showVoiceCoachingOptions(BuildContext context) {
-    ModeSelectionSheet.show(
-      context,
-      exerciseName: widget.workoutExercise.exercise.name,
-      currentMode: CoachingMode.voice,
-      onModeSelected: (mode, remember) {
-        // TODO: Navigate to workout execution with voice coaching
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              mode == CoachingMode.voice
-                  ? '🎤 Voice Mode attivato - Gigi ti guiderà!'
-                  : '🎵 Music Mode attivato - Buon allenamento con la tua musica!',
-            ),
-            backgroundColor: CleanTheme.primaryColor,
-          ),
-        );
-      },
     );
   }
 

@@ -4,7 +4,8 @@ import '../../../data/services/trial_workout_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
-import 'trial_workout_screen.dart';
+import '../../../data/models/workout_model.dart';
+import 'workout_session_screen.dart';
 
 class TrialWorkoutGenerationScreen extends StatefulWidget {
   const TrialWorkoutGenerationScreen({super.key});
@@ -39,11 +40,41 @@ class _TrialWorkoutGenerationScreenState
 
       if (mounted) {
         if (trialWorkout != null) {
+          // Convert TrialWorkout to WorkoutDay for WorkoutSessionScreen
+          final workoutDay = WorkoutDay(
+            id:
+                trialWorkout.id ??
+                'trial_${DateTime.now().millisecondsSinceEpoch}',
+            name: trialWorkout.name,
+            focus: 'Trial Workout',
+            estimatedDuration: trialWorkout.durationMinutes,
+            exercises: trialWorkout.exercises.map((trialExercise) {
+              return WorkoutExercise(
+                exercise: Exercise(
+                  id:
+                      trialExercise.id ??
+                      'trial_ex_${trialExercise.name.hashCode}',
+                  name: trialExercise.name,
+                  description: trialExercise.notes ?? '',
+                  muscleGroups: [],
+                  difficulty: ExerciseDifficulty.beginner,
+                  equipment: [],
+                ),
+                sets: trialExercise.sets,
+                reps: trialExercise.reps,
+                restSeconds: trialExercise.restSeconds,
+                notes: trialExercise.notes,
+                exerciseType: 'strength',
+                position: 'main',
+              );
+            }).toList(),
+          );
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  TrialWorkoutScreen(trialWorkout: trialWorkout),
+                  WorkoutSessionScreen(workoutDay: workoutDay),
             ),
           );
         } else {

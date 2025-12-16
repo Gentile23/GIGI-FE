@@ -58,7 +58,13 @@ class UserService {
       final data = <String, dynamic>{};
 
       if (gender != null) data['gender'] = gender;
-      if (age != null) data['age'] = age;
+      // Convert age to date_of_birth for backend compatibility
+      if (age != null) {
+        final now = DateTime.now();
+        final birthYear = now.year - age;
+        final dateOfBirth = DateTime(birthYear, 1, 1);
+        data['date_of_birth'] = dateOfBirth.toIso8601String().split('T').first;
+      }
       if (height != null) data['height'] = height;
       if (weight != null) data['weight'] = weight;
       if (bodyShape != null) data['body_shape'] = bodyShape;
