@@ -16,6 +16,7 @@ import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../../data/models/exercise_intro_model.dart';
 import '../../../core/services/gigi_tts_service.dart';
+import 'immersive_session_screen.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -120,9 +121,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             child: Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: const AssetImage(
-                    'assets/images/placeholder_workout.jpg',
-                  ),
+                  image: const AssetImage('assets/images/workout_hero.png'),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
                     Colors.black.withValues(alpha: 0.3),
@@ -218,42 +217,87 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             },
           ),
 
-          // 3. Floating Action Button (Finish)
+          // 3. Floating Action Button - Start Session or Finish
           Positioned(
             left: 20,
             right: 20,
             bottom: 24,
-            child: SizedBox(
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _completedExercises.isNotEmpty
-                    ? _finishWorkout
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _completedExercises.length ==
-                          widget.workoutDay.mainExerciseCount
-                      ? CleanTheme.accentGreen
-                      : CleanTheme.primaryColor,
-                  elevation: 8,
-                  shadowColor: Colors.black26,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100), // Pill shape
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Start Immersive Session Button (when no exercises completed)
+                if (_completedExercises.isEmpty)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ImmersiveSessionScreen(
+                              workoutDay: widget.workoutDay,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow_rounded, size: 28),
+                      label: Text(
+                        'INIZIA SESSIONE',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CleanTheme.accentGreen,
+                        elevation: 8,
+                        shadowColor: CleanTheme.accentGreen.withValues(
+                          alpha: 0.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                child: Text(
-                  _completedExercises.length ==
-                          widget.workoutDay.mainExerciseCount
-                      ? 'COMPLETA ALLENAMENTO'
-                      : 'TERMINA SESSIONE',
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1,
+
+                // Finish Workout Button (when exercises are completed)
+                if (_completedExercises.isNotEmpty)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _finishWorkout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _completedExercises.length ==
+                                widget.workoutDay.mainExerciseCount
+                            ? CleanTheme.accentGreen
+                            : CleanTheme.primaryColor,
+                        elevation: 8,
+                        shadowColor: Colors.black26,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                      child: Text(
+                        _completedExercises.length ==
+                                widget.workoutDay.mainExerciseCount
+                            ? 'COMPLETA ALLENAMENTO'
+                            : 'TERMINA SESSIONE',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+              ],
             ),
           ),
         ],

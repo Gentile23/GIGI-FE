@@ -681,98 +681,135 @@ class _UnifiedQuestionnaireScreenState
   // --- Page Builders ---
 
   Widget _buildHeightWeightPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Parlaci di te',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Queste informazioni ci aiutano a calcolare il tuo fabbisogno.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 48),
-
-          // Height Input
-          Text(
-            'Altezza (cm)',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: _height?.toString(),
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Es. 175',
-              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
-              filled: true,
-              fillColor: CleanTheme.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.primaryColor),
-              ),
-              suffixText: 'cm',
-              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 48, // Account for padding
             ),
-            onChanged: (value) => setState(() {
-              _height = double.tryParse(value);
-            }),
-          ),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Parlaci di te',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Queste informazioni ci aiutano a calcolare il tuo fabbisogno.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 48),
 
-          const SizedBox(height: 32),
+                  // Height Input
+                  Text(
+                    'Altezza (cm)',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    initialValue: _height?.toString(),
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Es. 175',
+                      hintStyle: GoogleFonts.inter(
+                        color: CleanTheme.textTertiary,
+                      ),
+                      filled: true,
+                      fillColor: CleanTheme.surfaceColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.primaryColor,
+                        ),
+                      ),
+                      suffixText: 'cm',
+                      suffixStyle: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary,
+                      ),
+                    ),
+                    onChanged: (value) => setState(() {
+                      _height = double.tryParse(value);
+                    }),
+                  ),
 
-          // Weight Input
-          Text('Peso (kg)', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: _weight?.toString(),
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Es. 70',
-              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
-              filled: true,
-              fillColor: CleanTheme.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
+                  const SizedBox(height: 32),
+
+                  // Weight Input
+                  Text(
+                    'Peso (kg)',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    initialValue: _weight?.toString(),
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Es. 70',
+                      hintStyle: GoogleFonts.inter(
+                        color: CleanTheme.textTertiary,
+                      ),
+                      filled: true,
+                      fillColor: CleanTheme.surfaceColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.primaryColor,
+                        ),
+                      ),
+                      suffixText: 'kg',
+                      suffixStyle: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary,
+                      ),
+                    ),
+                    onChanged: (value) => setState(() {
+                      _weight = double.tryParse(value);
+                    }),
+                  ),
+
+                  const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(
+                    text: 'Continua',
+                    onPressed: (_height != null && _weight != null)
+                        ? _nextPage
+                        : null,
+                  ),
+                ],
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.primaryColor),
-              ),
-              suffixText: 'kg',
-              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
-            onChanged: (value) => setState(() {
-              _weight = double.tryParse(value);
-            }),
           ),
-
-          const Spacer(),
-          CleanButton(
-            text: 'Continua',
-            onPressed: (_height != null && _weight != null) ? _nextPage : null,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2115,113 +2152,137 @@ class _UnifiedQuestionnaireScreenState
   }
 
   Widget _buildGenderAgePage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Chi sei?', style: Theme.of(context).textTheme.displayMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Per personalizzare il tuo piano.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 32),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - 48, // Account for padding
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Chi sei?',
+                  style: Theme.of(context).textTheme.displayMedium,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Per personalizzare il tuo piano.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 32),
 
-          // Gender Selection
-          Text('Sesso', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 16),
-          Row(
-            children: Gender.values.map((g) {
-              final isSelected = _selectedGender == g;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedGender = g),
-                  child: Container(
-                    margin: EdgeInsets.only(right: g == Gender.male ? 16 : 0),
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? CleanTheme.primaryColor.withValues(alpha: 0.2)
-                          : CleanTheme.surfaceColor,
-                      border: Border.all(
-                        color: isSelected
-                            ? CleanTheme.primaryColor
-                            : CleanTheme.borderPrimary,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          g == Gender.male ? Icons.male : Icons.female,
-                          color: isSelected
-                              ? CleanTheme.primaryColor
-                              : CleanTheme.textTertiary,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          g == Gender.male ? 'Uomo' : 'Donna',
-                          style: TextStyle(
+                // Gender Selection
+                Text('Sesso', style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: 16),
+                Row(
+                  children: Gender.values.map((g) {
+                    final isSelected = _selectedGender == g;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedGender = g),
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            right: g == Gender.male ? 16 : 0,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? CleanTheme.primaryColor
-                                : CleanTheme.textSecondary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                                ? CleanTheme.primaryColor.withValues(alpha: 0.2)
+                                : CleanTheme.surfaceColor,
+                            border: Border.all(
+                              color: isSelected
+                                  ? CleanTheme.primaryColor
+                                  : CleanTheme.borderPrimary,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                g == Gender.male ? Icons.male : Icons.female,
+                                color: isSelected
+                                    ? CleanTheme.primaryColor
+                                    : CleanTheme.textTertiary,
+                                size: 40,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                g == Gender.male ? 'Uomo' : 'Donna',
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? CleanTheme.primaryColor
+                                      : CleanTheme.textSecondary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Age Input
+                Text('Età', style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: 12),
+                TextFormField(
+                  initialValue: _age?.toString(),
+                  keyboardType: TextInputType.number,
+                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Es. 25',
+                    hintStyle: GoogleFonts.inter(
+                      color: CleanTheme.textTertiary,
+                    ),
+                    filled: true,
+                    fillColor: CleanTheme.surfaceColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.borderPrimary,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.borderPrimary,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: CleanTheme.primaryColor,
+                      ),
+                    ),
+                    suffixText: 'anni',
+                    suffixStyle: GoogleFonts.inter(
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
+                  onChanged: (value) => setState(() {
+                    _age = int.tryParse(value);
+                  }),
                 ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Age Input
-          Text('Età', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
-          TextFormField(
-            initialValue: _age?.toString(),
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Es. 25',
-              hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
-              filled: true,
-              fillColor: CleanTheme.surfaceColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: CleanTheme.primaryColor),
-              ),
-              suffixText: 'anni',
-              suffixStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                const SizedBox(height: 32),
+                CleanButton(
+                  text: 'Continua',
+                  onPressed: (_selectedGender != null && _age != null)
+                      ? _nextPage
+                      : null,
+                ),
+              ],
             ),
-            onChanged: (value) => setState(() {
-              _age = int.tryParse(value);
-            }),
           ),
-          const SizedBox(height: 24),
-          CleanButton(
-            text: 'Continua',
-            onPressed: (_selectedGender != null && _age != null)
-                ? _nextPage
-                : null,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

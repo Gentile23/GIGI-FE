@@ -13,6 +13,7 @@ import '../../../providers/workout_log_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_screen.dart';
+import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
 
 /// Unified screen showing both AI-generated and custom workouts
@@ -177,7 +178,15 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
   Widget _buildHeroNextWorkout(WorkoutProvider workoutProvider) {
     final plan = workoutProvider.currentPlan;
-    final nextWorkout = workoutProvider.nextWorkoutDay;
+
+    // Show generating state if plan is still processing
+    if (plan != null && plan.status == 'processing') {
+      return _buildGeneratingHeroCard();
+    }
+
+    final nextWorkout = plan?.workouts.isNotEmpty == true
+        ? plan!.workouts.first
+        : null;
 
     if (plan == null || nextWorkout == null) {
       return _buildEmptyHeroCard();
@@ -252,7 +261,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        nextWorkout.dayName,
+                        nextWorkout.name,
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -349,8 +358,82 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  Widget _buildGeneratingHeroCard() {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            CleanTheme.primaryColor.withValues(alpha: 0.8),
+            CleanTheme.primaryColor,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 3,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '🤖 Generazione in corso...',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Completando cardio e mobilità',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneratingSection() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Column(
+        children: [
+          const CircularProgressIndicator(color: CleanTheme.primaryColor),
+          const SizedBox(height: 16),
+          Text(
+            'AI sta completando la scheda...',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAIWorkoutsList(WorkoutProvider workoutProvider) {
     final plan = workoutProvider.currentPlan;
+
+    // Show generating state if plan is still processing
+    if (plan != null && plan.status == 'processing') {
+      return _buildGeneratingSection();
+    }
 
     if (plan == null || plan.workoutDays.isEmpty) {
       return _buildEmptySection('Nessuna scheda AI generata');
@@ -361,7 +444,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         final _ = entry.key;
         final workout = entry.value;
         return _buildWorkoutCard(
-          title: workout.dayName,
+          title: workout.name,
           subtitle: '${workout.exercises.length} esercizi',
           duration: '${workout.estimatedDuration} min',
           isAI: true,
@@ -526,6 +609,32 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
         final currentPlan = workoutProvider.currentPlan;
 
+        // Show generating state if plan is still processing (cardio/mobility being generated)
+        if (currentPlan != null && currentPlan.status == 'processing') {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: CleanTheme.primaryColor),
+                const SizedBox(height: 24),
+                Text(
+                  '🤖 AI sta completando il tuo piano',
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Generando cardio e mobilità...',
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                ),
+              ],
+            ),
+          );
+        }
+
         if (currentPlan == null || currentPlan.workouts.isEmpty) {
           return _buildEmptyAIState();
         }
@@ -598,7 +707,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Attendere prego...',
+              'Ci vorranno pochi minuti...',
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ],

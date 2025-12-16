@@ -45,5 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- HealthKit Integration -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>GIGI legge i tuoi dati di salute per personalizzare i tuoi allenamenti e monitorare il tuo recupero.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>GIGI registra i tuoi allenamenti completati e le calorie bruciate in Apple Health.</string>
 </dict>
 </plist>

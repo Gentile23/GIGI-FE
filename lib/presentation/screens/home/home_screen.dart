@@ -510,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Attendere prego...',
+              'Ci vorranno pochi minuti...',
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: CleanTheme.textSecondary,

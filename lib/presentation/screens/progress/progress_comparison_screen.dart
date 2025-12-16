@@ -95,7 +95,14 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
   }
 
   Widget _buildPhotosTab() {
-    final photos = _comparisonData?['photos'] as Map<String, dynamic>? ?? {};
+    // Safely handle photos data - could be Map, List, or null
+    final photosData = _comparisonData?['photos'];
+    Map<String, dynamic> photos = {};
+
+    if (photosData is Map<String, dynamic>) {
+      photos = photosData;
+    }
+    // If it's a List or other type, treat as empty
 
     if (photos.isEmpty) {
       return _buildEmptyState(
@@ -407,7 +414,10 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
         final label = labels[entry.key];
         if (label == null) return const SizedBox.shrink();
 
-        final value = entry.value as num;
+        final rawValue = entry.value;
+        final value = rawValue is num
+            ? rawValue
+            : (num.tryParse(rawValue?.toString() ?? '0') ?? 0);
         final isPositive = value > 0;
         final isGoodChange = _isGoodChange(entry.key, value);
 
@@ -542,11 +552,13 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
           ),
           const Divider(),
 
-          // Rows
           ...measurements.map((m) {
             final initialValue = initial[m.$2];
             final latestValue = latest?[m.$2];
-            final change = changes[m.$2] as num?;
+            final changeRaw = changes[m.$2];
+            final change = changeRaw is num
+                ? changeRaw
+                : (num.tryParse(changeRaw?.toString() ?? '') ?? null);
 
             if (initialValue == null) return const SizedBox.shrink();
 
@@ -650,7 +662,10 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
                   .entries
                   .map((entry) {
                     final measurement = entry.value as Map<String, dynamic>;
-                    final waist = measurement['waist_cm'] as num? ?? 0;
+                    final waistValue = measurement['waist_cm'];
+                    final waist = waistValue is num
+                        ? waistValue
+                        : (num.tryParse(waistValue?.toString() ?? '0') ?? 0);
                     // Normalize to 0-100 range (assuming waist between 60-120cm)
                     final height = ((waist - 60) / 60 * 100).clamp(10, 100);
 

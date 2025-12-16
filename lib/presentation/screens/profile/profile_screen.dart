@@ -12,6 +12,7 @@ import '../progress/transformation_tracker_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
 import '../community/community_goals_screen.dart';
 import '../gamification/gamification_screen.dart';
+import '../settings/health_settings_screen.dart';
 import 'edit_preferences_screen.dart';
 import 'privacy_settings_screen.dart';
 
@@ -561,6 +562,21 @@ class ProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const PrivacySettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.favorite_outline,
+                  title: 'Salute & Fitness',
+                  subtitle: 'Apple Health / Health Connect',
+                  color: const Color(0xFFE91E63),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HealthSettingsScreen(),
                       ),
                     );
                   },

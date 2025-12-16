@@ -17,6 +17,8 @@ import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
 import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
+import '../../widgets/insights/health_trends_carousel.dart';
+import '../insights/weekly_report_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -39,7 +41,44 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+      _setupGenerationCompleteCallback();
+    });
+  }
+
+  void _setupGenerationCompleteCallback() {
+    final workoutProvider = Provider.of<WorkoutProvider>(
+      context,
+      listen: false,
+    );
+
+    workoutProvider.onGenerationComplete = () {
+      if (mounted) {
+        setState(() {
+          _showCelebration = true;
+        });
+        // Show success snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 La tua scheda è pronta!'),
+            backgroundColor: CleanTheme.accentGreen,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    };
+  }
+
+  @override
+  void dispose() {
+    // Clean up callback
+    final workoutProvider = Provider.of<WorkoutProvider>(
+      context,
+      listen: false,
+    );
+    workoutProvider.onGenerationComplete = null;
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -148,7 +187,18 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         const SizedBox(height: 24),
                         _buildStreakMotivator(),
 
-                        const SizedBox(height: 24),
+                        // Health Insights Section
+                        const SizedBox(height: 32),
+                        HealthTrendsCarousel(
+                          onViewAllTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const WeeklyReportScreen(),
+                              ),
+                            );
+                          },
+                        ),
                         // 6. Quick Actions
                         Row(
                           children: [
@@ -801,7 +851,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ci vorranno pochi secondi...',
+            'Ci vorranno pochi minuti...',
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,

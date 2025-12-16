@@ -91,6 +91,9 @@ dependencies:
   xml: ^6.6.1
   youtube_player_iframe: ^5.2.2
 
+  # Health Integration (Apple HealthKit & Google Health Connect)
+  health: ^11.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
