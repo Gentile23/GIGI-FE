@@ -122,6 +122,15 @@ class Achievement {
       return null;
     }
 
+    // Safely parse bool which might come as int (0/1) from API
+    bool? parseBool(dynamic value) {
+      if (value == null) return null;
+      if (value is bool) return value;
+      if (value is int) return value != 0;
+      if (value is String) return value.toLowerCase() == 'true' || value == '1';
+      return null;
+    }
+
     return Achievement(
       id: json['id'],
       name: json['name'],
@@ -132,11 +141,11 @@ class Achievement {
       xpReward: json['xp_reward'] is String
           ? int.tryParse(json['xp_reward']) ?? 0
           : json['xp_reward'] ?? 0,
-      isLocked: json['locked'] ?? false,
+      isLocked: parseBool(json['locked']) ?? false,
       unlockedAt: json['unlocked_at'] != null
           ? DateTime.parse(json['unlocked_at'])
           : null,
-      isClaimed: json['is_claimed'],
+      isClaimed: parseBool(json['is_claimed']),
       progress: parseProgress(json['progress']),
       target: parseProgress(json['target']),
       progressPercentage: json['progress_percentage'] != null

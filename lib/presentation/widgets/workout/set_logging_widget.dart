@@ -126,9 +126,18 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         final previousMap = <int, Map<String, dynamic>>{};
 
         for (var set in sets) {
+          // Safely parse weight_kg which may come as String or num from API
+          dynamic weightValue = set['weight_kg'];
+          double? parsedWeight;
+          if (weightValue is num) {
+            parsedWeight = weightValue.toDouble();
+          } else if (weightValue is String) {
+            parsedWeight = double.tryParse(weightValue);
+          }
+
           previousMap[set['set_number'] as int] = {
             'reps': set['reps'],
-            'weight_kg': set['weight_kg'],
+            'weight_kg': parsedWeight,
             'rpe': set['rpe'],
           };
         }
@@ -192,6 +201,17 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       _isRestTimerActive = false;
       _restSecondsRemaining = 0;
     });
+  }
+
+  /// Safely format weight value that may come as String, double, int, or null from API
+  String _formatWeight(dynamic value) {
+    if (value == null) return '-';
+    if (value is num) return value.toStringAsFixed(0);
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      return parsed?.toStringAsFixed(0) ?? '-';
+    }
+    return '-';
   }
 
   // Get color based on exercise type
@@ -476,7 +496,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   )
                 : Text(
                     previousSet != null
-                        ? '${previousSet['weight_kg']?.toStringAsFixed(0) ?? '-'}x${previousSet['reps'] ?? '-'}'
+                        ? '${_formatWeight(previousSet['weight_kg'])}x${previousSet['reps'] ?? '-'}'
                         : '-',
                     style: GoogleFonts.inter(
                       fontSize: 11,
