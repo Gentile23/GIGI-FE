@@ -106,7 +106,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           ),
                         ),
                         Text(
-                          'Gigi ti suggerirà 3 ricette perfette per te',
+                          'Gigi ti suggerirà ricette perfette per te',
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             color: CleanTheme.textSecondary,
