@@ -137,6 +137,8 @@ class AuthProvider with ChangeNotifier {
     String? mobilityPreference,
     String? workoutType,
     List<String>? specificMachines,
+    String? bodyweightType,
+    List<String>? bodyweightEquipment,
     // Professional Trainer Fields
     String? trainingHistory,
     List<String>? preferredDays,
@@ -174,6 +176,8 @@ class AuthProvider with ChangeNotifier {
         mobilityPreference: mobilityPreference,
         workoutType: workoutType,
         specificMachines: specificMachines,
+        bodyweightType: bodyweightType,
+        bodyweightEquipment: bodyweightEquipment,
         // Professional Trainer Fields
         trainingHistory: trainingHistory,
         preferredDays: preferredDays,

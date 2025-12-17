@@ -45,6 +45,8 @@ class UserService {
     String? mobilityPreference,
     String? workoutType,
     List<String>? specificMachines,
+    String? bodyweightType,
+    List<String>? bodyweightEquipment,
     // Professional Trainer Fields
     String? trainingHistory,
     List<String>? preferredDays,
@@ -90,6 +92,10 @@ class UserService {
       if (workoutType != null) data['workout_type'] = workoutType;
       if (specificMachines != null) {
         data['specific_machines'] = specificMachines;
+      }
+      if (bodyweightType != null) data['bodyweight_type'] = bodyweightType;
+      if (bodyweightEquipment != null) {
+        data['bodyweight_equipment'] = bodyweightEquipment;
       }
 
       // Professional Trainer Fields

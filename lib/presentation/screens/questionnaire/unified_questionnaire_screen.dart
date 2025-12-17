@@ -40,6 +40,10 @@ class _UnifiedQuestionnaireScreenState
   TrainingLocation? _selectedLocation = TrainingLocation.gym;
   final Set<Equipment> _selectedEquipment = {};
   final Set<String> _selectedMachines = {};
+  // Bodyweight sub-selection
+  String? _selectedBodyweightType; // 'functional', 'calisthenics', 'pure'
+  final Set<String> _selectedBodyweightEquipment =
+      {}; // 'trx', 'bands', 'rings', 'bar', etc.
   double? _height;
   double? _weight;
   Gender? _selectedGender;
@@ -402,6 +406,8 @@ class _UnifiedQuestionnaireScreenState
         bodyShape: _selectedBodyShape?.toString().split('.').last,
         workoutType: _selectedWorkoutType?.toString().split('.').last,
         specificMachines: _selectedMachines.toList(),
+        bodyweightType: _selectedBodyweightType,
+        bodyweightEquipment: _selectedBodyweightEquipment.toList(),
         // Professional Trainer Fields
 
         // preferredDays removed
@@ -630,7 +636,11 @@ class _UnifiedQuestionnaireScreenState
                   // 4. Equipment
                   _buildEquipmentPage(),
 
-                  // 4.5 Specific Machines (Conditional - only for non-gym locations)
+                  // 4.5 Bodyweight Type (Conditional - only if bodyweight selected)
+                  if (_selectedEquipment.contains(Equipment.bodyweight))
+                    _buildBodyweightTypePage(),
+
+                  // 4.6 Specific Machines (Conditional - only for non-gym locations)
                   if (_selectedEquipment.contains(Equipment.machines) &&
                       _selectedLocation != TrainingLocation.gym)
                     _buildSpecificMachinesPage(),
@@ -1226,6 +1236,218 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 16),
           CleanButton(text: 'Continua', onPressed: _nextPage),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBodyweightTypePage() {
+    final bodyweightOptions = [
+      (
+        'functional',
+        '🧘 Funzionale',
+        'TRX, elastici, fitball e attrezzi funzionali',
+        Icons.fitness_center,
+      ),
+      (
+        'calisthenics',
+        '💪 Calisthenics',
+        'Sbarra trazioni, anelli, parallele',
+        Icons.sports_gymnastics,
+      ),
+      (
+        'pure',
+        '🙌 Corpo Libero Assoluto',
+        'Solo peso corporeo, nessun attrezzo',
+        Icons.accessibility_new,
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tipo di Allenamento',
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Quale stile di corpo libero preferisci?',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: CleanTheme.textSecondary),
+          ),
+          const SizedBox(height: 32),
+          Expanded(
+            child: ListView.separated(
+              itemCount: bodyweightOptions.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final option = bodyweightOptions[index];
+                final isSelected = _selectedBodyweightType == option.$1;
+                return CleanCard(
+                  isSelected: isSelected,
+                  onTap: () {
+                    setState(() {
+                      _selectedBodyweightType = option.$1;
+                      _selectedBodyweightEquipment.clear();
+                    });
+                    // If pure bodyweight, skip sub-selection
+                    if (option.$1 == 'pure') {
+                      _nextPage();
+                    } else {
+                      // Show equipment sub-selection dialog
+                      _showBodyweightEquipmentDialog(option.$1);
+                    }
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          option.$4,
+                          color: CleanTheme.primaryColor,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              option.$2,
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              option.$3,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isSelected)
+                        const Icon(
+                          Icons.check_circle,
+                          color: CleanTheme.primaryColor,
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBodyweightEquipmentDialog(String type) {
+    List<(String, String, IconData)> options;
+
+    if (type == 'functional') {
+      options = [
+        ('trx', 'TRX / Suspension Trainer', Icons.fitness_center),
+        ('bands', 'Elastici / Resistance Bands', Icons.waves),
+        ('fitball', 'Fitball / Swiss Ball', Icons.sports_baseball),
+        ('bosu', 'Bosu / Balance Board', Icons.panorama_wide_angle),
+      ];
+    } else {
+      // calisthenics
+      options = [
+        ('bar', 'Sbarra Trazioni', Icons.horizontal_rule),
+        ('rings', 'Anelli', Icons.radio_button_off),
+        ('parallels', 'Parallele / Dip Bars', Icons.view_column),
+        ('wall', 'Spalliera / Wall Bars', Icons.grid_on),
+      ];
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CleanTheme.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                type == 'functional'
+                    ? 'Attrezzi Funzionali Disponibili'
+                    : 'Attrezzi Calisthenics Disponibili',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Seleziona quelli che hai a disposizione',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: options.map((opt) {
+                  final isSelected = _selectedBodyweightEquipment.contains(
+                    opt.$1,
+                  );
+                  return FilterChip(
+                    selected: isSelected,
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(opt.$3, size: 18),
+                        const SizedBox(width: 8),
+                        Text(opt.$2),
+                      ],
+                    ),
+                    onSelected: (selected) {
+                      setSheetState(() {
+                        if (selected) {
+                          _selectedBodyweightEquipment.add(opt.$1);
+                        } else {
+                          _selectedBodyweightEquipment.remove(opt.$1);
+                        }
+                      });
+                      setState(() {});
+                    },
+                    selectedColor: CleanTheme.primaryColor.withValues(
+                      alpha: 0.2,
+                    ),
+                    checkmarkColor: CleanTheme.primaryColor,
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: CleanButton(
+                  text: 'Continua',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _nextPage();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
