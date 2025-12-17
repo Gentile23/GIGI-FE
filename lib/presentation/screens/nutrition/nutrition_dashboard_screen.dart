@@ -462,7 +462,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         Expanded(
           child: _buildQuickActionCard(
             icon: Icons.camera_alt_rounded,
-            label: 'Scatta Foto',
+            label: 'Aggiungi pasto',
             color: CleanTheme.primaryColor,
             onTap: () async {
               final result = await Navigator.push(

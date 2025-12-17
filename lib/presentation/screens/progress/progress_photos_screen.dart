@@ -157,7 +157,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Le tue foto sono visibili SOLO a te. Non vengono mai condivise o usate per altri scopi.',
+                  'Le tue foto saranno visibili SOLO a te. Non vengono mai condivise o usate per altri scopi.',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: CleanTheme.textSecondary,
