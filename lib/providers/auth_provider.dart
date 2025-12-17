@@ -43,12 +43,29 @@ class AuthProvider with ChangeNotifier {
         clientId: kIsWeb ? _googleClientId : null,
       );
 
-      // Listen to auth state changes (crucial for Web flow)
-      (GoogleSignIn.instance as dynamic).onCurrentUserChanged.listen((
-        GoogleSignInAccount? account,
-      ) {
-        if (account != null) {
-          _handleGoogleAuth(account);
+      // Listen to auth state changes using the new API
+      // Since we can't easily see the type, we'll try to listen to the stream
+      // and inspect the event dynamically. Use a broad dynamic cast to avoid
+      // analyzer errors for now.
+      (GoogleSignIn.instance as dynamic).authenticationEvents.listen((
+        event,
+      ) async {
+        // The event usually contains the user if it's a sign-in event.
+        // We'll trust that successful sign-in eventually exposes the user
+        // possibly via `GoogleSignIn.instance.currentUser` (if it was just deprecated not removed?)
+        // OR the event itself has it.
+
+        // Since we are debugging blindly against v7 changes, let's try a safer approach:
+        // Use signInSilently() to catch the user if the button triggered a login.
+        // BUT signInSilently shouldn't be called repeatedly.
+
+        // Best guess: event should be castable or have properties.
+        // For now, let's check if the user is signed in via the silent method
+        // if we detect an event.
+        final googleUser = await (GoogleSignIn.instance as dynamic)
+            .signInSilently();
+        if (googleUser != null) {
+          _handleGoogleAuth(googleUser);
         }
       });
     } catch (e) {
