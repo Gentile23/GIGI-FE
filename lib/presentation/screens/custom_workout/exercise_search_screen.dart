@@ -88,20 +88,69 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     }
   }
 
+  // Italian to English mapping for search
+  final Map<String, List<String>> _italianMappings = {
+    'panca': ['bench'],
+    'spinte': ['press', 'push'],
+    'croci': ['fly'],
+    'stacco': ['deadlift'],
+    'rematore': ['row'],
+    'trazioni': ['pull up', 'chin up', 'lat pull'],
+    'flessioni': ['push up'],
+    'affondi': ['lunge'],
+    'alzate': ['raise'],
+    'estensioni': ['extension'],
+    'curl': ['curl'],
+    'presse': ['press'],
+    'cavo': ['cable'],
+    'cav': ['cable'],
+    'manubri': ['dumbbell'],
+    'bilanciere': ['barbell'],
+    'sbarra': ['bar'],
+    'corpo libero': ['bodyweight'],
+    'petto': ['chest', 'pectoral'],
+    'dorso': ['back', 'lat'],
+    'schiena': ['back'],
+    'gambe': ['leg', 'quad', 'hamstring', 'calf'],
+    'spalle': ['shoulder', 'deltoid'],
+    'braccia': ['arm', 'bicep', 'tricep'],
+    'tricipiti': ['triceps'],
+    'bicipiti': ['biceps'],
+    'addominali': ['abs', 'core', 'crunch', 'plank'],
+    'glutei': ['glute'],
+    'polpacci': ['calf'],
+    'cardio': ['cardio', 'run', 'jump'],
+  };
+
   void _applySearch() {
-    final query = _searchController.text.toLowerCase();
+    final rawQuery = _searchController.text.toLowerCase().trim();
+
     setState(() {
-      if (query.isEmpty) {
+      if (rawQuery.isEmpty) {
         _filteredExercises = List.from(_allExercises);
-      } else {
-        _filteredExercises = _allExercises.where((exercise) {
-          return exercise.name.toLowerCase().contains(query) ||
-              exercise.muscleGroups.any(
-                (mg) => mg.toLowerCase().contains(query),
-              ) ||
-              exercise.equipment.any((eq) => eq.toLowerCase().contains(query));
-        }).toList();
+        return;
       }
+
+      // Expand query with English terms if Italian keywords are found
+      List<String> searchTerms = [rawQuery];
+      _italianMappings.forEach((italian, englishTerms) {
+        if (rawQuery.contains(italian)) {
+          searchTerms.addAll(englishTerms);
+        }
+      });
+
+      _filteredExercises = _allExercises.where((exercise) {
+        // Check exact name match first
+        if (exercise.name.toLowerCase().contains(rawQuery)) return true;
+
+        // Check against expanded terms
+        return searchTerms.any((term) {
+          final t = term.toLowerCase();
+          return exercise.name.toLowerCase().contains(t) ||
+              exercise.muscleGroups.any((mg) => mg.toLowerCase().contains(t)) ||
+              exercise.equipment.any((eq) => eq.toLowerCase().contains(t));
+        });
+      }).toList();
     });
   }
 
