@@ -776,25 +776,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                 }).toList(),
               ),
             ),
-
-          // Chef tips, variation, pairing
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                if (recipe['chef_tip'] != null)
-                  _buildTipCard(
-                    '👨‍🍳',
-                    'Consiglio dello Chef',
-                    recipe['chef_tip'],
-                  ),
-                if (recipe['variation'] != null)
-                  _buildTipCard('🔄', 'Variante', recipe['variation']),
-                if (recipe['pairing'] != null)
-                  _buildTipCard('🍷', 'Abbinamento', recipe['pairing']),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -865,49 +846,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
           ),
         if (!isExpanded) const SizedBox(height: 8),
       ],
-    );
-  }
-
-  Widget _buildTipCard(String emoji, String title, String content) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: CleanTheme.backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  content,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
