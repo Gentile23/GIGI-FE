@@ -5,6 +5,7 @@ class ApiConfig {
   // API endpoints - Non modificare questi, usano automaticamente baseUrl
   static const String register = '/register';
   static const String login = '/login';
+  static const String socialLogin = '/social-login';
   static const String logout = '/logout';
   static const String user = '/user';
   static const String userProfile = '/user/profile';

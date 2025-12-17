@@ -98,6 +98,43 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> socialLogin({
+    required String provider, // 'google' or 'apple'
+    required String token, // The ID token or implementation-specific ID
+    required String email,
+    String? name,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        ApiConfig.socialLogin,
+        data: {
+          'provider': provider,
+          'token': token,
+          'email': email,
+          'name': name,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await _apiClient.saveToken(data['token']);
+        return {
+          'success': true,
+          'user': UserModel.fromJson(data['user']),
+          'token': data['token'],
+        };
+      }
+
+      return {'success': false, 'message': 'Social login failed'};
+    } on DioException catch (e) {
+      String message = 'Social login failed';
+      if (e.response != null) {
+        message = e.response?.data['message'] ?? 'Social login error';
+      }
+      return {'success': false, 'message': message};
+    }
+  }
+
   Future<Map<String, dynamic>> logout() async {
     try {
       await _apiClient.dio.post(ApiConfig.logout);

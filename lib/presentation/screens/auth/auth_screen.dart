@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
+import 'package:google_sign_in_web/google_sign_in_web.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
@@ -66,6 +69,18 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Wait for auth initialization to prevent Google Sign-In plugin errors on web
+    final isInitializing = context.select<AuthProvider, bool>(
+      (p) => p.isInitializing,
+    );
+
+    if (isInitializing) {
+      return const Scaffold(
+        backgroundColor: CleanTheme.backgroundColor,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
@@ -308,11 +323,18 @@ class _AuthScreenState extends State<AuthScreen>
                 const SizedBox(height: 24),
 
                 // Google Sign In
-                _buildSocialButton(
-                  icon: Icons.g_mobiledata,
-                  label: 'Continua con Google',
-                  onPressed: _handleGoogleSignIn,
-                ),
+                if (kIsWeb)
+                  // Use the official Google Sign-In button on Web
+                  Center(
+                    child: (GoogleSignInPlatform.instance as GoogleSignInPlugin)
+                        .renderButton(),
+                  )
+                else
+                  _buildSocialButton(
+                    icon: Icons.g_mobiledata,
+                    label: 'Continua con Google',
+                    onPressed: _handleGoogleSignIn,
+                  ),
 
                 const SizedBox(height: 12),
 
@@ -689,14 +711,46 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _handleGoogleSignIn() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Google Sign In non implementato')),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signInWithGoogle();
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (!success && authProvider.error != null) {
+          _errorMessage = _translateError(authProvider.error);
+        }
+      });
+
+      if (success) {
+        widget.onComplete?.call();
+      }
+    }
   }
 
   Future<void> _handleAppleSignIn() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Apple Sign In non implementato')),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.signInWithApple();
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (!success && authProvider.error != null) {
+          _errorMessage = _translateError(authProvider.error);
+        }
+      });
+
+      if (success) {
+        widget.onComplete?.call();
+      }
+    }
   }
 }
