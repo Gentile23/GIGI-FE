@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'health_integration_service.dart';
 
 /// ═══════════════════════════════════════════════════════════
@@ -41,9 +40,6 @@ class HealthInsightsService {
 
     // Calculate trends
     final sleepTrend = _calculateTrend(sleepData.values.toList());
-    final stepsTrend = _calculateTrend(
-      stepsData.values.toList().map((e) => e.toDouble()).toList(),
-    );
 
     return WeeklyHealthReport(
       periodStart: weekStart,

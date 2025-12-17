@@ -60,7 +60,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   Timer? _cueTimer;
 
   // Preferences keys
-  static const String _prefKeyEnabled = 'voice_coaching_enabled';
+
   static const String _prefKeyMuted = 'voice_coaching_muted';
   static const String _prefKeyVolume = 'voice_coaching_volume';
 
@@ -437,20 +437,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
   Future<void> _speakSetCountdown() async {
     await _speak('Serie $_currentSet. Stessa tecnica. 3... 2... 1... Via!');
-  }
-
-  Future<void> _speakCelebration() async {
-    String message;
-
-    if (_currentSet == 1) {
-      message = 'Bene $_userName! Prima serie fatta!';
-    } else if (_currentSet == _totalSets) {
-      message = 'Fantastico! Ultima serie completata!';
-    } else {
-      message = 'Grande! $_currentSet su $_totalSets!';
-    }
-
-    await _speak(message);
   }
 
   void _startDuringSetCues() {

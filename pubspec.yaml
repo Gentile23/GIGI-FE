@@ -93,6 +93,7 @@ dependencies:
 
   # Health Integration (Apple HealthKit & Google Health Connect)
   health: ^11.1.0
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

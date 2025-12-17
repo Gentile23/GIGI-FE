@@ -558,7 +558,7 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
             final changeRaw = changes[m.$2];
             final change = changeRaw is num
                 ? changeRaw
-                : (num.tryParse(changeRaw?.toString() ?? '') ?? null);
+                : (num.tryParse(changeRaw?.toString() ?? ''));
 
             if (initialValue == null) return const SizedBox.shrink();
 

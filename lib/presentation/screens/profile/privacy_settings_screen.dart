@@ -464,6 +464,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       final response = await _apiClient.delete('/gdpr/account');
 
       if (response['success'] == true) {
+        if (!mounted) return;
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         await authProvider.logout();
 

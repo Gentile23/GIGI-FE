@@ -451,7 +451,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             _buildSessionStat(
                               '⏱️',
-                              '${(_elapsedTime.inMinutes / (widget.workoutDay.mainExerciseCount > 0 ? widget.workoutDay.mainExerciseCount : 1)).toStringAsFixed(1)}',
+                              (_elapsedTime.inMinutes /
+                                      (widget.workoutDay.mainExerciseCount > 0
+                                          ? widget.workoutDay.mainExerciseCount
+                                          : 1))
+                                  .toStringAsFixed(1),
                               'min/ex',
                             ),
                           ],
@@ -980,24 +984,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           color: badgeColor,
         ),
       ),
-    );
-  }
-
-  Widget _buildMiniStat(IconData icon, String value) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: CleanTheme.primaryColor),
-        const SizedBox(width: 4),
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-      ],
     );
   }
 

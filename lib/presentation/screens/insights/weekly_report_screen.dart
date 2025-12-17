@@ -435,7 +435,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               ),
               Text(
-                '${NumberFormat('#,###').format(_report!.activity.totalSteps)}',
+                NumberFormat('#,###').format(_report!.activity.totalSteps),
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

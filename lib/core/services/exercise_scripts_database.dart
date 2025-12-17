@@ -498,41 +498,61 @@ ExerciseCoachingScript? getScriptForExercise(String exerciseName) {
   if (nameLower.contains('panca') ||
       nameLower.contains('bench') ||
       nameLower.contains('press')) {
-    if (nameLower.contains('inclin')) return _inclineBenchPress;
-    if (nameLower.contains('spall') || nameLower.contains('shoulder'))
+    if (nameLower.contains('inclin')) {
+      return _inclineBenchPress;
+    }
+    if (nameLower.contains('spall') || nameLower.contains('shoulder')) {
       return _shoulderPress;
+    }
     return _benchPress;
   }
-  if (nameLower.contains('squat') || nameLower.contains('accosciata'))
+  if (nameLower.contains('squat') || nameLower.contains('accosciata')) {
     return _squat;
-  if (nameLower.contains('stacco') || nameLower.contains('deadlift'))
+  }
+  if (nameLower.contains('stacco') || nameLower.contains('deadlift')) {
     return _deadlift;
-  if (nameLower.contains('lat') && nameLower.contains('machine'))
+  }
+  if (nameLower.contains('lat') && nameLower.contains('machine')) {
     return _latPulldown;
+  }
   if (nameLower.contains('pulley') ||
       nameLower.contains('row') ||
-      nameLower.contains('rematore'))
+      nameLower.contains('rematore')) {
     return _seatedRow;
-  if (nameLower.contains('curl') && nameLower.contains('martello'))
+  }
+  if (nameLower.contains('curl') && nameLower.contains('martello')) {
     return _hammerCurl;
-  if (nameLower.contains('curl') || nameLower.contains('bicip'))
+  }
+  if (nameLower.contains('curl') || nameLower.contains('bicip')) {
     return _bicepCurl;
-  if (nameLower.contains('tricip') || nameLower.contains('pushdown'))
+  }
+  if (nameLower.contains('tricip') || nameLower.contains('pushdown')) {
     return _tricepPushdown;
-  if (nameLower.contains('alzate') || nameLower.contains('lateral'))
+  }
+  if (nameLower.contains('alzate') || nameLower.contains('lateral')) {
     return _lateralRaise;
-  if (nameLower.contains('leg') && nameLower.contains('press'))
+  }
+  if (nameLower.contains('leg') && nameLower.contains('press')) {
     return _legPress;
-  if (nameLower.contains('leg') && nameLower.contains('ext'))
+  }
+  if (nameLower.contains('leg') && nameLower.contains('ext')) {
     return _legExtension;
-  if (nameLower.contains('leg') && nameLower.contains('curl')) return _legCurl;
-  if (nameLower.contains('polpacc') || nameLower.contains('calf'))
+  }
+  if (nameLower.contains('leg') && nameLower.contains('curl')) {
+    return _legCurl;
+  }
+  if (nameLower.contains('polpacc') || nameLower.contains('calf')) {
     return _calfRaise;
-  if (nameLower.contains('crunch') || nameLower.contains('addomin'))
+  }
+  if (nameLower.contains('crunch') || nameLower.contains('addomin')) {
     return _crunch;
-  if (nameLower.contains('plank')) return _plank;
-  if (nameLower.contains('twist') || nameLower.contains('obliqu'))
+  }
+  if (nameLower.contains('plank')) {
+    return _plank;
+  }
+  if (nameLower.contains('twist') || nameLower.contains('obliqu')) {
     return _russianTwist;
+  }
 
   return null;
 }

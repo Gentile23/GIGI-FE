@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../data/models/exercise_intro_model.dart';
 import '../../data/services/voice_coaching_service.dart';
-import '../../core/constants/api_config.dart';
+
 import 'gigi_tts_service.dart';
 
 /// Coaching phases during a workout

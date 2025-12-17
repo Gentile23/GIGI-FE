@@ -13,9 +13,7 @@ import '../../widgets/workout/exercise_focus_card.dart';
 import '../../widgets/workout/rest_period_overlay.dart';
 import '../../widgets/workout/set_completion_sheet.dart';
 import '../../widgets/celebrations/celebration_overlay.dart';
-import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../../core/services/gigi_tts_service.dart';
-import '../../../data/models/exercise_intro_model.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// IMMERSIVE SESSION SCREEN - Sequential workout experience
@@ -44,11 +42,9 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   // Animation controllers
   late AnimationController _slideController;
-  late Animation<Offset> _slideAnimation;
 
   // Voice coaching
   late GigiTTSService _gigiTTS;
-  CoachingMode _selectedMode = CoachingMode.voice;
 
   // Completed sets tracking
   final Map<String, List<Map<String, dynamic>>> _completedSets = {};
@@ -81,13 +77,6 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _slideAnimation =
-        Tween<Offset>(begin: Offset.zero, end: const Offset(-1.0, 0.0)).animate(
-          CurvedAnimation(
-            parent: _slideController,
-            curve: Curves.easeInOutCubic,
-          ),
-        );
 
     // Voice coaching
     _gigiTTS = GigiTTSService();
@@ -175,6 +164,8 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
     // Sync workout to Apple Health / Health Connect
     await _syncWorkoutToHealth();
 
+    if (!mounted) return;
+
     // Award XP
     final gamificationProvider = Provider.of<GamificationProvider>(
       context,
@@ -234,29 +225,6 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
       previousWeight: previousWeight,
       previousReps: previousReps,
       onComplete: _onSetComplete,
-    );
-  }
-
-  void _startVoiceCoaching() {
-    ModeSelectionSheet.show(
-      context,
-      exerciseName: _currentExercise.exercise.name,
-      currentMode: _selectedMode,
-      onModeSelected: (mode, remember) async {
-        setState(() => _selectedMode = mode);
-
-        final name = _currentExercise.exercise.name;
-        final sets = _currentExercise.sets;
-        final reps = _currentExercise.reps;
-
-        if (mode == CoachingMode.voice) {
-          await _gigiTTS.speak(
-            'Iniziamo $name. $sets serie da $reps ripetizioni. Via!',
-          );
-        } else {
-          await _gigiTTS.speak('$name. $sets serie, $reps reps. Via!');
-        }
-      },
     );
   }
 

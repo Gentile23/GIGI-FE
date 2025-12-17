@@ -1282,7 +1282,7 @@ class _UnifiedQuestionnaireScreenState
           Expanded(
             child: ListView.separated(
               itemCount: bodyweightOptions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final option = bodyweightOptions[index];
                 final isSelected = _selectedBodyweightType == option.$1;

@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
-import '../../../data/models/workout_log_model.dart';
-import '../../../data/models/exercise_intro_model.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -12,7 +10,6 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../presentation/widgets/workout/set_logging_widget.dart';
 import '../../../presentation/widgets/workout/anatomical_muscle_view.dart';
-import '../../../presentation/widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
 import 'exercise_detail_screen.dart';
@@ -645,12 +642,6 @@ class ExerciseExecutionScreen extends StatefulWidget {
 
 class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
   int _currentExerciseIndex = 0;
-  int _currentSetNumber = 0;
-  bool _setInProgress = false;
-
-  // Countdown overlay state
-  bool _showingCountdown = false;
-  int _countdownValue = 3;
 
   // Track data for each set: Map<exerciseIndex, Map<setIndex, SetData>>
   final Map<int, Map<int, SetData>> _setData = {};
@@ -742,11 +733,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
   Widget build(BuildContext context) {
     final exercises = widget.workout.exercises;
     final currentExercise = exercises[_currentExerciseIndex];
-
-    // Show countdown overlay if counting down
-    if (_showingCountdown) {
-      return _buildCountdownOverlay();
-    }
 
     // Show rest timer overlay if resting
     if (_voiceController.isResting) {
@@ -892,8 +878,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
   void _goToPreviousExercise() {
     setState(() {
       _currentExerciseIndex--;
-      _currentSetNumber = 0;
-      _setInProgress = false;
       _initializeVideoController();
     });
     if (_voiceController.isEnabled) {
@@ -905,8 +889,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
     if (_currentExerciseIndex < widget.workout.exercises.length - 1) {
       setState(() {
         _currentExerciseIndex++;
-        _currentSetNumber = 0;
-        _setInProgress = false;
         _initializeVideoController();
       });
       if (_voiceController.isEnabled) {
@@ -920,134 +902,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
   // ==========================================
   // SYNCHRONIZED SET CONTROLS
   // ==========================================
-
-  Widget _buildSynchronizedSetControls(WorkoutExercise exercise) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Row(
-          children: [
-            Text(
-              'Serie',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '${_currentSetNumber}/${exercise.sets}',
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: CleanTheme.primaryColor,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // Progress dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(exercise.sets, (index) {
-            final isCompleted = index < _currentSetNumber;
-            final isCurrent = index == _currentSetNumber;
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: isCurrent ? 16 : 12,
-              height: isCurrent ? 16 : 12,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted
-                    ? CleanTheme.accentGreen
-                    : isCurrent
-                    ? CleanTheme.primaryColor
-                    : CleanTheme.borderSecondary,
-                border: isCurrent
-                    ? Border.all(color: CleanTheme.primaryColor, width: 2)
-                    : null,
-              ),
-              child: isCompleted
-                  ? const Icon(Icons.check, size: 8, color: Colors.white)
-                  : null,
-            );
-          }),
-        ),
-        const SizedBox(height: 24),
-
-        // Main Action Button
-        if (_currentSetNumber < exercise.sets) ...[
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: _setInProgress ? _completeCurrentSet : _startNextSet,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _setInProgress
-                    ? CleanTheme.accentGreen
-                    : CleanTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _setInProgress ? Icons.check : Icons.play_arrow,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _setInProgress
-                        ? 'SERIE COMPLETATA ✓'
-                        : 'INIZIA SERIE ${_currentSetNumber + 1}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ] else ...[
-          // All sets completed
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: CleanTheme.accentGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: CleanTheme.accentGreen),
-            ),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.celebration,
-                  size: 48,
-                  color: CleanTheme.accentGreen,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Esercizio Completato! 🎉',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.accentGreen,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
 
   /// Set logging widget integrated with voice coaching
   Widget _buildSetLoggingWithVoiceCoaching(WorkoutExercise exercise) {
@@ -1110,50 +964,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
         ),
       ],
     );
-  }
-
-  void _startNextSet() {
-    // Show visual countdown first
-    _showCountdownThenStart();
-  }
-
-  Future<void> _showCountdownThenStart() async {
-    setState(() {
-      _showingCountdown = true;
-      _countdownValue = 3;
-    });
-
-    // Voice: 3-2-1
-    if (_voiceController.isEnabled) {
-      _voiceController.startSet();
-    }
-
-    // Visual countdown animation
-    for (int i = 3; i >= 1; i--) {
-      setState(() => _countdownValue = i);
-      await Future.delayed(const Duration(milliseconds: 800));
-    }
-
-    // Show "VIA!" briefly
-    setState(() => _countdownValue = 0);
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    // Hide countdown and start set
-    setState(() {
-      _showingCountdown = false;
-      _setInProgress = true;
-    });
-  }
-
-  void _completeCurrentSet() {
-    setState(() {
-      _currentSetNumber++;
-      _setInProgress = false;
-    });
-
-    if (_voiceController.isEnabled) {
-      _voiceController.completeSet();
-    }
   }
 
   // ==========================================
@@ -1355,39 +1165,6 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCountdownOverlay() {
-    final displayText = _countdownValue == 0 ? 'VIA!' : '$_countdownValue';
-    return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              displayText,
-              style: GoogleFonts.outfit(
-                fontSize: _countdownValue == 0 ? 100 : 150,
-                fontWeight: FontWeight.w800,
-                color: _countdownValue == 0
-                    ? CleanTheme.accentGreen
-                    : CleanTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              _countdownValue == 0 ? 'Inizia!' : 'Preparati...',
-              style: GoogleFonts.inter(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-                color: CleanTheme.textSecondary,
-              ),
-            ),
-          ],
         ),
       ),
     );
