@@ -50,22 +50,30 @@ class AuthProvider with ChangeNotifier {
       (GoogleSignIn.instance as dynamic).authenticationEvents.listen((
         event,
       ) async {
-        // The event usually contains the user if it's a sign-in event.
-        // We'll trust that successful sign-in eventually exposes the user
-        // possibly via `GoogleSignIn.instance.currentUser` (if it was just deprecated not removed?)
-        // OR the event itself has it.
+        debugPrint('Google Auth Event Detected: $event');
 
-        // Since we are debugging blindly against v7 changes, let's try a safer approach:
-        // Use signInSilently() to catch the user if the button triggered a login.
-        // BUT signInSilently shouldn't be called repeatedly.
-
-        // Best guess: event should be castable or have properties.
-        // For now, let's check if the user is signed in via the silent method
-        // if we detect an event.
-        final googleUser = await (GoogleSignIn.instance as dynamic)
-            .signInSilently();
-        if (googleUser != null) {
-          _handleGoogleAuth(googleUser);
+        // In v7, the event carries the user.
+        // We cast to dynamic to access .user property if it exists on the specific event type.
+        try {
+          final dynamic evt = event;
+          // Check if it's a sign-in event (has 'user' property)
+          try {
+            // Access dynamically to bypass static analysis for now
+            final user = evt.user;
+            debugPrint('User from event: $user');
+            if (user != null) {
+              await _handleGoogleAuth(user);
+            }
+          } catch (err) {
+            // Property 'user' might not exist on all events (e.g. sign out)
+            if (event.toString().contains('SignIn')) {
+              debugPrint(
+                'Detected SignIn event but could not extract user: $err',
+              );
+            }
+          }
+        } catch (e) {
+          debugPrint('Error processing auth event: $e');
         }
       });
     } catch (e) {
@@ -176,19 +184,23 @@ class AuthProvider with ChangeNotifier {
       // Avoid double processing if already implementing logic for this user
       if (_user != null && _user!.email == googleUser.email) return;
 
+      debugPrint('Calling AuthService.socialLogin...');
       final result = await _authService.socialLogin(
         provider: 'google',
         token: googleUser.id,
         email: googleUser.email,
         name: googleUser.displayName,
       );
+      debugPrint('AuthService result: $result');
 
       _isLoading = false;
 
       if (result['success']) {
+        debugPrint('Social Login Success. Setting user.');
         _user = result['user'];
         notifyListeners();
       } else {
+        debugPrint('Social Login Failed: ${result['message']}');
         _error = result['message'];
         notifyListeners();
       }

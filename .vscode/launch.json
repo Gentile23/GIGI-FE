@@ -7,9 +7,7 @@
             "type": "dart",
             "flutterMode": "debug",
             "args": [
-                "-d",
-                "chrome",
-                "--web-port=5000"
+                "--web-port=5001"
             ]
         },
         {
