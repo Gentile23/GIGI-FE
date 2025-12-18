@@ -18,11 +18,15 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="GIGI - Il tuo personal trainer AI">
+  
+  <!-- CRITICAL: Viewport for mobile web - prevents zoom and handles keyboard -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GIGI">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -31,6 +35,50 @@
 
   <title>GIGI</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Fix per altezza viewport su mobile (gestisce tastiera virtuale) */
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      /* Usa altezza dinamica del viewport per iOS Safari */
+      height: 100dvh;
+      /* Fallback per browser più vecchi */
+      height: -webkit-fill-available;
+    }
+
+    /* Fix per elementi Flutter - assicura che siano cliccabili */
+    flt-glass-pane {
+      height: 100% !important;
+      width: 100% !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    /* Safe area per iPhone con notch */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      box-sizing: border-box;
+    }
+
+    /* Previene problemi con tap su mobile */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* Fix per input su iOS - previene zoom automatico */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

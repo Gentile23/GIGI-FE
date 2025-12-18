@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
@@ -16,6 +18,16 @@ import 'providers/social_provider.dart';
 
 void main() {
   runApp(const GigiApp());
+}
+
+/// Custom scroll behavior per web - abilita scroll con mouse e touch
+class WebScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
 }
 
 class GigiApp extends StatelessWidget {
@@ -38,6 +50,8 @@ class GigiApp extends StatelessWidget {
         title: 'GIGI',
         debugShowCheckedModeBanner: false,
         theme: CleanTheme.lightTheme,
+        // Abilita scroll con mouse su web
+        scrollBehavior: kIsWeb ? WebScrollBehavior() : null,
         // Start with onboarding, then: auth -> questionnaire -> main app
         home: const AppNavigator(),
         routes: {
