@@ -1254,23 +1254,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               const SizedBox(height: 12),
 
               // ALWAYS VISIBLE: Set Logging Widget
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: SetLoggingWidget(
-                  exercise: exercise,
-                  exerciseLog: exerciseLog?.id.isNotEmpty == true
-                      ? exerciseLog
-                      : null,
-                  onCompletionChanged: (allSetsCompleted) {
-                    setState(() {
-                      if (allSetsCompleted) {
-                        _completedExercises.add(exercise.exercise.id);
-                      } else {
-                        _completedExercises.remove(exercise.exercise.id);
-                      }
-                    });
-                  },
-                ),
+              SetLoggingWidget(
+                exercise: exercise,
+                exerciseLog: exerciseLog?.id.isNotEmpty == true
+                    ? exerciseLog
+                    : null,
+                onCompletionChanged: (allSetsCompleted) {
+                  setState(() {
+                    if (allSetsCompleted) {
+                      _completedExercises.add(exercise.exercise.id);
+                    } else {
+                      _completedExercises.remove(exercise.exercise.id);
+                    }
+                  });
+                },
               ),
 
               // Divider + Quick Actions
