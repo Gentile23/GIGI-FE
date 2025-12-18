@@ -60,7 +60,7 @@ dependencies:
   # Audio Playback (Voice Coaching)
   audioplayers: ^5.0.0
   audio_session: ^0.1.21
-  flutter_tts: ^4.2.0
+
   path_provider: ^2.1.0
 
   # Video Playback (Exercise Demonstrations)

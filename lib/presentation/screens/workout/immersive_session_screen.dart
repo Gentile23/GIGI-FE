@@ -14,6 +14,8 @@ import '../../widgets/workout/rest_period_overlay.dart';
 import '../../widgets/workout/set_completion_sheet.dart';
 import '../../widgets/celebrations/celebration_overlay.dart';
 import '../../../core/services/gigi_tts_service.dart';
+import '../../../data/services/api_client.dart';
+import '../../../data/services/voice_coaching_service.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// IMMERSIVE SESSION SCREEN - Sequential workout experience
@@ -79,7 +81,8 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
     );
 
     // Voice coaching
-    _gigiTTS = GigiTTSService();
+    final voiceCoachingService = VoiceCoachingService(ApiClient());
+    _gigiTTS = GigiTTSService(voiceCoachingService);
     _gigiTTS.initialize();
 
     // Start workout session in provider

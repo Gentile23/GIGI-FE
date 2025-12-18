@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../constants/api_config.dart';
+import '../../data/services/voice_coaching_service.dart';
 
 // Web-specific imports with conditional
 import 'dart:js_interop' if (dart.library.io) 'dart:js_interop';
@@ -10,41 +10,36 @@ import 'package:web/web.dart'
     if (dart.library.io) 'package:web/web.dart'
     as web;
 
-/// Gigi TTS Service
+/// Gigi TTS Service (Pure ElevenLabs)
 ///
-/// Local text-to-speech service for voice coaching.
-/// Uses device's TTS engine to speak Gigi's coaching cues.
-/// Supports both native platforms (via flutter_tts) and web (via SpeechSynthesis).
+/// Uses ElevenLabs API exclusively via [VoiceCoachingService].
+/// No local TTS fallback.
 class GigiTTSService extends ChangeNotifier {
-  FlutterTts? _flutterTts;
-  AudioPlayer? _audioPlayer; // For playing remote audio (ElevenLabs)
+  final VoiceCoachingService _voiceCoachingService;
+  final AudioPlayer _audioPlayer;
 
   bool _isInitialized = false;
   bool _isSpeaking = false;
-  double _speechRate = 0.5; // 0.0 - 1.0 (0.5 is normal)
-  double _pitch = 1.0; // 0.5 - 2.0 (1.0 is normal)
-  double _volume = 1.0; // 0.0 - 1.0
+  double _volume = 1.0;
 
   // Callbacks
   VoidCallback? onSpeakStart;
   VoidCallback? onSpeakComplete;
 
+  GigiTTSService(this._voiceCoachingService) : _audioPlayer = AudioPlayer();
+
   // Getters
   bool get isInitialized => _isInitialized;
   bool get isSpeaking => _isSpeaking;
-  double get speechRate => _speechRate;
-  double get pitch => _pitch;
   double get volume => _volume;
 
-  /// Initialize TTS engine with Italian language
+  /// Initialize Audio Player
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      _audioPlayer = AudioPlayer();
-
       // Configure audio player handlers
-      _audioPlayer!.onPlayerStateChanged.listen((state) {
+      _audioPlayer.onPlayerStateChanged.listen((state) {
         if (state == PlayerState.playing) {
           if (!_isSpeaking) {
             _isSpeaking = true;
@@ -61,38 +56,6 @@ class GigiTTSService extends ChangeNotifier {
         }
       });
 
-      if (kIsWeb) {
-        // ... web init ...
-      } else {
-        // ... native init ...
-        _flutterTts = FlutterTts();
-
-        // ... (existing flutter_tts config) ...
-        await _flutterTts!.setLanguage('it-IT');
-        await _flutterTts!.setSpeechRate(_speechRate);
-        await _flutterTts!.setPitch(_pitch);
-        await _flutterTts!.setVolume(_volume);
-
-        // ... (existing handlers) ...
-        _flutterTts!.setStartHandler(() {
-          _isSpeaking = true;
-          notifyListeners();
-          onSpeakStart?.call();
-        });
-
-        _flutterTts!.setCompletionHandler(() {
-          _isSpeaking = false;
-          notifyListeners();
-          onSpeakComplete?.call();
-        });
-
-        _flutterTts!.setErrorHandler((error) {
-          debugPrint('TTS Error: $error');
-          _isSpeaking = false;
-          notifyListeners();
-        });
-      }
-
       _isInitialized = true;
       notifyListeners();
     } catch (e) {
@@ -101,95 +64,91 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  /// Speak remote audio from URL (ElevenLabs)
-  Future<void> speakUrl(String url) async {
-    if (!_isInitialized) await initialize();
-    if (url.isEmpty) return;
-
-    try {
-      // Stop any current speech
-      await stop();
-
-      // Construct full URL if needed
-      String fullUrl = url;
-      if (!url.startsWith('http')) {
-        // Remove leading slash if present to avoid double slash
-        final cleanPath = url.startsWith('/') ? url.substring(1) : url;
-        // Base Url already ends with /api/, so we need to be careful
-        // Actually ApiConfig.baseUrl is https://.../api/
-        // And backend returns /api/audio/..., so it duplicates /api/
-        // We need the root domain
-        final rootDomain = ApiConfig.baseUrl.replaceAll('/api/', '');
-        fullUrl = '$rootDomain/$cleanPath';
-      }
-
-      debugPrint('Playing remote audio: $fullUrl');
-      await _audioPlayer?.setVolume(_volume);
-      await _audioPlayer?.play(UrlSource(fullUrl));
-    } catch (e) {
-      debugPrint('Audio playback error: $e');
-      // No fallback here, caller handles it
-    }
-  }
-
-  /// Speak text (Local TTS)
+  /// Speak text using ElevenLabs API
+  ///
+  /// 1. Calls API to get Audio URL
+  /// 2. Plays Audio URL
   Future<void> speak(String text) async {
-    // ... existing implementation ...
-    // Stop audio player if playing
-    await _audioPlayer?.stop();
-
     if (!_isInitialized) await initialize();
     if (text.isEmpty) return;
 
+    // Stop any current speech
+    await stop();
+
     try {
-      if (kIsWeb) {
-        _speakWeb(text);
+      debugPrint('🎙️ Converting to Speech (ElevenLabs): "$text"');
+
+      final audioUrl = await _voiceCoachingService.generateTTS(text);
+
+      if (audioUrl != null) {
+        await _playUrl(audioUrl);
       } else {
-        await _flutterTts?.speak(text);
+        debugPrint('⚠️ TTS Generation failed or returned null');
+        // No fallback as requested by user
       }
     } catch (e) {
       debugPrint('TTS speak error: $e');
     }
   }
 
-  void _speakWeb(String text) {
-    final utterance = web.SpeechSynthesisUtterance(text);
-    utterance.rate = _speechRate;
-    utterance.pitch = _pitch;
-    utterance.volume = _volume;
-    utterance.lang = 'it-IT';
+  /// Helper to play URL
+  Future<void> _playUrl(String url) async {
+    String fullUrl = url;
+    if (!url.startsWith('http')) {
+      try {
+        final baseUri = Uri.parse(ApiConfig.baseUrl);
+        final rootDomain =
+            '${baseUri.scheme}://${baseUri.host}:${baseUri.port}';
+        final cleanPath = url.startsWith('/') ? url.substring(1) : url;
+        fullUrl = '$rootDomain/$cleanPath';
+      } catch (e) {
+        debugPrint('Error parsing base URL: $e');
+        // Fallback to naive concatenation if parsing fails
+        fullUrl = '${ApiConfig.baseUrl.replaceAll('/api/', '')}/$url';
+      }
+    }
 
-    utterance.onstart = (web.Event e) {
-      _isSpeaking = true;
-      notifyListeners();
-      onSpeakStart?.call();
-    }.toJS;
+    debugPrint('🎧 Playing audio: $fullUrl');
 
-    utterance.onend = (web.Event e) {
+    // Optimistically set speaking state to prevent race conditions
+    _isSpeaking = true;
+    notifyListeners();
+    onSpeakStart?.call();
+
+    try {
+      await _audioPlayer.setVolume(_volume);
+      await _audioPlayer.play(UrlSource(fullUrl));
+    } catch (e) {
+      debugPrint('Error playing audio: $e');
       _isSpeaking = false;
       notifyListeners();
       onSpeakComplete?.call();
-    }.toJS;
-
-    utterance.onerror = (web.Event e) {
-      debugPrint('Web TTS Error');
-      _isSpeaking = false;
-      notifyListeners();
-    }.toJS;
-
-    web.window.speechSynthesis.speak(utterance);
+    }
   }
 
-  /// Stop speaking (both TTS and AudioPlayer)
+  // Legacy speakUrl method for compatibility
+  Future<void> speakUrl(String url) async {
+    if (!_isInitialized) await initialize();
+    if (url.isEmpty) return;
+    await stop();
+    await _playUrl(url);
+  }
+
+  // Legacy method signature compatibility
+  Future<void> speakIntro(String text) async => speak(text);
+  Future<void> speakPreSet(int current, int total) async =>
+      speak('Serie $current di $total. Pronti?');
+  Future<void> speakRepNumber(int rep) async => speak('$rep');
+  Future<void> speakPostSet() async =>
+      speak('Serie completata. Ottimo lavoro!');
+  Future<void> speakCountdown(int seconds) async => speak('$seconds');
+  Future<void> speakWorkoutComplete(String? name) async =>
+      speak('Allenamento completato! Grande ${name ?? "atleta"}!');
+
+  /// Stop speaking
   Future<void> stop() async {
     try {
-      await _audioPlayer?.stop();
-
-      if (kIsWeb) {
-        web.window.speechSynthesis.cancel();
-      } else {
-        await _flutterTts?.stop();
-      }
+      await _audioPlayer.stop();
       _isSpeaking = false;
       notifyListeners();
     } catch (e) {
@@ -200,13 +159,7 @@ class GigiTTSService extends ChangeNotifier {
   /// Pause speaking
   Future<void> pause() async {
     try {
-      await _audioPlayer?.pause();
-
-      if (kIsWeb) {
-        web.window.speechSynthesis.pause();
-      } else {
-        await _flutterTts?.pause();
-      }
+      await _audioPlayer.pause();
       _isSpeaking = false;
       notifyListeners();
     } catch (e) {
@@ -218,12 +171,7 @@ class GigiTTSService extends ChangeNotifier {
   Future<void> setVolume(double volume) async {
     _volume = volume.clamp(0.0, 1.0);
     try {
-      if (kIsWeb) {
-        // Web speech synthesis volume is handled in _speakWeb
-      } else {
-        await _flutterTts?.setVolume(_volume);
-      }
-      await _audioPlayer?.setVolume(_volume);
+      await _audioPlayer.setVolume(_volume);
     } catch (e) {
       debugPrint('Error setting volume: $e');
     }
@@ -231,10 +179,7 @@ class GigiTTSService extends ChangeNotifier {
 
   @override
   void dispose() {
-    _audioPlayer?.dispose();
-    if (!kIsWeb) {
-      _flutterTts?.stop();
-    }
+    _audioPlayer.dispose();
     super.dispose();
   }
 }

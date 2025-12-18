@@ -12,6 +12,8 @@ import '../../../presentation/widgets/workout/set_logging_widget.dart';
 import '../../../presentation/widgets/workout/anatomical_muscle_view.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
+import '../../../data/services/api_client.dart';
+import '../../../data/services/voice_coaching_service.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
@@ -657,8 +659,9 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
     _initializeSetData();
     _initializeVideoController();
 
-    // Initialize voice coaching
-    _gigiTTS = GigiTTSService();
+    // Initialize voice coaching services
+    final voiceCoachingService = VoiceCoachingService(ApiClient());
+    _gigiTTS = GigiTTSService(voiceCoachingService);
     _voiceController = SynchronizedVoiceController(_gigiTTS);
 
     // Get user data from AuthProvider after build

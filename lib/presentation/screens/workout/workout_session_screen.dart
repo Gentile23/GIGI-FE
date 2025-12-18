@@ -53,12 +53,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   void initState() {
     super.initState();
-    _gigiTTS = GigiTTSService();
+
+    // Initialize services in correct order for dependency injection
+    _voiceCoachingService = VoiceCoachingService(ApiClient());
+    _gigiTTS = GigiTTSService(_voiceCoachingService);
     _gigiTTS.initialize();
 
     // Initialize Voice Coaching 2.0 Controller
     _voiceController = SynchronizedVoiceController(_gigiTTS);
-    _voiceCoachingService = VoiceCoachingService(ApiClient());
     _initializeVoiceCoaching();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {

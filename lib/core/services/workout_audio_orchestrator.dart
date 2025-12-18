@@ -64,9 +64,10 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
   final List<int> _countdownIntervals = [60, 30, 10, 5, 3, 2, 1];
 
   WorkoutAudioOrchestrator(
-    this._voiceCoachingService, {
+    VoiceCoachingService voiceCoachingService, {
     GigiTTSService? ttsService,
-  }) : _ttsService = ttsService ?? GigiTTSService() {
+  }) : _voiceCoachingService = voiceCoachingService,
+       _ttsService = ttsService ?? GigiTTSService(voiceCoachingService) {
     _setupAudioPlayer();
     _ttsService.initialize();
   }
