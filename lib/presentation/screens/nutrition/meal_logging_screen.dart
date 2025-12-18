@@ -130,10 +130,18 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               }
 
               // Salva valori base per 100g (per ricalcolo)
-              final calories = (meal['total_calories'] ?? 0).toDouble();
-              final protein = (meal['protein_grams'] ?? 0).toDouble();
-              final carbs = (meal['carbs_grams'] ?? 0).toDouble();
-              final fat = (meal['fat_grams'] ?? 0).toDouble();
+              // Helper per parsare sia numeri che stringhe
+              double parseValue(dynamic value) {
+                if (value == null) return 0.0;
+                if (value is num) return value.toDouble();
+                if (value is String) return double.tryParse(value) ?? 0.0;
+                return 0.0;
+              }
+
+              final calories = parseValue(meal['total_calories']);
+              final protein = parseValue(meal['protein_grams']);
+              final carbs = parseValue(meal['carbs_grams']);
+              final fat = parseValue(meal['fat_grams']);
 
               _baseCaloriesPer100g = calories;
               _baseProteinPer100g = protein;
@@ -142,9 +150,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
               _gramsController.text = '100';
               _caloriesController.text = calories.round().toString();
-              _proteinController.text = protein.toString();
-              _carbsController.text = carbs.toString();
-              _fatController.text = fat.toString();
+              _proteinController.text = protein.toStringAsFixed(1);
+              _carbsController.text = carbs.toStringAsFixed(1);
+              _fatController.text = fat.toStringAsFixed(1);
             });
 
             if (mounted) {
