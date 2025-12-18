@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'gigi_tts_service.dart';
 import 'exercise_scripts_database.dart';
+import 'coaching_phrases_database.dart' as phrases;
 
 // Re-export for convenience
 export 'exercise_scripts_database.dart';
@@ -51,6 +52,10 @@ class SynchronizedVoiceController extends ChangeNotifier {
   int _totalSets = 0;
   int _restSeconds = 0;
   ExerciseCoachingScript? _currentScript;
+
+  // New: Streak and mood tracking
+  int _streakDays = 0;
+  String _userMood = 'neutral'; // energized, tired, stressed, neutral
 
   // Rest timer
   Timer? _restTimer;
@@ -196,12 +201,20 @@ class SynchronizedVoiceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Build goal-based personalized greeting
+  /// Build goal-based personalized greeting using new phrases database
   String _buildPersonalizedGreeting(String exerciseName, int sets, int reps) {
     final buffer = StringBuffer();
 
-    // Opening
-    buffer.write('Ciao $_userName! Sono Gigi, il tuo coach. ');
+    // Smart greeting based on time of day
+    buffer.write(phrases.getTimeBasedGreeting(_userName));
+    buffer.write(' ');
+
+    // Streak acknowledgment (if applicable)
+    final streakPhrase = phrases.getStreakPhrase(_userName, _streakDays);
+    if (streakPhrase != null) {
+      buffer.write(streakPhrase);
+      buffer.write(' ');
+    }
 
     // What we're doing
     if (_currentMuscleGroup.isNotEmpty) {
@@ -210,8 +223,18 @@ class SynchronizedVoiceController extends ChangeNotifier {
       buffer.write('Facciamo $exerciseName. ');
     }
 
-    // Goal-based motivation
-    buffer.write(_getGoalMotivation());
+    // Goal-based motivation from database
+    buffer.write(phrases.getGoalMotivation(_userGoal));
+    buffer.write(' ');
+
+    // Mood-based encouragement (if set)
+    if (_userMood != 'neutral') {
+      final moodPhrase = phrases.getMoodEncouragement(_userName, _userMood);
+      if (moodPhrase.isNotEmpty) {
+        buffer.write(moodPhrase);
+        buffer.write(' ');
+      }
+    }
 
     // Call to action
     buffer.write(
@@ -221,24 +244,15 @@ class SynchronizedVoiceController extends ChangeNotifier {
     return buffer.toString();
   }
 
-  /// Get motivational phrase based on user goal
-  String _getGoalMotivation() {
-    switch (_userGoal.toLowerCase()) {
-      case 'musclegain':
-      case 'muscle_gain':
-        return 'Costruiamo muscolo oggi! ';
-      case 'weightloss':
-      case 'weight_loss':
-        return 'Bruciamo calorie! ';
-      case 'toning':
-        return 'Definiamoci! ';
-      case 'strength':
-        return 'Diventiamo più forti! ';
-      case 'wellness':
-        return 'Prendiamoci cura di noi! ';
-      default:
-        return '';
-    }
+  /// Set user streak for personalized greetings
+  void setStreakDays(int days) {
+    _streakDays = days;
+  }
+
+  /// Set user mood for adaptive coaching
+  void setUserMood(String mood) {
+    _userMood = mood;
+    notifyListeners();
   }
 
   /// Change to new exercise WITHOUT greeting (when navigating between exercises)
@@ -345,33 +359,35 @@ class SynchronizedVoiceController extends ChangeNotifier {
     }
   }
 
-  /// Personalized celebration based on RPE and weight
+  /// Personalized celebration based on RPE and weight using phrases database
   Future<void> _speakPersonalizedCelebration({
     double? weightKg,
     int? rpe,
     double? previousWeightKg,
   }) async {
-    final buffer = StringBuffer();
-
-    // Weight increase detection
-    if (weightKg != null &&
+    // Check for personal record
+    final isPersonalRecord =
+        weightKg != null &&
         previousWeightKg != null &&
-        weightKg > previousWeightKg) {
-      buffer.write('Fantastico $_userName! Hai aumentato il peso! ');
-    } else if (_currentSet == 1) {
-      buffer.write('Bene $_userName! Prima serie fatta! ');
-    } else if (_currentSet == _totalSets) {
-      buffer.write('Grande! Ultima serie completata! ');
-    } else {
-      buffer.write('Ottimo! $_currentSet su $_totalSets! ');
-    }
+        weightKg > previousWeightKg;
 
-    // RPE-based feedback
+    // Get celebration phrase from database
+    final celebration = phrases.getSetCelebration(
+      userName: _userName,
+      currentSet: _currentSet,
+      totalSets: _totalSets,
+      isPersonalRecord: isPersonalRecord,
+      weightKg: weightKg,
+    );
+
+    final buffer = StringBuffer(celebration);
+
+    // RPE-based feedback (additional)
     if (rpe != null) {
       if (rpe <= 5) {
-        buffer.write('Troppo facile? Prova ad aumentare!');
+        buffer.write(' Troppo facile? Prova ad aumentare!');
       } else if (rpe >= 9) {
-        buffer.write('Grande sforzo! Recupera bene.');
+        buffer.write(' Grande sforzo! Recupera bene.');
       }
     }
 
@@ -381,7 +397,16 @@ class SynchronizedVoiceController extends ChangeNotifier {
   /// Exercise complete announcement with stats
   Future<void> _speakExerciseComplete({double? weightKg}) async {
     final buffer = StringBuffer();
-    buffer.write('Eccellente $_userName! Esercizio completato! ');
+
+    // Use celebration from database for last set
+    buffer.write(
+      phrases.getSetCelebration(
+        userName: _userName,
+        currentSet: _totalSets,
+        totalSets: _totalSets,
+      ),
+    );
+    buffer.write(' ');
 
     if (weightKg != null && weightKg > 0) {
       buffer.write(
@@ -391,6 +416,11 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
     buffer.write('Passa al prossimo quando vuoi!');
     await _speak(buffer.toString());
+  }
+
+  /// Speak workout complete phrase
+  Future<void> speakWorkoutComplete() async {
+    await _speak(phrases.getWorkoutCompletePhrase(_userName));
   }
 
   /// Skip rest timer
@@ -473,8 +503,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.resting;
     notifyListeners();
 
-    // Announce rest start
-    _speak('Riposa $_restSeconds secondi. Recupera.');
+    // Announce rest start using phrases database
+    _speak(phrases.getRestStartPhrase(_restSeconds));
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _restRemaining--;

@@ -14,8 +14,11 @@ import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/voice_coaching/mode_selection_sheet.dart';
+import '../../widgets/voice_coaching/voice_coaching_toggle.dart';
 import '../../../data/models/exercise_intro_model.dart';
 import '../../../core/services/gigi_tts_service.dart';
+import '../../../core/services/synchronized_voice_controller.dart';
+import '../../../providers/auth_provider.dart';
 import 'dart:async';
 
 class WorkoutSessionScreen extends StatefulWidget {
@@ -42,20 +45,41 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   late GigiTTSService _gigiTTS;
   CoachingMode _selectedCoachingMode = CoachingMode.voice;
 
+  // Voice Coaching 2.0 Controller
+  late SynchronizedVoiceController _voiceController;
+
   @override
   void initState() {
     super.initState();
     _gigiTTS = GigiTTSService();
     _gigiTTS.initialize();
+
+    // Initialize Voice Coaching 2.0 Controller
+    _voiceController = SynchronizedVoiceController(_gigiTTS);
+    _initializeVoiceCoaching();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startWorkoutSession();
     });
+  }
+
+  /// Initialize voice coaching with user data
+  Future<void> _initializeVoiceCoaching() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    await _voiceController.initialize(
+      userName: user?.name ?? 'Campione',
+      experienceLevel: user?.experienceLevel,
+      goal: user?.goal,
+    );
   }
 
   @override
   void dispose() {
     _sessionTimer?.cancel();
     _gigiTTS.dispose();
+    _voiceController.dispose();
     super.dispose();
   }
 
@@ -215,17 +239,49 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
               child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Back button
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => _confirmExit(),
                       ),
-                      onPressed: () => _confirmExit(),
-                    ),
-                  ],
+                      // Voice Coaching Toggle
+                      VoiceCoachingToggle(
+                        controller: _voiceController,
+                        onTap: () {
+                          if (_voiceController.isEnabled) {
+                            _voiceController.deactivate();
+                          } else {
+                            // Get first exercise to start coaching
+                            final exercises = widget.workoutDay.exercises;
+                            if (exercises.isNotEmpty) {
+                              final first = exercises.first;
+                              _voiceController.activateInitial(
+                                exerciseName: first.exercise.name,
+                                sets: first.sets,
+                                reps: int.tryParse(first.reps) ?? 10,
+                                restSeconds: first.restSeconds,
+                                muscleGroups: first.exercise.muscleGroups,
+                              );
+                            }
+                          }
+                        },
+                        onLongPress: () {
+                          VoiceCoachingSettingsSheet.show(
+                            context,
+                            _voiceController,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1588,6 +1644,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   );
                 }
                 await provider.completeWorkout();
+
+                // Voice coaching: announce workout complete
+                if (_voiceController.isEnabled) {
+                  _voiceController.speakWorkoutComplete();
+                }
 
                 if (!mounted) return;
                 navigator.pop(); // Close success dialog or loading
