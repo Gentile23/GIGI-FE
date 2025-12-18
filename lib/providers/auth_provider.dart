@@ -181,8 +181,10 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _handleGoogleAuth(GoogleSignInAccount googleUser) async {
     try {
-      // Avoid double processing if already implementing logic for this user
-      if (_user != null && _user!.email == googleUser.email) return;
+      debugPrint('_handleGoogleAuth called with user: ${googleUser.email}');
+
+      // Note: Removed the early return check that blocked existing users
+      // This was causing issues on Web where users couldn't re-login
 
       debugPrint('Calling AuthService.socialLogin...');
       final result = await _authService.socialLogin(
@@ -196,9 +198,12 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        debugPrint('Social Login Success. Setting user.');
+        debugPrint('Social Login Success. Setting user and notifying...');
         _user = result['user'];
         notifyListeners();
+        debugPrint(
+          'User set: ${_user?.email}, isAuthenticated: $isAuthenticated',
+        );
       } else {
         debugPrint('Social Login Failed: ${result['message']}');
         _error = result['message'];

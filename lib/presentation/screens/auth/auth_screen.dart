@@ -330,20 +330,8 @@ class _AuthScreenState extends State<AuthScreen>
                         .renderButton(),
                   )
                 else
-                  _buildSocialButton(
-                    icon: Icons.g_mobiledata,
-                    label: 'Continua con Google',
-                    onPressed: _handleGoogleSignIn,
-                  ),
-
-                const SizedBox(height: 12),
-
-                // Apple Sign In
-                _buildSocialButton(
-                  icon: Icons.apple,
-                  label: 'Continua con Apple',
-                  onPressed: _handleAppleSignIn,
-                ),
+                  // Custom styled Google button for mobile (black like Apple style)
+                  _buildGoogleButton(onPressed: _handleGoogleSignIn),
 
                 const SizedBox(height: 32),
 
@@ -619,6 +607,53 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
+  /// Google Sign-In button styled like Apple (black, premium look)
+  Widget _buildGoogleButton({required VoidCallback onPressed}) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Google "G" logo
+          Container(
+            width: 24,
+            height: 24,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                'G',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'Continua con Google',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleSubmit() async {
     // Clear previous error
     setState(() {
@@ -717,28 +752,6 @@ class _AuthScreenState extends State<AuthScreen>
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.signInWithGoogle();
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        if (!success && authProvider.error != null) {
-          _errorMessage = _translateError(authProvider.error);
-        }
-      });
-
-      if (success) {
-        widget.onComplete?.call();
-      }
-    }
-  }
-
-  Future<void> _handleAppleSignIn() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.signInWithApple();
 
     if (mounted) {
       setState(() {
