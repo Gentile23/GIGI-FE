@@ -636,8 +636,9 @@ class _UnifiedQuestionnaireScreenState
                   // 4. Equipment
                   _buildEquipmentPage(),
 
-                  // 4.5 Bodyweight Type (Conditional - only if bodyweight selected)
-                  if (_selectedEquipment.contains(Equipment.bodyweight))
+                  // 4.5 Bodyweight Type (Conditional - only if ONLY bodyweight selected, without machines)
+                  if (_selectedEquipment.contains(Equipment.bodyweight) &&
+                      !_selectedEquipment.contains(Equipment.machines))
                     _buildBodyweightTypePage(),
 
                   // 4.6 Specific Machines (Conditional - only for non-gym locations)
