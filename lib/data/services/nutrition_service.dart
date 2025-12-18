@@ -13,6 +13,7 @@ class NutritionService {
   Future<Map<String, dynamic>?> quickLog({
     required XFile imageFile,
     required String mealType,
+    int? grams,
   }) async {
     try {
       MultipartFile photoPart;
@@ -34,6 +35,7 @@ class NutritionService {
       final formData = FormData.fromMap({
         'photo': photoPart,
         'meal_type': mealType,
+        if (grams != null) 'grams': grams,
       });
 
       final response = await _apiClient.dio.post(

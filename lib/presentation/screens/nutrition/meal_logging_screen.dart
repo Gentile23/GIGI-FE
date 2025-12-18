@@ -20,10 +20,17 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
   String _selectedMealType = 'breakfast';
   final _foodNameController = TextEditingController();
+  final _gramsController = TextEditingController(text: '100');
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
+
+  // Valori base per 100g (usati per ricalcolo)
+  double _baseCaloriesPer100g = 0;
+  double _baseProteinPer100g = 0;
+  double _baseCarbsPer100g = 0;
+  double _baseFatPer100g = 0;
 
   bool _isSubmitting = false;
   XFile? _imageFile;
@@ -44,11 +51,29 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   void initState() {
     super.initState();
     _nutritionService = NutritionService(ApiClient());
+    _gramsController.addListener(_recalculateMacros);
+  }
+
+  void _recalculateMacros() {
+    final grams = double.tryParse(_gramsController.text) ?? 100;
+    if (_baseCaloriesPer100g > 0) {
+      final multiplier = grams / 100;
+      _caloriesController.text = (_baseCaloriesPer100g * multiplier)
+          .round()
+          .toString();
+      _proteinController.text = (_baseProteinPer100g * multiplier)
+          .toStringAsFixed(1);
+      _carbsController.text = (_baseCarbsPer100g * multiplier).toStringAsFixed(
+        1,
+      );
+      _fatController.text = (_baseFatPer100g * multiplier).toStringAsFixed(1);
+    }
   }
 
   @override
   void dispose() {
     _foodNameController.dispose();
+    _gramsController.dispose();
     _caloriesController.dispose();
     _proteinController.dispose();
     _carbsController.dispose();
@@ -72,12 +97,18 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         setState(() {
           _imageFile = pickedFile;
           _imageBytes = bytes;
-          _isSubmitting = true;
         });
+
+        // Chiedi i grammi PRIMA di inviare all'AI
+        final grams = await _showGramsInputDialog();
+        if (grams == null) return; // Utente ha annullato
+
+        setState(() => _isSubmitting = true);
 
         final result = await _nutritionService.quickLog(
           imageFile: pickedFile,
           mealType: _selectedMealType,
+          grams: grams,
         );
 
         if (mounted) {
@@ -98,11 +129,22 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     firstItem['food_name'] ?? 'Pasto Rilevato';
               }
 
-              _caloriesController.text = (meal['total_calories'] ?? 0)
-                  .toString();
-              _proteinController.text = (meal['protein_grams'] ?? 0).toString();
-              _carbsController.text = (meal['carbs_grams'] ?? 0).toString();
-              _fatController.text = (meal['fat_grams'] ?? 0).toString();
+              // Salva valori base per 100g (per ricalcolo)
+              final calories = (meal['total_calories'] ?? 0).toDouble();
+              final protein = (meal['protein_grams'] ?? 0).toDouble();
+              final carbs = (meal['carbs_grams'] ?? 0).toDouble();
+              final fat = (meal['fat_grams'] ?? 0).toDouble();
+
+              _baseCaloriesPer100g = calories;
+              _baseProteinPer100g = protein;
+              _baseCarbsPer100g = carbs;
+              _baseFatPer100g = fat;
+
+              _gramsController.text = '100';
+              _caloriesController.text = calories.round().toString();
+              _proteinController.text = protein.toString();
+              _carbsController.text = carbs.toString();
+              _fatController.text = fat.toString();
             });
 
             if (mounted) {
@@ -278,6 +320,106 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     );
   }
 
+  Future<int?> _showGramsInputDialog() async {
+    final controller = TextEditingController(text: '100');
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: CleanTheme.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.scale_outlined,
+                color: CleanTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Quanti grammi?',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Inserisci il peso approssimativo per calcoli macro più precisi',
+              style: GoogleFonts.inter(
+                color: CleanTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(
+                fontSize: 32,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+              decoration: InputDecoration(
+                suffixText: 'g',
+                suffixStyle: GoogleFonts.inter(
+                  fontSize: 20,
+                  color: CleanTheme.textSecondary,
+                ),
+                filled: true,
+                fillColor: CleanTheme.backgroundColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final grams = int.tryParse(controller.text) ?? 100;
+              Navigator.pop(context, grams);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CleanTheme.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Analizza',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -406,6 +548,16 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
                 const SizedBox(height: 16),
 
+                // Campo Grammi
+                _buildTextField(
+                  controller: _gramsController,
+                  label: 'Quantità (g)',
+                  icon: Icons.scale_outlined,
+                  keyboardType: TextInputType.number,
+                  helperText: 'I macro si ricalcolano automaticamente',
+                ),
+                const SizedBox(height: 16),
+
                 Row(
                   children: [
                     Expanded(
@@ -510,6 +662,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     required String label,
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
+    String? helperText,
   }) {
     return TextFormField(
       controller: controller,
@@ -518,6 +671,11 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        helperText: helperText,
+        helperStyle: GoogleFonts.inter(
+          color: CleanTheme.textTertiary,
+          fontSize: 12,
+        ),
         prefixIcon: Icon(icon, color: CleanTheme.textTertiary),
         filled: true,
         fillColor: CleanTheme.surfaceColor,
