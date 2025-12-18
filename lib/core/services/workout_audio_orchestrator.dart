@@ -5,6 +5,7 @@ import '../../data/models/exercise_intro_model.dart';
 import '../../data/services/voice_coaching_service.dart';
 
 import 'gigi_tts_service.dart';
+import 'coaching_phrases_database.dart' as phrases;
 
 /// Coaching phases during a workout
 enum CoachingPhase {
@@ -179,7 +180,7 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
 
       // Speak the intro greeting using TTS
       if (_coachingMode == CoachingMode.voice && _currentIntro != null) {
-        await _ttsService.speakIntro(_currentIntro!.greeting);
+        await _ttsService.speak(_currentIntro!.greeting);
       }
     } catch (e) {
       debugPrint('Error fetching personalized intro: $e');
@@ -201,7 +202,8 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
 
     // Speak pre-set announcement using TTS
     if (_coachingMode == CoachingMode.voice) {
-      await _ttsService.speakPreSet(setNumber, totalSets);
+      // Announce set number
+      await _ttsService.speak('Serie $setNumber di $totalSets. Pronti?');
     }
   }
 
@@ -213,7 +215,7 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
 
     // In Voice Mode, speak rep number
     if (_coachingMode == CoachingMode.voice) {
-      await _ttsService.speakRepNumber(repNumber);
+      await _ttsService.speak('$repNumber');
     }
   }
 
@@ -234,7 +236,14 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
     notifyListeners();
 
     // Speak set completion (both modes)
-    await _ttsService.speakPostSet();
+    // Speak set completion (both modes)
+    await _ttsService.speak(
+      phrases.getSetCelebration(
+        userName: _userName ?? 'Atleta',
+        currentSet: _currentSet,
+        totalSets: _totalSets,
+      ),
+    );
   }
 
   /// Called when rest period starts
@@ -276,7 +285,7 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
 
   /// Announce countdown number using TTS
   void _announceCountdown(int seconds) {
-    _ttsService.speakCountdown(seconds);
+    _ttsService.speak('$seconds');
   }
 
   /// Called when rest is completed
@@ -297,7 +306,9 @@ class WorkoutAudioOrchestrator extends ChangeNotifier {
     notifyListeners();
 
     // Speak workout completion
-    await _ttsService.speakWorkoutComplete(_userName);
+    await _ttsService.speak(
+      phrases.getWorkoutCompletePhrase(_userName ?? 'Atleta'),
+    );
   }
 
   /// Pause audio and timers

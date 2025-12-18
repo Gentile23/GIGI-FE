@@ -632,7 +632,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     // Attempt to use high-quality TTS (ElevenLabs) via API
     bool playedWithHighQuality = false;
 
-    if (voiceCoachingService != null && scriptToSpeak != null) {
+    if (voiceCoachingService != null) {
       try {
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
         // Call backend to generate TTS audio
@@ -654,7 +654,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     }
 
     // Fallback to local TTS if high-quality failed
-    if (!playedWithHighQuality && scriptToSpeak != null) {
+    if (!playedWithHighQuality) {
       debugPrint('🗣️ using local TTS');
       await _speak(scriptToSpeak);
     }

@@ -1,8 +1,20 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:audioplayers/audioplayers.dart';
-import '../../constants/api_config.dart';
+import '../constants/api_config.dart';
 
-// ... existing imports ...
+// Web-specific imports with conditional
+import 'dart:js_interop' if (dart.library.io) 'dart:js_interop';
+import 'package:web/web.dart'
+    if (dart.library.io) 'package:web/web.dart'
+    as web;
 
+/// Gigi TTS Service
+///
+/// Local text-to-speech service for voice coaching.
+/// Uses device's TTS engine to speak Gigi's coaching cues.
+/// Supports both native platforms (via flutter_tts) and web (via SpeechSynthesis).
 class GigiTTSService extends ChangeNotifier {
   FlutterTts? _flutterTts;
   AudioPlayer? _audioPlayer; // For playing remote audio (ElevenLabs)
@@ -140,9 +152,33 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  // ... _speakWeb ...
+  void _speakWeb(String text) {
+    final utterance = web.SpeechSynthesisUtterance(text);
+    utterance.rate = _speechRate;
+    utterance.pitch = _pitch;
+    utterance.volume = _volume;
+    utterance.lang = 'it-IT';
 
-  // ... speakAndWait ...
+    utterance.onstart = (web.Event e) {
+      _isSpeaking = true;
+      notifyListeners();
+      onSpeakStart?.call();
+    }.toJS;
+
+    utterance.onend = (web.Event e) {
+      _isSpeaking = false;
+      notifyListeners();
+      onSpeakComplete?.call();
+    }.toJS;
+
+    utterance.onerror = (web.Event e) {
+      debugPrint('Web TTS Error');
+      _isSpeaking = false;
+      notifyListeners();
+    }.toJS;
+
+    web.window.speechSynthesis.speak(utterance);
+  }
 
   /// Stop speaking (both TTS and AudioPlayer)
   Future<void> stop() async {
@@ -178,7 +214,20 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  // ... other methods ...
+  /// Set volume (0.0 - 1.0)
+  Future<void> setVolume(double volume) async {
+    _volume = volume.clamp(0.0, 1.0);
+    try {
+      if (kIsWeb) {
+        // Web speech synthesis volume is handled in _speakWeb
+      } else {
+        await _flutterTts?.setVolume(_volume);
+      }
+      await _audioPlayer?.setVolume(_volume);
+    } catch (e) {
+      debugPrint('Error setting volume: $e');
+    }
+  }
 
   @override
   void dispose() {
