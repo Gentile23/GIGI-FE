@@ -143,12 +143,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               final carbs = parseValue(meal['carbs_grams']);
               final fat = parseValue(meal['fat_grams']);
 
-              _baseCaloriesPer100g = calories;
-              _baseProteinPer100g = protein;
-              _baseCarbsPer100g = carbs;
-              _baseFatPer100g = fat;
+              _baseCaloriesPer100g = calories / grams * 100;
+              _baseProteinPer100g = protein / grams * 100;
+              _baseCarbsPer100g = carbs / grams * 100;
+              _baseFatPer100g = fat / grams * 100;
 
-              _gramsController.text = '100';
+              _gramsController.text = grams.toString();
               _caloriesController.text = calories.round().toString();
               _proteinController.text = protein.toStringAsFixed(1);
               _carbsController.text = carbs.toStringAsFixed(1);
