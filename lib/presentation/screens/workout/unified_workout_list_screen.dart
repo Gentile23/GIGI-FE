@@ -1287,19 +1287,35 @@ class _CustomWorkoutExecutionScreenState
 
   Widget _buildSetTableHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(8),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            CleanTheme.primaryColor.withValues(alpha: 0.08),
+            CleanTheme.primaryColor.withValues(alpha: 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.15),
+        ),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 40), // Checkbox space
-          Expanded(flex: 1, child: Text('SET', style: _headerStyle())),
+          SizedBox(
+            width: 44,
+            child: Text(
+              'SET',
+              style: _headerStyle(),
+              textAlign: TextAlign.center,
+            ),
+          ),
           Expanded(
             flex: 2,
             child: Text(
-              'PREC',
+              'PREC.',
               style: _headerStyle(),
               textAlign: TextAlign.center,
             ),
@@ -1315,7 +1331,7 @@ class _CustomWorkoutExecutionScreenState
           Expanded(
             flex: 2,
             child: Text(
-              'REP',
+              'REPS',
               style: _headerStyle(),
               textAlign: TextAlign.center,
             ),
@@ -1328,15 +1344,17 @@ class _CustomWorkoutExecutionScreenState
               textAlign: TextAlign.center,
             ),
           ),
+          const SizedBox(width: 44), // Space for checkbox
         ],
       ),
     );
   }
 
   TextStyle _headerStyle() => GoogleFonts.outfit(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: CleanTheme.textSecondary,
+    fontSize: 12,
+    fontWeight: FontWeight.w700,
+    color: CleanTheme.primaryColor,
+    letterSpacing: 0.8,
   );
 
   Widget _buildSetRow(
