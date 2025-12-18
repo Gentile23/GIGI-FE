@@ -99,6 +99,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       listen: false,
     );
     workoutProvider.fetchCurrentPlan();
+    workoutProvider.fetchWorkoutTemplates(); // Fetch static templates from DB
     gamificationProvider.refresh();
 
     // Load saved workout index
@@ -374,82 +375,48 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  // 2. Search Bar - Pill Shape
+  // 2. Search Bar - Pill Shape (NO FILTER BUTTON)
   Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Ricerca globale in arrivo! 🔍'),
-                  backgroundColor: CleanTheme.primaryColor,
-                  duration: Duration(seconds: 1),
-                ),
-              );
-              HapticService.lightTap();
-            },
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(100), // Pill shape
-                border: Border.all(color: CleanTheme.borderSecondary),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.search,
-                    color: CleanTheme.textPrimary,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Cerca workout...',
-                    style: GoogleFonts.inter(
-                      color: CleanTheme.textTertiary,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ricerca globale in arrivo! 🔍'),
+            backgroundColor: CleanTheme.primaryColor,
+            duration: Duration(seconds: 1),
+          ),
+        );
+        HapticService.lightTap();
+      },
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(100), // Pill shape
+          border: Border.all(color: CleanTheme.borderSecondary),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: CleanTheme.textPrimary, size: 22),
+            const SizedBox(width: 12),
+            Text(
+              'Cerca workout...',
+              style: GoogleFonts.inter(
+                color: CleanTheme.textTertiary,
+                fontSize: 15,
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: _showAdvancedFilters,
-          child: Container(
-            height: 52,
-            width: 52,
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor, // Black
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.tune_rounded,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -643,13 +610,45 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           );
         };
       } else {
-        // No workout found for this category
-        title = 'Nessun workout $category';
-        subtitle = 'Genera una scheda personalizzata per questo obiettivo.';
-        actionLabel = 'Genera Ora';
-        gradientColors = [Colors.grey[800]!, Colors.black];
+        // No workout found for this category - show template from DB
+        final templates = workoutProvider.getTemplatesByCategory(
+          category.toLowerCase(),
+        );
 
-        onActionTap = _showAdvancedFilters; // Open filters to generate
+        if (templates.isNotEmpty) {
+          final template = templates.first;
+          title = template.name;
+          subtitle =
+              '${template.exerciseCount} Esercizi • ${template.durationMinutes} min';
+          showHeart = true;
+
+          // Dynamic colors based on category
+          if (category == 'Cardio') {
+            gradientColors = [const Color(0xFFFF512F), const Color(0xFFDD2476)];
+          } else if (category == 'Forza') {
+            gradientColors = [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)];
+          } else if (category == 'Flex') {
+            gradientColors = [const Color(0xFF11998e), const Color(0xFF38ef7d)];
+          } else if (category == 'HIIT') {
+            gradientColors = [const Color(0xFFED213A), const Color(0xFF93291E)];
+          }
+
+          onActionTap = () {
+            // TODO: Navigate to template workout session
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Avvio ${template.name}...'),
+                backgroundColor: CleanTheme.primaryColor,
+              ),
+            );
+          };
+        } else {
+          // No templates available - loading or empty
+          title = 'Caricamento $category...';
+          subtitle = 'Attendere prego';
+          gradientColors = [Colors.grey[800]!, Colors.black];
+          onActionTap = null;
+        }
       }
     } else {
       // --- "Tutti" (Default Dashboard) ---

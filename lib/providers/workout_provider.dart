@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/models/workout_model.dart';
 import '../data/models/user_model.dart';
+import '../data/models/workout_template_model.dart';
 import '../data/services/api_client.dart';
 import '../data/services/workout_service.dart';
 
@@ -13,6 +14,10 @@ class WorkoutProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Workout Templates (static from DB)
+  List<WorkoutTemplate> _workoutTemplates = [];
+  bool _isLoadingTemplates = false;
+
   WorkoutProvider(this._apiClient) {
     _workoutService = WorkoutService(_apiClient);
   }
@@ -21,6 +26,45 @@ class WorkoutProvider with ChangeNotifier {
   WorkoutPlan? get currentPlan => _currentPlan;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  // Templates getters
+  List<WorkoutTemplate> get workoutTemplates => _workoutTemplates;
+  bool get isLoadingTemplates => _isLoadingTemplates;
+
+  /// Fetch workout templates from database
+  Future<void> fetchWorkoutTemplates({String? category}) async {
+    _isLoadingTemplates = true;
+    notifyListeners();
+
+    try {
+      String url = '/workout-templates';
+      if (category != null && category.toLowerCase() != 'tutti') {
+        url += '?category=${category.toLowerCase()}';
+      }
+
+      final response = await _apiClient.get(url);
+
+      if (response['success'] == true) {
+        final List<dynamic> templatesJson = response['templates'] ?? [];
+        _workoutTemplates = templatesJson
+            .map((json) => WorkoutTemplate.fromJson(json))
+            .toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching workout templates: $e');
+    }
+
+    _isLoadingTemplates = false;
+    notifyListeners();
+  }
+
+  /// Get templates by category
+  List<WorkoutTemplate> getTemplatesByCategory(String category) {
+    if (category.toLowerCase() == 'tutti') return _workoutTemplates;
+    return _workoutTemplates
+        .where((t) => t.category.toLowerCase() == category.toLowerCase())
+        .toList();
+  }
 
   Future<void> fetchWorkoutPlans() async {
     _isLoading = true;

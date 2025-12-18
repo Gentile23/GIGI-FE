@@ -582,14 +582,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildPreWorkoutNavigationCard() {
+    final warmupCardio = widget.workoutDay.warmupCardio;
+    final preWorkoutMobility = widget.workoutDay.preWorkoutMobility;
+
+    if (warmupCardio.isEmpty && preWorkoutMobility.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
+          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+          width: 1.5,
         ),
       ),
       child: Column(
@@ -597,60 +604,189 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline, color: CleanTheme.primaryColor),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.play_circle_outline,
+                  color: CleanTheme.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Prima dell\'allenamento',
                 style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.primaryColor,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (widget.workoutDay.warmupCardio.isNotEmpty)
-            _buildNavigationButton(
-              id: 'warmupCardio',
-              title: 'Riscaldamento Cardio',
+          const SizedBox(height: 16),
+          // Inline Cardio Exercises
+          ...warmupCardio.map(
+            (exercise) => _buildInlineCardioMobilityExercise(
+              exercise: exercise,
+              sectionId: 'warmupCardio_${exercise.exercise.id}',
               emoji: '🔥',
               color: CleanTheme.accentOrange,
-              onTap: () => _navigateToCardio(
-                widget.workoutDay.warmupCardio,
-                'Riscaldamento Cardio',
-                'warmupCardio',
-              ),
             ),
-          if (widget.workoutDay.warmupCardio.isNotEmpty &&
-              widget.workoutDay.preWorkoutMobility.isNotEmpty)
-            const SizedBox(height: 8),
-          if (widget.workoutDay.preWorkoutMobility.isNotEmpty)
-            _buildNavigationButton(
-              id: 'preWorkoutMobility',
-              title: 'Mobilità Pre-Workout',
+          ),
+          // Inline Mobility Exercises
+          ...preWorkoutMobility.map(
+            (exercise) => _buildInlineCardioMobilityExercise(
+              exercise: exercise,
+              sectionId: 'preWorkoutMobility_${exercise.exercise.id}',
               emoji: '🤸',
               color: CleanTheme.accentBlue,
-              onTap: () => _navigateToMobility(
-                widget.workoutDay.preWorkoutMobility,
-                'Mobilità Pre-Workout',
-                'preWorkoutMobility',
-              ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineCardioMobilityExercise({
+    required WorkoutExercise exercise,
+    required String sectionId,
+    required String emoji,
+    required Color color,
+  }) {
+    final isCompleted = _completedSections.contains(sectionId);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withValues(alpha: isCompleted ? 0.15 : 0.08),
+            color.withValues(alpha: isCompleted ? 0.08 : 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isCompleted
+              ? CleanTheme.accentGreen
+              : color.withValues(alpha: 0.3),
+          width: isCompleted ? 2 : 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Emoji circle
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(emoji, style: const TextStyle(fontSize: 22)),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Exercise info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  exercise.exercise.name,
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: isCompleted
+                        ? CleanTheme.textSecondary
+                        : CleanTheme.textPrimary,
+                    decoration: isCompleted ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.timer_outlined, size: 14, color: color),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${exercise.reps} min',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: color,
+                      ),
+                    ),
+                    if (exercise.exercise.muscleGroups.isNotEmpty) ...[
+                      const SizedBox(width: 12),
+                      Text(
+                        '•',
+                        style: TextStyle(color: CleanTheme.textTertiary),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          exercise.exercise.muscleGroups.join(', '),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: CleanTheme.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Checkbox
+          Transform.scale(
+            scale: 1.2,
+            child: Checkbox(
+              value: isCompleted,
+              onChanged: (value) {
+                setState(() {
+                  if (value == true) {
+                    _completedSections.add(sectionId);
+                  } else {
+                    _completedSections.remove(sectionId);
+                  }
+                });
+              },
+              activeColor: CleanTheme.accentGreen,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              side: BorderSide(color: color, width: 2),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildPostWorkoutNavigationCard() {
+    final postWorkoutExercises = widget.workoutDay.postWorkoutExercises;
+
+    if (postWorkoutExercises.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-          width: 1,
+          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+          width: 1.5,
         ),
       ),
       child: Column(
@@ -658,64 +794,40 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.info_outline, color: CleanTheme.primaryColor),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.check_circle_outline,
+                  color: CleanTheme.accentGreen,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Dopo l\'allenamento',
                 style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.primaryColor,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...widget.workoutDay.postWorkoutExercises
-              .fold<Map<String, List<WorkoutExercise>>>({}, (map, exercise) {
-                final type = exercise.exerciseType;
-                if (!map.containsKey(type)) {
-                  map[type] = [];
-                }
-                map[type]!.add(exercise);
-                return map;
-              })
-              .entries
-              .map((entry) {
-                final sectionId = 'postWorkout_${entry.key}';
-                if (entry.key == 'mobility') {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildNavigationButton(
-                      id: sectionId,
-                      title: 'Mobilità Post-Workout',
-                      emoji: '🧘',
-                      color: CleanTheme.accentBlue,
-                      onTap: () => _navigateToMobility(
-                        entry.value,
-                        'Mobilità Post-Workout',
-                        sectionId,
-                      ),
-                    ),
-                  );
-                } else if (entry.key == 'cardio') {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildNavigationButton(
-                      id: sectionId,
-                      title: 'Cardio Post-Workout',
-                      emoji: '🏃',
-                      color: CleanTheme.accentOrange,
-                      onTap: () => _navigateToCardio(
-                        entry.value,
-                        'Cardio Post-Workout',
-                        sectionId,
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
+          const SizedBox(height: 16),
+          // Inline post-workout exercises
+          ...postWorkoutExercises.map((exercise) {
+            final isCardio = exercise.exerciseType == 'cardio';
+            return _buildInlineCardioMobilityExercise(
+              exercise: exercise,
+              sectionId: 'postWorkout_${exercise.exercise.id}',
+              emoji: isCardio ? '🏃' : '🧘',
+              color: isCardio ? CleanTheme.accentOrange : CleanTheme.accentBlue,
+            );
+          }),
         ],
       ),
     );
