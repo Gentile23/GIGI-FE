@@ -1,3 +1,5 @@
+import 'workout_model.dart';
+
 /// Model for static workout templates from database
 class WorkoutTemplate {
   final int id;
@@ -52,6 +54,53 @@ class WorkoutTemplate {
       'exercises': exercises.map((e) => e.toJson()).toList(),
       'exercise_count': exerciseCount,
     };
+  }
+
+  /// Convert template to WorkoutDay for use with WorkoutSessionScreen
+  WorkoutDay toWorkoutDay() {
+    return WorkoutDay(
+      id: 'template_$id',
+      name: name,
+      focus: category.toUpperCase(),
+      estimatedDuration: durationMinutes,
+      exercises: exercises.map((templateExercise) {
+        return WorkoutExercise(
+          exercise: Exercise(
+            id: templateExercise.exerciseId.toString(),
+            name: templateExercise.exerciseName,
+            description: templateExercise.exercise['description'] ?? '',
+            videoUrl: templateExercise.exercise['video_url'],
+            muscleGroups: _parseList(
+              templateExercise.exercise['muscle_groups'],
+            ),
+            difficulty: _parseDifficulty(
+              templateExercise.exercise['difficulty'],
+            ),
+            equipment: _parseList(templateExercise.exercise['equipment']),
+          ),
+          sets: templateExercise.sets,
+          reps: templateExercise.reps,
+          restSeconds: templateExercise.restSeconds,
+          exerciseType: category == 'cardio' ? 'cardio' : 'strength',
+          position: 'main',
+        );
+      }).toList(),
+    );
+  }
+
+  static List<String> _parseList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) return value.map((e) => e.toString()).toList();
+    if (value is String) return value.split(',').map((e) => e.trim()).toList();
+    return [];
+  }
+
+  static ExerciseDifficulty _parseDifficulty(dynamic value) {
+    if (value == null) return ExerciseDifficulty.intermediate;
+    final str = value.toString().toLowerCase();
+    if (str == 'beginner') return ExerciseDifficulty.beginner;
+    if (str == 'advanced') return ExerciseDifficulty.advanced;
+    return ExerciseDifficulty.intermediate;
   }
 }
 

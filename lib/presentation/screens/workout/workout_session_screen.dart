@@ -747,6 +747,53 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ),
           // Checkbox
+          const SizedBox(width: 8),
+          // Info button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                // Navigate to exercise detail screen
+                final exerciseType = exercise.exerciseType;
+                if (exerciseType == 'cardio') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          CardioExerciseDetailScreen(workoutExercise: exercise),
+                    ),
+                  );
+                } else if (exerciseType == 'mobility') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MobilityExerciseDetailScreen(
+                        workoutExercise: exercise,
+                      ),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ExerciseDetailScreen(workoutExercise: exercise),
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.info_outline, color: color, size: 20),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Transform.scale(
             scale: 1.2,
             child: Checkbox(

@@ -10,10 +10,10 @@ import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../workout/trial_workout_generation_screen.dart';
 
-import '../workout/workout_session_screen.dart'; // Added import
+import '../workout/workout_session_screen.dart';
 import '../custom_workout/custom_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
-// import '../custom_workout/exercise_search_screen.dart'; // Removed unused import or comment it out if you plan to use it
+import '../../../data/models/workout_template_model.dart';
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
 import '../social/activity_feed_screen.dart';
@@ -634,11 +634,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           }
 
           onActionTap = () {
-            // TODO: Navigate to template workout session
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Avvio ${template.name}...'),
-                backgroundColor: CleanTheme.primaryColor,
+            // Navigate to template workout session
+            final workoutDay = template.toWorkoutDay();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WorkoutSessionScreen(workoutDay: workoutDay),
               ),
             );
           };
