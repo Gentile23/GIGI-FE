@@ -84,7 +84,8 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
     final isSpeaking =
         widget.controller.phase == VoiceCoachingPhase.explaining ||
         widget.controller.phase == VoiceCoachingPhase.activated ||
-        widget.controller.phase == VoiceCoachingPhase.postSet;
+        widget.controller.phase == VoiceCoachingPhase.postSet ||
+        widget.controller.isGuidedExecutionPlaying;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -298,7 +299,6 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Volume slider
           ListenableBuilder(
             listenable: controller,
             builder: (context, _) {
@@ -340,6 +340,25 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
               );
             },
           ),
+          const SizedBox(height: 16),
+
+          // Minimal mode toggle
+          ListenableBuilder(
+            listenable: controller,
+            builder: (context, _) {
+              return _buildToggleRow(
+                icon: controller.minimalMode
+                    ? Icons.notifications_off_outlined
+                    : Icons.notifications_active_outlined,
+                title: 'Modalità Discreta',
+                subtitle: controller.minimalMode
+                    ? 'Feedback solo su prima e ultima serie'
+                    : 'Feedback su ogni serie completata',
+                isActive: controller.minimalMode,
+                onTap: () => controller.setMinimalMode(!controller.minimalMode),
+              );
+            },
+          ),
           const SizedBox(height: 24),
 
           // Info
@@ -359,7 +378,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Gigi ti guiderà durante ogni esercizio con istruzioni personalizzate.',
+                    'Usa "Esegui con Gigi" su ogni esercizio per una guida passo-passo di 2 ripetizioni perfette con posizionamento e consigli.',
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: CleanTheme.textSecondary,

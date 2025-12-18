@@ -28,6 +28,16 @@ enum UserLevel {
   advanced, // Countdown only + celebrations
 }
 
+/// User interaction events for Gigi to respond to
+enum GigiInteractionEvent {
+  setCheckboxToggled, // User completed a set
+  exerciseCardOpened, // User tapped on an exercise
+  restTimerSkipped, // User skipped rest timer
+  exerciseCompleted, // All sets of an exercise done
+  workoutStarted, // Workout session began
+  workoutCompleted, // Entire workout finished
+}
+
 /// Controller for synchronized voice coaching with full features:
 /// - User personalization (name, level)
 /// - Volume control
@@ -42,6 +52,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
   UserLevel _userLevel = UserLevel.beginner;
   bool _isMuted = false;
   double _volume = 1.0;
+  bool _minimalMode = true; // Non-invasive mode by default
+  bool _isGuidedExecutionPlaying = false;
 
   // Exercise context
   String _userName = 'Campione';
@@ -78,6 +90,15 @@ class SynchronizedVoiceController extends ChangeNotifier {
   double get volume => _volume;
   String get userName => _userName;
   UserLevel get userLevel => _userLevel;
+  bool get minimalMode => _minimalMode;
+  bool get isGuidedExecutionPlaying => _isGuidedExecutionPlaying;
+
+  /// Get first name only (never full name)
+  String get firstName {
+    if (_userName.isEmpty) return 'Campione';
+    final parts = _userName.trim().split(' ');
+    return parts.first.isNotEmpty ? parts.first : 'Campione';
+  }
 
   SynchronizedVoiceController(this._ttsService);
 
@@ -87,6 +108,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     String? experienceLevel,
     String? goal,
   }) async {
+    // Store full name but always use firstName for greeting
     _userName = userName.isNotEmpty ? userName : 'Campione';
     _userLevel = _parseUserLevel(experienceLevel);
     _userGoal = goal ?? 'general';
@@ -534,6 +556,237 @@ class SynchronizedVoiceController extends ChangeNotifier {
           exerciseName: exerciseName,
           muscleGroups: muscleGroups,
         );
+  }
+
+  // =====================================
+  // "ESEGUI CON GIGI" - GUIDED EXECUTION
+  // =====================================
+
+  /// Speak guided execution for "Esegui con Gigi" button
+  /// Provides step-by-step guide for 2 perfect reps
+  ///
+  /// If [exerciseId] and [voiceCoachingService] are provided, will try to fetch
+  /// AI-generated script from OpenAI API first, then fall back to local script.
+  Future<void> speakGuidedExecution({
+    required String exerciseName,
+    String? exerciseId,
+    List<String>? muscleGroups,
+    dynamic
+    voiceCoachingService, // VoiceCoachingService - optional to avoid tight coupling
+  }) async {
+    if (_isGuidedExecutionPlaying) return; // Prevent double-tap
+
+    _isGuidedExecutionPlaying = true;
+    notifyListeners();
+
+    String? scriptToSpeak;
+
+    // 1. Try API-generated script if exerciseId is provided
+    if (exerciseId != null && voiceCoachingService != null) {
+      try {
+        scriptToSpeak = await voiceCoachingService.getGuidedExecutionScript(
+          exerciseId: exerciseId,
+        );
+        debugPrint('📢 Got AI-generated script from API');
+      } catch (e) {
+        debugPrint('⚠️ API script fetch failed: $e');
+      }
+    }
+
+    // 2. Fallback to local script database
+    if (scriptToSpeak == null) {
+      _currentScript = getScriptForExercise(exerciseName);
+      if (_currentScript == null && muscleGroups != null) {
+        _currentScript = createGenericScript(
+          exerciseName: exerciseName,
+          muscleGroups: muscleGroups,
+        );
+      }
+
+      if (_currentScript != null) {
+        scriptToSpeak = _currentScript!.getGuidedExecutionScript(firstName);
+      }
+    }
+
+    // 3. Final fallback generic guide
+    if (scriptToSpeak == null) {
+      scriptToSpeak =
+          '''
+$firstName, eseguiamo insieme 2 ripetizioni perfette di $exerciseName.
+
+Posizionati correttamente, mantieni una postura stabile.
+
+PRIMA RIPETIZIONE:
+Esegui il movimento lentamente, concentrandoti sulla tecnica.
+Inspira nella fase di allungamento, espira nello sforzo.
+
+... pausa ...
+
+SECONDA RIPETIZIONE:
+Stessa tecnica perfetta. Controllo totale del movimento.
+
+Perfetto $firstName! Ora sei pronto per le tue serie!
+''';
+    }
+
+    // Attempt to use high-quality TTS (ElevenLabs) via API
+    bool playedWithHighQuality = false;
+
+    if (voiceCoachingService != null && scriptToSpeak != null) {
+      try {
+        debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
+        // Call backend to generate TTS audio
+        final audioUrl = await voiceCoachingService.generateTTS(scriptToSpeak);
+
+        if (audioUrl != null) {
+          debugPrint('🎧 Playing high-quality audio: $audioUrl');
+          await _ttsService.speakUrl(audioUrl);
+          playedWithHighQuality = true;
+
+          // Wait for audio to finish (approximate or use completion handler logic in service)
+          // Since speakUrl is fire-and-forget in terms of await, we rely on the UI/State in service
+        }
+      } catch (e) {
+        debugPrint(
+          '⚠️ High-quality TTS failed: $e. Falling back to local TTS.',
+        );
+      }
+    }
+
+    // Fallback to local TTS if high-quality failed
+    if (!playedWithHighQuality && scriptToSpeak != null) {
+      debugPrint('🗣️ using local TTS');
+      await _speak(scriptToSpeak);
+    }
+
+    // Wait for speaking to finish not strictly needed here as _speak waits,
+    // but for URL playback we might want to track state.
+    // _isGuidedExecutionPlaying will be reset when speech completes via listeners in UI or manually here?
+    // Actually _speak waits, but speakUrl does not necessarily wait for completion in this implementation.
+    // However, GigiTTSService handles isSpeaking state.
+
+    // If we used local TTS, we awaited. If we used URL, we didn't await the full duration.
+    // Ideally speakUrl should return a Future that completes when audio finishes.
+    // For now, let's trust the service state management.
+
+    // Note: The UI won't perform "cleanup" of isGuidedExecutionPlaying until user interaction or we set it false.
+    // But wait, the original code sets it false immediately after _speak!
+    // Original: await _speak(...); _isGuidedExecutionPlaying = false; notifyListeners();
+
+    // We need to keep it true while playing.
+    // For local TTS, _speak waits.
+    // For URL TTS, we need to monitor completion.
+
+    if (playedWithHighQuality) {
+      // Wait while speaking
+      while (_ttsService.isSpeaking) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+
+    _isGuidedExecutionPlaying = false;
+    notifyListeners();
+  }
+
+  /// Stop guided execution if playing
+  void stopGuidedExecution() {
+    if (_isGuidedExecutionPlaying) {
+      _ttsService.stop();
+      _isGuidedExecutionPlaying = false;
+      notifyListeners();
+    }
+  }
+
+  // =====================================
+  // NON-INVASIVE MODE
+  // =====================================
+
+  /// Set minimal mode (non-invasive)
+  void setMinimalMode(bool enabled) {
+    _minimalMode = enabled;
+    notifyListeners();
+  }
+
+  /// Speak a brief phrase (only if not muted and voice coaching active)
+  /// Used for quick feedback on user interactions
+  Future<void> speakBrief(String text) async {
+    if (!_isEnabled || _isMuted || _isGuidedExecutionPlaying) return;
+    await _ttsService.speak(text);
+  }
+
+  /// Greet user when activating voice coaching
+  /// Uses first name only, never full name
+  Future<void> greetUser() async {
+    if (_isMuted) return;
+
+    // Build a short, friendly greeting using first name
+    final greeting = phrases.getTimeBasedGreeting(firstName);
+    await _ttsService.speak(greeting);
+  }
+
+  // =====================================
+  // INTERACTION TRACKING
+  // =====================================
+
+  /// Handle user interaction events for synchronized voice feedback
+  /// Respects minimal mode setting
+  Future<void> onUserInteraction(
+    GigiInteractionEvent event, {
+    int? setNumber,
+    int? totalSets,
+    String? exerciseName,
+  }) async {
+    if (!_isEnabled || _isMuted || _isGuidedExecutionPlaying) return;
+
+    switch (event) {
+      case GigiInteractionEvent.setCheckboxToggled:
+        if (!_minimalMode) {
+          // In full mode, celebrate every set
+          if (setNumber != null && totalSets != null) {
+            final celebration = phrases.getSetCelebration(
+              userName: firstName,
+              currentSet: setNumber,
+              totalSets: totalSets,
+            );
+            await speakBrief(celebration);
+          }
+        } else {
+          // In minimal mode, only celebrate first and last set
+          if (setNumber == 1) {
+            await speakBrief('Prima serie fatta!');
+          } else if (setNumber == totalSets) {
+            await speakBrief('Ottimo! Esercizio completato!');
+          }
+          // Middle sets: silence
+        }
+        break;
+
+      case GigiInteractionEvent.exerciseCardOpened:
+        // Brief acknowledgment only in full mode
+        if (!_minimalMode && exerciseName != null) {
+          await speakBrief('$exerciseName. Pronto quando vuoi!');
+        }
+        break;
+
+      case GigiInteractionEvent.restTimerSkipped:
+        if (!_minimalMode) {
+          await speakBrief('Ok, niente pausa! Forza!');
+        }
+        break;
+
+      case GigiInteractionEvent.exerciseCompleted:
+        // Always celebrate exercise completion
+        await speakBrief('Grande lavoro!');
+        break;
+
+      case GigiInteractionEvent.workoutStarted:
+        // Greeting when workout starts (already handled by greetUser)
+        break;
+
+      case GigiInteractionEvent.workoutCompleted:
+        await _speak(phrases.getWorkoutCompletePhrase(firstName));
+        break;
+    }
   }
 
   @override

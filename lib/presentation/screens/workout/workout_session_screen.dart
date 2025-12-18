@@ -13,13 +13,13 @@ import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
-import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../widgets/voice_coaching/voice_coaching_toggle.dart';
-import '../../../data/models/exercise_intro_model.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
 import '../../../providers/auth_provider.dart';
 import 'dart:async';
+import '../../../data/services/voice_coaching_service.dart';
+import '../../../data/services/api_client.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -43,10 +43,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   // Voice Coaching TTS
   late GigiTTSService _gigiTTS;
-  CoachingMode _selectedCoachingMode = CoachingMode.voice;
 
   // Voice Coaching 2.0 Controller
   late SynchronizedVoiceController _voiceController;
+
+  // Voice Coaching API Service
+  late VoiceCoachingService _voiceCoachingService;
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     // Initialize Voice Coaching 2.0 Controller
     _voiceController = SynchronizedVoiceController(_gigiTTS);
+    _voiceCoachingService = VoiceCoachingService(ApiClient());
     _initializeVoiceCoaching();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1111,55 +1114,60 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => detailScreen));
   }
 
-  /// Start voice coaching for exercise - shows mode selection then plays TTS
-  void _startVoiceCoaching(WorkoutExercise exercise) {
-    ModeSelectionSheet.show(
-      context,
-      exerciseName: exercise.exercise.name,
-      currentMode: _selectedCoachingMode,
-      onModeSelected: (mode, remember) {
-        setState(() {
-          _selectedCoachingMode = mode;
-        });
-
-        // Play intro with TTS
-        _playExerciseIntro(exercise, mode);
-      },
-    );
-  }
-
-  /// Play exercise introduction with TTS
-  Future<void> _playExerciseIntro(
-    WorkoutExercise exercise,
-    CoachingMode mode,
-  ) async {
-    final exerciseName = exercise.exercise.name;
-    final sets = exercise.sets;
-    final reps = exercise.reps;
-
-    if (mode == CoachingMode.voice) {
-      // Full voice mode: detailed intro
-      await _gigiTTS.speak(
-        'Ottimo! Iniziamo con $exerciseName. '
-        'Faremo $sets serie da $reps ripetizioni. '
-        'Ricorda di mantenere la forma corretta. Pronti? Via!',
-      );
-    } else {
-      // Music mode: minimal cue
-      await _gigiTTS.speak('$exerciseName. $sets serie, $reps reps. Via!');
+  /// Start guided execution with Gigi - "Esegui con Gigi" button
+  /// Plays a step-by-step guide for 2 perfect reps
+  Future<void> _startGuidedExecution(WorkoutExercise exercise) async {
+    // Check if already playing
+    if (_voiceController.isGuidedExecutionPlaying) {
+      // Stop if already playing
+      _voiceController.stopGuidedExecution();
+      return;
     }
 
-    // Show confirmation
+    // Show snackbar that Gigi is starting
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            mode == CoachingMode.voice
-                ? '🎤 Voice Mode attivo - Gigi ti guida!'
-                : '🎵 Music Mode attivo - Buon allenamento!',
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '🎤 Gigi ti guida per ${exercise.exercise.name}...',
+                ),
+              ),
+            ],
           ),
-          backgroundColor: CleanTheme.primaryColor,
-          duration: const Duration(seconds: 2),
+          backgroundColor: CleanTheme.accentBlue,
+          duration: const Duration(seconds: 60),
+        ),
+      );
+    }
+
+    // Start guided execution (tries API first, then local fallback)
+    await _voiceController.speakGuidedExecution(
+      exerciseName: exercise.exercise.name,
+      exerciseId: exercise.exercise.id,
+      muscleGroups: exercise.exercise.muscleGroups,
+      voiceCoachingService: _voiceCoachingService,
+    );
+
+    // Clear snackbar when done
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Ora tocca a te! Inizia le tue serie.'),
+          backgroundColor: CleanTheme.accentGreen,
+          duration: Duration(seconds: 2),
         ),
       );
     }
@@ -1478,10 +1486,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   setState(() {
                     if (allSetsCompleted) {
                       _completedExercises.add(exercise.exercise.id);
+                      // Trigger voice feedback for exercise completion
+                      _voiceController.onUserInteraction(
+                        GigiInteractionEvent.exerciseCompleted,
+                        exerciseName: exercise.exercise.name,
+                      );
                     } else {
                       _completedExercises.remove(exercise.exercise.id);
                     }
                   });
+                },
+                onSetCompleted: (setData) {
+                  // Sync voice feedback with set completion
+                  _voiceController.onUserInteraction(
+                    GigiInteractionEvent.setCheckboxToggled,
+                    setNumber: setData.setNumber,
+                    totalSets: exercise.sets,
+                    exerciseName: exercise.exercise.name,
+                  );
+                },
+                onRestTimerSkipped: () {
+                  // Sync voice feedback with rest timer skip
+                  _voiceController.onUserInteraction(
+                    GigiInteractionEvent.restTimerSkipped,
+                  );
                 },
               ),
 
@@ -1528,10 +1556,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildQuickActionButton(
-                        icon: Icons.mic,
-                        label: 'Gigi',
+                        icon: Icons.record_voice_over,
+                        label: 'Esegui con Gigi',
                         color: CleanTheme.accentBlue,
-                        onTap: () => _startVoiceCoaching(exercise),
+                        onTap: () => _startGuidedExecution(exercise),
                       ),
                     ),
                   ],
@@ -1647,7 +1675,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                 // Voice coaching: announce workout complete
                 if (_voiceController.isEnabled) {
-                  _voiceController.speakWorkoutComplete();
+                  _voiceController.onUserInteraction(
+                    GigiInteractionEvent.workoutCompleted,
+                  );
                 }
 
                 if (!mounted) return;

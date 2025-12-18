@@ -279,8 +279,18 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.logout();
-    await GoogleSignIn.instance.signOut();
+    try {
+      await _authService.logout();
+    } catch (e) {
+      debugPrint('Error during auth service logout: $e');
+    }
+
+    try {
+      await GoogleSignIn.instance.signOut();
+    } catch (e) {
+      debugPrint('Error during Google sign out: $e');
+    }
+
     _user = null;
     notifyListeners();
   }

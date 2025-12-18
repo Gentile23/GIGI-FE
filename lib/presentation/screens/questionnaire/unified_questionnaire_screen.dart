@@ -1032,9 +1032,10 @@ class _UnifiedQuestionnaireScreenState
       ];
     }
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -1052,95 +1053,94 @@ class _UnifiedQuestionnaireScreenState
             ),
           ),
           const SizedBox(height: 32),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: (_selectedLocation == TrainingLocation.gym)
-                    ? 2
-                    : 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: (_selectedLocation == TrainingLocation.gym)
-                    ? 0.75
-                    : 0.85,
-              ),
-              itemCount: equipmentOptions.length,
-              itemBuilder: (context, index) {
-                final item = equipmentOptions[index];
-                final isSelected = _selectedEquipment.contains(item.$1);
-                return CleanCard(
-                  isSelected: isSelected,
-                  padding: const EdgeInsets.all(16),
-                  onTap: () {
-                    setState(() {
-                      if (isSelected) {
-                        _selectedEquipment.remove(item.$1);
-                      } else {
-                        _selectedEquipment.add(item.$1);
-                      }
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isSelected
-                              ? CleanTheme.primaryColor
-                              : CleanTheme.surfaceColor,
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.transparent
-                                : CleanTheme.borderSecondary,
-                          ),
-                        ),
-                        child: Icon(
-                          item.$3,
-                          size: 32,
-                          color: isSelected
-                              ? CleanTheme.surfaceColor
-                              : CleanTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        item.$2,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: isSelected
-                                  ? CleanTheme.textPrimary
-                                  : CleanTheme.textPrimary,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.$4,
-                        textAlign: TextAlign.center,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: CleanTheme.textSecondary,
-                          height: 1.3,
-                        ),
-                      ),
-                      if (isSelected) ...[
-                        const SizedBox(height: 12),
-                        const Icon(
-                          Icons.check_circle,
-                          color: CleanTheme.primaryColor,
-                          size: 20,
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              },
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: (_selectedLocation == TrainingLocation.gym)
+                  ? 2
+                  : 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: (_selectedLocation == TrainingLocation.gym)
+                  ? 0.90
+                  : 1.0,
             ),
+            itemCount: equipmentOptions.length,
+            itemBuilder: (context, index) {
+              final item = equipmentOptions[index];
+              final isSelected = _selectedEquipment.contains(item.$1);
+              return CleanCard(
+                isSelected: isSelected,
+                padding: const EdgeInsets.all(16),
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedEquipment.remove(item.$1);
+                    } else {
+                      _selectedEquipment.add(item.$1);
+                    }
+                  });
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.surfaceColor,
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : CleanTheme.borderSecondary,
+                        ),
+                      ),
+                      child: Icon(
+                        item.$3,
+                        size: 32,
+                        color: isSelected
+                            ? CleanTheme.surfaceColor
+                            : CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      item.$2,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? CleanTheme.textPrimary
+                            : CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.$4,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textSecondary,
+                        height: 1.3,
+                      ),
+                    ),
+                    if (isSelected) ...[
+                      const SizedBox(height: 12),
+                      const Icon(
+                        Icons.check_circle,
+                        color: CleanTheme.primaryColor,
+                        size: 20,
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
           ),
           const SizedBox(height: 24),
           SizedBox(

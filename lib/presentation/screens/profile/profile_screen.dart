@@ -730,7 +730,7 @@ class ProfileScreen extends StatelessWidget {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
@@ -743,7 +743,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Annulla',
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
@@ -751,31 +751,46 @@ class ProfileScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(dialogContext); // Close confirmation dialog
+
+              // Capture navigator before async gap
+              final navigator = Navigator.of(context);
 
               // Show loading indicator
               showDialog(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => const Center(
+                builder: (loadingContext) => const Center(
                   child: CircularProgressIndicator(
                     color: CleanTheme.primaryColor,
                   ),
                 ),
               );
 
-              // Perform logout
-              final authProvider = Provider.of<AuthProvider>(
-                context,
-                listen: false,
-              );
-              await authProvider.logout();
-
-              // Navigate to auth screen
-              if (context.mounted) {
-                Navigator.of(
+              try {
+                // Perform logout
+                final authProvider = Provider.of<AuthProvider>(
                   context,
-                ).pushNamedAndRemoveUntil('/auth', (route) => false);
+                  listen: false,
+                );
+                await authProvider.logout();
+
+                // Close loading dialog and navigate to auth
+                if (context.mounted) {
+                  navigator.pop(); // Close loading dialog
+                  navigator.pushNamedAndRemoveUntil('/auth', (route) => false);
+                }
+              } catch (e) {
+                // Close loading dialog on error
+                if (context.mounted) {
+                  navigator.pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Errore durante il logout: $e'),
+                      backgroundColor: CleanTheme.accentRed,
+                    ),
+                  );
+                }
               }
             },
             child: Text(

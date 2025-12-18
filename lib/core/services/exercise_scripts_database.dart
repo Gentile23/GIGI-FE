@@ -46,6 +46,42 @@ class ExerciseCoachingScript {
     if (duringSetCues.isEmpty) return '';
     return duringSetCues[Random().nextInt(duringSetCues.length)];
   }
+
+  /// Get guided execution script for "Esegui con Gigi" feature
+  /// This provides a step-by-step guide for 2 demo reps
+  String getGuidedExecutionScript(String userName) {
+    return '''
+$userName, eseguiamo insieme 2 ripetizioni perfette di $exerciseName.
+
+POSIZIONE DI PARTENZA:
+$positionSetup.
+
+PRIMA RIPETIZIONE - segui il mio ritmo:
+$movementDescription.
+$breathingCue.
+
+... pausa ...
+
+ERRORI COMUNI DA EVITARE:
+Non usare lo slancio.
+Mantieni sempre il controllo del movimento.
+Evita di affrettarti.
+
+SECONDA RIPETIZIONE - stessa tecnica perfetta:
+$visualizationCue.
+$movementDescription.
+
+... pausa ...
+
+Perfetto $userName! Ora sei pronto per le tue serie. 
+Ricorda: qualità prima di quantità!
+''';
+  }
+
+  /// Get a brief tip for the exercise
+  String getBriefTip() {
+    return visualizationCue;
+  }
 }
 
 // =====================================

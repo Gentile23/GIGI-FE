@@ -36,12 +36,16 @@ class SetLoggingWidget extends StatefulWidget {
   /// Called when a single set is checked - for voice coaching sync
   final Function(SetCompletionData)? onSetCompleted;
 
+  /// Called when rest timer is skipped - for voice coaching sync
+  final VoidCallback? onRestTimerSkipped;
+
   const SetLoggingWidget({
     super.key,
     required this.exercise,
     this.exerciseLog,
     required this.onCompletionChanged,
     this.onSetCompleted,
+    this.onRestTimerSkipped,
   });
 
   @override
@@ -201,6 +205,12 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       _isRestTimerActive = false;
       _restSecondsRemaining = 0;
     });
+  }
+
+  void _skipRestTimer() {
+    _stopRestTimer();
+    // Notify voice coaching that rest was skipped
+    widget.onRestTimerSkipped?.call();
   }
 
   /// Safely format weight value that may come as String, double, int, or null from API
@@ -425,7 +435,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: _stopRestTimer,
+            onPressed: _skipRestTimer,
             child: Text(
               'Salta',
               style: GoogleFonts.inter(
