@@ -221,25 +221,14 @@ class SynchronizedVoiceController extends ChangeNotifier {
     final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
     await _speak(greeting);
 
-    // Step 1: Play instant intro (short, pre-cachable phrase)
-    const introPhrase = 'Ti spiego questo esercizio... Preparati...';
-
-    // Step 2: Start generating the real audio in background
+    // Step 1: Start generating the real audio in background (if needed)
     String? generatedScript;
     if (_currentScript != null) {
       generatedScript = _currentScript!.getGuidedExecutionScript(_userName);
     }
 
-    // Play intro first (this is short and feels instant)
-    await _speak(introPhrase);
-
-    // Step 3: Wait a bit for user to prepare, then play the real explanation
-    await Future.delayed(const Duration(seconds: 3));
-
-    // Step 4: Play the generated exercise explanation
-    if (generatedScript != null && generatedScript.isNotEmpty) {
-      await _speak(generatedScript);
-    }
+    // Explanation is NOT played automatically anymore.
+    // User must click "Esegui con Gigi" to hear the explanation.
   }
 
   /// Build goal-based personalized greeting using new phrases database
@@ -627,9 +616,12 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _isGuidedExecutionPlaying = true;
     notifyListeners();
 
+    _isGuidedExecutionPlaying = true;
+    notifyListeners();
+
     // 0. Immediate feedback to mask loading time
     await _speak(
-      'Pronto ad imparare ad eseguire questo esercizio? Concentrati.',
+      'Ti spiego questo esercizio con la tecnica corretta... Preparati...',
     );
 
     String? scriptToSpeak;

@@ -1626,7 +1626,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Expanded(
                       child: _buildQuickActionButton(
                         icon: Icons.record_voice_over,
-                        label: 'Gigi',
+                        label: 'Esegui con Gigi',
                         color: CleanTheme.accentBlue,
                         onTap: () => _startGuidedExecution(exercise),
                       ),
