@@ -6,6 +6,7 @@ import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
 import 'presentation/screens/auth/landing_screen.dart';
+import 'presentation/screens/onboarding/welcome_flow_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/progress/progress_dashboard_screen.dart';
@@ -135,16 +136,13 @@ class _AppNavigatorState extends State<AppNavigator> {
         // Check if user has completed their profile
         final user = authProvider.user;
         if (user != null) {
-          // Check if essential profile fields are filled
-          final hasCompletedProfile =
-              user.goal != null &&
-              user.experienceLevel != null &&
-              user.weeklyFrequency != null &&
-              user.trainingLocation != null;
+          // Check if user has completed minimal profile (goal + experience)
+          final hasMinimalProfile =
+              user.goal != null && user.experienceLevel != null;
 
-          if (!hasCompletedProfile) {
-            // Redirect to questionnaire if profile is incomplete
-            return const UnifiedQuestionnaireScreen();
+          if (!hasMinimalProfile) {
+            // Show simplified welcome flow for new users
+            return const WelcomeFlowScreen();
           }
         }
 

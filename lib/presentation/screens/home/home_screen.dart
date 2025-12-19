@@ -17,6 +17,8 @@ import '../workout/trial_workout_generation_screen.dart';
 import '../workout/preferences_review_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../../data/models/user_model.dart';
+import '../../widgets/progress/weekly_progress_ring.dart';
+import '../../widgets/coaching/gigi_coaching_bubble.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -115,6 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
             final user = authProvider.user;
             final currentPlan = workoutProvider.currentPlan;
 
+            // Determine if user is "new" (no workouts completed)
+            final bool isNewUser =
+                currentPlan == null ||
+                currentPlan.workouts.isEmpty ||
+                (currentPlan.status != 'completed' &&
+                    currentPlan.status != 'active');
+
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,98 +181,94 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const SizedBox(height: 20),
 
-                  // ═══════════════════════════════════════════
-                  // SEARCH BAR
-                  // ═══════════════════════════════════════════
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: CleanSearchBar(
-                      hintText: 'Cerca esercizi...',
-                      showFilter: true,
+                  // Search Bar - Hidden for new users
+                  if (!isNewUser) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: CleanSearchBar(
+                        hintText: 'Cerca esercizi...',
+                        showFilter: true,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                  ],
 
-                  const SizedBox(height: 16),
+                  // Live Activity Banner - Hidden for new users
+                  if (!isNewUser) ...[
+                    const LiveActivityBanner(),
+                    const SizedBox(height: 8),
+                  ],
 
-                  // ═══════════════════════════════════════════
-                  // LIVE ACTIVITY BANNER - Social Proof
-                  // ═══════════════════════════════════════════
-                  const LiveActivityBanner(),
-
-                  const SizedBox(height: 8),
-
-                  // ═══════════════════════════════════════════
-                  // STREAK DISPLAY - Compact
-                  // ═══════════════════════════════════════════
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        StreakDisplayWidget(
-                          streakData: StreakData(
-                            currentStreak: 7,
-                            longestStreak: 14,
-                            xpMultiplier: StreakData.calculateMultiplier(7),
-                          ),
-                          compact: true,
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.accentGreen.withValues(
-                              alpha: 0.1,
+                  // Streak/XP Display - Hidden for new users
+                  if (!isNewUser) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          StreakDisplayWidget(
+                            streakData: StreakData(
+                              currentStreak: 7,
+                              longestStreak: 14,
+                              xpMultiplier: StreakData.calculateMultiplier(7),
                             ),
-                            borderRadius: BorderRadius.circular(20),
+                            compact: true,
                           ),
-                          child: Row(
-                            children: [
-                              const Text('⭐', style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 6),
-                              Text(
-                                '2,450 XP',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: CleanTheme.accentGreen,
-                                ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentGreen.withValues(
+                                alpha: 0.1,
                               ),
-                            ],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                const Text('⭐', style: TextStyle(fontSize: 16)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '2,450 XP',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: CleanTheme.accentGreen,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 20),
+                  ],
 
-                  const SizedBox(height: 20),
-
-                  // ═══════════════════════════════════════════
-                  // SECTION: Il Tuo Allenamento
-                  // ═══════════════════════════════════════════
+                  // Section Header - Simplified for new users
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: CleanSectionHeader(
-                      title: 'Il tuo allenamento',
-                      actionText: 'Vedi tutti',
-                      onAction: () {},
+                      title: isNewUser ? 'Inizia qui' : 'Il tuo allenamento',
+                      actionText: isNewUser ? null : 'Vedi tutti',
+                      onAction: isNewUser ? null : () {},
                     ),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Category Chips
-                  HorizontalChips(
-                    chips: _categories,
-                    selectedIndex: _selectedCategoryIndex,
-                    onSelected: (index) {
-                      setState(() => _selectedCategoryIndex = index);
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
+                  // Category Chips - Hidden for new users
+                  if (!isNewUser) ...[
+                    HorizontalChips(
+                      chips: _categories,
+                      selectedIndex: _selectedCategoryIndex,
+                      onSelected: (index) {
+                        setState(() => _selectedCategoryIndex = index);
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   // ═══════════════════════════════════════════
                   // FEATURED WORKOUT CARD
@@ -276,6 +281,62 @@ class _HomeScreenState extends State<HomeScreen> {
                       currentPlan,
                     ),
                   ),
+
+                  // Weekly Progress Ring - For returning users
+                  if (!isNewUser && currentPlan != null) ...[
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          WeeklyProgressRing(
+                            completedWorkouts:
+                                0, // TODO: Track completed workouts
+                            totalWorkouts: currentPlan.workouts.length,
+                            compact: true,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Progressi Settimanali',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: CleanTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Completa gli allenamenti per raggiungere il tuo obiettivo',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: CleanTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Gigi Coaching Bubble - For new users
+                  if (isNewUser) ...[
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: GigiCoachingBubble(
+                        message:
+                            'Inizia con il Trial Workout per calibrare il tuo livello. Ci vogliono solo 5 minuti!',
+                        actionText: 'INIZIA ORA',
+                        onAction: () => _navigateToTrialWorkout(),
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 28),
 

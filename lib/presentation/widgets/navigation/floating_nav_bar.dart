@@ -44,8 +44,8 @@ class FloatingNavBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOutBack,
                 padding: EdgeInsets.symmetric(
-                  horizontal: isActive ? 20 : 16,
-                  vertical: 14,
+                  horizontal: isActive ? 16 : 14,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: isActive
@@ -53,10 +53,26 @@ class FloatingNavBar extends StatelessWidget {
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: Icon(
-                  isActive ? item.activeIcon : item.icon,
-                  color: Colors.white,
-                  size: 24,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isActive ? item.activeIcon : item.icon,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    if (isActive) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        item.label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             );

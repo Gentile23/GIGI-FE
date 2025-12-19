@@ -7,6 +7,7 @@ import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
 import '../progress/body_measurements_screen.dart';
 import '../progress/progress_photos_screen.dart';
+import '../workout/trial_workout_generation_screen.dart';
 
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -519,18 +520,11 @@ class _UnifiedQuestionnaireScreenState
               builder: (context) => BodyMeasurementsScreen(
                 isOnboarding: true,
                 onComplete: () {
-                  // After measurements, go to photos
+                  // After measurements, go directly to trial workout
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (context) => ProgressPhotosScreen(
-                        isOnboarding: true,
-                        onComplete: () {
-                          // After photos, go to main screen
-                          Navigator.of(
-                            context,
-                          ).pushNamedAndRemoveUntil('/main', (route) => false);
-                        },
-                      ),
+                      builder: (context) =>
+                          const TrialWorkoutGenerationScreen(),
                     ),
                   );
                 },

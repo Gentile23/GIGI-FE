@@ -142,6 +142,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
 
     try {
+      // Skip session registration for trial workouts (they have fake IDs)
+      if (widget.workoutDay.id.startsWith('trial_')) {
+        debugPrint('DEBUG: Skipping session registration for trial workout');
+        return;
+      }
+
       await provider.startWorkout(workoutDayId: widget.workoutDay.id);
 
       if (provider.currentWorkoutLog != null) {
