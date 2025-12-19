@@ -189,12 +189,12 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  // Legacy speakUrl method for compatibility
+  // speakUrl method - now waits for audio completion
   Future<void> speakUrl(String url) async {
     if (!_isInitialized) await initialize();
     if (url.isEmpty) return;
     await stop();
-    await _playUrl(url);
+    await _playUrlAndWait(url);
   }
 
   // Legacy method signature compatibility

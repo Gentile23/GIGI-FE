@@ -225,44 +225,33 @@ class SynchronizedVoiceController extends ChangeNotifier {
     // User must click "Esegui con Gigi" to hear the explanation.
   }
 
-  /// Build goal-based personalized greeting using new phrases database
+  /// Build simple greeting for activation (just hello + motivation)
   String _buildPersonalizedGreeting(String exerciseName, int sets, int reps) {
     final buffer = StringBuffer();
 
-    // Smart greeting based on time of day
-    buffer.write(phrases.getTimeBasedGreeting(_userName));
+    // Smart greeting based on time of day (uses firstName internally)
+    buffer.write(phrases.getTimeBasedGreeting(firstName));
     buffer.write(' ');
 
     // Streak acknowledgment (if applicable)
-    final streakPhrase = phrases.getStreakPhrase(_userName, _streakDays);
+    final streakPhrase = phrases.getStreakPhrase(firstName, _streakDays);
     if (streakPhrase != null) {
       buffer.write(streakPhrase);
       buffer.write(' ');
     }
 
-    // Removed: "Oggi alleniamo [muscolo]" as per user request
-
     // Goal-based motivation from database
     buffer.write(phrases.getGoalMotivation(_userGoal));
     buffer.write(' ');
 
-    // Mood-based encouragement (if set)
-    if (_userMood != 'neutral') {
-      final moodPhrase = phrases.getMoodEncouragement(_userName, _userMood);
-      if (moodPhrase.isNotEmpty) {
-        buffer.write(moodPhrase);
-        buffer.write(' ');
-      }
-    }
-
-    // Call to action
+    // Call to action depends on session state
     if (_isSessionStarted) {
-      buffer.write(
-        'Puoi cliccare "Info" per i dettagli dell\'esercizio o "Gigi" per essere aiutato nell\'esecuzione passo-passo.',
-      );
+      // Already in session - no need to explain buttons here
+      buffer.write('Sono qui per aiutarti!');
     } else {
+      // Not started yet - tell them to start
       buffer.write(
-        'Premi "Inizia sessione" quando vuoi cominciare, sarò al tuo fianco!',
+        'Premi \"Inizia sessione\" quando vuoi cominciare, sarò al tuo fianco!',
       );
     }
 
@@ -283,9 +272,10 @@ class SynchronizedVoiceController extends ChangeNotifier {
     if (!_isEnabled || _isMuted) return;
 
     final buffer = StringBuffer();
-    buffer.write('Ottimo ${firstName}, sessione iniziata! ');
+    buffer.write('Ottimo $firstName, sessione iniziata! ');
+    buffer.write('Clicca \"Info\" per vedere i dettagli di ogni esercizio... ');
     buffer.write(
-      'Puoi cliccare "Info" su ogni esercizio per i dettagli, o "Gigi" per essere aiutato nell\'esecuzione passo-passo. ',
+      'oppure \"Esegui con Gigi\" per una guida passo-passo all\'esecuzione. ',
     );
     buffer.write('Diamoci dentro!');
 
@@ -663,19 +653,29 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     // Attempt to use high-quality TTS (ElevenLabs) via API
     bool playedWithHighQuality = false;
 
-    if (voiceCoachingService != null) {
+    if (voiceCoachingService != null && scriptToSpeak != null) {
       try {
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
+        debugPrint(
+          '📝 Script to speak: ${scriptToSpeak.substring(0, scriptToSpeak.length.clamp(0, 100))}...',
+        );
+
         // Call backend to generate TTS audio
         final audioUrl = await voiceCoachingService.generateTTS(scriptToSpeak);
 
-        if (audioUrl != null) {
+        if (audioUrl != null && audioUrl.isNotEmpty) {
           debugPrint('🎧 Playing high-quality audio: $audioUrl');
+          // Use speak() method which waits for completion (via _playUrlAndWait internally)
           await _ttsService.speakUrl(audioUrl);
           playedWithHighQuality = true;
 
-          // Wait for audio to finish (approximate or use completion handler logic in service)
-          // Since speakUrl is fire-and-forget in terms of await, we rely on the UI/State in service
+          // Wait for audio to actually finish
+          while (_ttsService.isSpeaking) {
+            await Future.delayed(const Duration(milliseconds: 200));
+          }
+          debugPrint('✅ High-quality audio finished');
+        } else {
+          debugPrint('⚠️ audioUrl is null or empty');
         }
       } catch (e) {
         debugPrint(
@@ -685,7 +685,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     }
 
     // Fallback to local TTS if high-quality failed
-    if (!playedWithHighQuality) {
+    if (!playedWithHighQuality && scriptToSpeak != null) {
       debugPrint('🗣️ using local TTS');
       await _speak(scriptToSpeak);
     }

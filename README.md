@@ -1,501 +1,771 @@
-# GIGI 🏋️‍♂️
+# 🏋️ GIGI - AI Personal Trainer
 
-> **Your AI-Powered Fitness Coach** – A premium Flutter application that delivers personalized workout plans, real-time AI voice coaching, form analysis, gamification, and a vibrant social experience.
+<p align="center">
+  <img src="assets/images/gigi_new_logo.png" alt="GIGI Logo" width="150"/>
+</p>
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.38+-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart)](https://dart.dev)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
----
-
-## 📚 Table of Contents
-
-1. [Project Overview](#-project-overview)
-2. [Key Features](#-key-features)
-3. [Screen-by-Screen Walkthrough](#-screen-by-screen-walkthrough)
-4. [Architecture & Tech Stack](#-architecture--tech-stack)
-5. [Project Structure](#-project-structure)
-6. [Getting Started](#-getting-started)
-7. [Running & Building](#-running--building)
-8. [Subscription Tiers](#-subscription-tiers)
-9. [AI Features](#-ai-features)
-10. [Testing](#-testing)
-11. [Contributing](#-contributing)
-12. [License & Contact](#-license--contact)
+<p align="center">
+  <strong>Il tuo Personal Trainer AI intelligente, sempre al tuo fianco.</strong><br>
+  Flutter + Laravel + OpenAI + ElevenLabs + Google Gemini
+</p>
 
 ---
 
-## 🎯 Project Overview
+## 📋 Indice
 
-GIGI is a comprehensive **Flutter** mobile/web/desktop fitness application that combines cutting-edge AI technology with gamification to create an engaging, personalized workout experience.
-
-### Core Pillars
-
-- **🤖 AI-Powered Personalization** – Workout generation with OpenAI gpt-5, voice coaching with TTS, form analysis with Gemini 2.0 Flash
-- **🎮 Gamification** – XP system, achievements, streaks, leaderboards, and community challenges
-- **👥 Social Features** – Activity feed, community goals, referral program
-- **📊 Progress Tracking** – Detailed statistics, transformation tracker, workout history
-- **🎨 Premium UI/UX** – Clean design with glassmorphism, smooth animations, and responsive layouts
-
----
-
-## ✨ Key Features
-
-### 🏠 Enhanced Home Screen
-- **Dynamic Hero Card** – Personalized greeting with time-based messages
-- **Quick Actions** – One-tap access to trial workout, AI plan generation, custom workouts, history, and community
-- **Weekly Progress Tracker** – Visual representation of workout consistency
-- **Skeleton Loading** – Premium loading animations for better perceived performance
-
-### 🏋️ Workout System
-- **Trial Workout** – Free assessment workout for new users with voice coaching
-- **AI-Generated Plans** – Personalized workout plans based on user profile, goals, and equipment
-- **Custom Workout Builder** – Create and save your own workout routines
-- **Exercise Library** – Complete database with video demonstrations and muscle group visualization
-- **Set Logging** – Track reps, weight, and rest times for each exercise
-- **Voice Coaching** – Audio guidance during exercises (pre, during, post phases)
-
-### 🎯 Gamification System
-- **XP & Leveling** – Earn experience points for completing workouts
-- **Achievements** – Unlock badges for milestones (streaks, PRs, challenges)
-- **Daily/Weekly Challenges** – Compete with the community for rewards
-- **Leaderboards** – Rankings by XP, workouts completed, and streak length
-- **Celebration Overlays** – Confetti animations for achievements
-
-### 👥 Social Features
-- **Activity Feed** – See what the community is achieving
-- **Community Goals** – Collective milestones (e.g., "10,000 workouts together")
-- **Referral Program** – Invite friends and earn rewards
-- **Kudos System** – Support fellow users with likes and comments
-
-### 📊 Progress & Analytics
-- **Transformation Tracker** – Photo comparisons over time
-- **Workout History** – Complete log of all completed sessions
-- **Statistics Dashboard** – Volume, frequency, and performance metrics
-- **Biometric Integration** – Track weight, body measurements, and more
-
-### 🥗 Nutrition Coach
-- **Daily Calorie Tracking** – Monitor intake vs. goals
-- **Macro Breakdown** – Protein, carbs, and fat tracking
-- **Meal Logging** – Quick and easy food entry
-- **Water Tracking** – Stay hydrated
-
-### 👤 Profile & Settings
-- **User Profile** – Personal info, stats, and achievements
-- **Training Preferences** – Equipment, goals, limitations
-- **Subscription Management** – Upgrade/downgrade plans
-- **Edit Preferences** – Update fitness goals and training style
+1. [Panoramica](#-panoramica)
+2. [Stack Tecnologico](#-stack-tecnologico)
+3. [Architettura](#-architettura)
+4. [Funzionalità Complete](#-funzionalità-complete)
+5. [Frontend (Flutter)](#-frontend-flutter)
+6. [Backend (Laravel)](#-backend-laravel)
+7. [Integrazioni AI](#-integrazioni-ai)
+8. [Setup & Installazione](#-setup--installazione)
+9. [API Reference](#-api-reference)
+10. [Database Schema](#-database-schema)
 
 ---
 
-## 📱 Screen-by-Screen Walkthrough
+## 🎯 Panoramica
 
-### Onboarding Flow
-1. **Onboarding Slides** – 4-slide introduction to app features
-2. **Authentication** – Email/Google/Apple Sign-In via Firebase
-3. **Unified Questionnaire** – Goals, experience level, equipment, schedule
-4. **Trial Workout** – Assessment workout with voice coaching
+**GIGI** è un'applicazione fitness completa che combina intelligenza artificiale avanzata con un'esperienza utente premium. L'app offre:
 
-### Main Application
-
-| Screen | Description |
-|--------|-------------|
-| `EnhancedHomeScreen` | Dashboard with hero card, quick actions, weekly progress |
-| `ProfileScreen` | User info, subscription status, quick navigation to features |
-| `EditProfileScreen` | Edit personal information and preferences |
-| `WorkoutSessionScreen` | Active workout execution with set logging |
-| `TrialWorkoutScreen` | Free trial workout with full voice coaching |
-| `CustomWorkoutListScreen` | Manage custom workout plans |
-| `CreateCustomWorkoutScreen` | Build new workout routines |
-| `ExerciseSearchScreen` | Browse and filter exercise library |
-| `GamificationScreen` | Stats, achievements, and leaderboard tabs |
-| `ChallengesScreen` | Daily, weekly, and community challenges |
-| `LeaderboardScreen` | Rankings by XP, workouts, and streaks |
-| `CommunityGoalsScreen` | Collective milestones and progress |
-| `ActivityFeedScreen` | Social feed with activities, challenges, leaderboard |
-| `NutritionDashboardScreen` | Calorie and macro tracking |
-| `MealLoggingScreen` | Add meals and food items |
-| `TransformationTrackerScreen` | Progress photos comparison |
-| `WorkoutHistoryScreen` | Complete workout log |
-| `PaywallScreen` | Subscription tier selection |
-| `ReferralScreen` | Share and earn rewards |
+- 🤖 **AI Voice Coaching** - Coach vocale in tempo reale con ElevenLabs TTS
+- 📊 **Piani di Allenamento Personalizzati** - Generati con OpenAI GPT-4
+- 🎥 **Analisi della Forma** - Video analysis con Google Gemini Pro Vision
+- 🍎 **Nutrizione AI** - Analisi foto cibo, ricette personalizzate, tracking macros
+- 🏆 **Gamification Avanzata** - Punti, streak, achievement, leaderboard
+- 📈 **Progress Tracking** - Grafici, foto confronto, record personali
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## 🛠 Stack Tecnologico
 
-### Frontend Stack
+### Frontend
+| Tecnologia | Versione | Uso |
+|------------|----------|-----|
+| Flutter | 3.31.0+ | Framework UI cross-platform |
+| Dart | 3.7+ | Linguaggio di programmazione |
+| Provider | 6.x | State management |
+| AudioPlayers | 6.x | Riproduzione audio TTS |
+| Google Fonts | 6.x | Typography (Inter, Outfit) |
 
-| Technology | Purpose |
-|------------|---------|
-| **Flutter 3.38+** | Cross-platform UI framework |
-| **Dart 3.0+** | Programming language |
-| **Provider** | State management |
-| **GoRouter** | Declarative routing |
-| **Material 3** | Design system |
-| **Google Fonts** | Typography (Inter, Outfit, Roboto) |
+### Backend
+| Tecnologia | Versione | Uso |
+|------------|----------|-----|
+| Laravel | 11.x | Framework PHP |
+| PHP | 8.2+ | Linguaggio backend |
+| MySQL | 8.x | Database relazionale |
+| Redis | 7.x | Caching & Queue |
+| Filament | 3.x | Admin Panel |
 
-### Backend Integration
+### AI & Servizi Esterni
+| Servizio | Uso |
+|----------|-----|
+| OpenAI GPT-4o | Generazione workout, nutrition insights |
+| ElevenLabs | Text-to-Speech italiano naturale |
+| Google Gemini Pro | Video analysis per form check |
 
-| Service | Purpose |
-|---------|---------|
-| **Laravel API** | REST API backend |
-| **MySQL 8.0+** | Database |
-| **Firebase Auth** | Authentication |
-| **Firebase Cloud Messaging** | Push notifications |
-| **RevenueCat** | In-app purchases & subscriptions |
+---
 
-### AI Services
+## 🏗 Architettura
 
-| Service | Purpose |
-|---------|---------|
-| **OpenAI gpt-5** | Workout plan generation |
-| **Gemini 2.0 Flash** | Real-time pose detection & form analysis |
-| **OpenAI TTS** | Voice coaching audio generation |
-
-### Key Dependencies
-
-```yaml
-dependencies:
-  # Core
-  flutter: sdk
-  provider: ^6.1.1
-  go_router: ^14.0.0
-  
-  # HTTP & Storage
-  dio: ^5.4.0
-  shared_preferences: ^2.2.2
-  
-  # UI
-  google_fonts: ^6.1.0
-  flutter_svg: ^2.0.9
-  confetti: ^0.7.0
-  fl_chart: ^0.66.0
-  
-  # Media
-  audioplayers: ^5.0.0
-  video_player: ^2.10.1
-  youtube_player_flutter: ^9.0.3
-  camera: ^0.11.3
-  image_picker: ^1.2.1
-  
-  # Payments
-  purchases_flutter: ^8.0.0
-  
-  # Social
-  share_plus: ^7.2.1
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      FLUTTER APP                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │   Screens   │  │   Widgets   │  │      Providers      │  │
+│  │   (24+)     │  │   (50+)     │  │   (6 + Services)    │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘  │
+│         │                │                     │            │
+│  ┌──────┴────────────────┴─────────────────────┴─────────┐  │
+│  │                    Data Services (18)                 │  │
+│  │  auth, workout, nutrition, voice_coaching, etc.       │  │
+│  └───────────────────────────┬───────────────────────────┘  │
+│                              │ HTTPS/REST                   │
+└──────────────────────────────┼──────────────────────────────┘
+                               │
+┌──────────────────────────────┼──────────────────────────────┐
+│                      LARAVEL API                            │
+│                              │                              │
+│  ┌───────────────────────────┴───────────────────────────┐  │
+│  │                 API Controllers (23)                  │  │
+│  │   Auth, Workout, Nutrition, VoiceCoaching, etc.       │  │
+│  └───────────────────────────┬───────────────────────────┘  │
+│                              │                              │
+│  ┌───────────────────────────┴───────────────────────────┐  │
+│  │                   Services (17)                       │  │
+│  │  OpenAI, ElevenLabs, Gemini, Gamification, etc.       │  │
+│  └───────────────────────────┬───────────────────────────┘  │
+│                              │                              │
+│  ┌───────────────────────────┴───────────────────────────┐  │
+│  │              Eloquent Models (41)                     │  │
+│  │  User, WorkoutPlan, Meal, Exercise, etc.              │  │
+│  └───────────────────────────┬───────────────────────────┘  │
+│                              │                              │
+│                        ┌─────┴─────┐                        │
+│                        │   MySQL   │                        │
+│                        └───────────┘                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📂 Project Structure
+## 🌟 Funzionalità Complete
+
+### 1. 🎙️ GIGI Voice Coaching
+
+Il cuore dell'app: un coach AI che parla in italiano naturale durante l'allenamento.
+
+**Funzionalità:**
+- **Saluto personalizzato** basato su ora del giorno, streak, obiettivi
+- **Guida all'esercizio "Esegui con Gigi"** - spiegazione passo-passo
+- **Conteggio serie e ripetizioni** vocale
+- **Incoraggiamenti** durante rest e completamento
+- **Speech rate ottimizzato** per comprensione
+
+**Tecnologie:**
+- `ElevenLabsService.php` - TTS API italiana
+- `OpenAIService.php` - Generazione script coaching
+- `SynchronizedVoiceController.dart` - Orchestrazione frontend
+- `GigiTTSService.dart` - Riproduzione audio
+
+**Parametri TTS:**
+```php
+'voice_settings' => [
+    'stability' => 0.85,
+    'similarity_boost' => 0.60,
+    'speed' => 0.92,
+]
+```
+
+---
+
+### 2. 🏋️ Workout System
+
+Sistema completo di gestione allenamenti.
+
+**Features:**
+- **Piano settimanale AI** - generato da GPT-4 basato su obiettivi
+- **Sessione immersiva** - UI full-screen focus sull'esercizio corrente
+- **Timer rest** con countdown vocale
+- **Logging serie** - peso, reps, RPE
+- **Workout personalizzati** - crea il tuo allenamento
+
+**Schermate:**
+```
+lib/presentation/screens/workout/
+├── workout_screen.dart              # Lista workout
+├── workout_session_screen.dart      # Sessione attiva
+├── immersive_session_screen.dart    # Modalità focus
+├── rest_timer_screen.dart           # Timer riposo
+├── workout_completed_screen.dart    # Riepilogo
+└── custom_workout/                  # Workout custom
+    ├── create_custom_workout_screen.dart
+    ├── exercise_search_screen.dart
+    └── select_day_screen.dart
+```
+
+**API Endpoints:**
+| Endpoint | Metodo | Descrizione |
+|----------|--------|-------------|
+| `/workout-plans/generate` | POST | Genera piano AI |
+| `/workout-plans/current` | GET | Piano attivo |
+| `/workout-logs/start` | POST | Inizia sessione |
+| `/workout-logs/{id}/complete` | POST | Completa sessione |
+| `/set-logs` | POST | Logga serie |
+
+---
+
+### 3. 🍎 Nutrizione AI
+
+Sistema nutrizionale completo con AI.
+
+**Features:**
+- **Calcolo TDEE automatico** basato su allenamenti
+- **Tracking macros** - proteine, carbs, grassi
+- **Log pasti** manuale o foto
+- **Analisi foto cibo AI** - riconosce alimenti da foto
+- **Ricette AI** - "Cosa cucino con questi ingredienti?"
+- **Smart suggestions** - suggerimenti basati su macros rimanenti
+- **Water tracking** - monitoraggio idratazione
+
+**Controller Endpoints (30+):**
+```php
+// Goals
+GET    /nutrition/goals
+POST   /nutrition/goals
+POST   /nutrition/goals/comprehensive
+
+// Meals
+POST   /nutrition/meals
+GET    /nutrition/meals
+PUT    /nutrition/meals/{id}
+DELETE /nutrition/meals/{id}
+
+// Analysis
+GET    /nutrition/daily-summary
+GET    /nutrition/weekly-summary
+GET    /nutrition/insights
+POST   /nutrition/quick-log          # Foto AI analysis
+
+// TDEE
+POST   /nutrition/calculate-tdee
+
+// Recipes
+GET    /nutrition/recipes
+POST   /nutrition/what-to-cook       # AI recipes
+
+// Suggestions
+GET    /nutrition/smart-suggestions
+```
+
+**AI Photo Analysis Flow:**
+```
+User uploads photo → OpenAI Vision analyzes → 
+Returns: food items, estimated macros, portions →
+User confirms/edits → Meal logged
+```
+
+---
+
+### 4. 🎥 Form Analysis (AI Video Check)
+
+Analisi della tecnica tramite video.
+
+**Features:**
+- **Upload video** max 15 secondi
+- **AI analysis** con Google Gemini Pro Vision
+- **Punteggio forma** 0-100
+- **Errori rilevati** con timestamp
+- **Suggerimenti correttivi**
+- **Quota giornaliera** (Free: 2/giorno, Premium: illimitato)
+
+**Flow:**
+```
+1. User records exercise video (max 15s)
+2. Upload to backend
+3. Gemini Pro Vision analyzes
+4. Returns:
+   - form_score: 85
+   - detected_errors: ["Knees caving", "Back rounding"]
+   - suggestions: ["Keep knees out", "Brace core"]
+   - summary: "Good overall form with minor issues"
+```
+
+**API:**
+```php
+POST   /form-analysis/analyze   # Submit video
+GET    /form-analysis/quota     # Check daily quota
+GET    /form-analysis/history   # Past analyses
+GET    /form-analysis/{id}      # Specific analysis
+DELETE /form-analysis/{id}      # Delete
+```
+
+---
+
+### 5. 🏆 Gamification
+
+Sistema di progressione e competizione.
+
+**Features:**
+- **Punti XP** per ogni azione
+- **Livelli** con progressione
+- **Streak giorni consecutivi**
+- **Achievement** sbloccabili
+- **Leaderboard** classifica settimanale
+- **Sfide settimanali**
+
+**Achievement Categories:**
+| Categoria | Esempi |
+|-----------|--------|
+| Workout | "Prima sessione", "10 workout", "100 workout" |
+| Streak | "7 giorni", "30 giorni", "100 giorni" |
+| Weight | "Primo PR", "10 PR", "Solleva 100kg" |
+| Social | "Primo amico", "10 condivisioni" |
+
+**Points System:**
+```php
+'workout_completed' => 100,
+'streak_7_days' => 500,
+'new_pr' => 200,
+'form_analysis' => 50,
+```
+
+---
+
+### 6. 📈 Progress Tracking
+
+Monitoraggio progressi dettagliato.
+
+**Features:**
+- **Grafici peso/misure** nel tempo
+- **Foto confronto** before/after
+- **Record personali** per esercizio
+- **Statistiche workout** (volume, frequenza)
+- **Muscle group heatmap**
+
+**Schermate:**
+```
+lib/presentation/screens/progress/
+├── progress_dashboard_screen.dart   # Dashboard principale
+├── progress_photos_screen.dart      # Galleria foto
+├── progress_comparison_screen.dart  # Confronto foto
+├── body_measurements_screen.dart    # Misure corporee
+├── personal_records_screen.dart     # PR history
+└── muscle_progress_screen.dart      # Progressi per muscolo
+```
+
+---
+
+### 7. 👤 User Management
+
+Gestione profilo completa.
+
+**Features:**
+- **Registrazione/Login** email + password
+- **Social Login** Google, Apple
+- **Profilo dettagliato** (obiettivi, livello, misure)
+- **Questionario iniziale** per personalizzazione
+- **Impostazioni privacy** (GDPR compliant)
+- **Subscription management**
+
+**User Profile Fields:**
+```dart
+- height, weight, age, gender
+- fitness_goal: (muscle_gain, weight_loss, toning, etc.)
+- experience_level: (beginner, intermediate, advanced)
+- available_days, available_equipment
+- health_conditions, injuries
+```
+
+---
+
+### 8. 🔔 Engagement & Notifications
+
+Sistema di engagement utente.
+
+**Features:**
+- **Push notifications** per reminder allenamento
+- **Smart notifications** basate su comportamento
+- **Weekly summary** email
+- **Streak reminders** per mantenere serie
+- **Social engagement** (likes, commenti, sfide)
+
+---
+
+### 9. 📱 Social Features
+
+Funzionalità social.
+
+**Features:**
+- **Feed attività** amici
+- **Condivisione workout** completati
+- **Sfide 1v1** o di gruppo
+- **Leaderboard** settimanale/mensile
+- **Commenti e reactions**
+
+---
+
+## 📱 Frontend (Flutter)
+
+### Struttura Directory
 
 ```
 lib/
 ├── core/
-│   ├── constants/           # App colors, text styles, API config
-│   │   ├── app_colors.dart
-│   │   ├── api_config.dart
-│   │   └── subscription_tiers.dart
-│   ├── theme/               # Material theme configuration
-│   │   └── clean_theme.dart
-│   ├── services/            # Core services (haptic, sound, etc.)
-│   │   ├── haptic_service.dart
-│   │   └── sound_service.dart
-│   └── utils/               # Helper functions
+│   ├── constants/
+│   │   ├── api_config.dart        # URL API, endpoints
+│   │   └── app_constants.dart     # Constanti app
+│   ├── services/
+│   │   ├── synchronized_voice_controller.dart  # Voice coaching brain
+│   │   ├── gigi_tts_service.dart               # Audio playback
+│   │   ├── coaching_phrases_database.dart      # Frasi coaching
+│   │   ├── exercise_scripts_database.dart      # Script esercizi
+│   │   ├── audio_manager.dart                  # Suoni UI
+│   │   ├── haptic_service.dart                 # Vibrazioni
+│   │   ├── notification_service.dart           # Push notifications
+│   │   └── payment_service.dart                # RevenueCat
+│   └── theme/
+│       └── clean_theme.dart       # Design system
 │
 ├── data/
-│   ├── models/              # Data models
+│   ├── models/                    # Modelli dati (20+)
 │   │   ├── user_model.dart
 │   │   ├── workout_model.dart
-│   │   ├── gamification_model.dart
-│   │   ├── nutrition_model.dart
-│   │   ├── voice_coaching_model.dart
-│   │   ├── biometric_model.dart
+│   │   ├── exercise_model.dart
+│   │   ├── meal_model.dart
 │   │   └── ...
-│   ├── repositories/        # Data repositories (optional)
-│   └── services/            # API & external services
-│       ├── api_client.dart
+│   └── services/                  # API services (18)
+│       ├── api_client.dart        # HTTP client base
 │       ├── auth_service.dart
 │       ├── workout_service.dart
-│       ├── voice_coaching_service.dart
-│       ├── gamification_service.dart
 │       ├── nutrition_service.dart
+│       ├── voice_coaching_service.dart
 │       └── ...
 │
 ├── presentation/
-│   ├── screens/             # All UI screens
-│   │   ├── home/
-│   │   │   ├── enhanced_home_screen.dart
-│   │   │   └── home_screen.dart
-│   │   ├── workout/
-│   │   │   ├── workout_session_screen.dart
-│   │   │   ├── trial_workout_screen.dart
-│   │   │   ├── exercise_detail_screen.dart
-│   │   │   └── ...
-│   │   ├── profile/
-│   │   ├── gamification/
-│   │   ├── challenges/
-│   │   ├── leaderboard/
-│   │   ├── social/
-│   │   ├── nutrition/
-│   │   ├── custom_workout/
-│   │   ├── onboarding/
+│   ├── screens/                   # Schermate (24 moduli)
 │   │   ├── auth/
-│   │   ├── paywall/
+│   │   ├── home/
+│   │   ├── workout/
+│   │   ├── nutrition/
+│   │   ├── progress/
+│   │   ├── gamification/
+│   │   ├── profile/
 │   │   └── ...
-│   ├── widgets/             # Reusable UI components
-│   │   ├── clean_widgets.dart
-│   │   ├── gamification_widgets.dart
-│   │   ├── voice_coaching_player.dart
-│   │   ├── celebration_widgets.dart
-│   │   └── ...
-│   └── navigation/          # GoRouter configuration
+│   └── widgets/                   # Widget riutilizzabili
+│       ├── clean_widgets.dart     # Component library
+│       ├── voice_coaching/        # UI voice coaching
+│       └── workout/               # Widget workout
 │
-├── providers/               # State management
+├── providers/                     # State management (6)
 │   ├── auth_provider.dart
 │   ├── workout_provider.dart
 │   ├── workout_log_provider.dart
 │   ├── gamification_provider.dart
-│   ├── social_provider.dart
-│   └── engagement_provider.dart
+│   ├── engagement_provider.dart
+│   └── social_provider.dart
 │
-└── main.dart                # App entry point
+└── main.dart                      # Entry point
+```
+
+### Design System (CleanTheme)
+
+```dart
+// Colori principali
+static const primaryColor = Color(0xFF6366F1);    // Indigo
+static const accentGreen = Color(0xFF10B981);     // Success
+static const accentRed = Color(0xFFEF4444);       // Error
+static const backgroundColor = Color(0xFFF8FAFC); // Light gray
+
+// Tipografia
+- Outfit: Headers
+- Inter: Body text
+- Google Fonts
+
+// Componenti
+- CleanCard, CleanButton, CleanTextField
+- CleanProgressBar, CleanChip
+- CleanBottomSheet, CleanDialog
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🖥 Backend (Laravel)
+
+### Struttura Directory
+
+```
+app/
+├── Console/                       # Artisan commands
+│   └── Commands/
+│
+├── Http/
+│   ├── Controllers/
+│   │   └── Api/                   # API Controllers (23)
+│   │       ├── AuthController.php
+│   │       ├── WorkoutPlanController.php
+│   │       ├── WorkoutLogController.php
+│   │       ├── ExerciseController.php
+│   │       ├── VoiceCoachingController.php
+│   │       ├── NutritionController.php
+│   │       ├── FormAnalysisController.php
+│   │       ├── GamificationController.php
+│   │       ├── SocialController.php
+│   │       ├── ProgressController.php
+│   │       └── ...
+│   └── Middleware/
+│
+├── Models/                        # Eloquent Models (41)
+│   ├── User.php
+│   ├── UserProfile.php
+│   ├── WorkoutPlan.php
+│   ├── WorkoutDay.php
+│   ├── WorkoutExercise.php
+│   ├── Exercise.php
+│   ├── WorkoutLog.php
+│   ├── SetLog.php
+│   ├── ExerciseLog.php
+│   ├── Meal.php
+│   ├── NutritionGoal.php
+│   ├── Recipe.php
+│   ├── ExerciseFormAnalysis.php
+│   ├── Achievement.php
+│   ├── PersonalRecord.php
+│   ├── ProgressPhoto.php
+│   └── ...
+│
+├── Services/                      # Business Logic (17)
+│   ├── OpenAIService.php         # 105KB - GPT integrations
+│   ├── ElevenLabsService.php     # TTS generation
+│   ├── GeminiFormAnalysisService.php  # Video analysis
+│   ├── NutritionService.php      # Nutrition logic
+│   ├── GamificationService.php   # Points & achievements
+│   ├── AdaptiveTrainingService.php    # Progressive overload
+│   ├── CoachingScriptGenerator.php    # Voice scripts
+│   ├── SubscriptionManagementService.php  # Entitlements
+│   └── ...
+│
+└── Filament/                      # Admin Panel
+    └── Resources/
+```
+
+### API Routes Overview
+
+```php
+// routes/api.php
+
+Route::prefix('auth')->group(function () {
+    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('social-login', [AuthController::class, 'socialLogin']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Workout Plans
+    Route::apiResource('workout-plans', WorkoutPlanController::class);
+    Route::post('workout-plans/generate', [WorkoutPlanController::class, 'generate']);
+    
+    // Workout Logs
+    Route::post('workout-logs/start', [WorkoutLogController::class, 'start']);
+    Route::post('workout-logs/{id}/complete', [WorkoutLogController::class, 'complete']);
+    Route::apiResource('set-logs', SetLogController::class);
+    
+    // Exercises
+    Route::get('exercises', [ExerciseController::class, 'index']);
+    Route::get('exercises/{id}', [ExerciseController::class, 'show']);
+    Route::get('exercises/{id}/history', [ExerciseHistoryController::class, 'show']);
+    
+    // Voice Coaching
+    Route::prefix('voice-coaching')->group(function () {
+        Route::post('text-to-speech', [VoiceCoachingController::class, 'textToSpeech']);
+        Route::post('generate-script', [VoiceCoachingController::class, 'generateGuidedScript']);
+    });
+    
+    // Nutrition
+    Route::prefix('nutrition')->group(function () {
+        Route::get('goals', [NutritionController::class, 'getGoals']);
+        Route::post('goals', [NutritionController::class, 'setGoals']);
+        Route::apiResource('meals', MealController::class);
+        Route::post('quick-log', [NutritionController::class, 'quickLog']);
+        Route::post('calculate-tdee', [NutritionController::class, 'calculateTDEE']);
+        Route::post('what-to-cook', [NutritionController::class, 'whatToCook']);
+    });
+    
+    // Form Analysis
+    Route::prefix('form-analysis')->group(function () {
+        Route::post('analyze', [FormAnalysisController::class, 'analyze']);
+        Route::get('quota', [FormAnalysisController::class, 'checkQuota']);
+        Route::get('history', [FormAnalysisController::class, 'history']);
+    });
+    
+    // Gamification
+    Route::get('gamification/stats', [GamificationController::class, 'stats']);
+    Route::get('gamification/achievements', [GamificationController::class, 'achievements']);
+    Route::get('gamification/leaderboard', [GamificationController::class, 'leaderboard']);
+    
+    // Progress
+    Route::get('progress/stats', [ProgressController::class, 'stats']);
+    Route::get('progress/personal-records', [ProgressController::class, 'personalRecords']);
+    Route::apiResource('progress-photos', ProgressPhotoController::class);
+});
+```
+
+---
+
+## 🤖 Integrazioni AI
+
+### OpenAI Service (OpenAIService.php)
+
+Il servizio più complesso (~105KB) gestisce tutte le interazioni con GPT-4.
+
+**Capabilities:**
+```php
+// Workout Generation
+generateWorkoutPlan($userProfile, $preferences)
+generateAdaptiveWorkout($user, $performanceData)
+
+// Voice Coaching Scripts
+generateGuidedExecution($exercise, $userProfile)
+generateExerciseExplanation($exercise)
+
+// Nutrition
+analyzeFood($imageBase64)              // Photo → macros
+generateRecipes($ingredients, $macros)  // AI chef
+getSmartMealSuggestions($remainingMacros)
+
+// Form Analysis Helper
+generateFormFeedback($analysisResult)
+```
+
+### ElevenLabs Service (ElevenLabsService.php)
+
+Text-to-Speech italiano naturale.
+
+```php
+$elevenLabs->generateSpeechWithTimestamps($text)
+// Returns:
+// - audio_url: MP3 file
+// - word_timestamps: for lip-sync
+
+$elevenLabs->generateSpeechOnly($text)
+// Returns: audio_url only (cheaper)
+```
+
+**Voice Settings:**
+```php
+'voice_id' => 'italian_male_voice',  // Configured
+'model_id' => 'eleven_multilingual_v2',
+'voice_settings' => [
+    'stability' => 0.85,
+    'similarity_boost' => 0.60,
+    'speed' => 0.92,
+]
+```
+
+### Gemini Form Analysis (GeminiFormAnalysisService.php)
+
+Video analysis per form check.
+
+```php
+$gemini->analyzeExerciseForm($user, $videoPath, $exerciseName)
+// Returns:
+// - form_score: 0-100
+// - detected_errors: ["Error 1", "Error 2"]
+// - suggestions: ["Fix 1", "Fix 2"]
+// - summary: "Overall feedback"
+// - processing_time_ms: 2500
+```
+
+---
+
+## 🚀 Setup & Installazione
 
 ### Prerequisites
 
-- **Flutter SDK ≥ 3.38** (`flutter doctor` should pass)
-- **Dart SDK ≥ 3.0**
-- **Android Studio / Xcode** (for mobile development)
-- **Node.js ≥ 18** (for backend, if running locally)
-- **MySQL ≥ 8.0**
+- Flutter 3.31+
+- PHP 8.2+
+- Composer
+- MySQL 8+
+- Node.js 18+ (for asset compilation)
+- API Keys: OpenAI, ElevenLabs, Google Cloud (Gemini)
 
-### Installation
+### Backend Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/GIGI.git
-cd GIGI
+# Clone repository
+cd Gest_One
 
-# Install Flutter dependencies
+# Install dependencies
+composer install
+
+# Environment setup
+cp .env.example .env
+
+# Configure .env
+OPENAI_API_KEY=sk-...
+ELEVENLABS_API_KEY=...
+GEMINI_API_KEY=...
+
+# Database
+php artisan migrate
+php artisan db:seed
+
+# Start server
+php artisan serve
+```
+
+### Frontend Setup
+
+```bash
+# Clone repository
+cd fitgenius
+
+# Get dependencies
 flutter pub get
 
-# Run the app
-flutter run
+# Configure API URL
+# Edit lib/core/constants/api_config.dart
+static const String baseUrl = 'https://your-api.com/api/';
+
+# Run
+flutter run -d chrome  # Web
+flutter run            # Mobile
 ```
 
-### Firebase Setup
-
-1. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable Authentication (Email, Google, Apple)
-3. Download configuration files:
-   - `google-services.json` → `android/app/`
-   - `GoogleService-Info.plist` → `ios/Runner/`
-4. Run `flutterfire configure` if using FlutterFire CLI
-
-### Environment Configuration
-
-Create a `.env` file at the project root:
-
-```env
-# API Configuration
-API_BASE_URL=https://your-api.example.com/api
-
-# AI Services
-OPENAI_API_KEY=sk-your-openai-key
-GEMINI_API_KEY=your-gemini-key
-
-# RevenueCat
-REVENUECAT_API_KEY=your-revenuecat-key
-```
-
----
-
-## 📱 Running & Building
-
-### Development
+### Build Production
 
 ```bash
-# Run on connected device
-flutter run
-
-# Run on specific platform
-flutter run -d chrome      # Web
-flutter run -d windows     # Windows desktop
-flutter run -d macos       # macOS desktop
-flutter run -d android     # Android device/emulator
-flutter run -d ios         # iOS device/simulator
-```
-
-### Production Builds
-
-```bash
-# Android
-flutter build apk --release
-flutter build appbundle --release  # For Play Store
-
-# iOS
-flutter build ios --release
-flutter build ipa --release        # For App Store
-
 # Web
 flutter build web --release
 
-# Windows
-flutter build windows --release
+# Android
+flutter build apk --release
 
-# macOS
-flutter build macos --release
+# iOS
+flutter build ipa --release
 ```
 
 ---
 
-## 💳 Subscription Tiers
+## 📊 Database Schema
 
-| Feature | Free | Premium (€9.99/mo) | Gold (€19.99/mo) | Platinum (€29.99/mo) |
-|---------|:----:|:------------------:|:----------------:|:--------------------:|
-| **Assessment Workouts** | ✅ 3 | ✅ Unlimited | ✅ Unlimited | ✅ Unlimited |
-| **AI Workout Plans** | 1/2mo | ♾️ Unlimited | ♾️ Auto-updating | ♾️ Auto-updating |
-| **Exercise Library** | ✅ | ✅ | ✅ | ✅ |
-| **Workout History** | ✅ Basic | ✅ Detailed | ✅ Detailed | ✅ Detailed |
-| **Detailed Statistics** | ❌ | ✅ | ✅ | ✅ |
-| **Custom Workouts** | ❌ | ✅ | ✅ | ✅ |
-| **AI Voice Coach** | Trial only | ❌ | ✅ | ✅ |
-| **Pose Detection** | ❌ | ❌ | ✅ Basic | ✅ Advanced |
-| **Form Feedback** | ❌ | ❌ | ✅ Basic | ✅ Detailed corrections |
-| **Weekly Reports** | ❌ | ❌ | ❌ | ✅ |
-| **Live Q&A Sessions** | ❌ | ❌ | ❌ | ✅ |
-| **Priority Support** | ❌ | ❌ | ❌ | ✅ |
+### Core Tables
 
----
+```sql
+-- Users & Profiles
+users (id, name, email, password, subscription_type, ...)
+user_profiles (id, user_id, height, weight, goal, experience_level, ...)
 
-## 🤖 AI Features
+-- Workouts
+workout_plans (id, user_id, name, status, weeks, ...)
+workout_days (id, plan_id, name, focus, estimated_duration, ...)
+workout_exercises (id, day_id, exercise_id, sets, reps, rest_seconds, ...)
+exercises (id, name, muscle_groups, equipment, instructions, ...)
 
-### Workout Generation (OpenAI gpt-5)
-- Analyzes user profile: goals, experience, equipment, limitations
-- Generates periodized training plans
-- Adapts difficulty based on performance feedback
-- Considers recovery and injury prevention
+-- Logging
+workout_logs (id, user_id, workout_day_id, started_at, completed_at, ...)
+exercise_logs (id, workout_log_id, exercise_id, ...)
+set_logs (id, exercise_log_id, set_number, weight, reps, rpe, ...)
 
-### Voice Coaching (OpenAI TTS)
-- **Pre-exercise**: Preparation cues and technique reminders
-- **During execution**: Rep counting, form reminders, motivation
-- **Post-exercise**: Recovery guidance and next exercise preview
-- Available free during trial, premium feature for regular workouts
+-- Nutrition
+nutrition_goals (id, user_id, calories, protein, carbs, fat, ...)
+meals (id, user_id, meal_type, foods, total_calories, ...)
+daily_nutrition_logs (id, user_id, date, water_ml, ...)
+recipes (id, name, ingredients, instructions, macros, ...)
 
-### Pose Detection (Gemini 2.0 Flash)
-- Real-time video analysis via device camera
-- Identifies form errors and suggests corrections
-- **Gold tier**: Basic feedback
-- **Platinum tier**: Advanced, detailed corrections
+-- Progress
+progress_photos (id, user_id, photo_path, category, ...)
+body_measurements (id, user_id, weight, chest, waist, ...)
+personal_records (id, user_id, exercise_id, weight, reps, ...)
 
----
+-- Gamification
+user_stats (id, user_id, total_xp, level, current_streak, ...)
+achievements (id, name, description, xp_reward, ...)
+user_achievements (id, user_id, achievement_id, unlocked_at, ...)
 
-## 🧪 Testing
-
-```bash
-# Run all unit tests
-flutter test
-
-# Run tests with coverage
-flutter test --coverage
-
-# Run integration tests
-flutter test integration_test/
-
-# Analyze code
-flutter analyze
-
-# Format code
-dart format lib/
+-- AI Features
+exercise_form_analyses (id, user_id, video_path, form_score, feedback, ...)
+exercise_audio_cache (id, exercise_id, script_hash, audio_path, ...)
 ```
 
-### Current Status
-✅ **No lint errors** – All analyzer warnings resolved  
-✅ **Compiles successfully** – Web, Android, iOS builds pass  
-✅ **Flutter 3.38+ compatible** – Uses latest APIs
+---
+
+## 📝 License
+
+Proprietary - © 2024 GIGI Fitness
 
 ---
 
-## 🎨 Design System
+## 👥 Team
 
-### Color Palette
-
-| Color | Hex | Usage |
-|-------|-----|-------|
-| **Primary (Sage Green)** | `#7C9885` | Primary actions, highlights |
-| **Secondary (Warm Beige)** | `#D4C5B9` | Secondary elements |
-| **Tertiary (Soft Coral)** | `#E8A598` | Accent, notifications |
-| **Background** | `#1A1A1A` | Dark mode background |
-| **Surface** | `#FFFFFF` | Cards, dialogs |
-| **Success** | `#6B9080` | Positive actions |
-| **Warning** | `#D4A574` | Caution states |
-| **Error** | `#C97C7C` | Error states |
-
-### Typography
-
-- **Headlines**: Outfit (600-700 weight)
-- **Body**: Inter (400-600 weight)
-- **Monospace**: Roboto Mono
-
-### Design Principles
-
-1. **Clean & Minimal** – Focus on content, reduce visual noise
-2. **Glassmorphism** – Subtle transparency and blur effects
-3. **Micro-animations** – Smooth transitions for better UX
-4. **Responsive** – Adapts to mobile, tablet, and desktop
+- **Development**: Full-stack AI Application
+- **AI Integration**: OpenAI GPT-4, ElevenLabs, Google Gemini
+- **Design**: Clean Design System with Flutter
 
 ---
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Follow the existing coding style (Clean Architecture, Provider pattern)
-4. Run `flutter analyze` and fix any warnings
-5. Write tests for new functionality
-6. Submit a Pull Request with clear description
-
-### Code Style Guidelines
-
-- Use `CleanTheme` for all colors and styles
-- Prefer `CleanWidgets` for common UI components
-- Follow Provider pattern for state management
-- Use `GoogleFonts.outfit()` for headlines, `GoogleFonts.inter()` for body text
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📧 Contact
-
-For questions, feature requests, or support:
-
-- **Email**: support@GIGI.app
-- **Twitter**: [@GIGIApp](https://twitter.com/GIGIApp)
-- **Discord**: [discord.gg/GIGI](https://discord.gg/GIGI)
-
----
-
-## 🙏 Acknowledgments
-
-- Flutter team for the amazing framework
-- OpenAI for gpt-5 and TTS APIs
-- Google for Gemini 2.0 Flash
-- RevenueCat for simplified subscription management
-- All contributors and beta testers
-
----
-
-**Made with ❤️ and Flutter**
-
-*GIGI – Transform your fitness journey with AI-powered coaching*
+<p align="center">
+  <strong>Made with ❤️ for fitness enthusiasts</strong>
+</p>
