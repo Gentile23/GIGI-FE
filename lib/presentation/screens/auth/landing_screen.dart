@@ -115,8 +115,10 @@ class LandingScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  const AuthScreen(initialIsLogin: false),
+                              builder: (_) => AuthScreen(
+                                initialIsLogin: false,
+                                onComplete: () => Navigator.of(context).pop(),
+                              ),
                             ),
                           );
                         },
@@ -130,8 +132,10 @@ class LandingScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  const AuthScreen(initialIsLogin: true),
+                              builder: (_) => AuthScreen(
+                                initialIsLogin: true,
+                                onComplete: () => Navigator.of(context).pop(),
+                              ),
                             ),
                           );
                         },
