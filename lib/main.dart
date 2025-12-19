@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
+import 'presentation/screens/auth/landing_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/progress/progress_dashboard_screen.dart';
@@ -128,7 +129,7 @@ class _AppNavigatorState extends State<AppNavigator> {
         }
 
         if (!authProvider.isAuthenticated) {
-          return const AuthScreen();
+          return const LandingScreen();
         }
 
         // Check if user has completed their profile

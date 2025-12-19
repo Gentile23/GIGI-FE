@@ -494,6 +494,16 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: _skipMeasurements,
+              child: Text(
+                'Salta per ora',
+                style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -669,25 +679,39 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   }
 
   Widget _buildNavigationButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => _goToStep(_currentStep - 1),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: const BorderSide(color: CleanTheme.borderPrimary),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _goToStep(_currentStep - 1),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  side: const BorderSide(color: CleanTheme.borderPrimary),
+                ),
+                child: Text(
+                  'Indietro',
+                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                ),
+              ),
             ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: CleanButton(text: 'Continua', onPressed: _nextPage),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: TextButton(
+            onPressed: _skipMeasurements,
             child: Text(
-              'Indietro',
+              'Salta per ora',
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
-          child: CleanButton(text: 'Continua', onPressed: _nextPage),
         ),
       ],
     );

@@ -388,7 +388,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
             side: const BorderSide(color: CleanTheme.borderPrimary),
           ),
           child: Text(
-            hasAnyPhoto ? 'Salta per ora' : 'Lo farò dopo',
+            'Salta per ora',
             style: GoogleFonts.inter(color: CleanTheme.textSecondary),
           ),
         ),

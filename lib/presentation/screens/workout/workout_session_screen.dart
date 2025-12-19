@@ -93,6 +93,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _isSessionActive = true;
       _sessionStartTime = DateTime.now();
     });
+
+    // Notify Gigi that session has started
+    _voiceController.notifySessionStarted();
+
     _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_sessionStartTime != null) {
         setState(() {
@@ -1312,24 +1316,44 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
         final isCompleted = _completedExercises.contains(exercise.exercise.id);
 
+        // Determine if this is the next exercise to perform
+        final mainWorkout = widget.workoutDay.mainWorkout;
+        final firstUncompleted = mainWorkout.firstWhere(
+          (e) => !_completedExercises.contains(e.exercise.id),
+          orElse: () => mainWorkout.first,
+        );
+        final isNext =
+            _isSessionActive &&
+            exercise.exercise.id == firstUncompleted.exercise.id;
+
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: CleanTheme.surfaceColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isCompleted
+              color: isNext
+                  ? CleanTheme.primaryColor
+                  : isCompleted
                   ? CleanTheme.accentGreen
-                  : CleanTheme.primaryColor.withValues(alpha: 0.3),
-              width: isCompleted ? 2.0 : 1.0,
+                  : CleanTheme.borderPrimary,
+              width: (isNext || isCompleted) ? 2 : 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: isNext
+                ? [
+                    BoxShadow(
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1370,18 +1394,43 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            exercise.exercise.name,
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: isCompleted
-                                  ? CleanTheme.textTertiary
-                                  : CleanTheme.textPrimary,
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  exercise.exercise.name,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: isCompleted
+                                        ? CleanTheme.textTertiary
+                                        : CleanTheme.textPrimary,
+                                    decoration: isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              if (isNext)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: CleanTheme.primaryColor,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    'PROSSIMO',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                           const SizedBox(height: 4),
                           Row(
@@ -1549,7 +1598,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => FormAnalysisScreen(),
+                              builder: (_) => const FormAnalysisScreen(),
                             ),
                           );
                         },
@@ -1559,7 +1608,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Expanded(
                       child: _buildQuickActionButton(
                         icon: Icons.record_voice_over,
-                        label: 'Esegui con Gigi',
+                        label: 'Gigi',
                         color: CleanTheme.accentBlue,
                         onTap: () => _startGuidedExecution(exercise),
                       ),

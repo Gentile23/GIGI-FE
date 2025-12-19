@@ -284,57 +284,139 @@ class _UnifiedQuestionnaireScreenState
       // Show dialog asking if they want to add another injury
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
+        barrierDismissible: false,
+        builder: (context) => Dialog(
           backgroundColor: CleanTheme.cardColor,
-          title: const Text(
-            'Infortunio Aggiunto',
-            style: TextStyle(color: Colors.white),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          content: Text(
-            'Hai altri infortuni da segnalare?',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Navigate back to "Has Injuries" page to show the list
-                // We need to go back 3 steps: Details -> Area -> Category -> Has Injuries
-                _pageController.animateToPage(
-                  _currentStep - 3,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: const Text('No, Continua'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Reset temp variables
-                setState(() {
-                  _tempInjuryCategory = null;
-                  _tempInjuryArea = null;
-                  _tempInjuryTiming = InjuryTiming.current;
-                  _tempInjurySide = null;
-                  _tempInjuryOvercome = false;
-                  _painfulExercisesController.clear();
-                  _injuryNotesController.clear();
-                  _tempInjurySeverity = InjurySeverity.moderate;
-                });
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Success Icon
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: CleanTheme.accentGreen.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: CleanTheme.accentGreen,
+                    size: 36,
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-                // Navigate back to Category selection (2 steps back)
-                // We use animateToPage with calculated index to ensure we land on the correct page
-                // Current step is Details (Index X). Area is X-1. Category is X-2.
-                _pageController.animateToPage(
-                  _currentStep - 2,
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: const Text('Sì, Aggiungi Altro'),
+                // Title
+                Text(
+                  'Infortunio Aggiunto',
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Subtitle
+                Text(
+                  'Hai altri infortuni da segnalare?',
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.textSecondary,
+                    fontSize: 15,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+
+                // Buttons
+                Column(
+                  children: [
+                    // Primary button - Add another
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          // Reset temp variables
+                          setState(() {
+                            _tempInjuryCategory = null;
+                            _tempInjuryArea = null;
+                            _tempInjuryTiming = InjuryTiming.current;
+                            _tempInjurySide = null;
+                            _tempInjuryOvercome = false;
+                            _painfulExercisesController.clear();
+                            _injuryNotesController.clear();
+                            _tempInjurySeverity = InjurySeverity.moderate;
+                          });
+
+                          // Navigate back to Category selection (2 steps back)
+                          _pageController.animateToPage(
+                            _currentStep - 2,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CleanTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Sì, Aggiungi Altro',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Secondary button - Continue
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          // Navigate back to "Has Injuries" page to show the list
+                          // We need to go back 3 steps: Details -> Area -> Category -> Has Injuries
+                          _pageController.animateToPage(
+                            _currentStep - 3,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: CleanTheme.textSecondary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(
+                          'No, Continua',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       );
     }
@@ -422,6 +504,9 @@ class _UnifiedQuestionnaireScreenState
             : null,
         trainingHistory: _trainingHistory != null
             ? _camelToSnake(_trainingHistory.toString().split('.').last)
+            : null,
+        additionalNotes: _prefNotesController.text.trim().isNotEmpty
+            ? _prefNotesController.text.trim()
             : null,
         silent: true,
       );
@@ -829,70 +914,82 @@ class _UnifiedQuestionnaireScreenState
     required String subtitle,
     required List<_Option> options,
   }) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.displayMedium),
-          const SizedBox(height: 8),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 32),
-          Expanded(
-            child: ListView.separated(
-              itemCount: options.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final option = options[index];
-                return CleanCard(
-                  isSelected: option.isSelected,
-                  onTap: option.onTap,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          option.icon,
-                          color: CleanTheme.primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.displayMedium),
+                  const SizedBox(height: 8),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 32),
+                  // Replace Expanded/ListView with Column of items since we are inside SingleChildScrollView
+                  ...options.map((option) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: CleanCard(
+                        isSelected: option.isSelected,
+                        onTap: option.onTap,
+                        child: Row(
                           children: [
-                            Text(
-                              option.label,
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            ),
-                            if (option.description != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                option.description!,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ],
+                              child: Icon(
+                                option.icon,
+                                color: CleanTheme.primaryColor,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    option.label,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium,
+                                  ),
+                                  if (option.description != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      option.description!,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (option.isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
                           ],
                         ),
                       ),
-                      if (option.isSelected)
-                        const Icon(
-                          Icons.check_circle,
-                          color: CleanTheme.primaryColor,
-                        ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -903,75 +1000,87 @@ class _UnifiedQuestionnaireScreenState
     required bool canContinue,
     required VoidCallback onContinue,
   }) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.displayMedium),
-          const SizedBox(height: 8),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 32),
-          Expanded(
-            child: ListView.separated(
-              itemCount: options.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final option = options[index];
-                return CleanCard(
-                  isSelected: option.isSelected,
-                  onTap: option.onTap,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          option.icon,
-                          color: CleanTheme.primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: Theme.of(context).textTheme.displayMedium),
+                  const SizedBox(height: 8),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 32),
+                  ...options.map((option) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: CleanCard(
+                        isSelected: option.isSelected,
+                        onTap: option.onTap,
+                        child: Row(
                           children: [
-                            Text(
-                              option.label,
-                              style: Theme.of(context).textTheme.headlineMedium,
-                            ),
-                            if (option.description != null) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                option.description!,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ],
+                              child: Icon(
+                                option.icon,
+                                color: CleanTheme.primaryColor,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    option.label,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium,
+                                  ),
+                                  if (option.description != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      option.description!,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (option.isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
                           ],
                         ),
                       ),
-                      if (option.isSelected)
-                        const Icon(
-                          Icons.check_circle,
-                          color: CleanTheme.primaryColor,
-                        ),
-                    ],
+                    );
+                  }).toList(),
+                  const Spacer(),
+                  const SizedBox(height: 16),
+                  CleanButton(
+                    text: 'Continua',
+                    onPressed: canContinue ? onContinue : null,
                   ),
-                );
-              },
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          CleanButton(
-            text: 'Continua',
-            onPressed: canContinue ? onContinue : null,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1169,183 +1278,196 @@ class _UnifiedQuestionnaireScreenState
       'Abductor/Adductor',
     ];
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Quali Macchine?',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Seleziona quelle disponibili.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: ListView.builder(
-              itemCount: machineOptions.length,
-              itemBuilder: (context, index) {
-                final machine = machineOptions[index];
-                final isSelected = _selectedMachines.contains(machine);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CleanCard(
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          _selectedMachines.remove(machine);
-                        } else {
-                          _selectedMachines.add(machine);
-                        }
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.settings,
-                          color: isSelected
-                              ? CleanTheme.primaryColor
-                              : CleanTheme.textSecondary,
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          machine,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                color: isSelected
-                                    ? CleanTheme.primaryColor
-                                    : CleanTheme.textPrimary,
-                              ),
-                        ),
-                        const Spacer(),
-                        if (isSelected)
-                          const Icon(
-                            Icons.check_circle,
-                            color: CleanTheme.primaryColor,
-                          ),
-                      ],
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Quali Macchine?',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                );
-              },
+                  const SizedBox(height: 8),
+                  Text(
+                    'Seleziona quelle disponibili.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  ...machineOptions.map((machine) {
+                    final isSelected = _selectedMachines.contains(machine);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: CleanCard(
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedMachines.remove(machine);
+                            } else {
+                              _selectedMachines.add(machine);
+                            }
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.settings,
+                              color: isSelected
+                                  ? CleanTheme.primaryColor
+                                  : CleanTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              machine,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    color: isSelected
+                                        ? CleanTheme.primaryColor
+                                        : CleanTheme.textPrimary,
+                                  ),
+                            ),
+                            const Spacer(),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  const Spacer(),
+                  const SizedBox(height: 16),
+                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          CleanButton(text: 'Continua', onPressed: _nextPage),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildBodyweightTypePage() {
-    final bodyweightOptions = [
+    final types = [
       (
         'functional',
-        '🧘 Funzionale',
-        'TRX, elastici, fitball e attrezzi funzionali',
-        Icons.fitness_center,
+        'Allenamento Funzionale',
+        'Focus su mobilità e controllo',
+        Icons.bubble_chart,
       ),
       (
         'calisthenics',
-        '💪 Calisthenics',
-        'Sbarra trazioni, anelli, parallele',
-        Icons.sports_gymnastics,
+        'Calisthenics',
+        'Forza bruta a corpo libero',
+        Icons.accessibility_new,
       ),
       (
         'pure',
-        '🙌 Corpo Libero Assoluto',
-        'Solo peso corporeo, nessun attrezzo',
-        Icons.accessibility_new,
+        'Solo Corpo Libero',
+        'Senza alcuna attrezzatura',
+        Icons.person_outline,
       ),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tipo di Allenamento',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Quale stile di corpo libero preferisci?',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: CleanTheme.textSecondary),
-          ),
-          const SizedBox(height: 32),
-          Expanded(
-            child: ListView.separated(
-              itemCount: bodyweightOptions.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final option = bodyweightOptions[index];
-                final isSelected = _selectedBodyweightType == option.$1;
-                return CleanCard(
-                  isSelected: isSelected,
-                  onTap: () {
-                    setState(() {
-                      _selectedBodyweightType = option.$1;
-                      _selectedBodyweightEquipment.clear();
-                    });
-                    // If pure bodyweight, skip sub-selection
-                    if (option.$1 == 'pure') {
-                      _nextPage();
-                    } else {
-                      // Show equipment sub-selection dialog
-                      _showBodyweightEquipmentDialog(option.$1);
-                    }
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          option.$4,
-                          color: CleanTheme.primaryColor,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tipo di Corpo Libero',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Scegli il tuo stile preferito.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 32),
+                  ...types.map((option) {
+                    final isSelected = _selectedBodyweightType == option.$1;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: CleanCard(
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() {
+                            _selectedBodyweightType = option.$1;
+                            _selectedBodyweightEquipment.clear();
+                          });
+                          // If pure bodyweight, skip sub-selection
+                          if (option.$1 == 'pure') {
+                            _nextPage();
+                          } else {
+                            // Show equipment sub-selection dialog
+                            _showBodyweightEquipmentDialog(option.$1);
+                          }
+                        },
+                        child: Row(
                           children: [
-                            Text(
-                              option.$2,
-                              style: Theme.of(context).textTheme.headlineMedium,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                option.$4,
+                                color: CleanTheme.primaryColor,
+                                size: 28,
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              option.$3,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    option.$2,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.headlineMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    option.$3,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
                             ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
                           ],
                         ),
                       ),
-                      if (isSelected)
-                        const Icon(
-                          Icons.check_circle,
-                          color: CleanTheme.primaryColor,
-                        ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1435,6 +1557,17 @@ class _UnifiedQuestionnaireScreenState
                   );
                 }).toList(),
               ),
+              const Spacer(),
+              const SizedBox(height: 16),
+              CleanButton(
+                text: 'Continua',
+                onPressed: _selectedBodyweightEquipment.isNotEmpty
+                    ? () {
+                        Navigator.pop(context);
+                        _nextPage();
+                      }
+                    : null,
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -1454,112 +1587,120 @@ class _UnifiedQuestionnaireScreenState
   }
 
   Widget _buildHasInjuriesPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Infortuni', style: Theme.of(context).textTheme.displayMedium),
-          const SizedBox(height: 8),
-          Text(
-            _injuries.isEmpty
-                ? 'Hai infortuni attuali o passati?\n\n💡 Inserisci anche infortuni PASSATI se potrebbero influenzare il tuo allenamento (es. vecchie fratture, interventi chirurgici, problemi cronici).'
-                : 'Hai aggiunto ${_injuries.length} infortuni. Vuoi aggiungerne altri?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 48),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Infortuni',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _injuries.isEmpty
+                        ? 'Hai infortuni attuali o passati?\n\n💡 Inserisci anche infortuni PASSATI se potrebbero influenzare il tuo allenamento (es. vecchie fratture, interventi chirurgici, problemi cronici).'
+                        : 'Hai aggiunto ${_injuries.length} infortuni. Vuoi aggiungerne altri?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 48),
 
-          // List existing injuries if any
-          if (_injuries.isNotEmpty) ...[
-            Expanded(
-              child: ListView.builder(
-                itemCount: _injuries.length,
-                itemBuilder: (context, index) {
-                  final injury = _injuries[index];
-                  return CleanCard(
-                    backgroundColor: CleanTheme.surfaceColor,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: Text(
-                        injury.category.icon,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      title: Text(
-                        injury.area.displayName,
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
+                  // List existing injuries if any
+                  if (_injuries.isNotEmpty) ...[
+                    ..._injuries.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final injury = entry.value;
+                      return CleanCard(
+                        backgroundColor: CleanTheme.surfaceColor,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: Text(
+                            injury.category.icon,
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                          title: Text(
+                            injury.area.displayName,
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            injury.severity.displayName,
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.textSecondary,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed: () =>
+                                setState(() => _injuries.removeAt(index)),
+                          ),
                         ),
-                      ),
-                      subtitle: Text(
-                        injury.severity.displayName,
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textSecondary,
+                      );
+                    }).toList(),
+                    const SizedBox(height: 24),
+                  ],
+
+                  CleanCard(
+                    onTap: () {
+                      setState(() => _hasInjuries = true);
+                      _nextPage(); // Go to Category selection
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.add_circle_outline,
+                          color: CleanTheme.primaryColor,
+                          size: 32,
                         ),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
-                        onPressed: () =>
-                            setState(() => _injuries.removeAt(index)),
-                      ),
+                        const SizedBox(width: 16),
+                        Text(
+                          _injuries.isEmpty
+                              ? 'Sì, ho un infortunio da segnalare'
+                              : 'Aggiungi un altro infortunio',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 16),
+                  CleanCard(
+                    onTap: () {
+                      setState(() => _hasInjuries = false);
+                      // Skip injury steps.
+                      _nextPage();
+                    },
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.greenAccent,
+                          size: 32,
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          _injuries.isEmpty ? 'No, sono sano' : 'No, ho finito',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-          ],
-
-          CleanCard(
-            onTap: () {
-              setState(() => _hasInjuries = true);
-              _nextPage(); // Go to Category selection
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.add_circle_outline,
-                  color: CleanTheme.primaryColor,
-                  size: 32,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  _injuries.isEmpty
-                      ? 'Sì, ho un infortunio da segnalare'
-                      : 'Aggiungi un altro infortunio',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ],
-            ),
           ),
-          const SizedBox(height: 16),
-          CleanCard(
-            onTap: () {
-              setState(() => _hasInjuries = false);
-              // Skip injury steps.
-              // Since we are in a PageView, we need to jump over the injury pages (6, 7, 8)
-              // Current index is 6. Target is 7 (Duration) when no injuries.
-              _nextPage();
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.greenAccent,
-                  size: 32,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  _injuries.isEmpty ? 'No, sono sano' : 'No, ho finito',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ],
-            ),
-          ),
-          if (_injuries.isNotEmpty)
-            const Spacer(), // Push buttons up if list is long
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1592,48 +1733,54 @@ class _UnifiedQuestionnaireScreenState
               .toList()
         : <InjuryArea>[];
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Zona specifica',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.5,
-              ),
-              itemCount: areas.length,
-              itemBuilder: (context, index) {
-                final area = areas[index];
-                return CleanCard(
-                  isSelected: _tempInjuryArea == area,
-                  onTap: () {
-                    setState(() => _tempInjuryArea = area);
-                    _nextPage();
-                  },
-                  child: Center(
-                    child: Text(
-                      area.displayName,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Zona specifica',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                );
-              },
+                  const SizedBox(height: 24),
+                  // Use a Wrap or Column with Rows instead of Expanded GridView
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: areas.map((area) {
+                      return SizedBox(
+                        width: (constraints.maxWidth - 48 - 12) / 2,
+                        child: CleanCard(
+                          isSelected: _tempInjuryArea == area,
+                          onTap: () {
+                            setState(() => _tempInjuryArea = area);
+                            _nextPage();
+                          },
+                          child: Container(
+                            height: 100,
+                            alignment: Alignment.center,
+                            child: Text(
+                              area.displayName,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1884,253 +2031,328 @@ class _UnifiedQuestionnaireScreenState
   }
 
   Widget _buildDurationPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Durata Sessione',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Quanto tempo hai per allenarti?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 48),
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  '$_sessionDuration min',
-                  style: GoogleFonts.outfit(
-                    fontSize: 64,
-                    fontWeight: FontWeight.bold,
-                    color: CleanTheme.primaryColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Durata Sessione',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                ),
-                const SizedBox(height: 32),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: CleanTheme.primaryColor,
-                    inactiveTrackColor: Colors.white24,
-                    thumbColor: Colors.white,
-                    overlayColor: CleanTheme.primaryColor.withValues(
-                      alpha: 0.2,
+                  const SizedBox(height: 8),
+                  Text(
+                    'Quanto tempo hai per allenarti?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 48),
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          '$_sessionDuration min',
+                          style: GoogleFonts.outfit(
+                            fontSize: 64,
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: CleanTheme.primaryColor,
+                            inactiveTrackColor: Colors.white24,
+                            thumbColor: Colors.white,
+                            overlayColor: CleanTheme.primaryColor.withAlpha(
+                              (0.2 * 255).round(),
+                            ),
+                          ),
+                          child: Slider(
+                            value: _sessionDuration.toDouble(),
+                            min: 30,
+                            max: 120,
+                            divisions: 9,
+                            onChanged: (value) => setState(
+                              () => _sessionDuration = value.toInt(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Slider(
-                    value: _sessionDuration.toDouble(),
-                    min: 30,
-                    max: 120,
-                    divisions: 9,
-                    onChanged: (value) =>
-                        setState(() => _sessionDuration = value.toInt()),
-                  ),
-                ),
-              ],
+                  const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                ],
+              ),
             ),
           ),
-          const Spacer(),
-          CleanButton(text: 'Continua', onPressed: _nextPage),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildCardioMobilityPage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Cardio & Mobilità',
-            style: Theme.of(context).textTheme.displayMedium,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cardio & Mobilità',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Cardio',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ...CardioPreference.values
+                      .where((p) => p != CardioPreference.separateSession)
+                      .map((p) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: CleanCard(
+                            isSelected: _cardioPreference == p,
+                            onTap: () => setState(() => _cardioPreference = p),
+                            child: Row(
+                              children: [
+                                Text(
+                                  p.icon,
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  p.displayName,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Mobilità',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  ...MobilityPreference.values
+                      .where((p) => p != MobilityPreference.dedicatedSession)
+                      .map((p) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: CleanCard(
+                            isSelected: _mobilityPreference == p,
+                            onTap: () =>
+                                setState(() => _mobilityPreference = p),
+                            child: Row(
+                              children: [
+                                Text(
+                                  p.icon,
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                                const SizedBox(width: 16),
+                                Text(
+                                  p.displayName,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                  const Spacer(),
+                  const SizedBox(height: 24),
+                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 32),
-          Text('Cardio', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          ...CardioPreference.values
-              .where((p) => p != CardioPreference.separateSession)
-              .map(
-                (p) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CleanCard(
-                    isSelected: _cardioPreference == p,
-                    onTap: () => setState(() => _cardioPreference = p),
-                    child: Row(
-                      children: [
-                        Text(p.icon, style: const TextStyle(fontSize: 24)),
-                        const SizedBox(width: 16),
-                        Text(
-                          p.displayName,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          const SizedBox(height: 32),
-          Text('Mobilità', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 16),
-          ...MobilityPreference.values
-              .where((p) => p != MobilityPreference.dedicatedSession)
-              .map(
-                (p) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CleanCard(
-                    isSelected: _mobilityPreference == p,
-                    onTap: () => setState(() => _mobilityPreference = p),
-                    child: Row(
-                      children: [
-                        Text(p.icon, style: const TextStyle(fontSize: 24)),
-                        const SizedBox(width: 16),
-                        Text(
-                          p.displayName,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          const SizedBox(height: 24),
-          CleanButton(text: 'Continua', onPressed: _nextPage),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildTrainingSplitPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Split di Allenamento',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Come vuoi organizzare i tuoi allenamenti?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 32),
-          Expanded(
-            child: ListView(
-              children: TrainingSplit.values.map((split) {
-                final isSelected = _selectedSplit == split;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CleanCard(
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() => _selectedSplit = split);
-                      _nextPage();
-                    },
-                    child: Row(
-                      children: [
-                        Text(split.icon, style: const TextStyle(fontSize: 32)),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                split.displayName,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                split.description,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(
-                            Icons.check_circle,
-                            color: CleanTheme.primaryColor,
-                          ),
-                      ],
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Split di Allenamento',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Come vuoi organizzare i tuoi allenamenti?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 32),
+                  ...TrainingSplit.values.map((split) {
+                    final isSelected = _selectedSplit == split;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: CleanCard(
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() => _selectedSplit = split);
+                          _nextPage();
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              split.icon,
+                              style: const TextStyle(fontSize: 32),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    split.displayName,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    split.description,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildFinalNotesPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Ultimi dettagli',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Qualcos\'altro da sapere?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: CleanTheme.borderPrimary),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Cosa potresti scrivere qui:',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: CleanTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ultimi dettagli',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                ),
-                const SizedBox(height: 8),
-                // Removed: Allergie o intolleranze alimentari
-                _buildBulletPoint('Preferenze su esercizi specifici'),
-                _buildBulletPoint('Obiettivi particolari non menzionati'),
-                _buildBulletPoint('Note mediche aggiuntive'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _prefNotesController,
-            maxLines: 5,
-            style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
-            decoration: InputDecoration(
-              hintText: 'Scrivi qui le tue note...',
-              fillColor: CleanTheme.surfaceColor,
-              filled: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Qualcos\'altro da sapere?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: CleanTheme.borderPrimary),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cosa potresti scrivere qui:',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: CleanTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Removed: Allergie o intolleranze alimentari
+                        _buildBulletPoint('Preferenze su esercizi specifici'),
+                        _buildBulletPoint(
+                          'Obiettivi particolari non menzionati',
+                        ),
+                        _buildBulletPoint('Note mediche aggiuntive'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: _prefNotesController,
+                    maxLines: 5,
+                    style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Scrivi qui le tue note...',
+                      fillColor: CleanTheme.primaryLight,
+                      filled: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.primaryColor,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  const Spacer(),
+                  CleanButton(
+                    text: _isLoading ? 'Salvataggio...' : 'Procedi',
+                    onPressed: _isLoading ? null : _finish,
+                  ),
+                ],
               ),
             ),
           ),
-          const Spacer(),
-          CleanButton(
-            text: _isLoading ? 'Salvataggio...' : 'Procedi',
-            onPressed: _isLoading ? null : _finish,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2295,61 +2517,72 @@ class _UnifiedQuestionnaireScreenState
   }
 
   Widget _buildWeeklyFrequencyPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Frequenza Settimanale',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Quante volte vuoi allenarti a settimana?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 48),
-
-          // Frequency Slider
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  '$_weeklyFrequency giorni',
-                  style: GoogleFonts.outfit(
-                    fontSize: 64,
-                    fontWeight: FontWeight.bold,
-                    color: CleanTheme.primaryColor,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Frequenza Settimanale',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                ),
-                const SizedBox(height: 16),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: CleanTheme.primaryColor,
-                    inactiveTrackColor: CleanTheme.borderPrimary,
-                    thumbColor: CleanTheme.primaryColor,
-                    overlayColor: CleanTheme.primaryColor.withValues(
-                      alpha: 0.2,
+                  const SizedBox(height: 8),
+                  Text(
+                    'Quante volte vuoi allenarti a settimana?',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 48),
+
+                  // Frequency Slider
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          '$_weeklyFrequency giorni',
+                          style: GoogleFonts.outfit(
+                            fontSize: 64,
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: CleanTheme.primaryColor,
+                            inactiveTrackColor: CleanTheme.borderPrimary,
+                            thumbColor: CleanTheme.primaryColor,
+                            overlayColor: CleanTheme.primaryColor.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
+                          child: Slider(
+                            value: _weeklyFrequency.toDouble(),
+                            min: 1,
+                            max: 7,
+                            divisions: 6,
+                            onChanged: (value) => setState(
+                              () => _weeklyFrequency = value.toInt(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Slider(
-                    value: _weeklyFrequency.toDouble(),
-                    min: 1,
-                    max: 7,
-                    divisions: 6,
-                    onChanged: (value) =>
-                        setState(() => _weeklyFrequency = value.toInt()),
-                  ),
-                ),
-              ],
+
+                  const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                ],
+              ),
             ),
           ),
-
-          const Spacer(),
-          CleanButton(text: 'Continua', onPressed: _nextPage),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2383,125 +2616,126 @@ class _UnifiedQuestionnaireScreenState
             constraints: BoxConstraints(
               minHeight: constraints.maxHeight - 48, // Account for padding
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Chi sei?',
-                  style: Theme.of(context).textTheme.displayMedium,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Per personalizzare il tuo piano.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 32),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chi sei?',
+                    style: Theme.of(context).textTheme.displayMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Per personalizzare il tuo piano.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 32),
 
-                // Gender Selection
-                Text('Sesso', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 16),
-                Row(
-                  children: Gender.values.map((g) {
-                    final isSelected = _selectedGender == g;
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedGender = g),
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            right: g == Gender.male ? 16 : 0,
+                  // Gender Selection
+                  Text(
+                    'Genere',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: Gender.values.map((g) {
+                      final isSelected = _selectedGender == g;
+                      return Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: g == Gender.male ? 8 : 0,
+                            left: g == Gender.female ? 8 : 0,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? CleanTheme.primaryColor.withValues(alpha: 0.2)
-                                : CleanTheme.surfaceColor,
-                            border: Border.all(
-                              color: isSelected
-                                  ? CleanTheme.primaryColor
-                                  : CleanTheme.borderPrimary,
-                              width: 2,
-                            ),
+                          child: InkWell(
+                            onTap: () => setState(() => _selectedGender = g),
                             borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                g == Gender.male ? Icons.male : Icons.female,
-                                color: isSelected
-                                    ? CleanTheme.primaryColor
-                                    : CleanTheme.textTertiary,
-                                size: 40,
+                            child: CleanCard(
+                              isSelected: isSelected,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    g == Gender.male
+                                        ? Icons.male
+                                        : Icons.female,
+                                    color: isSelected
+                                        ? CleanTheme.primaryColor
+                                        : CleanTheme.textTertiary,
+                                    size: 40,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    g == Gender.male ? 'Uomo' : 'Donna',
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? CleanTheme.primaryColor
+                                          : CleanTheme.textSecondary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                g == Gender.male ? 'Uomo' : 'Donna',
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? CleanTheme.primaryColor
-                                      : CleanTheme.textSecondary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Age Input
-                Text('Età', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 12),
-                TextFormField(
-                  initialValue: _age?.toString(),
-                  keyboardType: TextInputType.number,
-                  style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Es. 25',
-                    hintStyle: GoogleFonts.inter(
-                      color: CleanTheme.textTertiary,
-                    ),
-                    filled: true,
-                    fillColor: CleanTheme.surfaceColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: CleanTheme.borderPrimary,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: CleanTheme.borderPrimary,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: CleanTheme.primaryColor,
-                      ),
-                    ),
-                    suffixText: 'anni',
-                    suffixStyle: GoogleFonts.inter(
-                      color: CleanTheme.textSecondary,
-                    ),
+                      );
+                    }).toList(),
                   ),
-                  onChanged: (value) => setState(() {
-                    _age = int.tryParse(value);
-                  }),
-                ),
-                const SizedBox(height: 32),
-                CleanButton(
-                  text: 'Continua',
-                  onPressed: (_selectedGender != null && _age != null)
-                      ? _nextPage
-                      : null,
-                ),
-              ],
+
+                  const SizedBox(height: 32),
+
+                  // Age Input
+                  Text('Età', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    initialValue: _age?.toString(),
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'Es. 25',
+                      hintStyle: GoogleFonts.inter(
+                        color: CleanTheme.textTertiary,
+                      ),
+                      filled: true,
+                      fillColor: CleanTheme.surfaceColor,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.borderPrimary,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: CleanTheme.primaryColor,
+                        ),
+                      ),
+                      suffixText: 'anni',
+                      suffixStyle: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary,
+                      ),
+                    ),
+                    onChanged: (value) => setState(() {
+                      _age = int.tryParse(value);
+                    }),
+                  ),
+                  const SizedBox(height: 32),
+                  const Spacer(),
+                  CleanButton(
+                    text: 'Continua',
+                    onPressed: (_selectedGender != null && _age != null)
+                        ? _nextPage
+                        : null,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -2512,139 +2746,144 @@ class _UnifiedQuestionnaireScreenState
   // --- Professional Trainer Page Builders ---
 
   Widget _buildBodyFatPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Stima la tua % di grasso',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Scegli l\'immagine che più ti assomiglia.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: ListView(
-              children: BodyFatPercentage.values.map((bf) {
-                String title;
-                String subtitle;
-                String percentage;
-                IconData icon;
-
-                switch (bf) {
-                  case BodyFatPercentage.veryHigh:
-                    title = 'Sovrappeso evidente';
-                    subtitle = 'Addome predominante';
-                    percentage = 'Molto Alta (>25%)';
-                    icon = Icons.accessibility_new;
-                    break;
-                  case BodyFatPercentage.high:
-                    title = 'Sovrappeso leggero';
-                    subtitle = 'Poca definizione';
-                    percentage = 'Alta (20-25%)';
-                    icon = Icons.accessibility;
-                    break;
-                  case BodyFatPercentage.average:
-                    title = 'Normopeso';
-                    subtitle = 'Addome piatto';
-                    percentage = 'Media (15-20%)';
-                    icon = Icons.person;
-                    break;
-                  case BodyFatPercentage.athletic:
-                    title = 'Atletico';
-                    subtitle = 'Muscoli visibili';
-                    percentage = 'Atletica (10-15%)';
-                    icon = Icons.fitness_center;
-                    break;
-                  case BodyFatPercentage.veryLean:
-                    title = 'Molto Definito';
-                    subtitle = 'Addominali scolpiti';
-                    percentage = 'Molto Definita (<10%)';
-                    icon = Icons.flash_on;
-                    break;
-                }
-
-                final isSelected = _bodyFatPercentage == bf;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CleanCard(
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() => _bodyFatPercentage = bf);
-                      _nextPage();
-                    },
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: CleanTheme.primaryColor,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20, // Large
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                subtitle,
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      color: CleanTheme.textSecondary,
-                                      fontSize: 16, // Medium
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                percentage,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: CleanTheme.primaryColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12, // Small
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(
-                            Icons.check_circle,
-                            color: CleanTheme.primaryColor,
-                          ),
-                      ],
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Stima la tua % di grasso',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Scegli l\'immagine che più ti assomiglia.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  ...BodyFatPercentage.values.map((bf) {
+                    String title;
+                    String subtitle;
+                    String percentage;
+                    IconData icon;
+
+                    switch (bf) {
+                      case BodyFatPercentage.veryHigh:
+                        title = 'Sovrappeso evidente';
+                        subtitle = 'Addome predominante';
+                        percentage = 'Molto Alta (>25%)';
+                        icon = Icons.accessibility_new;
+                        break;
+                      case BodyFatPercentage.high:
+                        title = 'Sovrappeso leggero';
+                        subtitle = 'Poca definizione';
+                        percentage = 'Alta (20-25%)';
+                        icon = Icons.accessibility;
+                        break;
+                      case BodyFatPercentage.average:
+                        title = 'Normopeso';
+                        subtitle = 'Addome piatto';
+                        percentage = 'Media (15-20%)';
+                        icon = Icons.person;
+                        break;
+                      case BodyFatPercentage.athletic:
+                        title = 'Atletico';
+                        subtitle = 'Muscoli visibili';
+                        percentage = 'Atletica (10-15%)';
+                        icon = Icons.fitness_center;
+                        break;
+                      case BodyFatPercentage.veryLean:
+                        title = 'Molto Definito';
+                        subtitle = 'Addominali scolpiti';
+                        percentage = 'Molto Definita (<10%)';
+                        icon = Icons.flash_on;
+                        break;
+                    }
+
+                    final isSelected = _bodyFatPercentage == bf;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: CleanCard(
+                        isSelected: isSelected,
+                        onTap: () {
+                          setState(() => _bodyFatPercentage = bf);
+                          _nextPage();
+                        },
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: CleanTheme.primaryColor,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20, // Large
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subtitle,
+                                    style: Theme.of(context).textTheme.bodyLarge
+                                        ?.copyWith(
+                                          color: CleanTheme.textSecondary,
+                                          fontSize: 16, // Medium
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    percentage,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: CleanTheme.primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12, // Small
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: CleanTheme.primaryColor,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2690,101 +2929,112 @@ class _UnifiedQuestionnaireScreenState
   }
 
   Widget _buildSleepRecoveryPage() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Sonno e Recupero',
-            style: Theme.of(context).textTheme.displayMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Fondamentale per calcolare il volume di allenamento.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 32),
-
-          // Sleep Slider
-          Text(
-            'Ore di sonno per notte: $_sleepHours',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          Slider(
-            value: _sleepHours.toDouble(),
-            min: 4,
-            max: 10,
-            divisions: 6,
-            label: _sleepHours.toString(),
-            activeColor: CleanTheme.primaryColor,
-            onChanged: (val) => setState(() => _sleepHours = val.round()),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Recovery Capacity
-          Text(
-            'Come ti senti solitamente?',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView(
-              children: RecoveryCapacity.values.map((r) {
-                String label;
-                String description;
-
-                switch (r) {
-                  case RecoveryCapacity.excellent:
-                    label = 'Eccellente';
-                    description = 'Mi sveglio riposato, recupero velocemente';
-                    break;
-                  case RecoveryCapacity.good:
-                    label = 'Buono';
-                    description = 'Recupero normale, stanchezza occasionale';
-                    break;
-                  case RecoveryCapacity.poor:
-                    label = 'Scarso';
-                    description = 'Fatico a recuperare, spesso stanco';
-                    break;
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: CleanCard(
-                    isSelected: _recoveryCapacity == r,
-                    onTap: () {
-                      setState(() => _recoveryCapacity = r);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                          Text(
-                            description,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sonno e Recupero',
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Fondamentale per calcolare il volume di allenamento.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Sleep Slider
+                  Text(
+                    'Ore di sonno per notte: $_sleepHours',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Slider(
+                    value: _sleepHours.toDouble(),
+                    min: 4,
+                    max: 10,
+                    divisions: 6,
+                    label: _sleepHours.toString(),
+                    activeColor: CleanTheme.primaryColor,
+                    onChanged: (val) =>
+                        setState(() => _sleepHours = val.round()),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Recovery Capacity
+                  Text(
+                    'Come ti senti solitamente?',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
+                  ...RecoveryCapacity.values.map((r) {
+                    String label;
+                    String description;
+
+                    switch (r) {
+                      case RecoveryCapacity.excellent:
+                        label = 'Eccellente';
+                        description =
+                            'Mi sveglio riposato, recupero velocemente';
+                        break;
+                      case RecoveryCapacity.good:
+                        label = 'Buono';
+                        description =
+                            'Recupero normale, stanchezza occasionale';
+                        break;
+                      case RecoveryCapacity.poor:
+                        label = 'Scarso';
+                        description = 'Fatico a recuperare, spesso stanco';
+                        break;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: CleanCard(
+                        isSelected: _recoveryCapacity == r,
+                        onTap: () {
+                          setState(() => _recoveryCapacity = r);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                label,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineMedium,
+                              ),
+                              Text(
+                                description,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  const Spacer(),
+                  const SizedBox(height: 16),
+                  CleanButton(
+                    text: 'Continua',
+                    onPressed: (_recoveryCapacity != null) ? _nextPage : null,
+                  ),
+                ],
+              ),
             ),
           ),
-
-          CleanButton(
-            text: 'Continua',
-            onPressed: (_recoveryCapacity != null) ? _nextPage : null,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

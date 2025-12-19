@@ -12,8 +12,9 @@ import '../legal/terms_of_service_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onComplete;
+  final bool initialIsLogin;
 
-  const AuthScreen({super.key, this.onComplete});
+  const AuthScreen({super.key, this.onComplete, this.initialIsLogin = true});
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -21,7 +22,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen>
     with SingleTickerProviderStateMixin {
-  bool _isLogin = true;
+  late bool _isLogin;
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -42,6 +43,7 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   void initState() {
     super.initState();
+    _isLogin = widget.initialIsLogin;
     _logoAnimationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,

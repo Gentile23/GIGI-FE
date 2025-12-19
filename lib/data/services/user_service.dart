@@ -55,6 +55,7 @@ class UserService {
     String? recoveryCapacity,
     String? nutritionApproach,
     String? bodyFatPercentage,
+    String? additionalNotes,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -111,6 +112,9 @@ class UserService {
       }
       if (bodyFatPercentage != null) {
         data['body_fat_percentage'] = bodyFatPercentage;
+      }
+      if (additionalNotes != null) {
+        data['additional_notes'] = additionalNotes;
       }
 
       final response = await _apiClient.dio.post(

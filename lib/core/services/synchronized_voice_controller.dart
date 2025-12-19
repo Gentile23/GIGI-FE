@@ -54,6 +54,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   double _volume = 1.0;
   bool _minimalMode = true; // Non-invasive mode by default
   bool _isGuidedExecutionPlaying = false;
+  bool _isSessionStarted = false;
 
   // Exercise context
   String _userName = 'Campione';
@@ -259,11 +260,40 @@ class SynchronizedVoiceController extends ChangeNotifier {
     }
 
     // Call to action
-    buffer.write(
-      'Premi il punto interrogativo per la spiegazione, o inizia quando sei pronto!',
-    );
+    if (_isSessionStarted) {
+      buffer.write(
+        'Puoi cliccare "Info" per i dettagli dell\'esercizio o "Gigi" per essere aiutato nell\'esecuzione passo-passo.',
+      );
+    } else {
+      buffer.write(
+        'Premi "Inizia sessione" quando vuoi cominciare, sarò al tuo fianco!',
+      );
+    }
 
     return buffer.toString();
+  }
+
+  /// Notify controller that workout session has started
+  void notifySessionStarted() {
+    _isSessionStarted = true;
+    if (_isEnabled && !_isMuted) {
+      speakSessionStartGreeting();
+    }
+    notifyListeners();
+  }
+
+  /// Speak greeting specifically when session starts
+  Future<void> speakSessionStartGreeting() async {
+    if (!_isEnabled || _isMuted) return;
+
+    final buffer = StringBuffer();
+    buffer.write('Ottimo ${firstName}, sessione iniziata! ');
+    buffer.write(
+      'Puoi cliccare "Info" su ogni esercizio per i dettagli, o "Gigi" per essere aiutato nell\'esecuzione passo-passo. ',
+    );
+    buffer.write('Diamoci dentro!');
+
+    await _speak(buffer.toString());
   }
 
   /// Set user streak for personalized greetings

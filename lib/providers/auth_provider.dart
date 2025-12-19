@@ -337,6 +337,7 @@ class AuthProvider with ChangeNotifier {
     String? recoveryCapacity,
     String? nutritionApproach,
     String? bodyFatPercentage,
+    String? additionalNotes,
     bool silent = false,
   }) async {
     if (!silent) {
@@ -376,6 +377,7 @@ class AuthProvider with ChangeNotifier {
         recoveryCapacity: recoveryCapacity,
         nutritionApproach: nutritionApproach,
         bodyFatPercentage: bodyFatPercentage,
+        additionalNotes: additionalNotes,
       );
 
       _isLoading = false;

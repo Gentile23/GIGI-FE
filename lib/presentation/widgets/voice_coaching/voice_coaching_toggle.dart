@@ -96,8 +96,7 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
           return Transform.scale(
             scale: isEnabled ? _pulseAnimation.value : 1.0,
             child: Container(
-              width: 48,
-              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 gradient: isEnabled
                     ? const LinearGradient(
@@ -110,7 +109,7 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
                       )
                     : null,
                 color: isEnabled ? null : Colors.grey[200],
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(100),
                 boxShadow: isEnabled
                     ? [
                         BoxShadow(
@@ -121,50 +120,62 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
                       ]
                     : null,
               ),
-              child: Stack(
-                alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Audio waves (when speaking)
-                  if (isSpeaking && isEnabled)
-                    AnimatedBuilder(
-                      animation: _waveController,
-                      builder: (context, _) {
-                        return CustomPaint(
-                          size: const Size(48, 48),
-                          painter: AudioWavePainter(
-                            progress: _waveController.value,
-                            color: Colors.white.withValues(alpha: 0.6),
-                          ),
-                        );
-                      },
-                    ),
-
-                  // Main icon
-                  Icon(
-                    isMuted
-                        ? Icons.mic_off_rounded
-                        : isEnabled
-                        ? Icons.graphic_eq_rounded
-                        : Icons.mic_rounded,
-                    color: isEnabled ? Colors.white : CleanTheme.textSecondary,
-                    size: 24,
-                  ),
-
-                  // Muted indicator
-                  if (isMuted && isEnabled)
-                    Positioned(
-                      right: 4,
-                      bottom: 4,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: CleanTheme.accentRed,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Audio waves (when speaking)
+                      if (isSpeaking && isEnabled)
+                        AnimatedBuilder(
+                          animation: _waveController,
+                          builder: (context, _) {
+                            return CustomPaint(
+                              size: const Size(24, 24),
+                              painter: AudioWavePainter(
+                                progress: _waveController.value,
+                                color: Colors.white.withValues(alpha: 0.6),
+                              ),
+                            );
+                          },
                         ),
+                      // Main icon
+                      Icon(
+                        isMuted
+                            ? Icons.mic_off_rounded
+                            : isEnabled
+                            ? Icons.graphic_eq_rounded
+                            : Icons.mic_rounded,
+                        color: isEnabled
+                            ? Colors.white
+                            : CleanTheme.textSecondary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Gigi AI',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isEnabled
+                          ? Colors.white
+                          : CleanTheme.textSecondary,
+                    ),
+                  ),
+                  if (isEnabled) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
