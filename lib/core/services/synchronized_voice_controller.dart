@@ -240,12 +240,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
       buffer.write(' ');
     }
 
-    // What we're doing - just mention muscle group, not exercise name
-    if (_currentMuscleGroup.isNotEmpty) {
-      buffer.write('Oggi alleniamo $_currentMuscleGroup. ');
-    } else {
-      buffer.write('Iniziamo! ');
-    }
+    // Removed: "Oggi alleniamo [muscolo]" as per user request
 
     // Goal-based motivation from database
     buffer.write(phrases.getGoalMotivation(_userGoal));
