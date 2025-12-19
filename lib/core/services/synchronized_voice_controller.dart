@@ -221,12 +221,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
     final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
     await _speak(greeting);
 
-    // Step 1: Start generating the real audio in background (if needed)
-    String? generatedScript;
-    if (_currentScript != null) {
-      generatedScript = _currentScript!.getGuidedExecutionScript(_userName);
-    }
-
     // Explanation is NOT played automatically anymore.
     // User must click "Esegui con Gigi" to hear the explanation.
   }
