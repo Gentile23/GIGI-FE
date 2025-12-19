@@ -267,34 +267,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
                         onPressed: () => _confirmExit(),
                       ),
-                      // Voice Coaching Toggle
-                      VoiceCoachingToggle(
-                        controller: _voiceController,
-                        onTap: () {
-                          if (_voiceController.isEnabled) {
-                            _voiceController.deactivate();
-                          } else {
-                            // Get first exercise to start coaching
-                            final exercises = widget.workoutDay.exercises;
-                            if (exercises.isNotEmpty) {
-                              final first = exercises.first;
-                              _voiceController.activateInitial(
-                                exerciseName: first.exercise.name,
-                                sets: first.sets,
-                                reps: int.tryParse(first.reps) ?? 10,
-                                restSeconds: first.restSeconds,
-                                muscleGroups: first.exercise.muscleGroups,
-                              );
-                            }
-                          }
-                        },
-                        onLongPress: () {
-                          VoiceCoachingSettingsSheet.show(
-                            context,
-                            _voiceController,
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -598,6 +570,35 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ),
               ],
+            ),
+          ),
+          // 4. Floating Voice Coaching Toggle (Absolute Top Right)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 16,
+            child: VoiceCoachingToggle(
+              controller: _voiceController,
+              onTap: () {
+                if (_voiceController.isEnabled) {
+                  _voiceController.deactivate();
+                } else {
+                  // Get first exercise to start coaching
+                  final exercises = widget.workoutDay.exercises;
+                  if (exercises.isNotEmpty) {
+                    final first = exercises.first;
+                    _voiceController.activateInitial(
+                      exerciseName: first.exercise.name,
+                      sets: first.sets,
+                      reps: int.tryParse(first.reps) ?? 10,
+                      restSeconds: first.restSeconds,
+                      muscleGroups: first.exercise.muscleGroups,
+                    );
+                  }
+                }
+              },
+              onLongPress: () {
+                VoiceCoachingSettingsSheet.show(context, _voiceController);
+              },
             ),
           ),
         ],

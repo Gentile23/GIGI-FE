@@ -217,6 +217,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.preExercise;
     notifyListeners();
 
+    // Step 0: Greet user (Restored feature)
+    await greetUser();
+
     // Step 1: Play instant intro (short, pre-cachable phrase)
     const introPhrase = 'Ti spiego questo esercizio... Preparati...';
 
@@ -622,6 +625,11 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
     _isGuidedExecutionPlaying = true;
     notifyListeners();
+
+    // 0. Immediate feedback to mask loading time
+    await _speak(
+      'Pronto ad imparare ad eseguire questo esercizio? Concentrati.',
+    );
 
     String? scriptToSpeak;
 
