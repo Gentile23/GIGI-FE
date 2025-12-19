@@ -20,31 +20,31 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // Reduced to 3 pages for faster onboarding (Psychology: reduce friction)
+  // Optimized for conversion: Focus on unique value proposition (real-time voice coaching)
   final List<OnboardingPageData> _pages = [
     OnboardingPageData(
       imagePath: 'assets/images/gigi_new_logo.png',
-      title: 'Benvenuto in GIGI',
+      title: 'GIGI Ti Segue Davvero',
       description:
-          'Il tuo coach AI personale. Preparati a trasformare il tuo corpo e la tua vita.',
-      highlightText: 'Sei già avanti rispetto al 95% delle persone.',
-      icon: Icons.fitness_center,
+          'L\'unica app che ti parla mentre ti alleni e corregge la tua tecnica in tempo reale.',
+      highlightText: 'Come avere un Personal Trainer sempre con te.',
+      icon: Icons.mic,
       accentColor: CleanTheme.primaryColor,
     ),
     OnboardingPageData(
-      title: 'AI che Impara da Te',
+      title: 'Coaching Vocale Live',
       description:
-          'L\'AI si adatta al tuo progresso. Voice coaching, form analysis e gamification.',
-      highlightText: 'Nessun piano generico. Solo il meglio per te.',
-      icon: Icons.auto_awesome_outlined,
+          'Ti guido a voce durante ogni esercizio. Ti dico cosa fare, quando farlo, come farlo.',
+      highlightText: 'Nessun\'altra app al mondo fa questo.',
+      icon: Icons.record_voice_over,
       accentColor: CleanTheme.accentBlue,
     ),
     OnboardingPageData(
       title: 'Inizia Ora',
       description:
-          'Il primo passo è il più importante. Sei pronto a cambiare la tua vita?',
-      highlightText: '50,000+ persone hanno già iniziato.',
-      icon: Icons.rocket_launch_outlined,
+          'Il tuo primo allenamento guidato è pronto. Metti le cuffie e iniziamo.',
+      highlightText: '🎧 Esperienza migliore con auricolari',
+      icon: Icons.headphones,
       accentColor: CleanTheme.primaryColor,
       isLast: true,
     ),
@@ -270,10 +270,12 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
 
           const SizedBox(height: 32),
 
-          // CTA Button
+          // CTA Button - Optimized for conversion
           CleanButton(
-            text: isLast ? 'Inizia Ora' : 'Continua',
-            trailingIcon: isLast ? Icons.rocket_launch : Icons.arrow_forward,
+            text: isLast ? 'Avvia Allenamento Guidato' : 'Continua',
+            trailingIcon: isLast
+                ? Icons.play_arrow_rounded
+                : Icons.arrow_forward,
             backgroundColor: page.accentColor,
             textColor: Colors.white,
             width: double.infinity,

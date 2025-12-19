@@ -530,3 +530,185 @@ class ImmersiveWorkoutSummary extends StatelessWidget {
     ],
   );
 }
+
+/// Voice coaching indicator - shows when GIGI is speaking
+/// This widget provides visual feedback that reinforces the unique value
+/// of real-time voice coaching (key differentiator for GIGI)
+class VoiceCoachingIndicator extends StatefulWidget {
+  final bool isActive;
+  final String? currentMessage;
+  final VoidCallback? onTap;
+
+  const VoiceCoachingIndicator({
+    super.key,
+    this.isActive = false,
+    this.currentMessage,
+    this.onTap,
+  });
+
+  @override
+  State<VoiceCoachingIndicator> createState() => _VoiceCoachingIndicatorState();
+}
+
+class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    if (widget.isActive) {
+      _animationController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(VoiceCoachingIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _animationController.repeat(reverse: true);
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _animationController.stop();
+      _animationController.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: widget.isActive
+              ? CleanTheme.primaryColor.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: widget.isActive
+                ? CleanTheme.primaryColor.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
+            width: widget.isActive ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // GIGI avatar/icon with animation
+            AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: widget.isActive
+                        ? CleanTheme.primaryColor
+                        : Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    boxShadow: widget.isActive
+                        ? [
+                            BoxShadow(
+                              color: CleanTheme.primaryColor.withValues(
+                                alpha: 0.3 + (_animationController.value * 0.3),
+                              ),
+                              blurRadius: 12 + (_animationController.value * 8),
+                              spreadRadius: _animationController.value * 4,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Icon(
+                    widget.isActive ? Icons.mic : Icons.mic_none,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+            // Voice waveform animation
+            if (widget.isActive)
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Row(
+                    children: List.generate(5, (index) {
+                      final delay = index * 0.15;
+                      final height =
+                          8 +
+                          (12 * (((_animationController.value + delay) % 1)));
+                      return Container(
+                        width: 3,
+                        height: height,
+                        margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      );
+                    }),
+                  );
+                },
+              ),
+            const SizedBox(width: 12),
+            // Status text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.isActive ? 'GIGI sta parlando' : 'Voice Coaching',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: widget.isActive
+                          ? CleanTheme.primaryColor
+                          : Colors.white60,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  if (widget.currentMessage != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.currentMessage!,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: Colors.white70,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Status indicator
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: widget.isActive
+                    ? CleanTheme.accentGreen
+                    : Colors.white.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

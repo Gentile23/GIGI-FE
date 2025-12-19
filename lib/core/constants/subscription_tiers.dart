@@ -136,51 +136,42 @@ class SubscriptionTierConfig {
   );
 
   /// ─── PRO ────────────────────────────────────────────────────────────────
-  /// Piano di conversione principale - €7.99/mese
-  /// Prezzo strategico sotto €10 per rimuovere barriera psicologica
+  /// Piano di conversione principale - €14.99/mese
+  /// Prezzo giustificato dal valore PT digitale reale
   /// Target: utenti che si allenano 3-5 volte a settimana
   static const SubscriptionTierConfig pro = SubscriptionTierConfig(
     tier: SubscriptionTier.pro,
     name: 'Pro',
-    tagline: 'Il tuo Personal Trainer AI',
-    priceMonthly: 7.99,
-    priceYearly: 59.99, // €5/mese - risparmio 37%
+    tagline: 'Il tuo Coach AI sempre con te',
+    priceMonthly: 14.99,
+    priceYearly: 99.99, // €8.33/mese - risparmio 44%
     features: [
-      'Tutto il Free +',
-      'Piano AI ogni 2 settimane',
-      '10 Form Analysis AI/settimana',
-      '5 Analisi pasto/giorno',
-      '5 Ricette AI/settimana',
-      'AI Voice Coaching 🎙️',
-      '5 Workout custom/settimana',
-      'Analytics avanzati',
-      'Export dati',
+      'Coaching vocale in OGNI allenamento',
+      'Form Check AI (10/settimana)',
+      'Piano che si adatta ai tuoi progressi',
+      'Nutrizione AI personalizzata',
+      'Analytics e progressi dettagliati',
     ],
     restrictions: ['Limiti settimanali sulle AI'],
     quotas: SubscriptionQuotas.pro,
   );
 
   /// ─── ELITE ──────────────────────────────────────────────────────────────
-  /// Massimo valore per power users - €19.99/mese
+  /// Massimo valore per power users - €29.99/mese
   /// Tutto illimitato + funzionalità esclusive
   /// Target: atleti seri, personal trainer, fitness influencer
   static const SubscriptionTierConfig elite = SubscriptionTierConfig(
     tier: SubscriptionTier.elite,
     name: 'Elite',
-    tagline: 'Performance Senza Limiti',
-    priceMonthly: 19.99,
-    priceYearly: 149.99, // €12.50/mese - risparmio 37%
+    tagline: 'Come avere un PT digitale',
+    priceMonthly: 29.99,
+    priceYearly: 199.99, // €16.67/mese - risparmio 44%
     features: [
-      'Tutto il Pro +',
-      'Piani AI ILLIMITATI',
-      'Form Analysis ILLIMITATA',
-      'Analisi pasto ILLIMITATA',
-      'Ricette AI ILLIMITATE',
-      'Workout custom ILLIMITATI',
-      'AI Nutrition Coach avanzato',
+      'Tutto ILLIMITATO',
+      'Form Check AI senza limiti',
+      'Coaching prioritario',
       'Report settimanali email',
-      'Integrazioni salute',
-      'Badge esclusivi profilo',
+      'Badge esclusivi',
       'Supporto prioritario 24/7',
     ],
     restrictions: [],

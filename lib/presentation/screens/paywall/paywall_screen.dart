@@ -56,9 +56,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header - Emotional, benefit-focused
             Text(
-              'Sblocca il Tuo Potenziale',
+              'Allenati Sempre Con Un Coach',
               style: GoogleFonts.outfit(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -67,7 +67,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Allenamenti intelligenti con AI Voice Coach e Form Analysis',
+              'GIGI ti parla mentre ti alleni e ti corregge come un PT vero.',
               style: GoogleFonts.inter(
                 fontSize: 15,
                 color: CleanTheme.textSecondary,
@@ -76,12 +76,46 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             const SizedBox(height: 16),
 
-            // Urgency Timer
+            // Psychological reinforcement - connects to WOW experience
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome,
+                    color: CleanTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hai provato il coaching reale. Immagina ogni allenamento così.',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Urgency Timer - creates FOMO
             _buildUrgencyTimer(),
 
             const SizedBox(height: 16),
 
-            // Social Proof
+            // Social Proof - builds trust
             _buildSocialProof(),
 
             const SizedBox(height: 24),
@@ -457,7 +491,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   ),
                 ),
                 child: Text(
-                  'PIÙ POPOLARE',
+                  'CONSIGLIATO',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
