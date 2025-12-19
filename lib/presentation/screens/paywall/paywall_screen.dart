@@ -15,6 +15,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
   SubscriptionTier _selectedTier = SubscriptionTier.pro;
   bool _isYearly = true; // Default to yearly for better conversion
 
+  // Urgency timer - scade a mezzanotte
+  late Duration _timeRemaining;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateTimeRemaining();
+  }
+
+  void _calculateTimeRemaining() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    _timeRemaining = midnight.difference(now);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +74,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
               ),
             ),
 
+            const SizedBox(height: 16),
+
+            // Urgency Timer
+            _buildUrgencyTimer(),
+
+            const SizedBox(height: 16),
+
+            // Social Proof
+            _buildSocialProof(),
+
             const SizedBox(height: 24),
 
             // Billing toggle
@@ -66,11 +91,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             const SizedBox(height: 24),
 
-            // Subscription tiers
+            // Subscription tiers - PRICE ANCHORING: Elite first, Pro highlighted, Free last
             _buildTierCard(
-              config: SubscriptionTierConfig.free,
+              config: SubscriptionTierConfig.elite,
               isPopular: false,
-              accentColor: CleanTheme.textSecondary,
+              accentColor: CleanTheme.accentPurple,
             ),
 
             const SizedBox(height: 16),
@@ -84,9 +109,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
             const SizedBox(height: 16),
 
             _buildTierCard(
-              config: SubscriptionTierConfig.elite,
+              config: SubscriptionTierConfig.free,
               isPopular: false,
-              accentColor: CleanTheme.accentPurple,
+              accentColor: CleanTheme.textSecondary,
             ),
 
             const SizedBox(height: 32),
@@ -507,6 +532,101 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUrgencyTimer() {
+    final hours = _timeRemaining.inHours;
+    final minutes = (_timeRemaining.inMinutes % 60);
+    final seconds = (_timeRemaining.inSeconds % 60);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            CleanTheme.accentOrange.withValues(alpha: 0.15),
+            CleanTheme.accentOrange.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.timer_outlined, color: CleanTheme.accentOrange, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            'Offerta valida ancora per ',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          Text(
+            '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+            style: GoogleFonts.outfit(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.accentOrange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSocialProof() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Avatar stack
+        SizedBox(
+          width: 60,
+          height: 28,
+          child: Stack(
+            children: [
+              for (int i = 0; i < 3; i++)
+                Positioned(
+                  left: i * 16.0,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: [
+                        CleanTheme.primaryColor,
+                        CleanTheme.accentPurple,
+                        CleanTheme.accentGreen,
+                      ][i],
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Icon(Icons.person, color: Colors.white, size: 14),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '12,847 utenti ',
+          style: GoogleFonts.outfit(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        Text(
+          'sono passati a Pro questo mese',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: CleanTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

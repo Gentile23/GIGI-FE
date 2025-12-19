@@ -19,6 +19,7 @@ import '../form_analysis/form_analysis_screen.dart';
 import '../../../data/models/user_model.dart';
 import '../../widgets/progress/weekly_progress_ring.dart';
 import '../../widgets/coaching/gigi_coaching_bubble.dart';
+import '../../widgets/marketing/marketing_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Progress data
   Map<String, dynamic>? _progressData;
+
+  // Premium banner visibility
+  bool _showPremiumBanner = false;
 
   @override
   void initState() {
@@ -54,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Load progress data
       _loadProgressData();
+
+      // Check if we should show premium banner today
+      _checkPremiumBannerVisibility();
 
       workoutProvider.onGenerationComplete = () {
         if (mounted) {
@@ -80,6 +87,13 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Could not load progress data: $e');
+    }
+  }
+
+  Future<void> _checkPremiumBannerVisibility() async {
+    final shouldShow = await DailyPremiumBanner.shouldShowToday();
+    if (mounted && shouldShow) {
+      setState(() => _showPremiumBanner = true);
     }
   }
 
@@ -488,6 +502,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   const SizedBox(height: 28),
+
+                  // ═══════════════════════════════════════════
+                  // PREMIUM BANNER (once per day for free users)
+                  // ═══════════════════════════════════════════
+                  if (_showPremiumBanner && !isNewUser)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: DailyPremiumBanner(
+                        onDismiss: () {
+                          setState(() => _showPremiumBanner = false);
+                        },
+                      ),
+                    ),
+
+                  if (_showPremiumBanner && !isNewUser)
+                    const SizedBox(height: 28),
 
                   // ═══════════════════════════════════════════
                   // SECTION: I Tuoi Progressi

@@ -4,7 +4,9 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/custom_workout_model.dart';
 import '../../../data/models/workout_model.dart';
 import '../../../data/services/custom_workout_service.dart';
+import '../../../data/services/quota_service.dart';
 import '../../../data/services/api_client.dart';
+import '../../screens/paywall/paywall_screen.dart';
 import 'exercise_search_screen.dart';
 
 /// Screen for creating or editing a custom workout plan
@@ -28,11 +30,13 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
   List<_LocalExercise> _exercises = [];
   bool _isSaving = false;
   bool get isEditing => widget.existingPlan != null;
+  late QuotaService _quotaService;
 
   @override
   void initState() {
     super.initState();
     _customWorkoutService = CustomWorkoutService(ApiClient());
+    _quotaService = QuotaService();
 
     if (isEditing) {
       _nameController.text = widget.existingPlan!.name;
@@ -73,6 +77,20 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
 
     setState(() => _isSaving = true);
 
+    // Check quota for new workouts only
+    if (!isEditing) {
+      final quotaCheck = await _quotaService.canPerformAction(
+        QuotaAction.customWorkout,
+      );
+      if (!quotaCheck.canPerform) {
+        setState(() => _isSaving = false);
+        if (mounted) {
+          _showQuotaExceededDialog(quotaCheck.reason);
+        }
+        return;
+      }
+    }
+
     final request = CustomWorkoutRequest(
       name: _nameController.text.trim(),
       description: _descriptionController.text.trim().isNotEmpty
@@ -101,6 +119,11 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
     setState(() => _isSaving = false);
 
     if (result['success'] == true) {
+      // Record quota usage for new workouts
+      if (!isEditing) {
+        await _quotaService.recordUsage(QuotaAction.customWorkout);
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -122,6 +145,80 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
         );
       }
     }
+  }
+
+  void _showQuotaExceededDialog(String reason) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.lock_outline, color: CleanTheme.accentOrange),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Limite Raggiunto',
+                style: GoogleFonts.outfit(
+                  color: CleanTheme.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              reason,
+              style: GoogleFonts.inter(
+                color: CleanTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Passa a Pro per creare più workout custom!',
+              style: GoogleFonts.inter(
+                color: CleanTheme.primaryColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Chiudi',
+              style: GoogleFonts.outfit(color: CleanTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaywallScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CleanTheme.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Passa a Pro',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _addExercises() async {

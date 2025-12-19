@@ -195,4 +195,36 @@ class VoiceCoachingService {
       return null;
     }
   }
+
+  /// Generate TTS with database caching for exercise explanations
+  /// First call generates audio, subsequent calls return cached audio instantly
+  /// [exerciseKey] - normalized exercise name (e.g., "panca_piana", "squat")
+  /// [script] - the text script to convert to speech
+  Future<String?> generateCachedTTS({
+    required String exerciseKey,
+    required String script,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/voice-coaching/cached-tts',
+        data: {'exercise_key': exerciseKey, 'script': script},
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['success'] == true && data['audio_url'] != null) {
+          debugPrint(
+            'TTS ${data['cached'] == true ? 'from cache' : 'generated'}: $exerciseKey',
+          );
+          return data['audio_url'] as String;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error generating cached TTS: $e');
+      return null;
+    }
+  }
 }

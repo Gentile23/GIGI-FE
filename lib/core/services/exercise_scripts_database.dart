@@ -48,33 +48,18 @@ class ExerciseCoachingScript {
   }
 
   /// Get guided execution script for "Esegui con Gigi" feature
-  /// This provides a step-by-step guide for 2 demo reps
+  /// This provides a step-by-step guide for 1 demo rep (max ~30 seconds)
   String getGuidedExecutionScript(String userName) {
     return '''
-$userName, eseguiamo insieme 2 ripetizioni perfette di $exerciseName.
+Eseguiamo insieme una ripetizione perfetta...
 
-POSIZIONE DI PARTENZA:
-$positionSetup.
+Posizione... $positionSetup...
 
-PRIMA RIPETIZIONE - segui il mio ritmo:
-$movementDescription.
-$breathingCue.
+Ora il movimento... $movementDescription...
 
-... pausa ...
+$breathingCue...
 
-ERRORI COMUNI DA EVITARE:
-Non usare lo slancio.
-Mantieni sempre il controllo del movimento.
-Evita di affrettarti.
-
-SECONDA RIPETIZIONE - stessa tecnica perfetta:
-$visualizationCue.
-$movementDescription.
-
-... pausa ...
-
-Perfetto $userName! Ora sei pronto per le tue serie. 
-Ricorda: qualità prima di quantità!
+Perfetto! Ora continua da solo.
 ''';
   }
 

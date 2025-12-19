@@ -197,7 +197,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
   // COACHING LIFECYCLE
   // =====================================
 
-  /// Activate voice coaching FIRST TIME (tap mic icon) - says personalized greeting
+  /// Activate voice coaching FIRST TIME (tap mic icon)
+  /// Uses pre-cached intro to hide TTS generation delay
   Future<void> activateInitial({
     required String exerciseName,
     required int sets,
@@ -213,15 +214,28 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _currentMuscleGroup = muscleGroups?.isNotEmpty == true
         ? muscleGroups!.first
         : '';
-    _phase = VoiceCoachingPhase.activated;
-    notifyListeners();
-
-    // Build personalized greeting
-    final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
-    await _speak(greeting);
-
     _phase = VoiceCoachingPhase.preExercise;
     notifyListeners();
+
+    // Step 1: Play instant intro (short, pre-cachable phrase)
+    const introPhrase = 'Ti spiego questo esercizio... Preparati...';
+
+    // Step 2: Start generating the real audio in background
+    String? generatedScript;
+    if (_currentScript != null) {
+      generatedScript = _currentScript!.getGuidedExecutionScript(_userName);
+    }
+
+    // Play intro first (this is short and feels instant)
+    await _speak(introPhrase);
+
+    // Step 3: Wait a bit for user to prepare, then play the real explanation
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Step 4: Play the generated exercise explanation
+    if (generatedScript != null && generatedScript.isNotEmpty) {
+      await _speak(generatedScript);
+    }
   }
 
   /// Build goal-based personalized greeting using new phrases database
@@ -239,11 +253,11 @@ class SynchronizedVoiceController extends ChangeNotifier {
       buffer.write(' ');
     }
 
-    // What we're doing
+    // What we're doing - just mention muscle group, not exercise name
     if (_currentMuscleGroup.isNotEmpty) {
-      buffer.write('Oggi alleniamo $_currentMuscleGroup con $exerciseName. ');
+      buffer.write('Oggi alleniamo $_currentMuscleGroup. ');
     } else {
-      buffer.write('Facciamo $exerciseName. ');
+      buffer.write('Iniziamo! ');
     }
 
     // Goal-based motivation from database

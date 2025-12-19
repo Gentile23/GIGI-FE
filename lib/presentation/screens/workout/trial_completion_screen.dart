@@ -3,15 +3,44 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/trial_workout_model.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/marketing/marketing_widgets.dart';
 
-class TrialCompletionScreen extends StatelessWidget {
+class TrialCompletionScreen extends StatefulWidget {
   final TrialCompletionResponse completionResponse;
 
   const TrialCompletionScreen({super.key, required this.completionResponse});
 
   @override
+  State<TrialCompletionScreen> createState() => _TrialCompletionScreenState();
+}
+
+class _TrialCompletionScreenState extends State<TrialCompletionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Show upsell modal after a short delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _showUpsellModal();
+      }
+    });
+  }
+
+  void _showUpsellModal() {
+    final analysis = widget.completionResponse.analysis;
+    PostTrialUpsellModal.show(
+      context,
+      workoutStats: {
+        'exercises': analysis['exercises_completed'] ?? 3,
+        'duration': (analysis['duration_minutes'] as num?)?.toInt() ?? 5,
+        'xp': 50,
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final analysis = completionResponse.analysis;
+    final analysis = widget.completionResponse.analysis;
     final completionRate = analysis['completion_rate'] as double;
     final avgDifficulty = analysis['average_difficulty'] as double;
 
@@ -59,7 +88,7 @@ class TrialCompletionScreen extends StatelessWidget {
 
               Center(
                 child: Text(
-                  completionResponse.summary,
+                  widget.completionResponse.summary,
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     color: CleanTheme.textSecondary,
@@ -173,13 +202,7 @@ class TrialCompletionScreen extends StatelessWidget {
                       text: 'Scopri i Piani Premium',
                       isOutlined: true,
                       width: double.infinity,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Schermata abbonamenti in arrivo!'),
-                          ),
-                        );
-                      },
+                      onPressed: _showUpsellModal,
                     ),
                   ],
                 ),
