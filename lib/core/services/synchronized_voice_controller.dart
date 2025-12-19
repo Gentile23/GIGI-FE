@@ -217,8 +217,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.preExercise;
     notifyListeners();
 
-    // Step 0: Greet user (Restored feature)
-    await greetUser();
+    // Step 0: Greet user (Restored feature - Full Experience)
+    final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
+    await _speak(greeting);
 
     // Step 1: Play instant intro (short, pre-cachable phrase)
     const introPhrase = 'Ti spiego questo esercizio... Preparati...';
@@ -647,7 +648,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
     // 2. Fallback to local script database
     if (scriptToSpeak == null) {
-      _currentScript = getScriptForExercise(exerciseName);
+      _currentScript ??= getScriptForExercise(exerciseName);
       if (_currentScript == null && muscleGroups != null) {
         _currentScript = createGenericScript(
           exerciseName: exerciseName,

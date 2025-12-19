@@ -14,6 +14,7 @@ import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/voice_coaching/voice_coaching_toggle.dart';
+import '../../widgets/voice_coaching/voice_controls_bar.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
 import '../../../providers/auth_provider.dart';
@@ -599,6 +600,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               onLongPress: () {
                 VoiceCoachingSettingsSheet.show(context, _voiceController);
               },
+            ),
+          ),
+
+          // 5. Floating Voice Controls Bar (Absolute Top Center/Left)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 50, // Leave space for back button if needed, or center it
+            right: 70, // Leave space for Toggle (Top Right)
+            child: Center(
+              child: VoiceControlsBar(controller: _voiceController),
             ),
           ),
         ],
