@@ -1566,19 +1566,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   });
                 },
                 onSetCompleted: (setData) {
-                  // Sync voice feedback with set completion
-                  _voiceController.onUserInteraction(
-                    GigiInteractionEvent.setCheckboxToggled,
-                    setNumber: setData.setNumber,
-                    totalSets: exercise.sets,
-                    exerciseName: exercise.exercise.name,
-                  );
+                  // Voice coaching disabled on checkbox click per user request
+                  // Gigi only speaks on: activation, session start/end, "Esegui con Gigi"
                 },
                 onRestTimerSkipped: () {
-                  // Sync voice feedback with rest timer skip
-                  _voiceController.onUserInteraction(
-                    GigiInteractionEvent.restTimerSkipped,
-                  );
+                  // Voice coaching disabled on rest skip per user request
                 },
               ),
 
