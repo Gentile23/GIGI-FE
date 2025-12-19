@@ -68,6 +68,7 @@ class GigiTTSService extends ChangeNotifier {
   ///
   /// 1. Calls API to get Audio URL
   /// 2. Plays Audio URL
+  /// 3. WAITS for audio to complete before returning
   Future<void> speak(String text) async {
     if (!_isInitialized) await initialize();
     if (text.isEmpty) return;
@@ -81,7 +82,7 @@ class GigiTTSService extends ChangeNotifier {
       final audioUrl = await _voiceCoachingService.generateTTS(text);
 
       if (audioUrl != null) {
-        await _playUrl(audioUrl);
+        await _playUrlAndWait(audioUrl);
       } else {
         debugPrint('⚠️ TTS Generation failed or returned null');
         // No fallback as requested by user
@@ -91,7 +92,7 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  /// Helper to play URL
+  /// Helper to play URL (fire and forget - for backwards compatibility)
   Future<void> _playUrl(String url) async {
     String fullUrl = url;
     if (!url.startsWith('http')) {
@@ -120,6 +121,68 @@ class GigiTTSService extends ChangeNotifier {
       await _audioPlayer.play(UrlSource(fullUrl));
     } catch (e) {
       debugPrint('Error playing audio: $e');
+      _isSpeaking = false;
+      notifyListeners();
+      onSpeakComplete?.call();
+    }
+  }
+
+  /// Helper to play URL AND WAIT for completion
+  /// Uses Completer to await the onPlayerComplete event
+  Future<void> _playUrlAndWait(String url) async {
+    String fullUrl = url;
+    if (!url.startsWith('http')) {
+      try {
+        final baseUri = Uri.parse(ApiConfig.baseUrl);
+        final rootDomain =
+            '${baseUri.scheme}://${baseUri.host}:${baseUri.port}';
+        final cleanPath = url.startsWith('/') ? url.substring(1) : url;
+        fullUrl = '$rootDomain/$cleanPath';
+      } catch (e) {
+        debugPrint('Error parsing base URL: $e');
+        fullUrl = '${ApiConfig.baseUrl.replaceAll('/api/', '')}/$url';
+      }
+    }
+
+    debugPrint('🎧 Playing audio (with wait): $fullUrl');
+
+    // Create completer to await completion
+    final completer = Completer<void>();
+
+    // Listen for completion
+    late StreamSubscription<PlayerState> subscription;
+    subscription = _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (state == PlayerState.completed || state == PlayerState.stopped) {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+        subscription.cancel();
+      }
+    });
+
+    _isSpeaking = true;
+    notifyListeners();
+    onSpeakStart?.call();
+
+    try {
+      await _audioPlayer.setVolume(_volume);
+      await _audioPlayer.play(UrlSource(fullUrl));
+
+      // Wait for audio to complete (with timeout)
+      await completer.future.timeout(
+        const Duration(seconds: 120),
+        onTimeout: () {
+          debugPrint('⚠️ Audio playback timeout');
+          subscription.cancel();
+        },
+      );
+    } catch (e) {
+      debugPrint('Error playing audio: $e');
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+      subscription.cancel();
+    } finally {
       _isSpeaking = false;
       notifyListeners();
       onSpeakComplete?.call();

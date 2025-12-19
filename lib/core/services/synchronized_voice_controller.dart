@@ -605,9 +605,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _isGuidedExecutionPlaying = true;
     notifyListeners();
 
-    _isGuidedExecutionPlaying = true;
-    notifyListeners();
-
     // 0. Immediate feedback to mask loading time
     await _speak(
       'Ti spiego questo esercizio con la tecnica corretta... Preparati...',
