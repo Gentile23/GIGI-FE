@@ -692,8 +692,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         };
       } else {
         // No active plan
-        title = 'Prova Gratuita';
-        subtitle = 'Scopri il tuo livello con un workout di prova.';
+        title = 'Valutazione Atletica';
+        subtitle = 'Scopri il tuo livello reale in 5 minuti.';
         gradientColors = [CleanTheme.primaryColor, Colors.black87];
 
         onActionTap = () {
@@ -1076,7 +1076,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Per risultati migliori, completa prima il Trial Workout',
+                      'Per risultati migliori, completa prima la Valutazione Atletica',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: const Color(0xFFE65100),

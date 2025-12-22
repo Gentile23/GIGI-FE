@@ -20,6 +20,7 @@ import '../../../data/models/user_model.dart';
 import '../../widgets/progress/weekly_progress_ring.dart';
 import '../../widgets/coaching/gigi_coaching_bubble.dart';
 import '../../widgets/marketing/marketing_widgets.dart';
+import '../questionnaire/unified_questionnaire_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -338,15 +339,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
 
-                  // Gigi Coaching Bubble - For new users
-                  if (isNewUser) ...[
+                  // Gigi Coaching Bubble - Only for users who haven't completed assessment AND don't have a plan yet
+                  if (user?.trialWorkoutCompleted != true &&
+                      currentPlan == null) ...[
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: GigiCoachingBubble(
                         message:
-                            'Inizia con il Trial Workout per calibrare il tuo livello. Ci vogliono solo 5 minuti!',
-                        actionText: 'INIZIA ORA',
+                            '💪 Fai la Valutazione Atletica! In 5 minuti calibro i pesi giusti per te e creo una scheda su misura per il tuo livello reale.',
+                        actionText: 'INIZIA VALUTAZIONE',
                         onAction: () => _navigateToTrialWorkout(),
                       ),
                     ),
@@ -468,8 +470,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: _buildQuickAction(
-                            icon: Icons.fitness_center,
-                            label: 'Trial Workout',
+                            icon: Icons.assessment,
+                            label: 'Valutazione',
                             onTap: () => _navigateToTrialWorkout(),
                           ),
                         ),
@@ -784,9 +786,281 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     WorkoutProvider workoutProvider,
   ) async {
+    // Check if user has completed the full questionnaire
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    if (user == null || !user.isQuestionnaireComplete) {
+      // Show dialog explaining they need to complete the questionnaire
+      final missingFields = user?.missingQuestionnaireFields ?? [];
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: CleanTheme.surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.assignment_outlined,
+                color: CleanTheme.primaryColor,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Completa il questionario',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Per generare una scheda personalizzata, devi prima completare il questionario con tutti i tuoi dettagli.',
+                style: TextStyle(fontSize: 15),
+              ),
+              if (missingFields.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Informazioni mancanti:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                ...missingFields.map(
+                  (field) => Padding(
+                    padding: const EdgeInsets.only(left: 8, bottom: 4),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.circle,
+                          size: 6,
+                          color: CleanTheme.accentOrange,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(field, style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Annulla',
+                style: TextStyle(color: CleanTheme.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                // Navigate to full questionnaire
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UnifiedQuestionnaireScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CleanTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Completa ora',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // User has completed questionnaire - check if they've done assessment workout
+    if (user.trialWorkoutCompleted != true) {
+      // Show dialog explaining importance of athletic assessment
+      final shouldContinue = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: CleanTheme.surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.assessment,
+                  color: CleanTheme.accentOrange,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Valutazione Atletica',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'La Valutazione Atletica ci aiuta a capire la tua reale condizione fisica:',
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildTrialBenefitItem(
+                icon: Icons.speed,
+                text: 'Calibra i pesi ideali per te',
+              ),
+              const SizedBox(height: 8),
+              _buildTrialBenefitItem(
+                icon: Icons.trending_up,
+                text: 'Valuta il tuo livello reale',
+              ),
+              const SizedBox(height: 8),
+              _buildTrialBenefitItem(
+                icon: Icons.mic,
+                text: 'Prova il Voice Coaching',
+              ),
+              const SizedBox(height: 8),
+              _buildTrialBenefitItem(
+                icon: Icons.videocam,
+                text: 'Testa il Form Check AI',
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentOrange.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: CleanTheme.accentOrange,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Senza valutazione, la scheda sarà basata solo sulle tue risposte.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            // Esci button
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Esci',
+                style: TextStyle(color: CleanTheme.textTertiary),
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Genera button
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(
+                    'Genera',
+                    style: TextStyle(color: CleanTheme.textSecondary),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Valutazione Atletica button (primary)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx, false);
+                    _navigateToTrialWorkout();
+                  },
+                  icon: const Icon(Icons.play_arrow, size: 18),
+                  label: const Text('Valutazione'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      // User chose to do trial or closed dialog
+      if (shouldContinue != true) return;
+    }
+
+    // Proceed to preferences review (plan generation)
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PreferencesReviewScreen()),
+    );
+  }
+
+  Widget _buildTrialBenefitItem({
+    required IconData icon,
+    required String text,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: CleanTheme.accentGreen),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

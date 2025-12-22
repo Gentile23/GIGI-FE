@@ -6,7 +6,6 @@ import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
 import 'presentation/screens/auth/landing_screen.dart';
-import 'presentation/screens/onboarding/welcome_flow_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/progress/progress_dashboard_screen.dart';
@@ -133,20 +132,19 @@ class _AppNavigatorState extends State<AppNavigator> {
           return const LandingScreen();
         }
 
-        // Check if user has completed their profile
-        final user = authProvider.user;
-        if (user != null) {
-          // Check if user has completed minimal profile (goal + experience)
-          final hasMinimalProfile =
-              user.goal != null && user.experienceLevel != null;
+        // SIMPLIFIED ONBOARDING FLOW:
+        // 1. UnifiedQuestionnaireScreen - Gigi welcome + full profile (integrated)
+        // 2. MainScreen - Full app access
 
-          if (!hasMinimalProfile) {
-            // Show simplified welcome flow for new users
-            return const WelcomeFlowScreen();
-          }
+        final user = authProvider.user;
+
+        // Check if user has completed questionnaire
+        if (!user!.isQuestionnaireComplete) {
+          // Show the unified questionnaire (which now starts with Gigi welcome)
+          return const UnifiedQuestionnaireScreen();
         }
 
-        // User is authenticated and has completed profile
+        // User is authenticated and has completed questionnaire
         return const MainScreen();
       },
     );

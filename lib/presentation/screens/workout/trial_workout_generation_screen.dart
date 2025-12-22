@@ -41,10 +41,12 @@ class _TrialWorkoutGenerationScreenState
       if (mounted) {
         if (trialWorkout != null) {
           // Convert TrialWorkout to WorkoutDay for WorkoutSessionScreen
+          // IMPORTANT: ID must start with 'trial_' to skip server-side logging
+          final trialId =
+              trialWorkout.id ??
+              DateTime.now().millisecondsSinceEpoch.toString();
           final workoutDay = WorkoutDay(
-            id:
-                trialWorkout.id ??
-                'trial_${DateTime.now().millisecondsSinceEpoch}',
+            id: trialId.startsWith('trial_') ? trialId : 'trial_$trialId',
             name: trialWorkout.name,
             focus: 'Trial Workout',
             estimatedDuration: trialWorkout.durationMinutes,

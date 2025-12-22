@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
-import 'quick_setup_screen.dart';
+import '../questionnaire/unified_questionnaire_screen.dart';
 
 class EnhancedOnboardingScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -23,15 +23,16 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
   // Optimized for conversion: Focus on unique value proposition (real-time voice coaching)
   final List<OnboardingPageData> _pages = [
     OnboardingPageData(
-      imagePath: 'assets/images/gigi_new_logo.png',
-      title: 'GIGI Ti Segue Davvero',
+      imagePath: 'assets/images/gigi_trainer.png',
+      title: 'Ciao, sono GIGI!',
       description:
-          'L\'unica app che ti parla mentre ti alleni e corregge la tua tecnica in tempo reale.',
-      highlightText: 'Come avere un Personal Trainer sempre con te.',
+          'Il tuo Personal Trainer AI. Ti seguo a voce durante ogni esercizio e correggo la tua tecnica in tempo reale.',
+      highlightText: 'Come avere un coach sempre con te.',
       icon: Icons.mic,
       accentColor: CleanTheme.primaryColor,
     ),
     OnboardingPageData(
+      imagePath: 'assets/images/gigi_new_logo.png',
       title: 'Coaching Vocale Live',
       description:
           'Ti guido a voce durante ogni esercizio. Ti dico cosa fare, quando farlo, come farlo.',
@@ -160,10 +161,10 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon container
+          // Image/Icon container - larger for impact
           Container(
-            width: 140,
-            height: 140,
+            width: 180,
+            height: 180,
             decoration: BoxDecoration(
               color: page.accentColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -173,11 +174,11 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
                     child: Image.asset(
                       page.imagePath!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          Icon(page.icon, size: 64, color: page.accentColor),
+                      errorBuilder: (_, __, ___) =>
+                          Icon(page.icon, size: 80, color: page.accentColor),
                     ),
                   )
-                : Icon(page.icon, size: 64, color: page.accentColor),
+                : Icon(page.icon, size: 80, color: page.accentColor),
           ),
 
           const SizedBox(height: 48),
@@ -317,10 +318,10 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
 
   void _getStarted() {
     HapticService.celebrationPattern();
-    // Navigate to quick setup for essential questions
+    // Navigate directly to the questionnaire ("Parlaci di te")
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const QuickSetupScreen()),
+      MaterialPageRoute(builder: (_) => const UnifiedQuestionnaireScreen()),
     );
   }
 }

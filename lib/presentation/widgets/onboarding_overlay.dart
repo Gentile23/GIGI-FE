@@ -76,7 +76,7 @@ class OnboardingOverlay extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   Text(
-                    'Benvenuto in GIGI.\nPer iniziare al meglio e calibrare il tuo livello, ti consiglio di effettuare subito il Trial Workout.',
+                    'Benvenuto in GIGI!\n\nPer creare la tua scheda personalizzata, fai prima la Valutazione Atletica. In 5 minuti scopro il tuo livello reale e calibro i pesi perfetti per te.',
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       color: Colors.white.withValues(alpha: 0.9),
@@ -102,7 +102,7 @@ class OnboardingOverlay extends StatelessWidget {
                         elevation: 4,
                       ),
                       child: Text(
-                        'FAI IL TRIAL WORKOUT',
+                        'INIZIA VALUTAZIONE',
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

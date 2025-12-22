@@ -5,9 +5,7 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
-import '../progress/body_measurements_screen.dart';
-import '../progress/progress_photos_screen.dart';
-import '../workout/trial_workout_generation_screen.dart';
+import '../main_screen.dart';
 
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -514,22 +512,10 @@ class _UnifiedQuestionnaireScreenState
 
       if (success) {
         if (mounted) {
-          // Navigate to BodyMeasurementsScreen first, then to main
+          // Go directly to the main app - no forced measurements or trial workout
+          // Users can access these features optionally from within the app
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => BodyMeasurementsScreen(
-                isOnboarding: true,
-                onComplete: () {
-                  // After measurements, go directly to trial workout
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const TrialWorkoutGenerationScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
+            MaterialPageRoute(builder: (context) => const MainScreen()),
           );
         }
       } else {
@@ -563,12 +549,33 @@ class _UnifiedQuestionnaireScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Calculate total pages dynamically based on current state
+    // Base pages: 15 (Gigi, Height, Gender, BodyFat, Goal, Level, Freq, Time, Location, Equipment, Injuries, Duration, Sleep, Nutrition, Cardio, Notes)
+    // + Conditional pages based on selections
+    int totalPages = 15; // Base count without conditionals
+
+    // Add conditional pages if applicable
+    if (_selectedEquipment.contains(Equipment.bodyweight) &&
+        !_selectedEquipment.contains(Equipment.machines)) {
+      totalPages++; // Bodyweight type
+    }
+    if (_selectedEquipment.contains(Equipment.machines) &&
+        _selectedLocation != TrainingLocation.gym) {
+      totalPages++; // Specific machines
+    }
+    if (_hasInjuries == true) {
+      totalPages += 3; // Injury category, area, details
+    }
+    if (_selectedLevel == ExperienceLevel.advanced) {
+      totalPages += 2; // Workout type, training split
+    }
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar with Progress
+            // Top Bar with Dot Progress Indicator (one dot per page)
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,
@@ -576,6 +583,7 @@ class _UnifiedQuestionnaireScreenState
               ),
               child: Row(
                 children: [
+                  // Back button
                   IconButton(
                     icon: const Icon(
                       Icons.arrow_back,
@@ -589,23 +597,33 @@ class _UnifiedQuestionnaireScreenState
                       }
                     },
                   ),
+
+                  // Dot Progress Indicator (centered)
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: _progress,
-                          backgroundColor: Colors.white10,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            CleanTheme.primaryColor,
-                          ),
-                          minHeight: 6,
-                        ),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(totalPages, (index) {
+                          final isActive = index == _currentStep;
+                          final isCompleted = index < _currentStep;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            width: isActive ? 20 : 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isActive || isCompleted
+                                  ? CleanTheme.textPrimary
+                                  : CleanTheme.borderSecondary,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          );
+                        }),
                       ),
                     ),
                   ),
-                  // Placeholder for symmetry or skip
+
+                  // Placeholder for symmetry
                   const SizedBox(width: 48),
                 ],
               ),
@@ -619,24 +637,25 @@ class _UnifiedQuestionnaireScreenState
                     const NeverScrollableScrollPhysics(), // Strictly controlled navigation
                 onPageChanged: (index) => setState(() => _currentStep = index),
                 children: [
-                  // 0. Height & Weight
+                  // 0. GIGI WELCOME PAGE (First step)
+                  _buildGigiWelcomePage(),
+
+                  // 1. Height & Weight ("Parlaci di te")
                   _buildHeightWeightPage(),
 
-                  // 1. Gender & Age
+                  // 2. Gender & Age
                   _buildGenderAgePage(),
 
-                  // 1.5 Body Fat Percentage (Replaces Body Shape)
+                  // 3. Body Fat Percentage
                   if (_selectedGender != null) _buildBodyFatPage(),
 
-                  // 3. Goal (Multi-select)
+                  // 4. Goal (Multi-select) - RESTORED
                   _buildMultiSelectionPage(
                     title: 'Qual è il tuo obiettivo?',
                     subtitle:
                         '✨ Puoi selezionarne più di uno per un piano personalizzato.',
                     options: FitnessGoal.values
-                        .where(
-                          (g) => g != FitnessGoal.toning,
-                        ) // Remove Definition
+                        .where((g) => g != FitnessGoal.toning)
                         .map(
                           (g) => _Option(
                             label: _getGoalLabel(g),
@@ -647,7 +666,6 @@ class _UnifiedQuestionnaireScreenState
                                 if (_selectedGoals.contains(g)) {
                                   _selectedGoals.remove(g);
                                 } else {
-                                  // Mutual exclusivity logic
                                   if (g == FitnessGoal.weightLoss) {
                                     _selectedGoals.remove(
                                       FitnessGoal.muscleGain,
@@ -668,7 +686,7 @@ class _UnifiedQuestionnaireScreenState
                     onContinue: _nextPage,
                   ),
 
-                  // 1. Experience
+                  // 5. Experience Level - RESTORED
                   _buildSelectionPage(
                     title: 'Il tuo livello?',
                     subtitle: 'Sii onesto, adatteremo tutto a te.',
@@ -687,7 +705,7 @@ class _UnifiedQuestionnaireScreenState
                         .toList(),
                   ),
 
-                  // 2. Frequency & Preferred Days
+                  // 6. Frequency & Preferred Days
                   _buildWeeklyFrequencyPage(),
 
                   // 2.5 Time Preference (New)
@@ -769,6 +787,95 @@ class _UnifiedQuestionnaireScreenState
   }
 
   // --- Page Builders ---
+
+  /// Welcome page with Gigi - First step of the questionnaire
+  Widget _buildGigiWelcomePage() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(flex: 2),
+
+          // Gigi Image
+          Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/gigi_trainer.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.person,
+                  size: 80,
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 40),
+
+          // Title with emoji
+          Text(
+            'Ciao! Sono Gigi 👋',
+            style: GoogleFonts.outfit(
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Description
+          Text(
+            'Sarò il tuo personal trainer AI.\nRispondi a 2 domande veloci così posso creare il piano perfetto per te.',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: CleanTheme.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          const Spacer(flex: 3),
+
+          // Start Button
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _nextPage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CleanTheme.textPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'INIZIAMO!',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
 
   Widget _buildHeightWeightPage() {
     return LayoutBuilder(
@@ -2632,49 +2739,97 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    children: Gender.values.map((g) {
-                      final isSelected = _selectedGender == g;
-                      return Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            right: g == Gender.male ? 8 : 0,
-                            left: g == Gender.female ? 8 : 0,
-                          ),
-                          child: InkWell(
-                            onTap: () => setState(() => _selectedGender = g),
-                            borderRadius: BorderRadius.circular(16),
-                            child: CleanCard(
-                              isSelected: isSelected,
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    g == Gender.male
-                                        ? Icons.male
-                                        : Icons.female,
-                                    color: isSelected
-                                        ? CleanTheme.primaryColor
-                                        : CleanTheme.textTertiary,
-                                    size: 40,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    g == Gender.male ? 'Uomo' : 'Donna',
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? CleanTheme.primaryColor
-                                          : CleanTheme.textSecondary,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
+                    children: [
+                      // Male option
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedGender = Gender.male),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            decoration: BoxDecoration(
+                              color: _selectedGender == Gender.male
+                                  ? CleanTheme.surfaceColor
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _selectedGender == Gender.male
+                                    ? CleanTheme.textPrimary
+                                    : CleanTheme.borderSecondary,
+                                width: _selectedGender == Gender.male ? 2 : 1,
                               ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.male,
+                                  color: _selectedGender == Gender.male
+                                      ? CleanTheme.textPrimary
+                                      : CleanTheme.textTertiary,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Uomo',
+                                  style: TextStyle(
+                                    color: _selectedGender == Gender.male
+                                        ? CleanTheme.textPrimary
+                                        : CleanTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      const SizedBox(width: 16),
+                      // Female option
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _selectedGender = Gender.female),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            decoration: BoxDecoration(
+                              color: _selectedGender == Gender.female
+                                  ? CleanTheme.surfaceColor
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _selectedGender == Gender.female
+                                    ? CleanTheme.textPrimary
+                                    : CleanTheme.borderSecondary,
+                                width: _selectedGender == Gender.female ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.female,
+                                  color: _selectedGender == Gender.female
+                                      ? CleanTheme.textPrimary
+                                      : CleanTheme.textTertiary,
+                                  size: 36,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Donna',
+                                  style: TextStyle(
+                                    color: _selectedGender == Gender.female
+                                        ? CleanTheme.textPrimary
+                                        : CleanTheme.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 32),

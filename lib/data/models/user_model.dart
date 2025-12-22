@@ -243,6 +243,57 @@ class UserModel {
     return null;
   }
 
+  /// Check if user has completed the full questionnaire
+  /// Required fields for workout plan generation:
+  /// - goal (obiettivo)
+  /// - experienceLevel (livello)
+  /// - weeklyFrequency (frequenza settimanale)
+  /// - trainingLocation (luogo allenamento)
+  /// - availableEquipment (attrezzatura)
+  /// - trainingSplit (split allenamento)
+  /// - sessionDuration (durata sessione)
+  bool get isQuestionnaireComplete {
+    return goal != null &&
+        goal!.isNotEmpty &&
+        experienceLevel != null &&
+        experienceLevel!.isNotEmpty &&
+        weeklyFrequency != null &&
+        weeklyFrequency! > 0 &&
+        trainingLocation != null &&
+        trainingLocation!.isNotEmpty &&
+        availableEquipment != null &&
+        availableEquipment!.isNotEmpty &&
+        trainingSplit != null &&
+        trainingSplit!.isNotEmpty &&
+        sessionDuration != null &&
+        sessionDuration! > 0;
+  }
+
+  /// Get list of missing questionnaire fields for user feedback
+  List<String> get missingQuestionnaireFields {
+    final missing = <String>[];
+    if (goal == null || goal!.isEmpty) missing.add('Obiettivo');
+    if (experienceLevel == null || experienceLevel!.isEmpty) {
+      missing.add('Livello esperienza');
+    }
+    if (weeklyFrequency == null || weeklyFrequency! <= 0) {
+      missing.add('Frequenza settimanale');
+    }
+    if (trainingLocation == null || trainingLocation!.isEmpty) {
+      missing.add('Luogo allenamento');
+    }
+    if (availableEquipment == null || availableEquipment!.isEmpty) {
+      missing.add('Attrezzatura disponibile');
+    }
+    if (trainingSplit == null || trainingSplit!.isEmpty) {
+      missing.add('Tipo di split');
+    }
+    if (sessionDuration == null || sessionDuration! <= 0) {
+      missing.add('Durata sessione');
+    }
+    return missing;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../../providers/auth_provider.dart';
-import '../workout/trial_workout_generation_screen.dart';
+import '../questionnaire/unified_questionnaire_screen.dart';
 
 /// Welcome Flow - Step-by-step onboarding for first-time users
 /// Reduces cognitive load by showing one question at a time
@@ -92,7 +92,7 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
   }
 
   Future<void> _completeWelcome() async {
-    // Save user preferences
+    // Save user preferences (goal + experience level)
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (_selectedGoal != null && _selectedExperience != null) {
       await authProvider.updateProfile(
@@ -101,11 +101,11 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
       );
     }
 
-    // Navigate to Trial Workout
+    // Navigate to full questionnaire (which leads to BodyMeasurements -> TrialWorkout)
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const TrialWorkoutGenerationScreen()),
+        MaterialPageRoute(builder: (_) => const UnifiedQuestionnaireScreen()),
       );
     }
   }

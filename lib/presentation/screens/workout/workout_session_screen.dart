@@ -142,13 +142,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       'DEBUG: Starting workout session for day ID: ${widget.workoutDay.id}',
     );
 
-    try {
-      // Skip session registration for trial workouts (they have fake IDs)
-      if (widget.workoutDay.id.startsWith('trial_')) {
-        debugPrint('DEBUG: Skipping session registration for trial workout');
-        return;
+    // Skip session registration for trial workouts (they have fake IDs)
+    // Trial workouts don't need server-side logging
+    if (widget.workoutDay.id.startsWith('trial_')) {
+      debugPrint('DEBUG: Skipping session registration for trial workout');
+      // Auto-start the session timer for trial workout
+      if (!_isSessionActive) {
+        _startSession();
       }
+      return;
+    }
 
+    try {
       await provider.startWorkout(workoutDayId: widget.workoutDay.id);
 
       if (provider.currentWorkoutLog != null) {
@@ -1475,6 +1480,48 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   ),
                                 ),
                               ),
+                              // Suggested Weight Badge - Only show if no history and weight suggested
+                              if (exercise.suggestedWeightKg != null &&
+                                  exercise.suggestedWeightKg! > 0 &&
+                                  (exerciseLog?.setLogs.isEmpty ?? true)) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: CleanTheme.accentBlue.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: CleanTheme.accentBlue.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lightbulb_outline,
+                                        size: 12,
+                                        color: CleanTheme.accentBlue,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${exercise.suggestedWeightKg!.toStringAsFixed(0)} kg',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: CleanTheme.accentBlue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],

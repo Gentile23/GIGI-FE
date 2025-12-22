@@ -117,7 +117,11 @@ class LandingScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => AuthScreen(
                                 initialIsLogin: false,
-                                onComplete: () => Navigator.of(context).pop(),
+                                // Pop all the way back to AppNavigator, which will
+                                // automatically show the correct screen based on auth state
+                                onComplete: () => Navigator.of(
+                                  context,
+                                ).popUntil((route) => route.isFirst),
                               ),
                             ),
                           );
@@ -134,7 +138,11 @@ class LandingScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => AuthScreen(
                                 initialIsLogin: true,
-                                onComplete: () => Navigator.of(context).pop(),
+                                // Pop all the way back to AppNavigator, which will
+                                // automatically show the correct screen based on auth state
+                                onComplete: () => Navigator.of(
+                                  context,
+                                ).popUntil((route) => route.isFirst),
                               ),
                             ),
                           );
