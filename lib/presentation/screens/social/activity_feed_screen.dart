@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/social_provider.dart';
 
@@ -179,9 +180,19 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           backgroundColor: CleanTheme.surfaceColor,
           child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-            itemCount: provider.activities.length,
+            itemCount: provider.activities.length + 1,
             itemBuilder: (context, index) {
-              return _buildActivityCard(provider.activities[index]);
+              if (index == 0) {
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: GigiCoachMessage(
+                    message:
+                        'Entrare a far parte della community aumenta la tua costanza del 35%. Interagisci con gli altri per restare motivato! 🚀',
+                    emotion: GigiEmotion.motivational,
+                  ),
+                );
+              }
+              return _buildActivityCard(provider.activities[index - 1]);
             },
           ),
         );

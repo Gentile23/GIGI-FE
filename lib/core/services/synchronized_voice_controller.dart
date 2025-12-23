@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'gigi_tts_service.dart';
@@ -198,7 +197,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   // =====================================
 
   /// Activate voice coaching FIRST TIME (tap mic icon)
-  /// Uses pre-cached intro to hide TTS generation delay
+  /// Voice coaching is now silent on activation - only speaks during "Esegui con Gigi"
   Future<void> activateInitial({
     required String exerciseName,
     required int sets,
@@ -217,12 +216,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.preExercise;
     notifyListeners();
 
-    // Step 0: Greet user (Restored feature - Full Experience)
-    final greeting = _buildPersonalizedGreeting(exerciseName, sets, reps);
-    await _speak(greeting);
-
-    // Explanation is NOT played automatically anymore.
-    // User must click "Esegui con Gigi" to hear the explanation.
+    // Silent activation - user must tap "Esegui con Gigi" to hear voice
   }
 
   /// Build simple greeting for activation (just hello + motivation)
@@ -261,25 +255,13 @@ class SynchronizedVoiceController extends ChangeNotifier {
   /// Notify controller that workout session has started
   void notifySessionStarted() {
     _isSessionStarted = true;
-    if (_isEnabled && !_isMuted) {
-      speakSessionStartGreeting();
-    }
+    // Silent - no automatic greeting
     notifyListeners();
   }
 
-  /// Speak greeting specifically when session starts
+  /// Session start greeting - now silent (user must use "Esegui con Gigi")
   Future<void> speakSessionStartGreeting() async {
-    if (!_isEnabled || _isMuted) return;
-
-    final buffer = StringBuffer();
-    buffer.write('Ottimo $firstName, sessione iniziata! ');
-    buffer.write('Clicca \"Info\" per vedere i dettagli di ogni esercizio... ');
-    buffer.write(
-      'oppure \"Esegui con Gigi\" per una guida passo-passo all\'esecuzione. ',
-    );
-    buffer.write('Diamoci dentro!');
-
-    await _speak(buffer.toString());
+    // Silent - voice only speaks during "Esegui con Gigi"
   }
 
   /// Set user streak for personalized greetings
@@ -329,38 +311,15 @@ class SynchronizedVoiceController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Start set (tap "Inizia Serie")
+  /// Start set (tap "Inizia Serie") - now silent
   Future<void> startSet() async {
     _currentSet++;
     _restTimer?.cancel();
     _cueTimer?.cancel();
 
-    _phase = VoiceCoachingPhase.explaining;
-    notifyListeners();
-
-    // Speak based on user level and set number
-    if (_currentSet == 1) {
-      switch (_userLevel) {
-        case UserLevel.beginner:
-          await _speakFullExplanation();
-          break;
-        case UserLevel.intermediate:
-          await _speakBriefExplanation();
-          break;
-        case UserLevel.advanced:
-          await _speakSetCountdown();
-          break;
-      }
-    } else {
-      // Subsequent sets: countdown only for all levels
-      await _speakSetCountdown();
-    }
-
-    // Start during-set cues based on level
-    _startDuringSetCues();
-
     _phase = VoiceCoachingPhase.executing;
     notifyListeners();
+    // Silent - no automatic explanations or countdowns
   }
 
   /// Complete set (tap checkbox) - basic version
@@ -368,7 +327,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     await completeSetWithData();
   }
 
-  /// Complete set with performance data for personalized celebration
+  /// Complete set with performance data - now silent
   Future<void> completeSetWithData({
     double? weightKg,
     int? reps,
@@ -379,20 +338,14 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.postSet;
     notifyListeners();
 
-    // Personalized celebration based on performance
-    await _speakPersonalizedCelebration(
-      weightKg: weightKg,
-      rpe: rpe,
-      previousWeightKg: previousWeightKg,
-    );
+    // Silent - no automatic celebrations
 
     if (_currentSet < _totalSets) {
-      // Start rest timer
+      // Start rest timer (silent)
       _startRestTimer();
     } else {
-      // Exercise completed with summary
+      // Exercise completed
       _phase = VoiceCoachingPhase.completed;
-      await _speakExerciseComplete(weightKg: weightKg);
       notifyListeners();
     }
   }
@@ -508,32 +461,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
   }
 
   void _startDuringSetCues() {
-    // Frequency based on user level
-    int intervalSeconds;
-    switch (_userLevel) {
-      case UserLevel.beginner:
-        intervalSeconds = 15; // More frequent for beginners
-        break;
-      case UserLevel.intermediate:
-        intervalSeconds = 25; // Less frequent
-        break;
-      case UserLevel.advanced:
-        return; // No cues for advanced users
-    }
-
-    // Add some randomness (±3 seconds)
-    final interval = Duration(
-      seconds: intervalSeconds + Random().nextInt(7) - 3,
-    );
-
-    _cueTimer = Timer.periodic(interval, (timer) {
-      if (_phase == VoiceCoachingPhase.executing && _currentScript != null) {
-        final cue = _currentScript!.getRandomCue();
-        if (cue.isNotEmpty) {
-          _speak(cue);
-        }
-      }
-    });
+    // Disabled - no automatic cues during sets
+    // Voice only speaks during "Esegui con Gigi"
   }
 
   void _startRestTimer() {
@@ -541,23 +470,13 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.resting;
     notifyListeners();
 
-    // Announce rest start using phrases database
-    _speak(phrases.getRestStartPhrase(_restSeconds));
-
+    // Silent rest timer - no voice announcements
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _restRemaining--;
       notifyListeners();
 
-      // Voice cues at specific intervals
-      if (_restRemaining == 30 && _restSeconds >= 45) {
-        _speak('30 secondi, preparati!');
-      } else if (_restRemaining == 10) {
-        _speak('10 secondi!');
-      } else if (_restRemaining <= 5 && _restRemaining > 0) {
-        _speak('$_restRemaining');
-      } else if (_restRemaining == 0) {
+      if (_restRemaining == 0) {
         timer.cancel();
-        _speak('Via!');
         _phase = VoiceCoachingPhase.preExercise;
         notifyListeners();
       }
@@ -715,8 +634,48 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
       }
     }
 
+    // 4. PERSONALIZED CLOSING: Short phrase with user's name
+    // This makes the cached audio feel custom-generated for each user
+    await _speakPersonalizedClosing(voiceCoachingService);
+
     _isGuidedExecutionPlaying = false;
     notifyListeners();
+  }
+
+  /// Generate and speak a short personalized closing phrase
+  /// This creates the illusion that the entire audio was custom-generated
+  Future<void> _speakPersonalizedClosing(dynamic voiceCoachingService) async {
+    // Build personalized phrase with user's first name
+    final closingPhrases = [
+      'Perfetto $firstName! Ora tocca a te, dai il massimo!',
+      'Ottimo $firstName! Sei pronto, spacca tutto!',
+      'Forza $firstName! Adesso mostrami cosa sai fare!',
+      'Bravissimo $firstName! Ora inizia le tue serie!',
+      'Eccellente $firstName! Concentrati e vai!',
+    ];
+
+    // Select based on time for variety
+    final index = DateTime.now().second % closingPhrases.length;
+    final phrase = closingPhrases[index];
+
+    // Generate TTS for this short phrase (fast because it's short)
+    if (voiceCoachingService != null) {
+      try {
+        final audioUrl = await voiceCoachingService.generateTTS(phrase);
+        if (audioUrl != null && audioUrl.isNotEmpty) {
+          await _ttsService.speakUrl(audioUrl);
+          while (_ttsService.isSpeaking) {
+            await Future.delayed(const Duration(milliseconds: 200));
+          }
+          return;
+        }
+      } catch (e) {
+        debugPrint('⚠️ Personalized closing TTS failed: $e');
+      }
+    }
+
+    // Fallback to local TTS
+    await _speak(phrase);
   }
 
   /// Stop guided execution if playing
@@ -759,65 +718,16 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
   // INTERACTION TRACKING
   // =====================================
 
-  /// Handle user interaction events for synchronized voice feedback
-  /// Respects minimal mode setting
+  /// Handle user interaction events - now silent
+  /// Voice only speaks during "Esegui con Gigi"
   Future<void> onUserInteraction(
     GigiInteractionEvent event, {
     int? setNumber,
     int? totalSets,
     String? exerciseName,
   }) async {
-    if (!_isEnabled || _isMuted || _isGuidedExecutionPlaying) return;
-
-    switch (event) {
-      case GigiInteractionEvent.setCheckboxToggled:
-        if (!_minimalMode) {
-          // In full mode, celebrate every set
-          if (setNumber != null && totalSets != null) {
-            final celebration = phrases.getSetCelebration(
-              userName: firstName,
-              currentSet: setNumber,
-              totalSets: totalSets,
-            );
-            await speakBrief(celebration);
-          }
-        } else {
-          // In minimal mode, only celebrate first and last set
-          if (setNumber == 1) {
-            await speakBrief('Prima serie fatta!');
-          } else if (setNumber == totalSets) {
-            await speakBrief('Ottimo! Esercizio completato!');
-          }
-          // Middle sets: silence
-        }
-        break;
-
-      case GigiInteractionEvent.exerciseCardOpened:
-        // Brief acknowledgment only in full mode
-        if (!_minimalMode && exerciseName != null) {
-          await speakBrief('$exerciseName. Pronto quando vuoi!');
-        }
-        break;
-
-      case GigiInteractionEvent.restTimerSkipped:
-        if (!_minimalMode) {
-          await speakBrief('Ok, niente pausa! Forza!');
-        }
-        break;
-
-      case GigiInteractionEvent.exerciseCompleted:
-        // Always celebrate exercise completion
-        await speakBrief('Grande lavoro!');
-        break;
-
-      case GigiInteractionEvent.workoutStarted:
-        // Greeting when workout starts (already handled by greetUser)
-        break;
-
-      case GigiInteractionEvent.workoutCompleted:
-        await _speak(phrases.getWorkoutCompletePhrase(firstName));
-        break;
-    }
+    // Silent - all interaction-based speech removed
+    // User must tap "Esegui con Gigi" to hear voice coaching
   }
 
   @override

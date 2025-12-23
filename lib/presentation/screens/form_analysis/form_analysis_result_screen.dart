@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/models/form_analysis_model.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 
 class FormAnalysisResultScreen extends StatelessWidget {
   final FormAnalysis analysis;
@@ -31,6 +32,8 @@ class FormAnalysisResultScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            _buildGigiSummary(),
+            const SizedBox(height: 16),
             _buildScoreCard(),
             const SizedBox(height: 16),
             if (analysis.summary != null) _buildSummaryCard(),
@@ -681,5 +684,27 @@ class FormAnalysisResultScreen extends StatelessWidget {
       default:
         return CleanTheme.textTertiary;
     }
+  }
+
+  Widget _buildGigiSummary() {
+    final score = analysis.formScore ?? 0;
+    String message = '';
+    GigiEmotion emotion = GigiEmotion.happy;
+
+    if (score >= 8) {
+      message =
+          'Esecuzione magistrale! La tua tecnica è eccellente. Continua così e focalizzati sul carico progressivo.';
+      emotion = GigiEmotion.celebrating;
+    } else if (score >= 6) {
+      message =
+          'Buona tecnica, ma c\'è margine di miglioramento. Ho trovato piccoli errori che se corretti ti permetteranno di caricare di più in sicurezza.';
+      emotion = GigiEmotion.expert;
+    } else {
+      message =
+          'Dobbiamo lavorare sulla tecnica! Ci sono errori importanti che potrebbero causare infortuni. Segui i miei suggerimenti qui sotto.';
+      emotion = GigiEmotion.motivational;
+    }
+
+    return GigiCoachMessage(message: message, emotion: emotion);
   }
 }

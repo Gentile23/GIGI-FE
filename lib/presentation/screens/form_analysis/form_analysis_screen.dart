@@ -7,6 +7,7 @@ import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 
 class FormAnalysisScreen extends StatefulWidget {
   final String? exerciseName;
@@ -224,6 +225,12 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                       onPressed: _analyzeVideo,
                     ),
                   if (_isAnalyzing) _buildAnalyzingWidget(),
+                  const SizedBox(height: 24),
+                  const GigiCoachMessage(
+                    message:
+                        'Ciao! Per un risultato perfetto, chiedi a qualcuno di riprenderti di profilo o appoggia il telefono. Assicurati che tutto il corpo sia visibile!',
+                    emotion: GigiEmotion.expert,
+                  ),
                   const SizedBox(height: 24),
                   _buildInfoCard(),
                 ],

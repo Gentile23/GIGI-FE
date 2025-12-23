@@ -8,7 +8,9 @@ import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
-import '../workout/trial_workout_generation_screen.dart';
+import '../onboarding/athletic_assessment_intro_screen.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../widgets/clean_widgets.dart';
 
 import '../workout/workout_session_screen.dart';
 import '../custom_workout/custom_workout_list_screen.dart';
@@ -160,6 +162,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
                         const SizedBox(height: 32),
 
+                        _buildGigiGuidance(workoutProvider),
+
                         // 4. Hero Section
                         Text(
                           'Il tuo prossimo workout',
@@ -228,7 +232,22 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                 const Color(0xFF00D26A),
                                 () {
                                   HapticService.lightTap();
-                                  _showGeneratePlanDialog();
+                                  final workoutProvider =
+                                      Provider.of<WorkoutProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  if (workoutProvider.currentPlan == null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const AthleticAssessmentIntroScreen(),
+                                      ),
+                                    );
+                                  } else {
+                                    _showGeneratePlanDialog();
+                                  }
                                 },
                               ),
                             ),
@@ -700,7 +719,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const TrialWorkoutGenerationScreen(),
+              builder: (_) => const AthleticAssessmentIntroScreen(),
             ),
           );
         };
@@ -1535,6 +1554,39 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildGigiGuidance(WorkoutProvider provider) {
+    if (provider.currentPlan == null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: GigiCoachMessage(
+          message:
+              'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!',
+          emotion: GigiEmotion.expert,
+          action: CleanButton(
+            text: 'Inizia Valutazione',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AthleticAssessmentIntroScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return const Padding(
+      padding: EdgeInsets.only(bottom: 24),
+      child: GigiCoachMessage(
+        message:
+            'Pronto per l\'allenamento? Segui la tua scheda personalizzata e ricordati di registrare ogni set per monitorare i tuoi progressi!',
+        emotion: GigiEmotion.expert,
       ),
     );
   }

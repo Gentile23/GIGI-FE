@@ -7,6 +7,7 @@ import '../../../data/services/api_client.dart';
 import 'body_measurements_screen.dart';
 import 'progress_photos_screen.dart';
 import 'progress_comparison_screen.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 
 class ProgressDashboardScreen extends StatefulWidget {
   const ProgressDashboardScreen({super.key});
@@ -287,6 +288,10 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Gigi AI Guide
+                    _buildGigiInsights(),
+                    const SizedBox(height: 20),
+
                     // Streak & Quick Stats
                     _buildStreakCard(),
                     const SizedBox(height: 20),
@@ -1173,5 +1178,39 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildGigiInsights() {
+    String message =
+        'Fantastico lavoro! Continua così per raggiungere i tuoi obiettivi.';
+    GigiEmotion emotion = GigiEmotion.happy;
+
+    if (_streak > 0) {
+      if (_streak >= 4) {
+        message =
+            'Sei inarrestabile! $_streak settimane di fila sono un risultato incredibile. La tua costanza è la chiave per il successo.';
+        emotion = GigiEmotion.celebrating;
+      } else {
+        message =
+            'Ottima costanza! Hai mantenuto $_streak settimane di misurazioni. Questo mi aiuta a calibrare meglio il tuo piano.';
+        emotion = GigiEmotion.motivational;
+      }
+    } else if (_measurementsHistory.isEmpty) {
+      message =
+          'Benvenuto nei progressi! Aggiungi la tua prima misura per aiutarmi a capire come sta reagendo il tuo corpo.';
+      emotion = GigiEmotion.expert;
+    }
+
+    // Check for recent changes
+    if (_changes != null && _changes!.isNotEmpty) {
+      final weightChange = _parseNum(_changes!['weight_kg']);
+      if (weightChange != null && weightChange < 0) {
+        message =
+            'Ho notato una diminuzione di peso: ottimo lavoro sulla definizione! Stai andando alla grande.';
+        emotion = GigiEmotion.celebrating;
+      }
+    }
+
+    return GigiCoachMessage(message: message, emotion: emotion);
   }
 }
