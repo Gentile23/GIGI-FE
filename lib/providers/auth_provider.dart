@@ -10,11 +10,13 @@ class AuthProvider with ChangeNotifier {
   final ApiClient _apiClient;
   late final AuthService _authService;
   late final UserService _userService;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-
   // Google Client ID
-  final String _googleClientId =
+  static const String _googleClientId =
       '832030535090-sciu23qp4gsg1m1315u8gmmb3dri2ikd.apps.googleusercontent.com';
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb ? _googleClientId : null,
+  );
 
   UserModel? _user;
   bool _isLoading = false;
@@ -38,10 +40,10 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _checkAuthStatus() async {
     try {
-      // In newer versions of google_sign_in, we don't use .instance
-      // We use the initialized GoogleSignIn object.
-      // Note: initialize() might not be needed or named differently depending on version.
-      // Usually, configuration is passed to the constructor.
+      if (kIsWeb) {
+        // This triggers initialization of the web plugin
+        _googleSignIn.signInSilently();
+      }
 
       _googleSignIn.onCurrentUserChanged.listen((
         GoogleSignInAccount? account,
