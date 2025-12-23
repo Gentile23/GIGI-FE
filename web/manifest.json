@@ -1,6 +1,6 @@
 {
-    "name": "GIGI",
-    "short_name": "GIGI",
+    "name": "gigi",
+    "short_name": "gigi",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

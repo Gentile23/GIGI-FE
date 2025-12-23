@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -11,6 +10,7 @@ class AuthProvider with ChangeNotifier {
   final ApiClient _apiClient;
   late final AuthService _authService;
   late final UserService _userService;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   // Google Client ID
   final String _googleClientId =
@@ -38,42 +38,16 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _checkAuthStatus() async {
     try {
-      await GoogleSignIn.instance.initialize(
-        serverClientId: kIsWeb ? null : _googleClientId,
-        clientId: kIsWeb ? _googleClientId : null,
-      );
+      // In newer versions of google_sign_in, we don't use .instance
+      // We use the initialized GoogleSignIn object.
+      // Note: initialize() might not be needed or named differently depending on version.
+      // Usually, configuration is passed to the constructor.
 
-      // Listen to auth state changes using the new API
-      // Since we can't easily see the type, we'll try to listen to the stream
-      // and inspect the event dynamically. Use a broad dynamic cast to avoid
-      // analyzer errors for now.
-      (GoogleSignIn.instance as dynamic).authenticationEvents.listen((
-        event,
+      _googleSignIn.onCurrentUserChanged.listen((
+        GoogleSignInAccount? account,
       ) async {
-        debugPrint('Google Auth Event Detected: $event');
-
-        // In v7, the event carries the user.
-        // We cast to dynamic to access .user property if it exists on the specific event type.
-        try {
-          final dynamic evt = event;
-          // Check if it's a sign-in event (has 'user' property)
-          try {
-            // Access dynamically to bypass static analysis for now
-            final user = evt.user;
-            debugPrint('User from event: $user');
-            if (user != null) {
-              await _handleGoogleAuth(user);
-            }
-          } catch (err) {
-            // Property 'user' might not exist on all events (e.g. sign out)
-            if (event.toString().contains('SignIn')) {
-              debugPrint(
-                'Detected SignIn event but could not extract user: $err',
-              );
-            }
-          }
-        } catch (e) {
-          debugPrint('Error processing auth event: $e');
+        if (account != null) {
+          await _handleGoogleAuth(account);
         }
       });
     } catch (e) {
@@ -165,15 +139,14 @@ class AuthProvider with ChangeNotifier {
         // The UI should show the Google button which triggers the flow.
         return false;
       } else {
-        googleUser = await GoogleSignIn.instance.authenticate();
+        googleUser = await _googleSignIn.signIn();
       }
 
-      // Handle mobile sign-in explicitly (listener might also catch it, but we can double check)
-      // Actually, onCurrentUserChanged fires for mobile too.
-      // To avoid double processing, we can rely on the listener OR explicit call.
-      // For now, let's process it here for mobile to ensure we await result.
-      await _handleGoogleAuth(googleUser);
-      return true;
+      if (googleUser != null) {
+        await _handleGoogleAuth(googleUser);
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
     }
@@ -286,7 +259,7 @@ class AuthProvider with ChangeNotifier {
     }
 
     try {
-      await GoogleSignIn.instance.signOut();
+      await _googleSignIn.signOut();
     } catch (e) {
       debugPrint('Error during Google sign out: $e');
     }

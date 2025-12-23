@@ -1036,7 +1036,18 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Text('🤖', style: TextStyle(fontSize: 28)),
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.grey.shade100,
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/gigi_new_logo.png',
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
             const SizedBox(width: 12),
             Text(
               'Genera Scheda AI',

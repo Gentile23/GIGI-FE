@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
-import 'package:google_sign_in_web/google_sign_in_web.dart';
+import 'google_sign_in_button_stub.dart'
+    if (dart.library.js_util) 'google_sign_in_button_web.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
@@ -341,12 +341,7 @@ class _AuthScreenState extends State<AuthScreen>
                     // Google Sign In
                     if (kIsWeb)
                       // Use the official Google Sign-In button on Web
-                      Center(
-                        child:
-                            (GoogleSignInPlatform.instance
-                                    as GoogleSignInPlugin)
-                                .renderButton(),
-                      )
+                      Center(child: getGoogleSignInButton())
                     else
                       // Custom styled Google button for mobile (black like Apple style)
                       _buildGoogleButton(onPressed: _handleGoogleSignIn),

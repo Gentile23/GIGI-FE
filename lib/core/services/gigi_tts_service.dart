@@ -4,12 +4,6 @@ import 'package:audioplayers/audioplayers.dart';
 import '../constants/api_config.dart';
 import '../../data/services/voice_coaching_service.dart';
 
-// Web-specific imports with conditional
-import 'dart:js_interop' if (dart.library.io) 'dart:js_interop';
-import 'package:web/web.dart'
-    if (dart.library.io) 'package:web/web.dart'
-    as web;
-
 /// Gigi TTS Service (Pure ElevenLabs)
 ///
 /// Uses ElevenLabs API exclusively via [VoiceCoachingService].
