@@ -150,6 +150,10 @@ class AuthProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
+      debugPrint('AuthProvider Google Sign In Error: $e');
+      _isLoading = false;
+      _error = 'Errore durante l\'accesso con Google: $e';
+      notifyListeners();
       return false;
     }
   }

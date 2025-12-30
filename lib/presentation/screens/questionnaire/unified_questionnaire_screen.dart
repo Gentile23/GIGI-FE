@@ -214,6 +214,8 @@ class _UnifiedQuestionnaireScreenState
   // --- Navigation Logic ---
 
   void _nextPage() {
+    // Chiude la tastiera quando si cambia pagina
+    FocusScope.of(context).unfocus();
     _pageController.nextPage(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
@@ -222,6 +224,8 @@ class _UnifiedQuestionnaireScreenState
   }
 
   void _previousPage() {
+    // Chiude la tastiera quando si cambia pagina
+    FocusScope.of(context).unfocus();
     _pageController.previousPage(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
@@ -1339,14 +1343,6 @@ class _UnifiedQuestionnaireScreenState
                         height: 1.3,
                       ),
                     ),
-                    if (isSelected) ...[
-                      const SizedBox(height: 12),
-                      const Icon(
-                        Icons.check_circle,
-                        color: CleanTheme.primaryColor,
-                        size: 20,
-                      ),
-                    ],
                   ],
                 ),
               );
@@ -2380,8 +2376,16 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Qualcos\'altro da sapere?',
+                    'Qualcos\'altro da sapere? (Facoltativo)',
                     style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Puoi anche procedere senza inserire nulla.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: CleanTheme.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -2872,14 +2876,26 @@ class _UnifiedQuestionnaireScreenState
                       ),
                     ),
                     onChanged: (value) => setState(() {
-                      _age = int.tryParse(value);
+                      final parsedAge = int.tryParse(value);
+                      // Validate age between 14 and 100
+                      if (parsedAge != null &&
+                          parsedAge >= 14 &&
+                          parsedAge <= 100) {
+                        _age = parsedAge;
+                      } else {
+                        _age = null;
+                      }
                     }),
                   ),
                   const SizedBox(height: 32),
                   const Spacer(),
                   CleanButton(
                     text: 'Continua',
-                    onPressed: (_selectedGender != null && _age != null)
+                    onPressed:
+                        (_selectedGender != null &&
+                            _age != null &&
+                            _age! >= 14 &&
+                            _age! <= 100)
                         ? _nextPage
                         : null,
                   ),
