@@ -1,16 +1,16 @@
 Running Gradle task 'bundleRelease'...                          
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
-Invalid depfile: C:\Users\genti\Progetti\fitgenius\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
+Invalid depfile: C:\Users\genti\Progetti\GIGI\.dart_tool\flutter_build\ad442ab5c1507246ba000c0adc3df29e\kernel_snapshot_program.d
 ../../AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in_web-0.12.4+4/lib/google_sign_in_web.dart:6:8: Error: Dart library 'dart:js_interop' is not available on this platform.
 import 'dart:js_interop';
        ^

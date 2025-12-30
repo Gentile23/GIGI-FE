@@ -1,6 +1,6 @@
 ﻿Running Gradle task 'bundleRelease'...                          
 flutter : Invalid depfile: C:\Use
-rs\genti\Progetti\fitgenius\.dart
+rs\genti\Progetti\GIGI\.dart
 _tool\flutter_build\2ebfcd48ce0aa
 e844b7b6b5a304eab06\kernel_snapsh
 ot_program.d
@@ -18,57 +18,57 @@ In riga:1 car:1
    tiveCommandError
  
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
@@ -93,13 +93,13 @@ warning: [options] To suppress
 warnings about obsolete options, 
 use -Xlint:-options.
 3 warnings
-C:\Users\genti\Progetti\fitgenius
+C:\Users\genti\Progetti\GIGI
 \android\app\src\main\AndroidMani
 fest.xml Error:
 	uses-sdk:minSdkVersion 24 
 cannot be smaller than version 
 26 declared in library [:health] 
-C:\Users\genti\Progetti\fitgenius
+C:\Users\genti\Progetti\GIGI
 \build\health\intermediates\merge
 d_manifest\release\processRelease
 Manifest\AndroidManifest.xml as 
@@ -125,7 +125,7 @@ rocessReleaseMainManifest'.
 uses-sdk:minSdkVersion 24 cannot 
 be smaller than version 26 
 declared in library [:health] C:\
-Users\genti\Progetti\fitgenius\bu
+Users\genti\Progetti\GIGI\bu
 ild\health\intermediates\merged_m
 anifest\release\processReleaseMan
 ifest\AndroidManifest.xml as the 
@@ -157,7 +157,7 @@ Running Gradle task 'bundleRelease'...                            147,9s
 ÔöîÔöÇ Flutter Fix ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ
 Ôöé The plugin health requires a higher Android SDK version.                                      Ôöé
 Ôöé Fix this issue by adding the following to the file                                            Ôöé
-Ôöé C:\Users\genti\Progetti\fitgenius\android\app\build.gradle.kts:                               Ôöé
+Ôöé C:\Users\genti\Progetti\GIGI\android\app\build.gradle.kts:                               Ôöé
 Ôöé android {                                                                                     Ôöé
 Ôöé   defaultConfig {                                                                             Ôöé
 Ôöé     minSdkVersion 26                                                                          Ôöé

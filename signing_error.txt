@@ -1,11 +1,11 @@
 Running Gradle task 'bundleRelease'...                          
-e: file:///C:/Users/genti/Progetti/fitgenius/android/app/build.gradle.kts:36:43: Unresolved reference: util
-e: file:///C:/Users/genti/Progetti/fitgenius/android/app/build.gradle.kts:43:69: Unresolved reference: it
+e: file:///C:/Users/genti/Progetti/GIGI/android/app/build.gradle.kts:36:43: Unresolved reference: util
+e: file:///C:/Users/genti/Progetti/GIGI/android/app/build.gradle.kts:43:69: Unresolved reference: it
 
 FAILURE: Build failed with an exception.
 
 * Where:
-Build file 'C:\Users\genti\Progetti\fitgenius\android\app\build.gradle.kts' line: 19
+Build file 'C:\Users\genti\Progetti\GIGI\android\app\build.gradle.kts' line: 19
 
 * What went wrong:
 Script compilation errors:

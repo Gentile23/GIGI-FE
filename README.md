@@ -680,7 +680,7 @@ php artisan serve
 
 ```bash
 # Clone repository
-cd fitgenius
+cd GIGI
 
 # Get dependencies
 flutter pub get

@@ -1,6 +1,6 @@
 ﻿Running Gradle task 'bundleRelease'...                          
 flutter : Invalid depfile: C:\Use
-rs\genti\Progetti\fitgenius\.dart
+rs\genti\Progetti\GIGI\.dart
 _tool\flutter_build\2ebfcd48ce0aa
 e844b7b6b5a304eab06\kernel_snapsh
 ot_program.d
@@ -19,57 +19,57 @@ build_output.txt 2>&1
    tiveCommandError
  
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
 Invalid depfile: C:\Users\genti\P
-rogetti\fitgenius\.dart_tool\flut
+rogetti\GIGI\.dart_tool\flut
 ter_build\2ebfcd48ce0aae844b7b6b5
 a304eab06\kernel_snapshot_program
 .d
