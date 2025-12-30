@@ -40,6 +40,9 @@ class _AuthScreenState extends State<AuthScreen>
   late AnimationController _logoAnimationController;
   late Animation<double> _logoOpacityAnimation;
 
+  // Store AuthProvider reference for safe disposal
+  AuthProvider? _authProvider;
+
   @override
   void initState() {
     super.initState();
@@ -55,10 +58,67 @@ class _AuthScreenState extends State<AuthScreen>
 
     // Start animation
     _logoAnimationController.forward();
+
+    // Listen for auth changes (needed for Web GSI button flow)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _authProvider = Provider.of<AuthProvider>(context, listen: false);
+      _authProvider?.addListener(_onAuthChanged);
+    });
+  }
+
+  // Flag to prevent multiple navigation attempts
+  bool _hasNavigated = false;
+
+  void _onAuthChanged() {
+    if (!mounted || _hasNavigated) return;
+
+    final isAuthenticated = _authProvider?.isAuthenticated ?? false;
+    final isLoading = _isLoading; // Ensure we use the local state correctly
+
+    if (isAuthenticated && !isLoading) {
+      // User just authenticated (likely from Web GSI button)
+      debugPrint('AuthScreen: User authenticated, scheduling navigation...');
+      _hasNavigated = true;
+
+      // Schedule navigation for next frame to ensure state is fully updated
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        debugPrint('AuthScreen: Executing navigation logic...');
+
+        final navigator = Navigator.of(context);
+        debugPrint('AuthScreen: navigator.canPop() = ${navigator.canPop()}');
+
+        if (widget.onComplete != null) {
+          try {
+            debugPrint('AuthScreen: Calling onComplete callback...');
+            widget.onComplete!.call();
+            return;
+          } catch (e) {
+            debugPrint('AuthScreen: Error calling onComplete: $e');
+          }
+        }
+
+        // Default behavior: pop back to root where AppNavigator handles the view
+        if (navigator.canPop()) {
+          debugPrint('AuthScreen: Popping until first route...');
+          navigator.popUntil((route) => route.isFirst);
+        } else {
+          debugPrint('AuthScreen: Cannot pop, pushing replacement named /...');
+          // On Web, if we can't pop, we might be the only route.
+          // Pushing '/' ensures the root navigator rebuilds and AppNavigator
+          // picks up the authenticated state.
+          navigator.pushReplacementNamed('/');
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    // Remove listener using stored reference (safe for dispose)
+    _authProvider?.removeListener(_onAuthChanged);
+
     _logoAnimationController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
