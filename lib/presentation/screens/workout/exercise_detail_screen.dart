@@ -9,6 +9,7 @@ import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
 import '../../widgets/workout/alternative_exercises_sheet.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -58,7 +59,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Dettagli Esercizio',
+          AppLocalizations.of(context)!.exerciseDetailsTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -97,7 +98,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty &&
                 widget.workoutExercise.exerciseType != 'cardio' &&
                 widget.workoutExercise.exerciseType != 'mobility') ...[
-              CleanSectionHeader(title: 'Muscoli Coinvolti'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.musclesInvolved,
+              ),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
@@ -116,7 +119,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Equipment
             if (widget.workoutExercise.exercise.equipment.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Attrezzatura Richiesta'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.equipmentRequired,
+              ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -147,7 +152,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Description
             if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Come Eseguire'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.howToPerform,
+              ),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
@@ -168,7 +175,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             // Video Player / Thumbnail
             if (widget.workoutExercise.exercise.videoUrl != null &&
                 widget.workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Video Tutorial'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.videoTutorial,
+              ),
               const SizedBox(height: 12),
               _buildVideoSection(widget.workoutExercise.exercise.videoUrl!),
             ],
@@ -216,7 +225,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Esercizi Simili',
+                    AppLocalizations.of(context)!.similarExercises,
                     style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -263,7 +272,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
-                      isBodyweight ? 'Con Attrezzatura' : 'Corpo Libero',
+                      isBodyweight
+                          ? AppLocalizations.of(context)!.withEquipment
+                          : AppLocalizations.of(context)!.bodyweight,
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -290,17 +301,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       case 'beginner':
         badgeColor = CleanTheme.accentGreen;
         icon = Icons.star;
-        label = 'Principiante';
+        label = AppLocalizations.of(context)!.difficultyBeginner;
         break;
       case 'intermediate':
         badgeColor = CleanTheme.accentOrange;
         icon = Icons.star_half;
-        label = 'Intermedio';
+        label = AppLocalizations.of(context)!.difficultyIntermediate;
         break;
       case 'advanced':
         badgeColor = CleanTheme.accentRed;
         icon = Icons.star_border;
-        label = 'Avanzato';
+        label = AppLocalizations.of(context)!.difficultyAdvanced;
         break;
       default:
         badgeColor = CleanTheme.textTertiary;
@@ -341,18 +352,20 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         children: [
           _buildInfoColumn(
             icon: Icons.repeat,
-            label: 'Serie',
+            label: AppLocalizations.of(context)!.sets,
             value: widget.workoutExercise.sets.toString(),
           ),
           _buildInfoColumn(
             icon: Icons.fitness_center_outlined,
-            label: 'Ripetizioni',
+            label: AppLocalizations.of(context)!.reps,
             value: widget.workoutExercise.reps,
           ),
           _buildInfoColumn(
             icon: Icons.timer_outlined,
-            label: 'Recupero',
-            value: '${widget.workoutExercise.restSeconds}s',
+            label: AppLocalizations.of(context)!.rest,
+            value: AppLocalizations.of(
+              context,
+            )!.secondsShort(widget.workoutExercise.restSeconds),
           ),
         ],
       ),
@@ -400,7 +413,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       return CleanCard(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'URL video non valido',
+          AppLocalizations.of(context)!.videoUrlInvalid,
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
       );

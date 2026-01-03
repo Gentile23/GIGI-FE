@@ -11,11 +11,12 @@ import '../../../providers/gamification_provider.dart';
 import '../onboarding/athletic_assessment_intro_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import '../../widgets/clean_widgets.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 import '../workout/workout_session_screen.dart';
 import '../custom_workout/custom_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
-import '../../../data/models/workout_template_model.dart';
+
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
 import '../social/activity_feed_screen.dart';
@@ -64,15 +65,17 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         });
         // Show success snackbar
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 La tua scheda è pronta!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.snackPlanReady),
             backgroundColor: CleanTheme.accentGreen,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
     };
   }
+
+  // ... (keeping other methods intact)
 
   @override
   void dispose() {
@@ -166,7 +169,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
                         // 4. Hero Section
                         Text(
-                          'Il tuo prossimo workout',
+                          AppLocalizations.of(context)!.homeNextWorkoutTitle,
                           style: GoogleFonts.outfit(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -183,7 +186,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'I tuoi progressi',
+                              AppLocalizations.of(context)!.homeProgressTitle,
                               style: GoogleFonts.outfit(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
@@ -193,7 +196,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             TextButton(
                               onPressed: () {},
                               child: Text(
-                                'Vedi tutti',
+                                AppLocalizations.of(context)!.viewAll,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -227,8 +230,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             Expanded(
                               child: _buildActionCardWide(
                                 Icons.auto_awesome,
-                                'Genera Scheda AI',
-                                'Piano su misura',
+                                AppLocalizations.of(
+                                  context,
+                                )!.actionGeneratePlan,
+                                AppLocalizations.of(
+                                  context,
+                                )!.actionGeneratePlanDesc,
                                 const Color(0xFF00D26A),
                                 () {
                                   HapticService.lightTap();
@@ -237,14 +244,29 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                         context,
                                         listen: false,
                                       );
+                                  final authProvider =
+                                      Provider.of<AuthProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+                                  final user = authProvider.user;
+                                  final isQuestionnaireComplete =
+                                      user?.isQuestionnaireComplete ?? false;
+
                                   if (workoutProvider.currentPlan == null) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const AthleticAssessmentIntroScreen(),
-                                      ),
-                                    );
+                                    if (isQuestionnaireComplete) {
+                                      // Questionnaire done, generate plan directly
+                                      _generatePlanDirectly();
+                                    } else {
+                                      // Questionnaire not done, go to assessment
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const AthleticAssessmentIntroScreen(),
+                                        ),
+                                      );
+                                    }
                                   } else {
                                     _showGeneratePlanDialog();
                                   }
@@ -260,8 +282,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             Expanded(
                               child: _buildActionCardWide(
                                 Icons.people_alt_rounded,
-                                'Community',
-                                'Entra nel gruppo',
+                                AppLocalizations.of(context)!.actionCommunity,
+                                AppLocalizations.of(
+                                  context,
+                                )!.actionCommunityDesc,
                                 CleanTheme.accentOrange,
                                 () {
                                   HapticService.lightTap();
@@ -284,7 +308,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             Expanded(
                               child: _buildActionCard(
                                 Icons.edit_note_rounded,
-                                'Le Mie Schede',
+                                AppLocalizations.of(context)!.actionMyPlans,
                                 const Color(0xFF9B59B6),
                                 () {
                                   HapticService.lightTap();
@@ -302,7 +326,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                             Expanded(
                               child: _buildActionCard(
                                 Icons.camera_alt_outlined,
-                                'Form Check',
+                                AppLocalizations.of(context)!.actionFormCheck,
                                 CleanTheme.accentPurple,
                                 () {
                                   HapticService.lightTap();
@@ -399,10 +423,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     return GestureDetector(
       onTap: () {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ricerca globale in arrivo! 🔍'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.searchComingSoon),
             backgroundColor: CleanTheme.primaryColor,
-            duration: Duration(seconds: 1),
+            duration: const Duration(seconds: 1),
           ),
         );
         HapticService.lightTap();
@@ -427,7 +451,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             const Icon(Icons.search, color: CleanTheme.textPrimary, size: 22),
             const SizedBox(width: 12),
             Text(
-              'Cerca workout...',
+              AppLocalizations.of(context)!.searchHint,
               style: GoogleFonts.inter(
                 color: CleanTheme.textTertiary,
                 fontSize: 15,
@@ -441,7 +465,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   // 3. Filter Chips
   Widget _buildFilterChips() {
-    final filters = ['Tutti', 'Cardio', 'Forza', 'Flex', 'HIIT'];
+    final filters = [
+      AppLocalizations.of(context)!.filterAll,
+      AppLocalizations.of(context)!.filterCardio,
+      AppLocalizations.of(context)!.filterStrength,
+      AppLocalizations.of(context)!.filterFlex,
+      AppLocalizations.of(context)!.filterHiit,
+    ];
     return SizedBox(
       height: 40,
       child: ListView.separated(
@@ -484,10 +514,14 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 5) return 'Sei mattiniero';
-    if (hour < 12) return 'Buongiorno';
-    if (hour < 18) return 'Buon pomeriggio';
-    return 'Buonasera';
+    if (hour < 5) return AppLocalizations.of(context)!.homeTitleGreetingEarly;
+    if (hour < 12) {
+      return AppLocalizations.of(context)!.homeTitleGreetingMorning;
+    }
+    if (hour < 18) {
+      return AppLocalizations.of(context)!.homeTitleGreetingAfternoon;
+    }
+    return AppLocalizations.of(context)!.homeTitleGreetingEvening;
   }
 
   Widget _buildStreakMotivator() {
@@ -551,8 +585,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   children: [
                     Text(
                       isActive
-                          ? '$streak GIORNI DI FILA'
-                          : 'INIZIA LA TUA SERIE',
+                          ? AppLocalizations.of(context)!.streakDays(streak)
+                          : AppLocalizations.of(context)!.streakStart,
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -563,8 +597,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                     const SizedBox(height: 4),
                     Text(
                       isActive
-                          ? 'Non fermarti ora! Manca poco al prossimo livello.'
-                          : 'Completa un workout oggi per accendere la fiamma.',
+                          ? AppLocalizations.of(context)!.streakKeepGoing
+                          : AppLocalizations.of(context)!.streakStartToday,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: isActive
@@ -587,7 +621,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
     if (workoutProvider.isGenerating) return _buildGeneratingCard();
 
-    final categories = ['Tutti', 'Cardio', 'Forza', 'Flex', 'HIIT'];
+    final categories = [
+      AppLocalizations.of(context)!.filterAll,
+      AppLocalizations.of(context)!.filterCardio,
+      AppLocalizations.of(context)!.filterStrength,
+      AppLocalizations.of(context)!.filterFlex,
+      AppLocalizations.of(context)!.filterHiit,
+    ];
     final category = categories[_selectedFilterIndex];
 
     // Get workouts filtered by category
@@ -598,7 +638,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     String subtitle = '';
     List<Color> gradientColors = [CleanTheme.primaryColor, Colors.black87];
     VoidCallback? onActionTap;
-    String actionLabel = 'Inizia';
+    String actionLabel = AppLocalizations.of(context)!.start;
     bool showHeart = false;
 
     if (_selectedFilterIndex != 0) {
@@ -664,8 +704,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           };
         } else {
           // No templates available - loading or empty
-          title = 'Caricamento $category...';
-          subtitle = 'Attendere prego';
+          title = AppLocalizations.of(context)!.loadingCategory(category);
+          subtitle = AppLocalizations.of(context)!.pleaseWait;
           gradientColors = [Colors.grey[800]!, Colors.black];
           onActionTap = null;
         }
@@ -710,19 +750,36 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           }
         };
       } else {
-        // No active plan
-        title = 'Valutazione Atletica';
-        subtitle = 'Scopri il tuo livello reale in 5 minuti.';
-        gradientColors = [CleanTheme.primaryColor, Colors.black87];
+        // No active plan - check if questionnaire is complete
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final user = authProvider.user;
+        final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
 
-        onActionTap = () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const AthleticAssessmentIntroScreen(),
-            ),
-          );
-        };
+        if (isQuestionnaireComplete) {
+          // Assessment done, prompt to generate plan
+          title = AppLocalizations.of(context)!.generatePlanCardTitle;
+          subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
+          gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
+          showHeart = false;
+
+          onActionTap = () {
+            _generatePlanDirectly();
+          };
+        } else {
+          // Assessment not done
+          title = AppLocalizations.of(context)!.athleticAssessmentTitle;
+          subtitle = AppLocalizations.of(context)!.athleticAssessmentSubtitle;
+          gradientColors = [CleanTheme.primaryColor, Colors.black87];
+
+          onActionTap = () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AthleticAssessmentIntroScreen(),
+              ),
+            );
+          };
+        }
       }
     }
 
@@ -801,7 +858,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                     ),
                     child: Text(
                       _selectedFilterIndex == 0
-                          ? 'AI PLAN'
+                          ? AppLocalizations.of(context)!.aiPlanBadge
                           : category.toUpperCase(),
                       style: GoogleFonts.inter(
                         color: Colors.white,
@@ -894,7 +951,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           const CircularProgressIndicator(color: CleanTheme.primaryColor),
           const SizedBox(height: 20),
           Text(
-            '🤖 AI sta creando il tuo piano',
+            AppLocalizations.of(context)!.aiCreatingPlan,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -903,7 +960,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Ci vorranno pochi minuti...',
+            AppLocalizations.of(context)!.aiCreatingPlanDesc,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,
@@ -923,7 +980,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             Expanded(
               child: _buildStatCard(
                 '🎯',
-                'Obiettivo',
+                AppLocalizations.of(context)!.goal,
                 '${stats?.totalWorkouts ?? 0}/5',
                 const Color(0xFF00D26A),
               ),
@@ -932,7 +989,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             Expanded(
               child: _buildStatCard(
                 '🏆',
-                'Livello',
+                AppLocalizations.of(context)!.level,
                 '${stats?.level ?? 1}',
                 const Color(0xFF9B59B6),
               ),
@@ -1155,6 +1212,21 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       context,
       listen: false,
     );
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+
+    // Debug logging
+    debugPrint('=== GENERATE PLAN DEBUG ===');
+    debugPrint('User: ${user?.name} (${user?.email})');
+    debugPrint('isQuestionnaireComplete: ${user?.isQuestionnaireComplete}');
+    debugPrint('Goal: ${user?.goal}');
+    debugPrint('Experience Level: ${user?.experienceLevel}');
+    debugPrint('Weekly Frequency: ${user?.weeklyFrequency}');
+    debugPrint('Training Location: ${user?.trainingLocation}');
+    debugPrint('Available Equipment: ${user?.availableEquipment}');
+    debugPrint('Training Split: ${user?.trainingSplit}');
+    debugPrint('Session Duration: ${user?.sessionDuration}');
+    debugPrint('===========================');
 
     showDialog(
       context: context,
@@ -1225,286 +1297,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  // --- Advanced Filters Modal ---
-  void _showAdvancedFilters() {
-    // Local state variables for the modal content
-    int duration = 30;
-    String difficulty = 'Intermedio';
-    String equipment = 'Corpo Libero';
-    final parentContext = context;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: CleanTheme.surfaceColor,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      builder: (modalContext) => StatefulBuilder(
-        builder: (context, setStateModal) => DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) => SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Filtri Avanzati',
-                  style: GoogleFonts.outfit(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Duration Filter
-                Text(
-                  'Durata (min): $duration',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '15',
-                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                    ),
-                    Text(
-                      '30',
-                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                    ),
-                    Text(
-                      '45',
-                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                    ),
-                    Text(
-                      '60+',
-                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                    ),
-                  ],
-                ),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: CleanTheme.primaryColor,
-                    inactiveTrackColor: CleanTheme.borderSecondary,
-                    thumbColor: Colors.white,
-                    overlayColor: CleanTheme.primaryColor.withValues(
-                      alpha: 0.1,
-                    ),
-                  ),
-                  child: Slider(
-                    value: duration.toDouble(),
-                    min: 15,
-                    max: 60,
-                    divisions: 3,
-                    onChanged: (val) {
-                      setStateModal(() => duration = val.toInt());
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Difficulty Filter
-                Text(
-                  'Difficoltà',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: ['Principiante', 'Intermedio', 'Avanzato'].map((
-                    label,
-                  ) {
-                    final isSelected = label == difficulty;
-                    return GestureDetector(
-                      onTap: () => setStateModal(() => difficulty = label),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? CleanTheme.primaryColor
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(
-                            color: isSelected
-                                ? CleanTheme.primaryColor
-                                : CleanTheme.borderSecondary,
-                          ),
-                        ),
-                        child: Text(
-                          label,
-                          style: GoogleFonts.inter(
-                            color: isSelected
-                                ? Colors.white
-                                : CleanTheme.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Equipment
-                Text(
-                  'Attrezzatura',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children:
-                      ['Manubri', 'Corpo Libero', 'Kettlebell', 'Elastici'].map(
-                        (label) {
-                          final isSelected = label == equipment;
-                          return GestureDetector(
-                            onTap: () => setStateModal(() => equipment = label),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? CleanTheme.primaryColor
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(100),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? CleanTheme.primaryColor
-                                      : CleanTheme.borderSecondary,
-                                ),
-                              ),
-                              child: Text(
-                                label,
-                                style: GoogleFonts.inter(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : CleanTheme.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ).toList(),
-                ),
-
-                const SizedBox(height: 48),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      Navigator.pop(modalContext); // Close modal
-
-                      final provider = Provider.of<WorkoutProvider>(
-                        parentContext,
-                        listen: false,
-                      );
-
-                      // Store reference before async gap
-                      final scaffoldMessenger = ScaffoldMessenger.of(
-                        parentContext,
-                      );
-
-                      scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Generazione piano personalizzato... 🤖',
-                          ),
-                          backgroundColor: CleanTheme.primaryColor,
-                        ),
-                      );
-
-                      // Call backend
-                      final success = await provider.generateCustomPlan({
-                        'duration': duration,
-                        'difficulty': difficulty.toLowerCase(),
-                        'equipment': equipment.toLowerCase(),
-                      });
-
-                      if (mounted) {
-                        if (success) _loadData(); // Refresh UI
-
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              success
-                                  ? '✅ Piano generato!'
-                                  : '❌ Errore generazione',
-                            ),
-                            backgroundColor: success
-                                ? const Color(0xFF00D26A)
-                                : Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: CleanTheme.primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Applica Filtri & Genera',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildSkeletonLoading() {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -1559,33 +1351,55 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   Widget _buildGigiGuidance(WorkoutProvider provider) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
+
     if (provider.currentPlan == null) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 24),
-        child: GigiCoachMessage(
-          message:
-              'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!',
-          emotion: GigiEmotion.expert,
-          action: CleanButton(
-            text: 'Inizia Valutazione',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AthleticAssessmentIntroScreen(),
-                ),
-              );
-            },
+      // User has NO plan yet
+      if (isQuestionnaireComplete) {
+        // Assessment DONE - suggest generating plan
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: GigiCoachMessage(
+            message: AppLocalizations.of(context)!.gigiAssessmentComplete,
+            emotion: GigiEmotion.celebrating,
+            action: CleanButton(
+              text: AppLocalizations.of(context)!.gigiGeneratePlanButton,
+              onPressed: () {
+                _generatePlanDirectly();
+              },
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        // Assessment NOT done yet
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: GigiCoachMessage(
+            message: AppLocalizations.of(context)!.gigiStartTransformation,
+            emotion: GigiEmotion.expert,
+            action: CleanButton(
+              text: AppLocalizations.of(context)!.gigiStartAssessmentButton,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AthleticAssessmentIntroScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
     }
 
-    return const Padding(
-      padding: EdgeInsets.only(bottom: 24),
+    // User HAS an active plan
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
       child: GigiCoachMessage(
-        message:
-            'Pronto per l\'allenamento? Segui la tua scheda personalizzata e ricordati di registrare ogni set per monitorare i tuoi progressi!',
+        message: AppLocalizations.of(context)!.gigiReadyForWorkout,
         emotion: GigiEmotion.expert,
       ),
     );

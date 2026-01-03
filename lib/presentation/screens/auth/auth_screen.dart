@@ -1,10 +1,10 @@
+import 'package:gigi/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import 'package:flutter/foundation.dart';
-import 'google_sign_in_button_stub.dart'
-    if (dart.library.js_util) 'google_sign_in_button_web.dart';
+
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
@@ -215,8 +215,8 @@ class _AuthScreenState extends State<AuthScreen>
 
                     Text(
                       _isLogin
-                          ? 'Accedi per continuare il tuo percorso fitness'
-                          : 'Inizia oggi il tuo percorso fitness',
+                          ? AppLocalizations.of(context)!.loginSubtitle
+                          : AppLocalizations.of(context)!.registerSubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         color: CleanTheme.textSecondary,
@@ -230,11 +230,11 @@ class _AuthScreenState extends State<AuthScreen>
                     if (!_isLogin) ...[
                       _buildTextField(
                         controller: _nameController,
-                        label: 'Nome Completo',
+                        label: AppLocalizations.of(context)!.fullName,
                         icon: Icons.person_outline,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Inserisci il tuo nome';
+                            return AppLocalizations.of(context)!.enterYourName;
                           }
                           return null;
                         },
@@ -245,15 +245,15 @@ class _AuthScreenState extends State<AuthScreen>
                     // Email field
                     _buildTextField(
                       controller: _emailController,
-                      label: 'Email',
+                      label: AppLocalizations.of(context)!.email,
                       icon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Inserisci la tua email';
+                          return AppLocalizations.of(context)!.enterYourEmail;
                         }
                         if (!value.contains('@')) {
-                          return 'Inserisci un\'email valida';
+                          return AppLocalizations.of(context)!.enterValidEmail;
                         }
                         return null;
                       },
@@ -264,7 +264,7 @@ class _AuthScreenState extends State<AuthScreen>
                     // Password field
                     _buildTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: AppLocalizations.of(context)!.password,
                       icon: Icons.lock_outline,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
@@ -282,10 +282,10 @@ class _AuthScreenState extends State<AuthScreen>
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Inserisci la password';
+                          return AppLocalizations.of(context)!.enterPassword;
                         }
                         if (value.length < 6) {
-                          return 'La password deve essere di almeno 6 caratteri';
+                          return AppLocalizations.of(context)!.passwordTooShort;
                         }
                         return null;
                       },
@@ -350,7 +350,9 @@ class _AuthScreenState extends State<AuthScreen>
 
                     // Submit button
                     CleanButton(
-                      text: _isLogin ? 'Accedi' : 'Registrati',
+                      text: _isLogin
+                          ? AppLocalizations.of(context)!.login
+                          : AppLocalizations.of(context)!.register,
                       onPressed: _isLoading
                           ? null
                           : (_isLogin || _allConsentsAccepted)
@@ -363,7 +365,7 @@ class _AuthScreenState extends State<AuthScreen>
                     if (!_isLogin && !_allConsentsAccepted) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'Accetta tutti i consensi per procedere',
+                        AppLocalizations.of(context)!.acceptAllConsents,
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: CleanTheme.accentOrange,
@@ -383,7 +385,7 @@ class _AuthScreenState extends State<AuthScreen>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            'oppure',
+                            AppLocalizations.of(context)!.or,
                             style: GoogleFonts.inter(
                               color: CleanTheme.textTertiary,
                               fontSize: 14,
@@ -399,12 +401,9 @@ class _AuthScreenState extends State<AuthScreen>
                     const SizedBox(height: 24),
 
                     // Google Sign In
-                    if (kIsWeb)
-                      // Use the official Google Sign-In button on Web
-                      Center(child: getGoogleSignInButton())
-                    else
-                      // Custom styled Google button for mobile (black like Apple style)
-                      _buildGoogleButton(onPressed: _handleGoogleSignIn),
+                    // Google Sign In
+                    // Custom styled Google button (localized)
+                    _buildGoogleButton(onPressed: _handleGoogleSignIn),
 
                     const SizedBox(height: 32),
 
@@ -414,8 +413,8 @@ class _AuthScreenState extends State<AuthScreen>
                       children: [
                         Text(
                           _isLogin
-                              ? 'Non hai un account? '
-                              : 'Hai già un account? ',
+                              ? AppLocalizations.of(context)!.noAccount
+                              : AppLocalizations.of(context)!.haveAccount,
                           style: GoogleFonts.inter(
                             color: CleanTheme.textSecondary,
                           ),
@@ -428,7 +427,9 @@ class _AuthScreenState extends State<AuthScreen>
                             });
                           },
                           child: Text(
-                            _isLogin ? 'Registrati' : 'Accedi',
+                            _isLogin
+                                ? AppLocalizations.of(context)!.register
+                                : AppLocalizations.of(context)!.login,
                             style: GoogleFonts.inter(
                               color: CleanTheme.primaryColor,
                               fontWeight: FontWeight.w600,
@@ -467,7 +468,7 @@ class _AuthScreenState extends State<AuthScreen>
               ),
               const SizedBox(width: 8),
               Text(
-                'Consensi richiesti',
+                AppLocalizations.of(context)!.consentsRequired,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -482,8 +483,8 @@ class _AuthScreenState extends State<AuthScreen>
           _buildConsentCheckbox(
             value: _acceptedPrivacyPolicy,
             onChanged: (val) => setState(() => _acceptedPrivacyPolicy = val!),
-            label: 'Ho letto e accetto la ',
-            linkText: 'Privacy Policy',
+            label: AppLocalizations.of(context)!.acceptPrivacyPolicy,
+            linkText: AppLocalizations.of(context)!.privacyPolicy,
             onLinkTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
@@ -497,8 +498,8 @@ class _AuthScreenState extends State<AuthScreen>
           _buildConsentCheckbox(
             value: _acceptedTerms,
             onChanged: (val) => setState(() => _acceptedTerms = val!),
-            label: 'Accetto i ',
-            linkText: 'Termini di Servizio',
+            label: AppLocalizations.of(context)!.acceptTerms,
+            linkText: AppLocalizations.of(context)!.termsOfService,
             onLinkTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
@@ -512,11 +513,9 @@ class _AuthScreenState extends State<AuthScreen>
           _buildConsentCheckbox(
             value: _acceptedHealthData,
             onChanged: (val) => setState(() => _acceptedHealthData = val!),
-            label: 'Acconsento al trattamento dei miei ',
-            linkText: 'dati sulla salute',
-            sublabel:
-                '(peso, altezza, infortuni) per personalizzare '
-                'i piani di allenamento',
+            label: AppLocalizations.of(context)!.acceptHealthData,
+            linkText: AppLocalizations.of(context)!.healthDataLink,
+            sublabel: AppLocalizations.of(context)!.healthDataDescription,
             onLinkTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
@@ -719,7 +718,7 @@ class _AuthScreenState extends State<AuthScreen>
           ),
           const SizedBox(width: 12),
           Text(
-            'Continua con Google',
+            AppLocalizations.of(context)!.continueWithGoogle,
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w500,
@@ -756,6 +755,8 @@ class _AuthScreenState extends State<AuthScreen>
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool success;
 
+    debugPrint('AuthScreen: Attempting ${_isLogin ? "login" : "register"}...');
+
     if (_isLogin) {
       success = await authProvider.login(
         email: _emailController.text.trim(),
@@ -769,16 +770,36 @@ class _AuthScreenState extends State<AuthScreen>
       );
     }
 
+    debugPrint(
+      'AuthScreen: Auth result: success=$success, error=${authProvider.error}',
+    );
+
     if (mounted) {
       setState(() {
         _isLoading = false;
         if (!success) {
           _errorMessage = _translateError(authProvider.error);
+          debugPrint('AuthScreen: Error message set to: $_errorMessage');
         }
       });
 
       if (success) {
-        widget.onComplete?.call();
+        debugPrint('AuthScreen: Login/Register successful, navigating...');
+        _hasNavigated = true;
+
+        if (widget.onComplete != null) {
+          debugPrint('AuthScreen: Calling onComplete callback');
+          widget.onComplete!.call();
+        } else {
+          // Navigate to home when no onComplete is provided
+          debugPrint('AuthScreen: No onComplete, navigating to root...');
+          final navigator = Navigator.of(context);
+          if (navigator.canPop()) {
+            navigator.popUntil((route) => route.isFirst);
+          } else {
+            navigator.pushReplacementNamed('/');
+          }
+        }
       }
     }
   }

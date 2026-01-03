@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'core/theme/clean_theme.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
@@ -53,6 +55,21 @@ class GigiApp extends StatelessWidget {
         theme: CleanTheme.lightTheme,
         // Abilita scroll con mouse su web
         scrollBehavior: kIsWeb ? WebScrollBehavior() : null,
+        // Localization Configuration
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          Locale('it'), // Italian (default)
+          Locale('en'), // English
+          Locale('de'), // German
+          Locale('fr'), // French
+          Locale('pt'), // Portuguese
+          Locale('ar'), // Arabic (RTL)
+        ],
         // Start with onboarding, then: auth -> questionnaire -> main app
         home: const AppNavigator(),
         routes: {

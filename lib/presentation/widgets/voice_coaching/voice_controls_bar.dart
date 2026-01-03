@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
-import 'voice_coaching_toggle.dart';
 
 /// Floating audio controls bar for Voice Coaching
 /// Appears at top-center when Voice Coaching is active
@@ -16,25 +14,27 @@ class VoiceControlsBar extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        final isEnabled = controller.isEnabled;
-        final isSpeaking =
-            controller.phase == VoiceCoachingPhase.explaining ||
-            controller.phase == VoiceCoachingPhase.activated ||
-            controller.phase == VoiceCoachingPhase.postSet ||
-            controller.isGuidedExecutionPlaying;
+        // Only show when guided execution is active!
+        final isVisible = controller.isGuidedExecutionPlaying;
 
-        // Animated visibility
+        // Check if actually speaking/playing from TTS service perspective would be better,
+        // but controller state should suffice for visibility.
+        // We might want to query ttsService.isSpeaking for the play/pause icon state.
+
+        // Note: We can't easily access ttsService directly here unless exposed.
+        // But we can assume if isGuidedExecutionPlaying is true, we started it.
+        // We risk UI state desync if we rely solely on variables without polling or streams.
+        // However, SynchronizedVoiceController notifies listeners on state changes.
+
         return AnimatedOpacity(
-          opacity: isEnabled ? 1.0 : 0.0,
+          opacity: isVisible ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
           child: IgnorePointer(
-            ignoring: !isEnabled,
+            ignoring: !isVisible,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(
-                  0xFF1E1E2C,
-                ).withValues(alpha: 0.9), // Dark glass
+                color: const Color(0xFF1E1E2C).withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
@@ -48,81 +48,63 @@ class VoiceControlsBar extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 1. Status Indicator
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isSpeaking
-                          ? CleanTheme.accentGreen
-                          : Colors.orange,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              (isSpeaking
-                                      ? CleanTheme.accentGreen
-                                      : Colors.orange)
-                                  .withValues(alpha: 0.5),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // 2. Status Text
-                  Text(
-                    isSpeaking ? 'Gigi parla...' : 'In ascolto',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  // Rewind 10s
+                  IconButton(
+                    icon: const Icon(
+                      Icons.replay_10_rounded,
                       color: Colors.white,
                     ),
+                    onPressed: () =>
+                        controller.seekAudio(const Duration(seconds: -10)),
+                    tooltip: '-10s',
                   ),
 
-                  const SizedBox(width: 16),
+                  // Play/Pause (We need to Toggle)
+                  // Since we don't have isPaused state explicitly exposed as public getter in controller (only private or via service),
+                  // we might need to add `get isPaused` to controller or just show Pause generally when visible.
+                  // For now, let's assume if it's visible, it's playing, or we provide both.
+                  IconButton(
+                    icon: const Icon(
+                      Icons.pause_rounded,
+                      color: CleanTheme.accentOrange,
+                      size: 28,
+                    ),
+                    onPressed: () => controller.pauseAudio(),
+                    tooltip: 'Pausa',
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: CleanTheme.accentGreen,
+                      size: 28,
+                    ),
+                    onPressed: () => controller.resumeAudio(),
+                    tooltip: 'Riprendi',
+                  ),
 
-                  // Divider
-                  Container(
-                    width: 1,
-                    height: 16,
-                    color: Colors.white.withValues(alpha: 0.2),
+                  // Forward 10s
+                  IconButton(
+                    icon: const Icon(
+                      Icons.forward_10_rounded,
+                      color: Colors.white,
+                    ),
+                    onPressed: () =>
+                        controller.seekAudio(const Duration(seconds: 10)),
+                    tooltip: '+10s',
                   ),
 
                   const SizedBox(width: 8),
+                  Container(width: 1, height: 20, color: Colors.white24),
+                  const SizedBox(width: 8),
 
-                  // 3. Controls
-
-                  // Stop Button (only if speaking)
-                  if (isSpeaking) ...[
-                    IconButton(
-                      icon: const Icon(
-                        Icons.stop_rounded,
-                        color: CleanTheme.accentRed,
-                        size: 20,
-                      ),
-                      onPressed: () => controller
-                          .stopGuidedExecution(), // Or a generic stopSpeech if available
-                      tooltip: 'Stop Audio',
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(8),
-                    ),
-                  ],
-
-                  // Settings Button
+                  // Stop / Close
                   IconButton(
                     icon: const Icon(
-                      Icons.settings_outlined,
-                      color: Colors.white70,
-                      size: 18,
+                      Icons.close_rounded,
+                      color: CleanTheme.accentRed,
                     ),
-                    onPressed: () {
-                      VoiceCoachingSettingsSheet.show(context, controller);
-                    },
-                    tooltip: 'Impostazioni',
-                    constraints: const BoxConstraints(),
-                    padding: const EdgeInsets.all(8),
+                    onPressed: () => controller.stopGuidedExecution(),
+                    tooltip: 'Chiudi',
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'auth_screen.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -93,7 +94,7 @@ class LandingScreen extends StatelessWidget {
 
                   // Slogan
                   Text(
-                    'La tua evoluzione fitness,\nguidata dall\'intelligenza.',
+                    AppLocalizations.of(context)!.slogan,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 18,
@@ -110,7 +111,7 @@ class LandingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       CleanButton(
-                        text: 'INIZIA ORA',
+                        text: AppLocalizations.of(context)!.startNow,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -125,7 +126,7 @@ class LandingScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       CleanButton(
-                        text: 'ACCEDI',
+                        text: AppLocalizations.of(context)!.login.toUpperCase(),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -146,7 +147,7 @@ class LandingScreen extends StatelessWidget {
 
                   // Footer Info
                   Text(
-                    'Allenati con intelligenza. Ottieni risultati.',
+                    AppLocalizations.of(context)!.sloganSubtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: CleanTheme.textTertiary,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'home/enhanced_home_screen.dart';
 import 'workout/unified_workout_list_screen.dart';
 import 'nutrition/nutrition_dashboard_screen.dart';
@@ -53,36 +54,36 @@ class _MainScreenState extends State<MainScreen> {
               HapticService.lightTap();
               setState(() => _currentIndex = index);
             },
-            items: const [
+            items: [
               FloatingNavItem(
                 icon: Icons.home_outlined,
                 activeIcon: Icons.home,
-                label: 'Home',
+                label: AppLocalizations.of(context)!.home,
               ),
               FloatingNavItem(
                 icon: Icons.fitness_center_outlined,
                 activeIcon: Icons.fitness_center,
-                label: 'Workout',
+                label: AppLocalizations.of(context)!.workout,
               ),
               FloatingNavItem(
                 icon: Icons.restaurant_menu_outlined,
                 activeIcon: Icons.restaurant_menu,
-                label: 'Nutrition',
+                label: AppLocalizations.of(context)!.nutrition,
               ),
               FloatingNavItem(
                 icon: Icons.people_outline,
                 activeIcon: Icons.people,
-                label: 'Social',
+                label: AppLocalizations.of(context)!.social,
               ),
               FloatingNavItem(
                 icon: Icons.trending_up_outlined,
                 activeIcon: Icons.trending_up,
-                label: 'Progressi',
+                label: AppLocalizations.of(context)!.progress,
               ),
               FloatingNavItem(
                 icon: Icons.person_outline,
                 activeIcon: Icons.person,
-                label: 'Profile',
+                label: AppLocalizations.of(context)!.profile,
               ),
             ],
           ),

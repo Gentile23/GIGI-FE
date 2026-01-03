@@ -60,14 +60,19 @@ class AuthService {
     required String password,
   }) async {
     try {
+      debugPrint('AuthService: Attempting login for $email');
       final response = await _apiClient.dio.post(
         ApiConfig.login,
         data: {'email': email, 'password': password},
       );
 
+      debugPrint('AuthService: Response status: ${response.statusCode}');
+      debugPrint('AuthService: Response data: ${response.data}');
+
       if (response.statusCode == 200) {
         final data = response.data;
         await _apiClient.saveToken(data['token']);
+        debugPrint('AuthService: Token saved, returning success');
         return {
           'success': true,
           'user': UserModel.fromJson(data['user']),
@@ -75,9 +80,16 @@ class AuthService {
         };
       }
 
+      debugPrint('AuthService: Unexpected status code ${response.statusCode}');
       return {'success': false, 'message': 'Login failed'};
     } on DioException catch (e) {
       String message = 'Login failed';
+      debugPrint('AuthService: DioException caught');
+      debugPrint('AuthService: Error type: ${e.type}');
+      debugPrint('AuthService: Error message: ${e.message}');
+      debugPrint('AuthService: Response status: ${e.response?.statusCode}');
+      debugPrint('AuthService: Response data: ${e.response?.data}');
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
@@ -90,10 +102,7 @@ class AuthService {
         message = e.response?.data['message'] ?? 'Invalid credentials';
       }
 
-      debugPrint('Login Error: ${e.message}');
-      debugPrint('Error Type: ${e.type}');
-      debugPrint('Response: ${e.response?.data}');
-
+      debugPrint('AuthService: Returning error: $message');
       return {'success': false, 'message': message};
     }
   }

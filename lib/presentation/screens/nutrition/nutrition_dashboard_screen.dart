@@ -8,6 +8,7 @@ import '../../widgets/clean_widgets.dart';
 import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
 import 'what_to_cook_screen.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
   const NutritionDashboardScreen({super.key});
@@ -93,7 +94,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     backgroundColor: CleanTheme.surfaceColor,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
-                        'Nutrition Coach',
+                        AppLocalizations.of(context)!.nutritionCoachTitle,
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w700,
                           color: CleanTheme.textPrimary,
@@ -171,7 +172,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 elevation: 4,
                 icon: const Icon(Icons.add_a_photo),
                 label: Text(
-                  'Registra Pasto',
+                  AppLocalizations.of(context)!.logMeal,
                   style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -213,7 +214,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           ),
           const SizedBox(height: 20),
           Text(
-            '🎯 Imposta i tuoi obiettivi',
+            AppLocalizations.of(context)!.setupGoalsTitle,
             style: GoogleFonts.outfit(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -222,7 +223,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            'Calcola le calorie e i macro ideali in base ai tuoi obiettivi personali',
+            AppLocalizations.of(context)!.setupGoalsSubtitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 15,
@@ -231,7 +232,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           ),
           const SizedBox(height: 24),
           CleanButton(
-            text: 'Inizia Setup',
+            text: AppLocalizations.of(context)!.startSetup,
             icon: Icons.arrow_forward,
             onPressed: _navigateToGoalSetup,
           ),
@@ -325,7 +326,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Obiettivo Giornaliero',
+                      AppLocalizations.of(context)!.dailyGoal,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: CleanTheme.textSecondary,
@@ -353,8 +354,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                       child: Text(
                         remaining > 0
-                            ? '${remaining.abs()} kcal rimanenti'
-                            : '${remaining.abs()} kcal in eccesso',
+                            ? AppLocalizations.of(
+                                context,
+                              )!.kcalRemaining(remaining.abs())
+                            : AppLocalizations.of(
+                                context,
+                              )!.kcalExcess(remaining.abs()),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -379,7 +384,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       children: [
         Expanded(
           child: _buildMacroItem(
-            'Proteine',
+            AppLocalizations.of(context)!.protein,
             _dailyLog?.totalProtein ?? 0,
             (_goal?.proteinGrams ?? 150).toDouble(),
             CleanTheme.accentBlue,
@@ -389,7 +394,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildMacroItem(
-            'Carboidrati',
+            AppLocalizations.of(context)!.carbs,
             _dailyLog?.totalCarbs ?? 0,
             (_goal?.carbsGrams ?? 200).toDouble(),
             CleanTheme.accentOrange,
@@ -399,7 +404,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildMacroItem(
-            'Grassi',
+            AppLocalizations.of(context)!.fats,
             _dailyLog?.totalFat ?? 0,
             (_goal?.fatGrams ?? 70).toDouble(),
             CleanTheme.accentPurple,
@@ -462,7 +467,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         Expanded(
           child: _buildQuickActionCard(
             icon: Icons.camera_alt_rounded,
-            label: 'Aggiungi pasto',
+            label: AppLocalizations.of(context)!.addMeal,
             color: CleanTheme.primaryColor,
             onTap: () async {
               final result = await Navigator.push(
@@ -479,7 +484,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         Expanded(
           child: _buildQuickActionCard(
             icon: Icons.restaurant_menu,
-            label: 'Cosa Cucino?',
+            label: AppLocalizations.of(context)!.whatToCook,
             color: CleanTheme.accentOrange,
             onTap: () => Navigator.push(
               context,
@@ -561,7 +566,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Acqua',
+                      AppLocalizations.of(context)!.water,
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -569,7 +574,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     Text(
-                      '$waterMl / $waterGoal ml ($glasses bicchieri)',
+                      AppLocalizations.of(
+                        context,
+                      )!.waterGlassesCount(waterMl, waterGoal, glasses),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: CleanTheme.textSecondary,
@@ -612,7 +619,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CleanSectionHeader(title: '💡 Suggerimenti Smart'),
+        CleanSectionHeader(
+          title: AppLocalizations.of(context)!.smartSuggestions,
+        ),
         const SizedBox(height: 12),
         ...suggestions.map((suggestion) => _buildSuggestionCard(suggestion)),
       ],
@@ -666,7 +675,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CleanSectionHeader(title: '🍽️ Pasti di Oggi'),
+        CleanSectionHeader(title: AppLocalizations.of(context)!.todayMeals),
         const SizedBox(height: 12),
         if (_meals.isEmpty)
           Center(
@@ -677,7 +686,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   const Text('🍽️', style: TextStyle(fontSize: 48)),
                   const SizedBox(height: 12),
                   Text(
-                    'Nessun pasto registrato',
+                    AppLocalizations.of(context)!.noMealsLogged,
                     style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                   ),
                 ],
@@ -750,7 +759,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '💧 Aggiungi Acqua',
+              AppLocalizations.of(context)!.addWater,
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

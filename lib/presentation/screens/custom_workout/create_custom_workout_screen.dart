@@ -8,6 +8,7 @@ import '../../../data/services/quota_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../screens/paywall/paywall_screen.dart';
 import 'exercise_search_screen.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// Screen for creating or editing a custom workout plan
 class CreateCustomWorkoutScreen extends StatefulWidget {
@@ -67,8 +68,8 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
 
     if (_exercises.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aggiungi almeno un esercizio alla scheda'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.addAtLeastOneExercise),
           backgroundColor: Colors.orange,
         ),
       );
@@ -128,7 +129,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEditing ? 'Scheda aggiornata!' : 'Scheda creata con successo!',
+              isEditing
+                  ? AppLocalizations.of(context)!.workoutUpdated
+                  : AppLocalizations.of(context)!.workoutCreated,
             ),
             backgroundColor: CleanTheme.accentGreen,
           ),
@@ -159,7 +162,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Limite Raggiunto',
+                AppLocalizations.of(context)!.limitReached,
                 style: GoogleFonts.outfit(
                   color: CleanTheme.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -180,7 +183,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Passa a Pro per creare più workout custom!',
+              AppLocalizations.of(context)!.quotaCustomWorkoutDesc,
               style: GoogleFonts.inter(
                 color: CleanTheme.primaryColor,
                 fontSize: 14,
@@ -193,7 +196,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Chiudi',
+              AppLocalizations.of(context)!.close,
               style: GoogleFonts.outfit(color: CleanTheme.textSecondary),
             ),
           ),
@@ -212,7 +215,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
               ),
             ),
             child: Text(
-              'Passa a Pro',
+              AppLocalizations.of(context)!.upgradePro,
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
           ),
@@ -277,7 +280,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Modifica Scheda' : 'Nuova Scheda',
+          isEditing
+              ? AppLocalizations.of(context)!.editWorkout
+              : AppLocalizations.of(context)!.newWorkout,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -300,7 +305,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                     ),
                   )
                 : Text(
-                    'Salva',
+                    AppLocalizations.of(context)!.save,
                     style: GoogleFonts.outfit(
                       color: CleanTheme.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -324,7 +329,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                       controller: _nameController,
                       style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                       decoration: InputDecoration(
-                        labelText: 'Nome Scheda *',
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.workoutNameLabel,
                         labelStyle: GoogleFonts.outfit(
                           color: CleanTheme.textSecondary,
                         ),
@@ -343,7 +350,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Inserisci un nome per la scheda';
+                          return AppLocalizations.of(
+                            context,
+                          )!.workoutNameRequired;
                         }
                         return null;
                       },
@@ -355,7 +364,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                       style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                       maxLines: 2,
                       decoration: InputDecoration(
-                        labelText: 'Descrizione (opzionale)',
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.descriptionOptional,
                         labelStyle: GoogleFonts.outfit(
                           color: CleanTheme.textSecondary,
                         ),
@@ -383,7 +394,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Esercizi (${_exercises.length})',
+                      '${AppLocalizations.of(context)!.exercisesCount(0).split(' ')[1]} (${_exercises.length})',
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -394,7 +405,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                       onPressed: _addExercises,
                       icon: const Icon(Icons.add, size: 18),
                       label: Text(
-                        'Aggiungi',
+                        AppLocalizations.of(context)!.add,
                         style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
                       style: TextButton.styleFrom(
@@ -437,7 +448,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Nessun esercizio aggiunto',
+            AppLocalizations.of(context)!.noExercisesAdded,
             style: GoogleFonts.outfit(
               fontSize: 16,
               color: CleanTheme.textSecondary,
@@ -445,7 +456,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tocca "Aggiungi" per cercare esercizi',
+            AppLocalizations.of(context)!.tapAddSearch,
             style: GoogleFonts.outfit(
               fontSize: 14,
               color: CleanTheme.textTertiary,
@@ -620,28 +631,36 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
             Row(
               children: [
                 Expanded(
-                  child: _buildField('Serie', _setsController, 'numero'),
+                  child: _buildField(
+                    AppLocalizations.of(context)!.sets,
+                    _setsController,
+                    AppLocalizations.of(context)!.numberLabel,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildField(
-                    'Ripetizioni',
+                    AppLocalizations.of(context)!.reps,
                     _repsController,
                     'es. 10 o 8-12',
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildField('Rest (s)', _restController, 'secondi'),
+                  child: _buildField(
+                    AppLocalizations.of(context)!.restSecondsLabel,
+                    _restController,
+                    AppLocalizations.of(context)!.seconds,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             // Notes
             _buildField(
-              'Note (opzionale)',
+              AppLocalizations.of(context)!.notesOptional,
               _notesController,
-              'Note sull\'esercizio...',
+              AppLocalizations.of(context)!.notesHint,
             ),
             const SizedBox(height: 24),
             // Save button
@@ -671,7 +690,7 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                   ),
                 ),
                 child: Text(
-                  'Salva Modifiche',
+                  AppLocalizations.of(context)!.saveChanges,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

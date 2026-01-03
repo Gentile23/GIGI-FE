@@ -6,6 +6,7 @@ import '../../../data/models/workout_model.dart';
 import '../../../data/services/exercise_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../screens/workout/exercise_detail_screen.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// Screen for searching and selecting exercises from the database
 class ExerciseSearchScreen extends StatefulWidget {
@@ -214,7 +215,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Cerca Esercizi',
+          AppLocalizations.of(context)!.searchExercises,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -229,7 +230,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             TextButton(
               onPressed: _confirmSelection,
               child: Text(
-                'Aggiungi (${_selectedExerciseIds.length})',
+                '${AppLocalizations.of(context)!.add} (${_selectedExerciseIds.length})',
                 style: GoogleFonts.outfit(
                   color: CleanTheme.primaryColor,
                   fontWeight: FontWeight.w600,
@@ -252,7 +253,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                   style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                   onChanged: (_) => _applySearch(),
                   decoration: InputDecoration(
-                    hintText: 'Cerca per nome, muscolo o attrezzatura...',
+                    hintText: AppLocalizations.of(context)!.searchHint,
                     hintStyle: GoogleFonts.outfit(
                       color: CleanTheme.textTertiary,
                     ),
@@ -312,7 +313,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Filtri',
+                              AppLocalizations.of(context)!.filters,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 color: hasActiveFilters
@@ -429,7 +430,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: CleanTheme.primaryColor,
               ),
-              child: const Text('Riprova'),
+              child: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),
@@ -444,7 +445,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             Icon(Icons.search_off, size: 48, color: Colors.grey[500]),
             const SizedBox(height: 16),
             Text(
-              'Nessun esercizio trovato',
+              AppLocalizations.of(context)!.noExercisesFound,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 color: CleanTheme.textSecondary,
@@ -452,7 +453,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Prova a modificare i filtri',
+              AppLocalizations.of(context)!.tryAdjustFilters,
               style: GoogleFonts.outfit(
                 fontSize: 14,
                 color: CleanTheme.textTertiary,
@@ -653,7 +654,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Filtri',
+                  AppLocalizations.of(context)!.filters,
                   style: GoogleFonts.outfit(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -666,7 +667,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     Navigator.pop(context);
                   },
                   child: Text(
-                    'Azzera',
+                    AppLocalizations.of(context)!.clearFilters,
                     style: GoogleFonts.outfit(color: Colors.red),
                   ),
                 ),
@@ -683,7 +684,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 children: [
                   // Muscle Group
                   _buildFilterSection(
-                    'Gruppo Muscolare',
+                    AppLocalizations.of(context)!.muscleGroup,
                     widget.muscleGroups,
                     _muscleGroup,
                     (value) => setState(() => _muscleGroup = value),
@@ -691,7 +692,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   const SizedBox(height: 20),
                   // Equipment
                   _buildFilterSection(
-                    'Attrezzatura',
+                    AppLocalizations.of(context)!.equipment,
                     widget.equipmentOptions,
                     _equipment,
                     (value) => setState(() => _equipment = value),
@@ -699,7 +700,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   const SizedBox(height: 20),
                   // Difficulty
                   _buildFilterSection(
-                    'Difficoltà',
+                    AppLocalizations.of(context)!.difficulty,
                     widget.difficultyOptions,
                     _difficulty,
                     (value) => setState(() => _difficulty = value),
@@ -726,7 +727,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   ),
                 ),
                 child: Text(
-                  'Applica Filtri',
+                  AppLocalizations.of(context)!.applyFilters,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

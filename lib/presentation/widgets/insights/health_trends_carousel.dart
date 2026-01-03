@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/health_insights_service.dart';
+
 import 'trend_insight_card.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// HEALTH TRENDS CAROUSEL
@@ -75,7 +77,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'I tuoi Insights',
+                    AppLocalizations.of(context)!.insightsTitle,
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -88,7 +90,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                 GestureDetector(
                   onTap: widget.onViewAllTap,
                   child: Text(
-                    'Vedi report →',
+                    '${AppLocalizations.of(context)!.viewReport} →',
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -186,7 +188,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Connetti Apple Health',
+              AppLocalizations.of(context)!.connectHealth,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -195,7 +197,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Per vedere insights personalizzati sui tuoi dati di salute',
+              AppLocalizations.of(context)!.connectHealthDesc,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textSecondary,
@@ -231,7 +233,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
               const Text('🔮', style: TextStyle(fontSize: 20)),
               const SizedBox(width: 8),
               Text(
-                'Pattern scoperti',
+                AppLocalizations.of(context)!.discoveredPatterns,
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

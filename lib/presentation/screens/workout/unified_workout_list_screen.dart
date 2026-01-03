@@ -15,6 +15,7 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_screen.dart';
 import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// Unified screen showing both AI-generated and custom workouts
 class UnifiedWorkoutListScreen extends StatefulWidget {
@@ -81,7 +82,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'I Miei Workout',
+                          AppLocalizations.of(context)!.myWorkoutsTitle,
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -125,8 +126,8 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
                     // AI Workouts Section
                     _buildSectionTitle(
-                      '🤖 Schede AI',
-                      'I tuoi allenamenti generati',
+                      AppLocalizations.of(context)!.aiWorkoutsSectionTitle,
+                      AppLocalizations.of(context)!.aiWorkoutsSectionSubtitle,
                     ),
                     const SizedBox(height: 12),
                     _buildAIWorkoutsList(workoutProvider),
@@ -135,8 +136,10 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
                     // Custom Workouts Section
                     _buildSectionTitle(
-                      '✏️ Schede Personalizzate',
-                      'Create da te',
+                      AppLocalizations.of(context)!.customWorkoutsSectionTitle,
+                      AppLocalizations.of(
+                        context,
+                      )!.customWorkoutsSectionSubtitle,
                     ),
                     const SizedBox(height: 12),
                     _buildCustomWorkoutsList(),
@@ -251,7 +254,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '🔥 Prossimo Workout',
+                          '🔥 ${AppLocalizations.of(context)!.nextWorkoutTitle.replaceAll('🔥 ', '')}',
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -269,7 +272,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                         ),
                       ),
                       Text(
-                        '${nextWorkout.exercises.length} esercizi • ${nextWorkout.estimatedDuration} min',
+                        '${AppLocalizations.of(context)!.exercisesCount(nextWorkout.exercises.length)} • ${AppLocalizations.of(context)!.durationMinutes(nextWorkout.estimatedDuration)}',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Colors.white.withValues(alpha: 0.8),
@@ -297,7 +300,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Inizia Ora',
+                              AppLocalizations.of(context)!.startNow,
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -337,7 +340,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Nessun workout AI',
+              AppLocalizations.of(context)!.noAiWorkoutsTitle,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -346,7 +349,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Genera una scheda dalla Home',
+              AppLocalizations.of(context)!.generateAiPlanSubtitle,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textTertiary,
@@ -382,7 +385,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-              '🤖 Generazione in corso...',
+              AppLocalizations.of(context)!.generatingInProgress,
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -391,7 +394,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Completando cardio e mobilità',
+              AppLocalizations.of(context)!.completingCardioMobility,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: Colors.white.withValues(alpha: 0.8),
@@ -436,7 +439,9 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     }
 
     if (plan == null || plan.workoutDays.isEmpty) {
-      return _buildEmptySection('Nessuna scheda AI generata');
+      return _buildEmptySection(
+        AppLocalizations.of(context)!.noAiGeneratedPlan,
+      );
     }
 
     return Column(
@@ -470,7 +475,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     }
 
     if (_customPlans.isEmpty) {
-      return _buildEmptySection('Nessuna scheda personalizzata');
+      return _buildEmptySection(AppLocalizations.of(context)!.noCustomWorkouts);
     }
 
     return Column(
@@ -580,7 +585,9 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        duration,
+                        AppLocalizations.of(context)!.durationMinutes(
+                          int.tryParse(duration.replaceAll(' min', '')) ?? 0,
+                        ),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: CleanTheme.textSecondary,

@@ -718,6 +718,31 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
   // INTERACTION TRACKING
   // =====================================
 
+  // =====================================
+  // MEDIA CONTROLS
+  // =====================================
+
+  /// Pause current audio
+  Future<void> pauseAudio() async {
+    await _ttsService.pause();
+    notifyListeners();
+  }
+
+  /// Resume current audio
+  Future<void> resumeAudio() async {
+    await _ttsService.resume();
+    notifyListeners();
+  }
+
+  /// Seek audio by offset
+  Future<void> seekAudio(Duration offset) async {
+    await _ttsService.seekBy(offset);
+  }
+
+  // =====================================
+  // INTERACTION TRACKING
+  // =====================================
+
   /// Handle user interaction events - now silent
   /// Voice only speaks during "Esegui con Gigi"
   Future<void> onUserInteraction(
@@ -728,6 +753,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
   }) async {
     // Silent - all interaction-based speech removed
     // User must tap "Esegui con Gigi" to hear voice coaching
+    return;
   }
 
   @override

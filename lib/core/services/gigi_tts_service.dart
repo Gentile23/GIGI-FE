@@ -234,6 +234,33 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
+  /// Resume playback
+  Future<void> resume() async {
+    try {
+      if (!_isSpeaking && _isInitialized) {
+        await _audioPlayer.resume();
+        _isSpeaking = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('TTS resume error: $e');
+    }
+  }
+
+  /// Seek by offset (e.g. +10s or -10s)
+  Future<void> seekBy(Duration offset) async {
+    try {
+      final position = await _audioPlayer.getCurrentPosition();
+      if (position != null) {
+        final newPosition = position + offset;
+        // Clamp between 0 and duration is handled by player mostly, but safe to do
+        await _audioPlayer.seek(newPosition);
+      }
+    } catch (e) {
+      debugPrint('TTS seek error: $e');
+    }
+  }
+
   @override
   void dispose() {
     _audioPlayer.dispose();

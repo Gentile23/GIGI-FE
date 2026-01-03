@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
@@ -316,7 +317,7 @@ class _UnifiedQuestionnaireScreenState
 
                 // Title
                 Text(
-                  'Infortunio Aggiunto',
+                  AppLocalizations.of(context)!.injuryAddedTitle,
                   style: GoogleFonts.inter(
                     color: CleanTheme.textPrimary,
                     fontSize: 20,
@@ -328,7 +329,7 @@ class _UnifiedQuestionnaireScreenState
 
                 // Subtitle
                 Text(
-                  'Hai altri infortuni da segnalare?',
+                  AppLocalizations.of(context)!.injuryAddedSubtitle,
                   style: GoogleFonts.inter(
                     color: CleanTheme.textSecondary,
                     fontSize: 15,
@@ -375,7 +376,7 @@ class _UnifiedQuestionnaireScreenState
                           elevation: 0,
                         ),
                         child: Text(
-                          'Sì, Aggiungi Altro',
+                          AppLocalizations.of(context)!.addAnotherInjury,
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -407,7 +408,7 @@ class _UnifiedQuestionnaireScreenState
                           ),
                         ),
                         child: Text(
-                          'No, Continua',
+                          AppLocalizations.of(context)!.continueNoInjury,
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -655,9 +656,10 @@ class _UnifiedQuestionnaireScreenState
 
                   // 4. Goal (Multi-select) - RESTORED
                   _buildMultiSelectionPage(
-                    title: 'Qual è il tuo obiettivo?',
-                    subtitle:
-                        '✨ Puoi selezionarne più di uno per un piano personalizzato.',
+                    title: AppLocalizations.of(context)!.questionGoal,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    )!.questionGoalSubtitle,
                     options: FitnessGoal.values
                         .where((g) => g != FitnessGoal.toning)
                         .map(
@@ -692,8 +694,10 @@ class _UnifiedQuestionnaireScreenState
 
                   // 5. Experience Level - RESTORED
                   _buildSelectionPage(
-                    title: 'Il tuo livello?',
-                    subtitle: 'Sii onesto, adatteremo tutto a te.',
+                    title: AppLocalizations.of(context)!.questionLevel,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    )!.questionLevelSubtitle,
                     options: ExperienceLevel.values
                         .map(
                           (l) => _Option(
@@ -717,8 +721,10 @@ class _UnifiedQuestionnaireScreenState
 
                   // 3. Location
                   _buildSelectionPage(
-                    title: 'Dove ti allenerai?',
-                    subtitle: 'Casa o Palestra?',
+                    title: AppLocalizations.of(context)!.questionLocation,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    )!.questionLocationSubtitle,
                     options: TrainingLocation.values
                         .map(
                           (l) => _Option(
@@ -825,8 +831,9 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 40),
 
           // Title with emoji
+          // Title with emoji
           Text(
-            'Ciao! Sono Gigi 👋',
+            AppLocalizations.of(context)!.introTitle,
             style: GoogleFonts.outfit(
               fontSize: 32,
               fontWeight: FontWeight.w700,
@@ -838,8 +845,9 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 16),
 
           // Description
+          // Description
           Text(
-            'Sarò il tuo personal trainer AI.\nRispondi a 2 domande veloci così posso creare il piano perfetto per te.',
+            AppLocalizations.of(context)!.introDescription,
             style: GoogleFonts.inter(
               fontSize: 16,
               color: CleanTheme.textSecondary,
@@ -865,7 +873,7 @@ class _UnifiedQuestionnaireScreenState
                 elevation: 0,
               ),
               child: Text(
-                'INIZIAMO!',
+                AppLocalizations.of(context)!.introButton,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -895,19 +903,19 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Parlaci di te',
+                    AppLocalizations.of(context)!.sectionAboutYou,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Queste informazioni ci aiutano a calcolare il tuo fabbisogno.',
+                    AppLocalizations.of(context)!.sectionAboutYouSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 48),
 
                   // Height Input
                   Text(
-                    'Altezza (cm)',
+                    AppLocalizations.of(context)!.heightLabel,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
@@ -916,7 +924,7 @@ class _UnifiedQuestionnaireScreenState
                     keyboardType: TextInputType.number,
                     style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
-                      hintText: 'Es. 175',
+                      hintText: AppLocalizations.of(context)!.hintHeight,
                       hintStyle: GoogleFonts.inter(
                         color: CleanTheme.textTertiary,
                       ),
@@ -954,7 +962,7 @@ class _UnifiedQuestionnaireScreenState
 
                   // Weight Input
                   Text(
-                    'Peso (kg)',
+                    AppLocalizations.of(context)!.labelWeightParentheses,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
@@ -963,7 +971,7 @@ class _UnifiedQuestionnaireScreenState
                     keyboardType: TextInputType.number,
                     style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
-                      hintText: 'Es. 70',
+                      hintText: AppLocalizations.of(context)!.hintWeight,
                       hintStyle: GoogleFonts.inter(
                         color: CleanTheme.textTertiary,
                       ),
@@ -1000,7 +1008,7 @@ class _UnifiedQuestionnaireScreenState
                   const Spacer(),
                   const SizedBox(height: 32),
                   CleanButton(
-                    text: 'Continua',
+                    text: AppLocalizations.of(context)!.continueButton,
                     onPressed: (_height != null && _weight != null)
                         ? _nextPage
                         : null,
@@ -1177,7 +1185,7 @@ class _UnifiedQuestionnaireScreenState
                   const Spacer(),
                   const SizedBox(height: 16),
                   CleanButton(
-                    text: 'Continua',
+                    text: AppLocalizations.of(context)!.continueButton,
                     onPressed: canContinue ? onContinue : null,
                   ),
                 ],
@@ -1198,50 +1206,55 @@ class _UnifiedQuestionnaireScreenState
       equipmentOptions = [
         (
           Equipment.machines,
-          'Macchine',
+          AppLocalizations.of(context)!.equipmentMachines,
           Icons.fitness_center,
-          'Macchinari isotonici, cavi e stazioni multifunzione',
+          AppLocalizations.of(context)!.equipmentMachinesDesc,
         ),
         (
           Equipment.bodyweight,
-          'Corpo Libero',
+          AppLocalizations.of(context)!.equipmentBodyweight,
           Icons.accessibility_new,
-          'Calisthenics, sbarre, anelli e corpo libero',
+          AppLocalizations.of(context)!.equipmentBodyweightDesc,
         ),
       ];
     } else {
       // For home and outdoor: show all equipment options
       equipmentOptions = [
-        (Equipment.bench, 'Panca', Icons.chair_alt, 'Piana o inclinata'),
+        (
+          Equipment.bench,
+          AppLocalizations.of(context)!.equipmentBench,
+          Icons.chair_alt,
+          AppLocalizations.of(context)!.equipmentBenchDesc,
+        ),
         (
           Equipment.dumbbells,
-          'Manubri',
+          AppLocalizations.of(context)!.equipmentDumbbells,
           Icons.fitness_center,
-          'Manubri fissi o componibili',
+          AppLocalizations.of(context)!.equipmentDumbbellsDesc,
         ),
         (
           Equipment.barbell,
-          'Bilanciere',
+          AppLocalizations.of(context)!.equipmentBarbell,
           Icons.horizontal_rule,
-          'Bilanciere olimpico o standard',
+          AppLocalizations.of(context)!.equipmentBarbellDesc,
         ),
         (
           Equipment.resistanceBands,
-          'Elastici',
+          AppLocalizations.of(context)!.equipmentBands,
           Icons.waves,
-          'Bande elastiche di varie resistenze',
+          AppLocalizations.of(context)!.equipmentBandsDesc,
         ),
         (
           Equipment.machines,
-          'Macchine',
+          AppLocalizations.of(context)!.equipmentMachines,
           Icons.settings,
-          'Eventuali macchinari home gym',
+          AppLocalizations.of(context)!.equipmentMachinesHomeDesc,
         ),
         (
           Equipment.bodyweight,
-          'Corpo Libero',
+          AppLocalizations.of(context)!.equipmentBodyweight,
           Icons.accessibility_new,
-          'Sbarra trazioni o corpo libero',
+          AppLocalizations.of(context)!.equipmentBodyweightHomeDesc,
         ),
       ];
     }
@@ -1253,14 +1266,14 @@ class _UnifiedQuestionnaireScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Attrezzatura',
+            AppLocalizations.of(context)!.equipmentTitle,
             style: Theme.of(context).textTheme.displayMedium,
           ),
           const SizedBox(height: 8),
           Text(
             _selectedLocation == TrainingLocation.gym
-                ? 'Seleziona gli stili di allenamento che preferisci.'
-                : 'Cosa hai a disposizione nel tuo spazio?',
+                ? AppLocalizations.of(context)!.equipmentSubtitleGym
+                : AppLocalizations.of(context)!.equipmentSubtitleHome,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: CleanTheme.textSecondary,
               height: 1.5,
@@ -1386,12 +1399,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Quali Macchine?',
+                    AppLocalizations.of(context)!.machinesTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Seleziona quelle disponibili.',
+                    AppLocalizations.of(context)!.machinesSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 24),
@@ -1441,7 +1454,11 @@ class _UnifiedQuestionnaireScreenState
                   }).toList(),
                   const Spacer(),
                   const SizedBox(height: 16),
-                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                  const SizedBox(height: 16),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.continueButton,
+                    onPressed: _nextPage,
+                  ),
                 ],
               ),
             ),
@@ -1455,20 +1472,20 @@ class _UnifiedQuestionnaireScreenState
     final types = [
       (
         'functional',
-        'Allenamento Funzionale',
-        'Focus su mobilità e controllo',
+        AppLocalizations.of(context)!.bodyweightFunctional,
+        AppLocalizations.of(context)!.bodyweightFunctionalDesc,
         Icons.bubble_chart,
       ),
       (
         'calisthenics',
-        'Calisthenics',
-        'Forza bruta a corpo libero',
+        AppLocalizations.of(context)!.bodyweightCalisthenics,
+        AppLocalizations.of(context)!.bodyweightCalisthenicsDesc,
         Icons.accessibility_new,
       ),
       (
         'pure',
-        'Solo Corpo Libero',
-        'Senza alcuna attrezzatura',
+        AppLocalizations.of(context)!.bodyweightPure,
+        AppLocalizations.of(context)!.bodyweightPureDesc,
         Icons.person_outline,
       ),
     ];
@@ -1484,12 +1501,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tipo di Corpo Libero',
+                    AppLocalizations.of(context)!.bodyweightTypeTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Scegli il tuo stile preferito.',
+                    AppLocalizations.of(context)!.bodyweightTypeSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
@@ -1573,18 +1590,46 @@ class _UnifiedQuestionnaireScreenState
 
     if (type == 'functional') {
       options = [
-        ('trx', 'TRX / Suspension Trainer', Icons.fitness_center),
-        ('bands', 'Elastici / Resistance Bands', Icons.waves),
-        ('fitball', 'Fitball / Swiss Ball', Icons.sports_baseball),
-        ('bosu', 'Bosu / Balance Board', Icons.panorama_wide_angle),
+        (
+          'trx',
+          AppLocalizations.of(context)!.equipmentTrx,
+          Icons.fitness_center,
+        ),
+        ('bands', AppLocalizations.of(context)!.equipmentBandsAlt, Icons.waves),
+        (
+          'fitball',
+          AppLocalizations.of(context)!.equipmentFitball,
+          Icons.sports_baseball,
+        ),
+        (
+          'bosu',
+          AppLocalizations.of(context)!.equipmentBosu,
+          Icons.panorama_wide_angle,
+        ),
       ];
     } else {
       // calisthenics
       options = [
-        ('bar', 'Sbarra Trazioni', Icons.horizontal_rule),
-        ('rings', 'Anelli', Icons.radio_button_off),
-        ('parallels', 'Parallele / Dip Bars', Icons.view_column),
-        ('wall', 'Spalliera / Wall Bars', Icons.grid_on),
+        (
+          'bar',
+          AppLocalizations.of(context)!.equipmentPullUpBar,
+          Icons.horizontal_rule,
+        ),
+        (
+          'rings',
+          AppLocalizations.of(context)!.equipmentRings,
+          Icons.radio_button_off,
+        ),
+        (
+          'parallels',
+          AppLocalizations.of(context)!.equipmentParallels,
+          Icons.view_column,
+        ),
+        (
+          'wall',
+          AppLocalizations.of(context)!.equipmentWallBars,
+          Icons.grid_on,
+        ),
       ];
     }
 
@@ -1603,8 +1648,10 @@ class _UnifiedQuestionnaireScreenState
             children: [
               Text(
                 type == 'functional'
-                    ? 'Attrezzi Funzionali Disponibili'
-                    : 'Attrezzi Calisthenics Disponibili',
+                    ? AppLocalizations.of(context)!.bwEquipmentFunctionalTitle
+                    : AppLocalizations.of(
+                        context,
+                      )!.bwEquipmentCalisthenicsTitle,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -1613,7 +1660,7 @@ class _UnifiedQuestionnaireScreenState
               ),
               const SizedBox(height: 8),
               Text(
-                'Seleziona quelli che hai a disposizione',
+                AppLocalizations.of(context)!.bwEquipmentSubtitle,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: CleanTheme.textSecondary,
@@ -1657,7 +1704,7 @@ class _UnifiedQuestionnaireScreenState
               const Spacer(),
               const SizedBox(height: 16),
               CleanButton(
-                text: 'Continua',
+                text: AppLocalizations.of(context)!.continueButton,
                 onPressed: _selectedBodyweightEquipment.isNotEmpty
                     ? () {
                         Navigator.pop(context);
@@ -1669,7 +1716,7 @@ class _UnifiedQuestionnaireScreenState
               SizedBox(
                 width: double.infinity,
                 child: CleanButton(
-                  text: 'Continua',
+                  text: AppLocalizations.of(context)!.continueButton,
                   onPressed: () {
                     Navigator.pop(context);
                     _nextPage();
@@ -1695,14 +1742,16 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Infortuni',
+                    AppLocalizations.of(context)!.injuriesTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     _injuries.isEmpty
-                        ? 'Hai infortuni attuali o passati?\n\n💡 Inserisci anche infortuni PASSATI se potrebbero influenzare il tuo allenamento (es. vecchie fratture, interventi chirurgici, problemi cronici).'
-                        : 'Hai aggiunto ${_injuries.length} infortuni. Vuoi aggiungerne altri?',
+                        ? AppLocalizations.of(context)!.injuriesSubtitleEmpty
+                        : AppLocalizations.of(
+                            context,
+                          )!.injuriesSubtitleFilled(_injuries.length),
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 48),
@@ -1762,8 +1811,8 @@ class _UnifiedQuestionnaireScreenState
                         const SizedBox(width: 16),
                         Text(
                           _injuries.isEmpty
-                              ? 'Sì, ho un infortunio da segnalare'
-                              : 'Aggiungi un altro infortunio',
+                              ? AppLocalizations.of(context)!.yesInjury
+                              : AppLocalizations.of(context)!.addAnotherInjury,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ],
@@ -1785,7 +1834,9 @@ class _UnifiedQuestionnaireScreenState
                         ),
                         const SizedBox(width: 16),
                         Text(
-                          _injuries.isEmpty ? 'No, sono sano' : 'No, ho finito',
+                          _injuries.isEmpty
+                              ? AppLocalizations.of(context)!.noInjury
+                              : AppLocalizations.of(context)!.noMoreInjuries,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ],
@@ -1803,8 +1854,8 @@ class _UnifiedQuestionnaireScreenState
 
   Widget _buildInjuryCategoryPage() {
     return _buildSelectionPage(
-      title: 'Tipo di infortunio',
-      subtitle: 'Seleziona la categoria',
+      title: AppLocalizations.of(context)!.injuryCategoryTitle,
+      subtitle: AppLocalizations.of(context)!.injuryCategorySubtitle,
       options: InjuryCategory.values
           .map(
             (c) => _Option(
@@ -1841,7 +1892,7 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Zona specifica',
+                    AppLocalizations.of(context)!.injuryAreaTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 24),
@@ -1903,7 +1954,10 @@ class _UnifiedQuestionnaireScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Timing Selection
-          Text('Quando?', style: Theme.of(context).textTheme.displayMedium),
+          Text(
+            AppLocalizations.of(context)!.injuryTimingTitle,
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
           const SizedBox(height: 16),
           ...InjuryTiming.values.map(
             (t) => Padding(
@@ -1935,12 +1989,15 @@ class _UnifiedQuestionnaireScreenState
 
           // Side Selection (conditional)
           if (isSideApplicable) ...[
-            Text('Lato', style: Theme.of(context).textTheme.displayMedium),
+            Text(
+              AppLocalizations.of(context)!.injurySideTitle,
+              style: Theme.of(context).textTheme.displayMedium,
+            ),
             const SizedBox(height: 16),
             ...[
-              ('left', 'Sinistro', '⬅️'),
-              ('right', 'Destro', '➡️'),
-              ('bilateral', 'Bilaterale', '↔️'),
+              ('left', AppLocalizations.of(context)!.sideLeft, '⬅️'),
+              ('right', AppLocalizations.of(context)!.sideRight, '➡️'),
+              ('bilateral', AppLocalizations.of(context)!.sideBilateral, '↔️'),
             ].map(
               (side) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -1966,12 +2023,12 @@ class _UnifiedQuestionnaireScreenState
           // Overcome status (only for past injuries) - TWO SEPARATE BUTTONS
           if (_tempInjuryTiming == InjuryTiming.past) ...[
             Text(
-              'Stato attuale dell\'infortunio',
+              AppLocalizations.of(context)!.injuryStatusTitle,
               style: Theme.of(context).textTheme.displayMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'L\'infortunio è stato completamente superato?',
+              AppLocalizations.of(context)!.injuryStatusSubtitle,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -1994,7 +2051,7 @@ class _UnifiedQuestionnaireScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '✅ Superato',
+                          '✅ ${AppLocalizations.of(context)!.injuryStatusOvercome}',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: _tempInjuryOvercome == true
@@ -2003,7 +2060,9 @@ class _UnifiedQuestionnaireScreenState
                               ),
                         ),
                         Text(
-                          'Non ho più problemi, ma meglio saperlo',
+                          AppLocalizations.of(
+                            context,
+                          )!.injuryStatusOvercomeDesc,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -2032,7 +2091,7 @@ class _UnifiedQuestionnaireScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '⚠️ Ancora presente',
+                          '⚠️ ${AppLocalizations.of(context)!.injuryStatusActive}',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: _tempInjuryOvercome == false
@@ -2041,7 +2100,7 @@ class _UnifiedQuestionnaireScreenState
                               ),
                         ),
                         Text(
-                          'Ho ancora fastidi o limitazioni',
+                          AppLocalizations.of(context)!.injuryStatusActiveDesc,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -2054,7 +2113,10 @@ class _UnifiedQuestionnaireScreenState
           ],
 
           // Severity
-          Text('Gravità', style: Theme.of(context).textTheme.displayMedium),
+          Text(
+            AppLocalizations.of(context)!.injurySeverityTitle,
+            style: Theme.of(context).textTheme.displayMedium,
+          ),
           const SizedBox(height: 16),
           ...InjurySeverity.values.map(
             (s) => Padding(
@@ -2080,7 +2142,7 @@ class _UnifiedQuestionnaireScreenState
 
           // Painful Exercises
           Text(
-            'Esercizi che causano dolore',
+            AppLocalizations.of(context)!.painfulExercisesTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -2089,7 +2151,7 @@ class _UnifiedQuestionnaireScreenState
             maxLines: 2,
             style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Es: Squat, Panca piana, Stacchi...',
+              hintText: AppLocalizations.of(context)!.painfulExercisesHint,
               fillColor: CleanTheme.surfaceColor,
               filled: true,
               border: OutlineInputBorder(
@@ -2102,7 +2164,7 @@ class _UnifiedQuestionnaireScreenState
 
           // Notes
           Text(
-            'Note Aggiuntive (Opzionale)',
+            AppLocalizations.of(context)!.notesTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -2111,7 +2173,7 @@ class _UnifiedQuestionnaireScreenState
             maxLines: 3,
             style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Dettagli aggiuntivi...',
+              hintText: AppLocalizations.of(context)!.notesHint,
               fillColor: CleanTheme.surfaceColor,
               filled: true,
               border: OutlineInputBorder(
@@ -2121,7 +2183,10 @@ class _UnifiedQuestionnaireScreenState
           ),
 
           const SizedBox(height: 32),
-          CleanButton(text: 'Salva Infortunio', onPressed: _addInjury),
+          CleanButton(
+            text: AppLocalizations.of(context)!.saveInjuryButton,
+            onPressed: _addInjury,
+          ),
         ],
       ),
     );
@@ -2139,12 +2204,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Durata Sessione',
+                    AppLocalizations.of(context)!.sessionDurationTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Quanto tempo hai per allenarti?',
+                    AppLocalizations.of(context)!.sessionDurationSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 48),
@@ -2184,7 +2249,10 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const Spacer(),
                   const SizedBox(height: 32),
-                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.continueButton,
+                    onPressed: _nextPage,
+                  ),
                 ],
               ),
             ),
@@ -2206,12 +2274,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Cardio & Mobilità',
+                    AppLocalizations.of(context)!.cardioMobilityTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Cardio',
+                    AppLocalizations.of(context)!.cardioSection,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 16),
@@ -2230,9 +2298,25 @@ class _UnifiedQuestionnaireScreenState
                                   style: const TextStyle(fontSize: 24),
                                 ),
                                 const SizedBox(width: 16),
-                                Text(
-                                  p.displayName,
-                                  style: Theme.of(context).textTheme.titleLarge,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getCardioLabel(p),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                      Text(
+                                        _getCardioDescription(p),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -2241,7 +2325,7 @@ class _UnifiedQuestionnaireScreenState
                       }),
                   const SizedBox(height: 32),
                   Text(
-                    'Mobilità',
+                    AppLocalizations.of(context)!.mobilitySection,
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   const SizedBox(height: 16),
@@ -2261,9 +2345,25 @@ class _UnifiedQuestionnaireScreenState
                                   style: const TextStyle(fontSize: 24),
                                 ),
                                 const SizedBox(width: 16),
-                                Text(
-                                  p.displayName,
-                                  style: Theme.of(context).textTheme.titleLarge,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getMobilityLabel(p),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                      Text(
+                                        _getMobilityDescription(p),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -2272,7 +2372,10 @@ class _UnifiedQuestionnaireScreenState
                       }),
                   const Spacer(),
                   const SizedBox(height: 24),
-                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.continueButton,
+                    onPressed: _nextPage,
+                  ),
                 ],
               ),
             ),
@@ -2294,12 +2397,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Split di Allenamento',
+                    AppLocalizations.of(context)!.trainingSplitTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Come vuoi organizzare i tuoi allenamenti?',
+                    AppLocalizations.of(context)!.trainingSplitSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
@@ -2325,14 +2428,14 @@ class _UnifiedQuestionnaireScreenState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    split.displayName,
+                                    _getSplitLabel(split),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.titleLarge,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    split.description,
+                                    _getSplitDescription(split),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.bodyMedium,
@@ -2371,17 +2474,17 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ultimi dettagli',
+                    AppLocalizations.of(context)!.finalDetailsTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Qualcos\'altro da sapere? (Facoltativo)',
+                    AppLocalizations.of(context)!.finalDetailsSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Puoi anche procedere senza inserire nulla.',
+                    AppLocalizations.of(context)!.finalDetailsHint,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: CleanTheme.textSecondary,
                       fontStyle: FontStyle.italic,
@@ -2399,7 +2502,7 @@ class _UnifiedQuestionnaireScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Cosa potresti scrivere qui:',
+                          AppLocalizations.of(context)!.finalDetailsBulletTitle,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 color: CleanTheme.primaryColor,
@@ -2407,12 +2510,15 @@ class _UnifiedQuestionnaireScreenState
                               ),
                         ),
                         const SizedBox(height: 8),
-                        // Removed: Allergie o intolleranze alimentari
-                        _buildBulletPoint('Preferenze su esercizi specifici'),
                         _buildBulletPoint(
-                          'Obiettivi particolari non menzionati',
+                          AppLocalizations.of(context)!.bulletPreferences,
                         ),
-                        _buildBulletPoint('Note mediche aggiuntive'),
+                        _buildBulletPoint(
+                          AppLocalizations.of(context)!.bulletGoals,
+                        ),
+                        _buildBulletPoint(
+                          AppLocalizations.of(context)!.bulletMedical,
+                        ),
                       ],
                     ),
                   ),
@@ -2422,7 +2528,7 @@ class _UnifiedQuestionnaireScreenState
                     maxLines: 5,
                     style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
-                      hintText: 'Scrivi qui le tue note...',
+                      hintText: AppLocalizations.of(context)!.finalNotesHint,
                       fillColor: CleanTheme.primaryLight,
                       filled: true,
                       border: OutlineInputBorder(
@@ -2449,7 +2555,9 @@ class _UnifiedQuestionnaireScreenState
                   const SizedBox(height: 32),
                   const Spacer(),
                   CleanButton(
-                    text: _isLoading ? 'Salvataggio...' : 'Procedi',
+                    text: _isLoading
+                        ? AppLocalizations.of(context)!.savingButton
+                        : AppLocalizations.of(context)!.proceedButton,
                     onPressed: _isLoading ? null : _finish,
                   ),
                 ],
@@ -2494,15 +2602,15 @@ class _UnifiedQuestionnaireScreenState
   String _getGoalLabel(FitnessGoal g) {
     switch (g) {
       case FitnessGoal.muscleGain:
-        return 'Aumento Massa';
+        return AppLocalizations.of(context)!.goalMuscleGainLabel;
       case FitnessGoal.weightLoss:
-        return 'Perdita Peso';
+        return AppLocalizations.of(context)!.goalWeightLossLabel;
       case FitnessGoal.toning:
-        return 'Definizione';
+        return AppLocalizations.of(context)!.goalToningLabel;
       case FitnessGoal.strength:
-        return 'Forza e Potenza';
+        return AppLocalizations.of(context)!.goalStrengthLabel;
       case FitnessGoal.wellness:
-        return 'Salute e Benessere';
+        return AppLocalizations.of(context)!.goalWellnessLabel;
     }
   }
 
@@ -2524,11 +2632,11 @@ class _UnifiedQuestionnaireScreenState
   String _getLevelLabel(ExperienceLevel l) {
     switch (l) {
       case ExperienceLevel.beginner:
-        return 'Principiante';
+        return AppLocalizations.of(context)!.levelBeginnerLabel;
       case ExperienceLevel.intermediate:
-        return 'Intermedio';
+        return AppLocalizations.of(context)!.levelIntermediateLabel;
       case ExperienceLevel.advanced:
-        return 'Avanzato';
+        return AppLocalizations.of(context)!.levelAdvancedLabel;
     }
   }
 
@@ -2546,11 +2654,11 @@ class _UnifiedQuestionnaireScreenState
   String _getLocationLabel(TrainingLocation l) {
     switch (l) {
       case TrainingLocation.gym:
-        return 'Palestra';
+        return AppLocalizations.of(context)!.locationGymLabel;
       case TrainingLocation.home:
-        return 'Casa';
+        return AppLocalizations.of(context)!.locationHomeLabel;
       case TrainingLocation.outdoor:
-        return 'Outdoor';
+        return AppLocalizations.of(context)!.locationOutdoorLabel;
     }
   }
 
@@ -2568,41 +2676,41 @@ class _UnifiedQuestionnaireScreenState
   String _getInjuryExample(InjuryCategory c) {
     switch (c) {
       case InjuryCategory.muscular:
-        return 'Strappi, contratture';
+        return AppLocalizations.of(context)!.injuryMuscular;
       case InjuryCategory.articular:
-        return 'Distorsioni, infiammazioni';
+        return AppLocalizations.of(context)!.injuryArticular;
       case InjuryCategory.bone:
-        return 'Fratture';
+        return AppLocalizations.of(context)!.injuryBone;
     }
   }
 
   String _getWorkoutTypeLabel(WorkoutType type) {
     switch (type) {
       case WorkoutType.strength:
-        return 'Forza';
+        return AppLocalizations.of(context)!.workoutStrength;
       case WorkoutType.hypertrophy:
-        return 'Ipertrofia';
+        return AppLocalizations.of(context)!.workoutHypertrophy;
       case WorkoutType.endurance:
-        return 'Resistenza';
+        return AppLocalizations.of(context)!.workoutEndurance;
       case WorkoutType.functional:
-        return 'Funzionale';
+        return AppLocalizations.of(context)!.workoutFunctional;
       case WorkoutType.calisthenics:
-        return 'Calisthenics';
+        return AppLocalizations.of(context)!.workoutCalisthenics;
     }
   }
 
   String _getWorkoutTypeDescription(WorkoutType type) {
     switch (type) {
       case WorkoutType.strength:
-        return 'Massimizza la forza con carichi pesanti e basse ripetizioni.';
+        return AppLocalizations.of(context)!.workoutStrengthDesc;
       case WorkoutType.hypertrophy:
-        return 'Focus sulla crescita muscolare e volume.';
+        return AppLocalizations.of(context)!.workoutHypertrophyDesc;
       case WorkoutType.endurance:
-        return 'Migliora la resistenza muscolare e cardiovascolare.';
+        return AppLocalizations.of(context)!.workoutEnduranceDesc;
       case WorkoutType.functional:
-        return 'Movimenti multi-articolari per la vita quotidiana.';
+        return AppLocalizations.of(context)!.workoutFunctionalDesc;
       case WorkoutType.calisthenics:
-        return 'Allenamento a corpo libero per forza e controllo.';
+        return AppLocalizations.of(context)!.workoutCalisthenicsDesc;
     }
   }
 
@@ -2621,6 +2729,96 @@ class _UnifiedQuestionnaireScreenState
     }
   }
 
+  String _getSplitLabel(TrainingSplit s) {
+    switch (s) {
+      case TrainingSplit.monofrequency:
+        return AppLocalizations.of(context)!.splitMonofrequency;
+      case TrainingSplit.multifrequency:
+        return AppLocalizations.of(context)!.splitMultifrequency;
+      case TrainingSplit.upperLower:
+        return AppLocalizations.of(context)!.splitUpperLower;
+      case TrainingSplit.pushPullLegs:
+        return AppLocalizations.of(context)!.splitPushPullLegs;
+      case TrainingSplit.fullBody:
+        return AppLocalizations.of(context)!.splitFullBody;
+      case TrainingSplit.bodyPartSplit:
+        return AppLocalizations.of(context)!.splitBodyPart;
+      case TrainingSplit.arnoldSplit:
+        return AppLocalizations.of(context)!.splitArnold;
+    }
+  }
+
+  String _getSplitDescription(TrainingSplit s) {
+    switch (s) {
+      case TrainingSplit.monofrequency:
+        return AppLocalizations.of(context)!.splitMonofrequencyDesc;
+      case TrainingSplit.multifrequency:
+        return AppLocalizations.of(context)!.splitMultifrequencyDesc;
+      case TrainingSplit.upperLower:
+        return AppLocalizations.of(context)!.splitUpperLowerDesc;
+      case TrainingSplit.pushPullLegs:
+        return AppLocalizations.of(context)!.splitPushPullLegsDesc;
+      case TrainingSplit.fullBody:
+        return AppLocalizations.of(context)!.splitFullBodyDesc;
+      case TrainingSplit.bodyPartSplit:
+        return AppLocalizations.of(context)!.splitBodyPartDesc;
+      case TrainingSplit.arnoldSplit:
+        return AppLocalizations.of(context)!.splitArnoldDesc;
+    }
+  }
+
+  String _getCardioLabel(CardioPreference c) {
+    switch (c) {
+      case CardioPreference.none:
+        return AppLocalizations.of(context)!.cardioNone;
+      case CardioPreference.warmUp:
+        return AppLocalizations.of(context)!.cardioWarmUp;
+      case CardioPreference.postWorkout:
+        return AppLocalizations.of(context)!.cardioPostWorkout;
+      case CardioPreference.separateSession:
+        return AppLocalizations.of(context)!.cardioSeparate;
+    }
+  }
+
+  String _getCardioDescription(CardioPreference c) {
+    switch (c) {
+      case CardioPreference.none:
+        return AppLocalizations.of(context)!.cardioNoneDesc;
+      case CardioPreference.warmUp:
+        return AppLocalizations.of(context)!.cardioWarmUpDesc;
+      case CardioPreference.postWorkout:
+        return AppLocalizations.of(context)!.cardioPostWorkoutDesc;
+      case CardioPreference.separateSession:
+        return AppLocalizations.of(context)!.cardioSeparateDesc;
+    }
+  }
+
+  String _getMobilityLabel(MobilityPreference m) {
+    switch (m) {
+      case MobilityPreference.none:
+        return AppLocalizations.of(context)!.mobilityNone;
+      case MobilityPreference.postWorkout:
+        return AppLocalizations.of(context)!.mobilityPostWorkout;
+      case MobilityPreference.preWorkout:
+        return AppLocalizations.of(context)!.mobilityPreWorkout;
+      case MobilityPreference.dedicatedSession:
+        return AppLocalizations.of(context)!.mobilityDedicated;
+    }
+  }
+
+  String _getMobilityDescription(MobilityPreference m) {
+    switch (m) {
+      case MobilityPreference.none:
+        return AppLocalizations.of(context)!.mobilityNoneDesc;
+      case MobilityPreference.postWorkout:
+        return AppLocalizations.of(context)!.mobilityPostWorkoutDesc;
+      case MobilityPreference.preWorkout:
+        return AppLocalizations.of(context)!.mobilityPreWorkoutDesc;
+      case MobilityPreference.dedicatedSession:
+        return AppLocalizations.of(context)!.mobilityDedicatedDesc;
+    }
+  }
+
   Widget _buildWeeklyFrequencyPage() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -2633,12 +2831,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Frequenza Settimanale',
+                    AppLocalizations.of(context)!.questionFrequencyTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Quante volte vuoi allenarti a settimana?',
+                    AppLocalizations.of(context)!.questionFrequencySubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 48),
@@ -2648,7 +2846,7 @@ class _UnifiedQuestionnaireScreenState
                     child: Column(
                       children: [
                         Text(
-                          '$_weeklyFrequency giorni',
+                          '$_weeklyFrequency ${AppLocalizations.of(context)!.days}',
                           style: GoogleFonts.outfit(
                             fontSize: 64,
                             fontWeight: FontWeight.bold,
@@ -2681,7 +2879,10 @@ class _UnifiedQuestionnaireScreenState
 
                   const Spacer(),
                   const SizedBox(height: 32),
-                  CleanButton(text: 'Continua', onPressed: _nextPage),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.continueButton,
+                    onPressed: _nextPage,
+                  ),
                 ],
               ),
             ),
@@ -2693,8 +2894,8 @@ class _UnifiedQuestionnaireScreenState
 
   Widget _buildWorkoutTypePage() {
     return _buildSelectionPage(
-      title: 'Tipo di Allenamento',
-      subtitle: 'Come preferisci allenarti?',
+      title: AppLocalizations.of(context)!.questionWorkoutTypeTitle,
+      subtitle: AppLocalizations.of(context)!.questionWorkoutTypeSubtitle,
       options: WorkoutType.values
           .map(
             (t) => _Option(
@@ -2726,19 +2927,19 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Chi sei?',
+                    AppLocalizations.of(context)!.questionGenderTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Per personalizzare il tuo piano.',
+                    AppLocalizations.of(context)!.questionGenderSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
 
                   // Gender Selection
                   Text(
-                    'Genere',
+                    AppLocalizations.of(context)!.labelGenderTitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
@@ -2774,7 +2975,7 @@ class _UnifiedQuestionnaireScreenState
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Uomo',
+                                  AppLocalizations.of(context)!.genderMale,
                                   style: TextStyle(
                                     color: _selectedGender == Gender.male
                                         ? CleanTheme.textPrimary
@@ -2819,7 +3020,7 @@ class _UnifiedQuestionnaireScreenState
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Donna',
+                                  AppLocalizations.of(context)!.genderFemale,
                                   style: TextStyle(
                                     color: _selectedGender == Gender.female
                                         ? CleanTheme.textPrimary
@@ -2839,14 +3040,19 @@ class _UnifiedQuestionnaireScreenState
                   const SizedBox(height: 32),
 
                   // Age Input
-                  Text('Età', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    AppLocalizations.of(context)!.ageLabel,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 12),
                   TextFormField(
                     initialValue: _age?.toString(),
                     keyboardType: TextInputType.number,
                     style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
-                      hintText: 'Es. 25',
+                      hintText: AppLocalizations.of(
+                        context,
+                      )!.ageHint, // 'Es. 25'
                       hintStyle: GoogleFonts.inter(
                         color: CleanTheme.textTertiary,
                       ),
@@ -2870,7 +3076,7 @@ class _UnifiedQuestionnaireScreenState
                           color: CleanTheme.primaryColor,
                         ),
                       ),
-                      suffixText: 'anni',
+                      suffixText: AppLocalizations.of(context)!.years,
                       suffixStyle: GoogleFonts.inter(
                         color: CleanTheme.textSecondary,
                       ),
@@ -2890,7 +3096,7 @@ class _UnifiedQuestionnaireScreenState
                   const SizedBox(height: 32),
                   const Spacer(),
                   CleanButton(
-                    text: 'Continua',
+                    text: AppLocalizations.of(context)!.continueButton,
                     onPressed:
                         (_selectedGender != null &&
                             _age != null &&
@@ -2922,12 +3128,12 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Stima la tua % di grasso',
+                    AppLocalizations.of(context)!.questionBodyFatTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Scegli l\'immagine che più ti assomiglia.',
+                    AppLocalizations.of(context)!.questionBodyFatSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 24),
@@ -2939,32 +3145,41 @@ class _UnifiedQuestionnaireScreenState
 
                     switch (bf) {
                       case BodyFatPercentage.veryHigh:
-                        title = 'Sovrappeso evidente';
-                        subtitle = 'Addome predominante';
-                        percentage = 'Molto Alta (>25%)';
+                        title = AppLocalizations.of(context)!.bodyFatVeryHigh;
+                        subtitle = AppLocalizations.of(
+                          context,
+                        )!.bodyFatVeryHighSub;
+                        percentage =
+                            'Molto Alta (>25%)'; // Keep numerical part literal or tokenize?
                         icon = Icons.accessibility_new;
                         break;
                       case BodyFatPercentage.high:
-                        title = 'Sovrappeso leggero';
-                        subtitle = 'Poca definizione';
+                        title = AppLocalizations.of(context)!.bodyFatHigh;
+                        subtitle = AppLocalizations.of(context)!.bodyFatHighSub;
                         percentage = 'Alta (20-25%)';
                         icon = Icons.accessibility;
                         break;
                       case BodyFatPercentage.average:
-                        title = 'Normopeso';
-                        subtitle = 'Addome piatto';
+                        title = AppLocalizations.of(context)!.bodyFatAverage;
+                        subtitle = AppLocalizations.of(
+                          context,
+                        )!.bodyFatAverageSub;
                         percentage = 'Media (15-20%)';
                         icon = Icons.person;
                         break;
                       case BodyFatPercentage.athletic:
-                        title = 'Atletico';
-                        subtitle = 'Muscoli visibili';
+                        title = AppLocalizations.of(context)!.bodyFatAthletic;
+                        subtitle = AppLocalizations.of(
+                          context,
+                        )!.bodyFatAthleticSub;
                         percentage = 'Atletica (10-15%)';
                         icon = Icons.fitness_center;
                         break;
                       case BodyFatPercentage.veryLean:
-                        title = 'Molto Definito';
-                        subtitle = 'Addominali scolpiti';
+                        title = AppLocalizations.of(context)!.bodyFatVeryLean;
+                        subtitle = AppLocalizations.of(
+                          context,
+                        )!.bodyFatVeryLeanSub;
                         percentage = 'Molto Definita (<10%)';
                         icon = Icons.flash_on;
                         break;
@@ -3054,8 +3269,8 @@ class _UnifiedQuestionnaireScreenState
 
   Widget _buildTimePreferencePage() {
     return _buildSelectionPage(
-      title: 'Quando preferisci allenarti?',
-      subtitle: 'Ottimizzeremo il riscaldamento in base all\'orario.',
+      title: AppLocalizations.of(context)!.questionTimeTitle,
+      subtitle: AppLocalizations.of(context)!.questionTimeSubtitle,
       options: TimePreference.values.map((t) {
         String label;
         String description;
@@ -3063,18 +3278,18 @@ class _UnifiedQuestionnaireScreenState
 
         switch (t) {
           case TimePreference.morning:
-            label = 'Mattina (6:00 - 10:00)';
-            description = 'Energia per la giornata, focus mobilità';
+            label = AppLocalizations.of(context)!.timeMorning;
+            description = AppLocalizations.of(context)!.timeMorningDesc;
             icon = Icons.wb_sunny;
             break;
           case TimePreference.afternoon:
-            label = 'Pomeriggio (14:00 - 18:00)';
-            description = 'Picco di performance fisica';
+            label = AppLocalizations.of(context)!.timeAfternoon;
+            description = AppLocalizations.of(context)!.timeAfternoonDesc;
             icon = Icons.access_time;
             break;
           case TimePreference.evening:
-            label = 'Sera (18:00 - 22:00)';
-            description = 'Scarico stress, attenzione al sonno';
+            label = AppLocalizations.of(context)!.timeEvening;
+            description = AppLocalizations.of(context)!.timeEveningDesc;
             icon = Icons.nights_stay;
             break;
         }
@@ -3105,19 +3320,19 @@ class _UnifiedQuestionnaireScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Sonno e Recupero',
+                    AppLocalizations.of(context)!.questionSleepTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Fondamentale per calcolare il volume di allenamento.',
+                    AppLocalizations.of(context)!.questionSleepSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 32),
 
                   // Sleep Slider
                   Text(
-                    'Ore di sonno per notte: $_sleepHours',
+                    '${AppLocalizations.of(context)!.sleepHoursLabel} $_sleepHours',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Slider(
@@ -3135,7 +3350,7 @@ class _UnifiedQuestionnaireScreenState
 
                   // Recovery Capacity
                   Text(
-                    'Come ti senti solitamente?',
+                    AppLocalizations.of(context)!.questionRecoveryTitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 16),
@@ -3145,18 +3360,22 @@ class _UnifiedQuestionnaireScreenState
 
                     switch (r) {
                       case RecoveryCapacity.excellent:
-                        label = 'Eccellente';
-                        description =
-                            'Mi sveglio riposato, recupero velocemente';
+                        label = AppLocalizations.of(context)!.recoveryExcellent;
+                        description = AppLocalizations.of(
+                          context,
+                        )!.recoveryExcellentDesc;
                         break;
                       case RecoveryCapacity.good:
-                        label = 'Buono';
-                        description =
-                            'Recupero normale, stanchezza occasionale';
+                        label = AppLocalizations.of(context)!.recoveryGood;
+                        description = AppLocalizations.of(
+                          context,
+                        )!.recoveryGoodDesc;
                         break;
                       case RecoveryCapacity.poor:
-                        label = 'Scarso';
-                        description = 'Fatico a recuperare, spesso stanco';
+                        label = AppLocalizations.of(context)!.recoveryPoor;
+                        description = AppLocalizations.of(
+                          context,
+                        )!.recoveryPoorDesc;
                         break;
                     }
 
@@ -3191,7 +3410,7 @@ class _UnifiedQuestionnaireScreenState
                   const Spacer(),
                   const SizedBox(height: 16),
                   CleanButton(
-                    text: 'Continua',
+                    text: AppLocalizations.of(context)!.continueButton,
                     onPressed: (_recoveryCapacity != null) ? _nextPage : null,
                   ),
                 ],
@@ -3205,8 +3424,8 @@ class _UnifiedQuestionnaireScreenState
 
   Widget _buildNutritionApproachPage() {
     return _buildSelectionPage(
-      title: 'Alimentazione',
-      subtitle: 'Come gestisci la tua dieta?',
+      title: AppLocalizations.of(context)!.questionNutritionTitle,
+      subtitle: AppLocalizations.of(context)!.questionNutritionSubtitle,
       options: NutritionApproach.values.map((n) {
         String label;
         String description;
@@ -3214,23 +3433,27 @@ class _UnifiedQuestionnaireScreenState
 
         switch (n) {
           case NutritionApproach.fullTracking:
-            label = 'Tracciamento Completo';
-            description = 'Conto calorie e macro (MyFitnessPal, ecc.)';
+            label = AppLocalizations.of(context)!.nutritionFullTracking;
+            description = AppLocalizations.of(
+              context,
+            )!.nutritionFullTrackingDesc;
             icon = Icons.calculate;
             break;
           case NutritionApproach.partialTracking:
-            label = 'Tracciamento Parziale';
-            description = 'Controllo le porzioni e le proteine';
+            label = AppLocalizations.of(context)!.nutritionPartialTracking;
+            description = AppLocalizations.of(
+              context,
+            )!.nutritionPartialTrackingDesc;
             icon = Icons.pie_chart;
             break;
           case NutritionApproach.intuitive:
-            label = 'Mangio Sano';
-            description = 'Scelte salutari ma senza tracciare';
+            label = AppLocalizations.of(context)!.nutritionIntuitive;
+            description = AppLocalizations.of(context)!.nutritionIntuitiveDesc;
             icon = Icons.restaurant;
             break;
           case NutritionApproach.none:
-            label = 'Non ci faccio caso';
-            description = 'Mangio quello che capita';
+            label = AppLocalizations.of(context)!.nutritionNone;
+            description = AppLocalizations.of(context)!.nutritionNoneDesc;
             icon = Icons.fastfood;
             break;
         }

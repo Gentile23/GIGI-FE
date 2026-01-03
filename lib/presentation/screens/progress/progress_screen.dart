@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// PROGRESS SCREEN - Unified dashboard for all progress metrics
@@ -61,7 +62,7 @@ class _ProgressScreenState extends State<ProgressScreen>
       child: Row(
         children: [
           Text(
-            'I Tuoi Progressi',
+            AppLocalizations.of(context)!.yourProgress,
             style: GoogleFonts.outfit(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -132,10 +133,10 @@ class _ProgressScreenState extends State<ProgressScreen>
           fontWeight: FontWeight.w500,
         ),
         dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Panoramica'),
-          Tab(text: 'Workout'),
-          Tab(text: 'Nutrizione'),
+        tabs: [
+          Tab(text: AppLocalizations.of(context)!.overview),
+          Tab(text: AppLocalizations.of(context)!.workout),
+          Tab(text: AppLocalizations.of(context)!.nutrition),
         ],
       ),
     );
@@ -157,7 +158,7 @@ class _ProgressScreenState extends State<ProgressScreen>
 
           // Weekly Calendar
           Text(
-            'Questa Settimana',
+            AppLocalizations.of(context)!.thisWeek,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -170,7 +171,7 @@ class _ProgressScreenState extends State<ProgressScreen>
 
           // Recent Activity
           Text(
-            'Attività Recente',
+            AppLocalizations.of(context)!.recentActivity,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -210,7 +211,7 @@ class _ProgressScreenState extends State<ProgressScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'RIEPILOGO SETTIMANALE',
+                  AppLocalizations.of(context)!.weeklySummary,
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -225,9 +226,21 @@ class _ProgressScreenState extends State<ProgressScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryItem('Workout', '4', '/5'),
-              _buildSummaryItem('Calorie', '1,840', 'kcal'),
-              _buildSummaryItem('Tempo', '3h 20m', ''),
+              _buildSummaryItem(
+                AppLocalizations.of(context)!.workout,
+                '4',
+                '/5',
+              ),
+              _buildSummaryItem(
+                AppLocalizations.of(context)!.calories,
+                '1,840',
+                'kcal',
+              ),
+              _buildSummaryItem(
+                AppLocalizations.of(context)!.timeLabel,
+                '3h 20m',
+                '',
+              ),
             ],
           ),
         ],
@@ -275,14 +288,19 @@ class _ProgressScreenState extends State<ProgressScreen>
         Expanded(
           child: _buildStatCard(
             '🔥',
-            'Streak',
-            '7 giorni',
+            AppLocalizations.of(context)!.streakLabel,
+            AppLocalizations.of(context)!.streakDays(7),
             const Color(0xFFFF6B35),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard('💪', 'Volume', '+8%', const Color(0xFF00D26A)),
+          child: _buildStatCard(
+            '💪',
+            AppLocalizations.of(context)!.volumeLabel,
+            '+8%',
+            const Color(0xFF00D26A),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -473,10 +491,14 @@ class _ProgressScreenState extends State<ProgressScreen>
   }
 
   Widget _buildWorkoutsTab() {
-    return const Center(child: Text('Workout Progress - Coming Soon'));
+    return Center(
+      child: Text(AppLocalizations.of(context)!.workoutProgressComingSoon),
+    );
   }
 
   Widget _buildNutritionTab() {
-    return const Center(child: Text('Nutrition Progress - Coming Soon'));
+    return Center(
+      child: Text(AppLocalizations.of(context)!.nutritionProgressComingSoon),
+    );
   }
 }

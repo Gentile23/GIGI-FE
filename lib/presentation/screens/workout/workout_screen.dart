@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
 import '../../../providers/workout_provider.dart';
-import '../../../providers/workout_log_provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import '../../../presentation/widgets/workout/set_logging_widget.dart';
 import '../../../presentation/widgets/workout/anatomical_muscle_view.dart';
 import '../../../core/services/gigi_tts_service.dart';
@@ -50,7 +50,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'I Miei Workout',
+          AppLocalizations.of(context)!.myWorkoutsTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -104,7 +104,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             const CircularProgressIndicator(color: CleanTheme.primaryColor),
             const SizedBox(height: 24),
             Text(
-              '🧠 Gigi sta analizzando il tuo profilo',
+              AppLocalizations.of(context)!.aiAnalyzingProfile,
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -114,7 +114,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Generazione piano in corso...\nAttendi mentre Gigi crea il tuo allenamento personalizzato.',
+              AppLocalizations.of(context)!.aiGeneratingPlanDescription,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: CleanTheme.textSecondary,
@@ -147,7 +147,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Nessun Workout',
+              AppLocalizations.of(context)!.noWorkoutsTitle,
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -156,7 +156,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Genera il tuo primo piano di allenamento dalla Home',
+              AppLocalizations.of(context)!.generateFirstPlanSubtitle,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 color: CleanTheme.textSecondary,
@@ -239,12 +239,16 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             children: [
               _buildInfoChip(
                 Icons.timer_outlined,
-                '${workout.estimatedDuration} min',
+                AppLocalizations.of(
+                  context,
+                )!.durationMinutes(workout.estimatedDuration),
               ),
               const SizedBox(width: 12),
               _buildInfoChip(
                 Icons.fitness_center_outlined,
-                '${workout.exercises.length} esercizi',
+                AppLocalizations.of(
+                  context,
+                )!.exercisesCount(workout.exercises.length),
               ),
             ],
           ),
@@ -334,7 +338,9 @@ class WorkoutDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${workout.estimatedDuration} minuti',
+                        AppLocalizations.of(
+                          context,
+                        )!.durationMinutes(workout.estimatedDuration),
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           color: CleanTheme.textSecondary,
@@ -362,7 +368,7 @@ class WorkoutDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: CleanButton(
-                text: 'Inizia Workout',
+                text: AppLocalizations.of(context)!.startWorkout,
                 width: double.infinity,
                 onPressed: () {
                   Navigator.push(
@@ -431,7 +437,10 @@ class WorkoutDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    _buildDifficultyBadge(workoutExercise.exercise.difficulty),
+                    _buildDifficultyBadge(
+                      workoutExercise.exercise.difficulty,
+                      context,
+                    ),
                   ],
                 ),
               ),
@@ -461,11 +470,22 @@ class WorkoutDetailScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem('Sets', '${workoutExercise.sets}'),
+                _buildStatItem(
+                  AppLocalizations.of(context)!.sets,
+                  '${workoutExercise.sets}',
+                ),
                 _buildDivider(),
-                _buildStatItem('Reps', workoutExercise.reps),
+                _buildStatItem(
+                  AppLocalizations.of(context)!.reps,
+                  workoutExercise.reps,
+                ),
                 _buildDivider(),
-                _buildStatItem('Rest', '${workoutExercise.restSeconds}s'),
+                _buildStatItem(
+                  AppLocalizations.of(context)!.rest,
+                  AppLocalizations.of(
+                    context,
+                  )!.secondsShort(workoutExercise.restSeconds),
+                ),
               ],
             ),
           ),
@@ -579,22 +599,25 @@ class WorkoutDetailScreen extends StatelessWidget {
     ];
   }
 
-  Widget _buildDifficultyBadge(ExerciseDifficulty difficulty) {
+  Widget _buildDifficultyBadge(
+    ExerciseDifficulty difficulty,
+    BuildContext context,
+  ) {
     Color badgeColor;
     String label;
 
     switch (difficulty) {
       case ExerciseDifficulty.beginner:
-        badgeColor = CleanTheme.primaryColor;
-        label = 'Principiante';
+        badgeColor = CleanTheme.accentGreen;
+        label = AppLocalizations.of(context)!.difficultyBeginner;
         break;
       case ExerciseDifficulty.intermediate:
         badgeColor = CleanTheme.accentOrange;
-        label = 'Intermedio';
+        label = AppLocalizations.of(context)!.difficultyIntermediate;
         break;
       case ExerciseDifficulty.advanced:
         badgeColor = CleanTheme.accentRed;
-        label = 'Avanzato';
+        label = AppLocalizations.of(context)!.difficultyAdvanced;
         break;
     }
 
@@ -677,7 +700,7 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
     final user = authProvider.user;
 
     _voiceController.initialize(
-      userName: user?.name ?? 'Campione',
+      userName: user?.name ?? AppLocalizations.of(context)!.champion,
       experienceLevel: user?.experienceLevel,
       goal: user?.goal,
     );
@@ -746,7 +769,9 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Esercizio ${_currentExerciseIndex + 1}/${exercises.length}',
+          AppLocalizations.of(
+            context,
+          )!.exerciseProgress(_currentExerciseIndex + 1, exercises.length),
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -766,8 +791,8 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
             ),
             onPressed: _toggleVoiceCoaching,
             tooltip: _voiceController.isEnabled
-                ? 'Disattiva Voice Coaching'
-                : 'Attiva Voice Coaching',
+                ? AppLocalizations.of(context)!.voiceCoachingDisable
+                : AppLocalizations.of(context)!.voiceCoachingEnable,
           ),
           // Info Button
           IconButton(
@@ -851,7 +876,7 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
                   if (_currentExerciseIndex > 0)
                     Expanded(
                       child: CleanButton(
-                        text: 'Precedente',
+                        text: AppLocalizations.of(context)!.previous,
                         isOutlined: true,
                         onPressed: _goToPreviousExercise,
                       ),
@@ -860,8 +885,8 @@ class _ExerciseExecutionScreenState extends State<ExerciseExecutionScreen> {
                   Expanded(
                     child: CleanButton(
                       text: _currentExerciseIndex < exercises.length - 1
-                          ? 'Prossimo'
-                          : 'Termina',
+                          ? AppLocalizations.of(context)!.next
+                          : AppLocalizations.of(context)!.finish,
                       onPressed: _goToNextExercise,
                     ),
                   ),

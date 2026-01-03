@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/gamification_provider.dart';
@@ -25,7 +26,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Profilo',
+          AppLocalizations.of(context)!.profile,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -57,7 +58,8 @@ class ProfileScreen extends StatelessWidget {
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) {
               final user = authProvider.user;
-              final name = user?.name ?? 'Utente';
+              final name =
+                  user?.name ?? AppLocalizations.of(context)!.userDefaultName;
               final email = user?.email ?? '';
               final initials = name.isNotEmpty ? name[0].toUpperCase() : 'U';
 
@@ -111,11 +113,20 @@ class ProfileScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildStatColumn('Altezza', height),
+                        _buildStatColumn(
+                          AppLocalizations.of(context)!.heightLabel,
+                          height,
+                        ),
                         _buildDivider(),
-                        _buildStatColumn('Peso', weight),
+                        _buildStatColumn(
+                          AppLocalizations.of(context)!.weightLabel,
+                          weight,
+                        ),
                         _buildDivider(),
-                        _buildStatColumn('Età', age),
+                        _buildStatColumn(
+                          AppLocalizations.of(context)!.ageLabel,
+                          age,
+                        ),
                       ],
                     ),
                   ],
@@ -131,7 +142,9 @@ class ProfileScreen extends StatelessWidget {
             builder: (context, authProvider, _) {
               final isPremium =
                   authProvider.user?.subscription?.isActive ?? false;
-              final planName = isPremium ? 'Premium' : 'Free Tier';
+              final planName = isPremium
+                  ? AppLocalizations.of(context)!.premium
+                  : AppLocalizations.of(context)!.freeTier;
 
               return Container(
                 decoration: BoxDecoration(
@@ -193,7 +206,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'Piano Attuale',
+                                AppLocalizations.of(context)!.currentPlan,
                                 style: GoogleFonts.inter(
                                   color: Colors.white.withValues(alpha: 0.9),
                                   fontWeight: FontWeight.w600,
@@ -213,8 +226,12 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             isPremium
-                                ? 'Hai accesso a tutte le funzionalità Premium.'
-                                : 'Passa a Premium per sbloccare il coaching AI, l\'analisi della forma e altro ancora.',
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.premiumAccessText
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.upgradeToPremiumText,
                             style: GoogleFonts.inter(
                               color: Colors.white.withValues(alpha: 0.9),
                               height: 1.4,
@@ -231,7 +248,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  'Passa a Premium',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.upgradeToPremiumButton,
                                   style: GoogleFonts.inter(
                                     color: CleanTheme.primaryColor,
                                     fontWeight: FontWeight.w600,
@@ -255,8 +274,8 @@ class ProfileScreen extends StatelessWidget {
           // REWARDS & LEVEL SECTION
           // ═══════════════════════════════════════════
           CleanSectionHeader(
-            title: 'Livello & Premi',
-            actionText: 'Vedi tutto',
+            title: AppLocalizations.of(context)!.levelAndRewards,
+            actionText: AppLocalizations.of(context)!.seeAll,
             onAction: () {
               Navigator.push(
                 context,
@@ -344,7 +363,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '$xpForNextLevel XP per il prossimo livello',
+                                '$xpForNextLevel ${AppLocalizations.of(context)!.xpForNextLevel}',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: CleanTheme.textSecondary,
@@ -426,7 +445,7 @@ class ProfileScreen extends StatelessWidget {
           // ═══════════════════════════════════════════
           // NEW: Quick Actions Section
           // ═══════════════════════════════════════════
-          CleanSectionHeader(title: 'Funzionalità'),
+          CleanSectionHeader(title: AppLocalizations.of(context)!.features),
           const SizedBox(height: 12),
 
           CleanCard(
@@ -435,8 +454,8 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 _buildSettingsTile(
                   icon: Icons.emoji_events_outlined,
-                  title: 'Sfide',
-                  subtitle: 'Daily, Weekly, Community',
+                  title: AppLocalizations.of(context)!.challenges,
+                  subtitle: AppLocalizations.of(context)!.challengesSubtitle,
                   color: CleanTheme.accentOrange,
                   onTap: () {
                     Navigator.push(
@@ -450,8 +469,8 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.leaderboard_outlined,
-                  title: 'Classifica',
-                  subtitle: 'XP, Workout, Streak',
+                  title: AppLocalizations.of(context)!.leaderboard,
+                  subtitle: AppLocalizations.of(context)!.leaderboardSubtitle,
                   color: CleanTheme.accentBlue,
                   onTap: () {
                     Navigator.push(
@@ -465,8 +484,8 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.public_outlined,
-                  title: 'Community',
-                  subtitle: 'Obiettivi collettivi',
+                  title: AppLocalizations.of(context)!.community,
+                  subtitle: AppLocalizations.of(context)!.communitySubtitle,
                   color: CleanTheme.accentPurple,
                   onTap: () {
                     Navigator.push(
@@ -480,8 +499,8 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.card_giftcard_outlined,
-                  title: 'Invita Amici',
-                  subtitle: 'Guadagna Premium gratis',
+                  title: AppLocalizations.of(context)!.inviteFriends,
+                  subtitle: AppLocalizations.of(context)!.inviteFriendsSubtitle,
                   color: const Color(0xFFE91E63),
                   onTap: () {
                     Navigator.push(
@@ -495,8 +514,10 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.photo_library_outlined,
-                  title: 'Trasformazione',
-                  subtitle: 'Before/After tracking',
+                  title: AppLocalizations.of(context)!.transformation,
+                  subtitle: AppLocalizations.of(
+                    context,
+                  )!.transformationSubtitle,
                   color: CleanTheme.accentGreen,
                   onTap: () {
                     Navigator.push(
@@ -515,7 +536,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Settings section
-          CleanSectionHeader(title: 'Impostazioni'),
+          CleanSectionHeader(title: AppLocalizations.of(context)!.settings),
           const SizedBox(height: 12),
 
           CleanCard(
@@ -524,7 +545,7 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 _buildSettingsTile(
                   icon: Icons.person_outline,
-                  title: 'Informazioni Personali',
+                  title: AppLocalizations.of(context)!.personalInfo,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -537,7 +558,7 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.fitness_center_outlined,
-                  title: 'Obiettivi Fitness',
+                  title: AppLocalizations.of(context)!.fitnessGoals,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -550,13 +571,13 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.notifications_outlined,
-                  title: 'Notifiche',
+                  title: AppLocalizations.of(context)!.notifications,
                   onTap: () {},
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.security_outlined,
-                  title: 'Privacy & Sicurezza',
+                  title: AppLocalizations.of(context)!.privacySecurity,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -569,8 +590,8 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.favorite_outline,
-                  title: 'Salute & Fitness',
-                  subtitle: 'Apple Health / Health Connect',
+                  title: AppLocalizations.of(context)!.healthFitness,
+                  subtitle: AppLocalizations.of(context)!.healthFitnessSubtitle,
                   color: const Color(0xFFE91E63),
                   onTap: () {
                     Navigator.push(
@@ -584,13 +605,13 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.help_outline,
-                  title: 'Aiuto & Supporto',
+                  title: AppLocalizations.of(context)!.helpSupport,
                   onTap: () {},
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.info_outline,
-                  title: 'Info',
+                  title: AppLocalizations.of(context)!.info,
                   onTap: () {},
                 ),
               ],
@@ -601,7 +622,7 @@ class ProfileScreen extends StatelessWidget {
 
           // Logout button
           CleanButton(
-            text: 'Logout',
+            text: AppLocalizations.of(context)!.logout,
             icon: Icons.logout,
             backgroundColor: CleanTheme.accentRed.withValues(alpha: 0.1),
             textColor: CleanTheme.accentRed,
@@ -734,18 +755,18 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          'Logout',
+          AppLocalizations.of(context)!.logoutConfirmationTitle,
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Sei sicuro di voler uscire?',
+          AppLocalizations.of(context)!.logoutConfirmationMessage,
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
@@ -794,7 +815,7 @@ class ProfileScreen extends StatelessWidget {
               }
             },
             child: Text(
-              'Esci',
+              AppLocalizations.of(context)!.logout,
               style: GoogleFonts.inter(
                 color: CleanTheme.accentRed,
                 fontWeight: FontWeight.w600,

@@ -5,22 +5,22 @@ import '../../../data/models/workout_model.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../data/models/workout_log_model.dart';
-import 'mobility_exercise_screen.dart';
-import 'cardio_exercise_screen.dart';
 import '../../widgets/workout/dual_anatomical_view.dart';
 import '../../widgets/workout/set_logging_widget.dart';
 import 'exercise_detail_screen.dart';
 import 'mobility_exercise_detail_screen.dart';
 import 'cardio_exercise_detail_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
-import '../../widgets/voice_coaching/voice_coaching_toggle.dart';
+import 'workout_summary_screen.dart';
+// import '../../widgets/voice_coaching/voice_coaching_toggle.dart'; // Removed
 import '../../widgets/voice_coaching/voice_controls_bar.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
-import '../../../providers/auth_provider.dart';
-import 'dart:async';
-import '../../../data/services/voice_coaching_service.dart';
 import '../../../data/services/api_client.dart';
+import 'dart:async';
+import '../../../providers/auth_provider.dart';
+import '../../../data/services/voice_coaching_service.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -95,8 +95,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _sessionStartTime = DateTime.now();
     });
 
-    // Notify Gigi that session has started
-    _voiceController.notifySessionStarted();
+    // Notify Gigi that session has started (Silent)
+    // _voiceController.notifySessionStarted();
 
     _sessionTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_sessionStartTime != null) {
@@ -164,10 +164,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         debugPrint('DEBUG: WARNING - Workout log is NULL after startWorkout');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                '⚠️ Sessione non registrata - i progressi potrebbero non essere salvati',
-              ),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.sessionNotRecorded),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 3),
             ),
@@ -179,7 +177,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore avvio sessione: $e'),
+            content: Text(
+              AppLocalizations.of(context)!.sessionStartError(e.toString()),
+            ),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -210,7 +210,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Nessun Esercizio',
+                  AppLocalizations.of(context)!.noExercisesTitle,
                   style: GoogleFonts.outfit(
                     fontSize: 24,
                     fontWeight: FontWeight.w600,
@@ -219,7 +219,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Questo allenamento non ha ancora esercizi.',
+                  AppLocalizations.of(context)!.noExercisesSubtitle,
                   style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                   textAlign: TextAlign.center,
                 ),
@@ -229,7 +229,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: CleanTheme.primaryColor,
                   ),
-                  child: const Text('Torna Indietro'),
+                  child: Text(AppLocalizations.of(context)!.goBack),
                 ),
               ],
             ),
@@ -335,7 +335,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ],
 
                     // Main Workout Section
-                    _buildSectionHeader('Allenamento Principale', '💪'),
+                    _buildSectionHeader(
+                      AppLocalizations.of(context)!.mainWorkoutSection,
+                      '💪',
+                    ),
                     ...widget.workoutDay.mainWorkout.map((exercise) {
                       return _buildExerciseCard(exercise);
                     }),
@@ -491,12 +494,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             _buildSessionStat(
                               '🔥',
                               '${(_elapsedTime.inMinutes * 8).clamp(0, 999)}',
-                              'kcal',
+                              AppLocalizations.of(context)!.statsCalories,
                             ),
                             _buildSessionStat(
                               '💪',
                               '${_completedExercises.length * 3}',
-                              'serie',
+                              AppLocalizations.of(context)!.statsSeries,
                             ),
                             _buildSessionStat(
                               '⏱️',
@@ -505,7 +508,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                           ? widget.workoutDay.mainExerciseCount
                                           : 1))
                                   .toStringAsFixed(1),
-                              'min/ex',
+                              AppLocalizations.of(context)!.statsMinPerEx,
                             ),
                           ],
                         ),
@@ -521,7 +524,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       onPressed: _startSession,
                       icon: const Icon(Icons.play_arrow_rounded, size: 28),
                       label: Text(
-                        'INIZIA SESSIONE',
+                        AppLocalizations.of(context)!.startSession,
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -542,8 +545,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ),
 
-                // Finish Workout Button (when exercises are completed)
-                if (_completedExercises.isNotEmpty)
+                // Finish Workout Button (when session is active)
+                if (_isSessionActive)
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -564,8 +567,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       child: Text(
                         _completedExercises.length ==
                                 widget.workoutDay.mainExerciseCount
-                            ? 'COMPLETA ALLENAMENTO'
-                            : 'TERMINA SESSIONE',
+                            ? AppLocalizations.of(context)!.completeWorkout
+                            : AppLocalizations.of(context)!.finishSession,
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -578,41 +581,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ],
             ),
           ),
-          // 4. Floating Voice Coaching Toggle (Absolute Top Right)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            right: 16,
-            child: VoiceCoachingToggle(
-              controller: _voiceController,
-              onTap: () {
-                if (_voiceController.isEnabled) {
-                  _voiceController.deactivate();
-                } else {
-                  // Get first exercise to start coaching
-                  final exercises = widget.workoutDay.exercises;
-                  if (exercises.isNotEmpty) {
-                    final first = exercises.first;
-                    _voiceController.activateInitial(
-                      exerciseName: first.exercise.name,
-                      sets: first.sets,
-                      reps: int.tryParse(first.reps) ?? 10,
-                      restSeconds: first.restSeconds,
-                      muscleGroups: first.exercise.muscleGroups,
-                    );
-                  }
-                }
-              },
-              onLongPress: () {
-                VoiceCoachingSettingsSheet.show(context, _voiceController);
-              },
-            ),
-          ),
+          // 4. Floating Voice Coaching Toggle REMOVED
 
-          // 5. Floating Voice Controls Bar (Absolute Top Center/Left)
+          // 5. Floating Voice Controls Bar (Centered)
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
-            left: 50, // Leave space for back button if needed, or center it
-            right: 70, // Leave space for Toggle (Top Right)
+            left: 0,
+            right: 0,
             child: Center(
               child: VoiceControlsBar(controller: _voiceController),
             ),
@@ -632,12 +607,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         const SizedBox(width: 12),
         _buildStatBadge(
           Icons.fitness_center,
-          '${widget.workoutDay.exercises.length} Esercizi',
+          '${widget.workoutDay.exercises.length} ${AppLocalizations.of(context)!.exercisesStats}',
         ),
         const SizedBox(width: 12),
         _buildStatBadge(
           Icons.local_fire_department,
-          '${widget.workoutDay.estimatedDuration * 7} Kcal',
+          '${widget.workoutDay.estimatedDuration * 7} ${AppLocalizations.of(context)!.kcalStats}',
         ),
       ],
     );
@@ -706,7 +681,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Prima dell\'allenamento',
+                AppLocalizations.of(context)!.preWorkoutSection,
                 style: GoogleFonts.outfit(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -943,7 +918,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Dopo l\'allenamento',
+                AppLocalizations.of(context)!.postWorkoutSection,
                 style: GoogleFonts.outfit(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -1051,74 +1026,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  Future<void> _navigateToMobility(
-    List<WorkoutExercise> exercises,
-    String title,
-    String sectionId,
-  ) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            MobilityExerciseScreen(mobilityExercises: exercises, title: title),
-      ),
-    );
-
-    if (mounted) {
-      if (result == true) {
-        setState(() {
-          _completedSections.add(sectionId);
-          _skippedSections.remove(sectionId);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title completata!'),
-            backgroundColor: CleanTheme.accentGreen,
-          ),
-        );
-      } else if (result == false) {
-        setState(() {
-          _skippedSections.add(sectionId);
-          _completedSections.remove(sectionId);
-        });
-      }
-    }
-  }
-
-  Future<void> _navigateToCardio(
-    List<WorkoutExercise> exercises,
-    String title,
-    String sectionId,
-  ) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            CardioExerciseScreen(cardioExercises: exercises, title: title),
-      ),
-    );
-
-    if (mounted) {
-      if (result == true) {
-        setState(() {
-          _completedSections.add(sectionId);
-          _skippedSections.remove(sectionId);
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$title completato!'),
-            backgroundColor: CleanTheme.accentGreen,
-          ),
-        );
-      } else if (result == false) {
-        setState(() {
-          _skippedSections.add(sectionId);
-          _completedSections.remove(sectionId);
-        });
-      }
-    }
-  }
-
   void _navigateToExerciseDetail(WorkoutExercise workoutExercise) {
     Widget detailScreen;
 
@@ -1154,32 +1061,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     // Show snackbar that Gigi is starting
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '🎤 Gigi ti guida per ${exercise.exercise.name}...',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: CleanTheme.accentBlue,
-          duration: const Duration(seconds: 60),
-        ),
-      );
-    }
 
     // Start guided execution (tries API first, then local fallback)
     await _voiceController.speakGuidedExecution(
@@ -1190,16 +1071,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
 
     // Clear snackbar when done
-    if (mounted) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Ora tocca a te! Inizia le tue serie.'),
-          backgroundColor: CleanTheme.accentGreen,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   Widget _buildDifficultyBadge(ExerciseDifficulty difficulty) {
@@ -1209,15 +1080,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     switch (difficulty) {
       case ExerciseDifficulty.beginner:
         badgeColor = CleanTheme.accentGreen;
-        label = 'Principiante';
+        label = AppLocalizations.of(context)!.difficultyBeginner;
         break;
       case ExerciseDifficulty.intermediate:
         badgeColor = CleanTheme.accentOrange;
-        label = 'Intermedio';
+        label = AppLocalizations.of(context)!.difficultyIntermediate;
         break;
       case ExerciseDifficulty.advanced:
         badgeColor = CleanTheme.accentRed;
-        label = 'Avanzato';
+        label = AppLocalizations.of(context)!.difficultyAdvanced;
         break;
     }
 
@@ -1445,7 +1316,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
-                                    'PROSSIMO',
+                                    AppLocalizations.of(context)!.nextBadge,
                                     style: GoogleFonts.inter(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
@@ -1602,11 +1473,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   setState(() {
                     if (allSetsCompleted) {
                       _completedExercises.add(exercise.exercise.id);
-                      // Trigger voice feedback for exercise completion
-                      _voiceController.onUserInteraction(
-                        GigiInteractionEvent.exerciseCompleted,
-                        exerciseName: exercise.exercise.name,
-                      );
+                      // Audio triggers disabled
+                      // _voiceController.onUserInteraction(
+                      //   GigiInteractionEvent.exerciseCompleted,
+                      //   exerciseName: exercise.exercise.name,
+                      // );
                     } else {
                       _completedExercises.remove(exercise.exercise.id);
                     }
@@ -1640,7 +1511,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Expanded(
                       child: _buildQuickActionButton(
                         icon: Icons.info_outline,
-                        label: 'Info',
+                        label: AppLocalizations.of(context)!.info,
                         color: CleanTheme.primaryColor,
                         onTap: () => _navigateToExerciseDetail(exercise),
                       ),
@@ -1649,7 +1520,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Expanded(
                       child: _buildQuickActionButton(
                         icon: Icons.camera_alt_outlined,
-                        label: 'AI Check',
+                        label: AppLocalizations.of(context)!.aiCheck,
                         color: CleanTheme.accentPurple,
                         onTap: () {
                           Navigator.push(
@@ -1665,7 +1536,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Expanded(
                       child: _buildQuickActionButton(
                         icon: Icons.record_voice_over,
-                        label: 'Esegui con Gigi',
+                        label: AppLocalizations.of(context)!.executeWithGigi,
                         color: CleanTheme.accentBlue,
                         onTap: () => _startGuidedExecution(exercise),
                       ),
@@ -1692,14 +1563,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Uscire dall\'allenamento?',
+          AppLocalizations.of(context)!.exitWorkoutTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
         content: Text(
-          'Il tuo progresso andrà perso. Sei sicuro di voler uscire?',
+          AppLocalizations.of(context)!.exitWorkoutMessage,
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
@@ -1716,7 +1587,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               Navigator.pop(context);
             },
             child: Text(
-              'Esci',
+              AppLocalizations.of(context)!.confirmExit,
               style: GoogleFonts.inter(color: CleanTheme.accentRed),
             ),
           ),
@@ -1735,14 +1606,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Completa Allenamento',
+          AppLocalizations.of(context)!.finishWorkoutTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
         content: Text(
-          'Sei sicuro di voler terminare l\'allenamento? Tutti i progressi verranno salvati.',
+          AppLocalizations.of(context)!.finishWorkoutMessage,
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
@@ -1768,7 +1639,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               );
 
               final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
 
               try {
                 debugPrint(
@@ -1781,65 +1651,52 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 }
                 await provider.completeWorkout();
 
-                // Voice coaching: announce workout complete
-                if (_voiceController.isEnabled) {
-                  _voiceController.onUserInteraction(
-                    GigiInteractionEvent.workoutCompleted,
-                  );
+                if (!mounted) return;
+                navigator.pop(); // Close loading dialog
+
+                // Collect muscle groups from completed exercises
+                final muscleGroups = <String>{};
+                for (final exercise in widget.workoutDay.mainWorkout) {
+                  if (_completedExercises.contains(exercise.exercise.id)) {
+                    muscleGroups.addAll(exercise.exercise.muscleGroups);
+                  }
                 }
 
-                if (!mounted) return;
-                navigator.pop(); // Close success dialog or loading
+                // Create summary data
+                final summaryData = WorkoutSummaryData(
+                  workoutName: widget.workoutDay.name,
+                  duration: _elapsedTime,
+                  completedExercises: _completedExercises.length,
+                  totalExercises: widget.workoutDay.mainExerciseCount,
+                  estimatedCalories: (_elapsedTime.inMinutes * 8).clamp(
+                    0,
+                    9999,
+                  ),
+                  completedSets: _completedExercises.length * 3, // Approximate
+                  muscleGroupsWorked: muscleGroups.toList(),
+                );
 
+                // Navigate to summary screen
                 // ignore: use_build_context_synchronously
-                await showDialog(
-                  context: navigator.context,
-                  builder: (dialogContext) => AlertDialog(
-                    backgroundColor: CleanTheme.surfaceColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    title: Text(
-                      'Allenamento Completato!',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    content: Text(
-                      'Ottimo lavoro! Il tuo allenamento è stato registrato con successo.',
-                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(dialogContext);
-                          navigator.pop();
-                        },
-                        child: Text(
-                          'Fantastico!',
-                          style: GoogleFonts.inter(
-                            color: CleanTheme.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                await Navigator.of(navigator.context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        WorkoutSummaryScreen(summaryData: summaryData),
                   ),
                 );
               } catch (e) {
                 if (!mounted) return;
                 navigator.pop();
-                scaffoldMessenger.showSnackBar(
+                ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Errore durante il salvataggio: $e'),
+                    content: Text(AppLocalizations.of(context)!.saveError(e)),
                     backgroundColor: CleanTheme.accentRed,
                   ),
                 );
               }
             },
             child: Text(
-              'Termina',
+              AppLocalizations.of(context)!.finish,
               style: GoogleFonts.inter(
                 color: CleanTheme.accentGreen,
                 fontWeight: FontWeight.w600,

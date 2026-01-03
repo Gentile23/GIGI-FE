@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/health_integration_service.dart';
 import '../../../core/services/haptic_service.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// HEALTH SETTINGS SCREEN
@@ -168,7 +169,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       backgroundColor: CleanTheme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          'Salute & Fitness',
+          AppLocalizations.of(context)!.healthAndFitness,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         backgroundColor: CleanTheme.surfaceColor,
@@ -194,7 +195,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
 
                     // Health data preview
                     Text(
-                      'I tuoi dati',
+                      AppLocalizations.of(context)!.yourData,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -224,8 +225,8 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     final icon = Platform.isIOS ? '🍎' : '💚';
     final name = _healthService.platformName;
     final description = Platform.isIOS
-        ? 'Sincronizza i tuoi dati con Apple Health per una visione completa della tua salute.'
-        : 'Sincronizza i tuoi dati con Health Connect per una visione completa della tua salute.';
+        ? AppLocalizations.of(context)!.syncAppleHealth
+        : AppLocalizations.of(context)!.syncHealthConnect;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -287,7 +288,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Health Connect non installato',
+              AppLocalizations.of(context)!.healthConnectNotInstalled,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -296,7 +297,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Per sincronizzare i dati di salute, installa Health Connect dal Play Store.',
+              AppLocalizations.of(context)!.installHealthConnectInfo,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textSecondary,
@@ -307,7 +308,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
             ElevatedButton.icon(
               onPressed: _installHealthConnect,
               icon: const Icon(Icons.download),
-              label: const Text('Installa Health Connect'),
+              label: Text(AppLocalizations.of(context)!.installHealthConnect),
               style: ElevatedButton.styleFrom(
                 backgroundColor: CleanTheme.accentOrange,
                 foregroundColor: Colors.white,
@@ -355,7 +356,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isConnected ? 'Connesso' : 'Non connesso',
+                      _isConnected
+                          ? AppLocalizations.of(context)!.connected
+                          : AppLocalizations.of(context)!.notConnected,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -366,8 +369,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     ),
                     Text(
                       _isConnected
-                          ? 'I tuoi dati vengono sincronizzati automaticamente'
-                          : 'Connetti per sincronizzare i tuoi allenamenti',
+                          ? AppLocalizations.of(
+                              context,
+                            )!.dataSyncedAutomatically
+                          : AppLocalizations.of(context)!.connectToSyncWorkouts,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: CleanTheme.textSecondary,
@@ -406,8 +411,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     )
                   : Text(
                       _isConnected
-                          ? 'Disconnetti'
-                          : 'Connetti ${_healthService.platformName}',
+                          ? AppLocalizations.of(context)!.disconnect
+                          : AppLocalizations.of(
+                              context,
+                            )!.connectTo(_healthService.platformName),
                       style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                     ),
             ),
@@ -426,20 +433,30 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       crossAxisSpacing: 12,
       childAspectRatio: 1.5,
       children: [
-        _buildDataTile('👟', 'Passi oggi', _stepsToday?.toString() ?? '-', ''),
+        _buildDataTile(
+          '👟',
+          AppLocalizations.of(context)!.stepsToday,
+          _stepsToday?.toString() ?? '-',
+          '',
+        ),
         _buildDataTile(
           '❤️',
-          'Battito a riposo',
+          AppLocalizations.of(context)!.restingHeartRate,
           _heartRate?.toString() ?? '-',
           'bpm',
         ),
         _buildDataTile(
           '😴',
-          'Sonno ieri',
+          AppLocalizations.of(context)!.sleepYesterday,
           _sleepHours?.toStringAsFixed(1) ?? '-',
-          'ore',
+          AppLocalizations.of(context)!.hours,
         ),
-        _buildDataTile('⚖️', 'Peso', _weight?.toStringAsFixed(1) ?? '-', 'kg'),
+        _buildDataTile(
+          '⚖️',
+          AppLocalizations.of(context)!.weightLabel,
+          _weight?.toStringAsFixed(1) ?? '-',
+          'kg',
+        ),
       ],
     );
   }
@@ -521,7 +538,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sincronizzazione automatica attiva',
+                  AppLocalizations.of(context)!.autoSyncActive,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -529,7 +546,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                   ),
                 ),
                 Text(
-                  'I tuoi allenamenti vengono salvati automaticamente in ${_healthService.platformName}',
+                  AppLocalizations.of(
+                    context,
+                  )!.workoutsSavedTo(_healthService.platformName),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: CleanTheme.textSecondary,
@@ -548,7 +567,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Dati sincronizzati',
+          AppLocalizations.of(context)!.syncedData,
           style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -557,28 +576,28 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         ),
         const SizedBox(height: 12),
         _buildDataTypeRow(
-          'Passi',
-          'Monitora la tua attività giornaliera',
+          AppLocalizations.of(context)!.steps,
+          AppLocalizations.of(context)!.trackDailyActivity,
           Icons.directions_walk,
         ),
         _buildDataTypeRow(
-          'Frequenza cardiaca',
-          'Battito a riposo e durante l\'esercizio',
+          AppLocalizations.of(context)!.heartRateLabel,
+          AppLocalizations.of(context)!.heartRateDesc,
           Icons.favorite,
         ),
         _buildDataTypeRow(
-          'Sonno',
-          'Analisi della qualità del sonno',
+          AppLocalizations.of(context)!.sleepLabel,
+          AppLocalizations.of(context)!.sleepDesc,
           Icons.bedtime,
         ),
         _buildDataTypeRow(
-          'Peso',
-          'Traccia i tuoi progressi',
+          AppLocalizations.of(context)!.weightLabel,
+          AppLocalizations.of(context)!.trackYourProgress,
           Icons.monitor_weight,
         ),
         _buildDataTypeRow(
-          'Allenamenti',
-          'Sincronizza automaticamente le sessioni',
+          AppLocalizations.of(context)!.workoutsLabel,
+          AppLocalizations.of(context)!.syncSessionsAutomatically,
           Icons.fitness_center,
         ),
       ],
