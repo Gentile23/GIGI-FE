@@ -1411,140 +1411,141 @@ class AppLocalizationsDe extends AppLocalizations {
   String get mobilityDedicatedDesc => 'Fokus auf Flexibilität und Mobilität';
 
   @override
-  String get equipmentBench => 'Panca';
+  String get equipmentBench => 'Bank';
 
   @override
-  String get equipmentBenchDesc => 'Piana o inclinata';
+  String get equipmentBenchDesc => 'Flach- oder Schrägbank';
 
   @override
-  String get equipmentDumbbells => 'Manubri';
+  String get equipmentDumbbells => 'Kurzhanteln';
 
   @override
-  String get equipmentDumbbellsDesc => 'Manubri fissi o componibili';
+  String get equipmentDumbbellsDesc => 'Feste oder verstellbare Kurzhanteln';
 
   @override
-  String get equipmentBarbell => 'Bilanciere';
+  String get equipmentBarbell => 'Langhantel';
 
   @override
-  String get equipmentBarbellDesc => 'Bilanciere olimpico o standard';
+  String get equipmentBarbellDesc => 'Olympia- oder Standard-Langhantel';
 
   @override
-  String get equipmentBands => 'Elastici';
+  String get equipmentBands => 'Widerstandsbänder';
 
   @override
-  String get equipmentBandsDesc => 'Bande elastiche di varie resistenze';
+  String get equipmentBandsDesc => 'Elastische Bänder verschiedener Stärken';
 
   @override
   String get equipmentMachinesDesc =>
-      'Macchinari isotonici, cavi e stazioni multifunzione';
+      'Kraftgeräte, Seilzüge und Multifunktionsstationen';
 
   @override
   String get equipmentBodyweightDesc =>
-      'Calisthenics, sbarre, anelli e corpo libero';
+      'Calisthenics, Stangen, Ringe und Körpergewicht';
 
   @override
-  String get equipmentMachinesHomeDesc => 'Eventuali macchinari home gym';
+  String get equipmentMachinesHomeDesc => 'Verfügbare Heimfitnessgeräte';
 
   @override
-  String get equipmentBodyweightHomeDesc => 'Sbarra trazioni o corpo libero';
+  String get equipmentBodyweightHomeDesc => 'Klimmzugstange oder Körpergewicht';
 
   @override
-  String get labelWeightParentheses => 'Peso (kg)';
+  String get labelWeightParentheses => 'Gewicht (kg)';
 
   @override
-  String get labelGenderTitle => 'Genere';
+  String get labelGenderTitle => 'Geschlecht';
 
   @override
-  String get injuryAllAreas => 'Tutte le aree';
+  String get injuryAllAreas => 'Alle Bereiche';
 
   @override
-  String get injuryAllMuscles => 'Tutti i muscoli';
+  String get injuryAllMuscles => 'Alle Muskeln';
 
   @override
-  String get injuryAllBones => 'Tutte le ossa';
+  String get injuryAllBones => 'Alle Knochen';
 
   @override
-  String get injurySectionTitle => 'Sezione relativa agli infortuni';
+  String get injurySectionTitle => 'Bereich zum Thema Verletzungen';
 
   @override
-  String get hintHeight => 'Es. 175';
+  String get hintHeight => 'Z.B. 175';
 
   @override
-  String get hintWeight => 'Es. 70';
+  String get hintWeight => 'Z.B. 70';
 
   @override
-  String get injuryStatusOvercome => 'Superato';
+  String get injuryStatusOvercome => 'Geheilt';
 
   @override
   String get injuryStatusOvercomeDesc =>
-      'Non ho più problemi, ma meglio saperlo';
+      'Kein Problem mehr, aber gut zu wissen';
 
   @override
-  String get injuryStatusActive => 'Ancora presente';
+  String get injuryStatusActive => 'Noch vorhanden';
 
   @override
-  String get injuryStatusActiveDesc => 'Ho ancora fastidi o limitazioni';
+  String get injuryStatusActiveDesc =>
+      'Ich habe noch Beschwerden oder Einschränkungen';
 
   @override
-  String get bwEquipmentFunctionalTitle => 'Attrezzi Funzionali Disponibili';
+  String get bwEquipmentFunctionalTitle => 'Verfügbares funktionales Equipment';
 
   @override
   String get bwEquipmentCalisthenicsTitle =>
-      'Attrezzi Calisthenics Disponibili';
+      'Verfügbares Calisthenics-Equipment';
 
   @override
-  String get bwEquipmentSubtitle => 'Seleziona quelli che hai a disposizione';
+  String get bwEquipmentSubtitle => 'Wähle aus, was dir zur Verfügung steht';
 
   @override
-  String get equipmentTrx => 'TRX / Suspension Trainer';
+  String get equipmentTrx => 'TRX / Schlingentrainer';
 
   @override
-  String get equipmentBandsAlt => 'Elastici / Resistance Bands';
+  String get equipmentBandsAlt => 'Gummibänder / Widerstandsbänder';
 
   @override
-  String get equipmentFitball => 'Fitball / Swiss Ball';
+  String get equipmentFitball => 'Fitball / Sitzball';
 
   @override
   String get equipmentBosu => 'Bosu / Balance Board';
 
   @override
-  String get equipmentPullUpBar => 'Sbarra Trazioni';
+  String get equipmentPullUpBar => 'Klimmzugstange';
 
   @override
-  String get equipmentRings => 'Anelli';
+  String get equipmentRings => 'Ringe';
 
   @override
-  String get equipmentParallels => 'Parallele / Dip Bars';
+  String get equipmentParallels => 'Barren / Dip-Barren';
 
   @override
-  String get equipmentWallBars => 'Spalliera / Wall Bars';
+  String get equipmentWallBars => 'Sprossenwand';
 
   @override
-  String get homeTitleGreetingEarly => 'Sei mattiniero';
+  String get homeTitleGreetingEarly => 'Frühaufsteher';
 
   @override
-  String get homeTitleGreetingMorning => 'Buongiorno';
+  String get homeTitleGreetingMorning => 'Guten Morgen';
 
   @override
-  String get homeTitleGreetingAfternoon => 'Buon pomeriggio';
+  String get homeTitleGreetingAfternoon => 'Guten Tag';
 
   @override
-  String get homeTitleGreetingEvening => 'Buonasera';
+  String get homeTitleGreetingEvening => 'Guten Abend';
 
   @override
-  String get searchHint => 'Cerca per nome, muscolo o attrezzatura...';
+  String get searchHint => 'Workout suchen...';
 
   @override
-  String get searchComingSoon => 'Ricerca globale in arrivo! 🔍';
+  String get searchComingSoon => 'Globale Suche in Kürze! 🔍';
 
   @override
-  String get filterAll => 'Tutti';
+  String get filterAll => 'Alle';
 
   @override
   String get filterCardio => 'Cardio';
 
   @override
-  String get filterStrength => 'Forza';
+  String get filterStrength => 'Kraft';
 
   @override
   String get filterFlex => 'Flex';
@@ -1553,205 +1554,207 @@ class AppLocalizationsDe extends AppLocalizations {
   String get filterHiit => 'HIIT';
 
   @override
-  String get homeNextWorkoutTitle => 'Il tuo prossimo workout';
+  String get homeNextWorkoutTitle => 'Dein nächstes Workout';
 
   @override
-  String get homeProgressTitle => 'I tuoi progressi';
+  String get homeProgressTitle => 'Deine Fortschritte';
 
   @override
-  String get viewAll => 'Vedi tutti';
+  String get viewAll => 'Alle ansehen';
 
   @override
-  String get streakStart => 'INIZIA LA TUA SERIE';
+  String get streakStart => 'STARTE DEINE SERIE';
 
   @override
   String get streakKeepGoing =>
-      'Non fermarti ora! Manca poco al prossimo livello.';
+      'Hör jetzt nicht auf! Fast das nächste Level erreicht.';
 
   @override
   String get streakStartToday =>
-      'Completa un workout oggi per accendere la fiamma.';
+      'Absolviere heute ein Workout, um die Flamme zu entzünden.';
 
   @override
-  String get actionGeneratePlan => 'Genera Scheda AI';
+  String get actionGeneratePlan => 'KI-Plan erstellen';
 
   @override
-  String get actionGeneratePlanDesc => 'Piano su misura';
+  String get actionGeneratePlanDesc => 'Maßgeschneiderter Plan';
 
   @override
   String get actionCommunity => 'Community';
 
   @override
-  String get actionCommunityDesc => 'Entra nel gruppo';
+  String get actionCommunityDesc => 'Tritt der Gruppe bei';
 
   @override
-  String get actionMyPlans => 'Le Mie Schede';
+  String get actionMyPlans => 'Meine Pläne';
 
   @override
   String get actionFormCheck => 'Form Check';
 
   @override
-  String get snackPlanReady => '🎉 La tua scheda è pronta!';
+  String get snackPlanReady => '🎉 Dein Trainingsplan ist fertig!';
 
   @override
   String loadingCategory(String category) {
-    return 'Caricamento $category...';
+    return '$category wird geladen...';
   }
 
   @override
-  String get pleaseWait => 'Attendere prego';
+  String get pleaseWait => 'Bitte warten';
 
   @override
-  String get generatePlanCardTitle => 'Genera la Tua Scheda';
+  String get generatePlanCardTitle => 'Trainingsplan erstellen';
 
   @override
-  String get generatePlanCardSubtitle => 'Crea il tuo piano personalizzato AI';
+  String get generatePlanCardSubtitle =>
+      'Erstelle deinen personalisierten KI-Plan';
 
   @override
-  String get athleticAssessmentTitle => 'Valutazione Atletica';
+  String get athleticAssessmentTitle => 'Athletik-Check';
 
   @override
   String get athleticAssessmentSubtitle =>
-      'Scopri il tuo livello reale in 5 minuti.';
+      'Entdecke dein wahres Level in 5 Minuten.';
 
   @override
-  String get insightsTitle => 'I tuoi Insights';
+  String get insightsTitle => 'Deine Insights';
 
   @override
-  String get viewReport => 'Vedi report';
+  String get viewReport => 'Bericht ansehen';
 
   @override
-  String get connectHealth => 'Connetti Apple Health';
+  String get connectHealth => 'Apple Health verbinden';
 
   @override
   String get connectHealthDesc =>
-      'Per vedere insights personalizzati sui tuoi dati di salute';
+      'Für personalisierte Einblicke basierend auf deinen Gesundheitsdaten';
 
   @override
-  String get discoveredPatterns => 'Pattern scoperti';
+  String get discoveredPatterns => 'Entdeckte Muster';
 
   @override
-  String get aiCreatingPlanDesc => 'Ci vorranno pochi minuti...';
+  String get aiCreatingPlanDesc => 'Es dauert nur ein paar Minuten...';
 
   @override
-  String get aiPlanBadge => 'PIANO AI';
+  String get aiPlanBadge => 'KI PLAN';
 
   @override
-  String get goal => 'Obiettivo';
+  String get goal => 'Ziel';
 
   @override
-  String get level => 'Livello';
+  String get level => 'Level';
 
   @override
   String get xp => 'XP';
 
   @override
   String get gigiAssessmentComplete =>
-      'Ottimo lavoro! Hai completato la valutazione atletica! 🎉\n\nOra posso creare la tua scheda personalizzata basata sui tuoi obiettivi e il tuo livello.';
+      'Gute Arbeit! Du hast den Athletik-Check abgeschlossen! 🎉\n\nJetzt kann ich deinen personalisierten Plan basierend auf deinen Zielen und deinem Level erstellen.';
 
   @override
-  String get gigiGeneratePlanButton => 'Genera la Tua Scheda AI';
+  String get gigiGeneratePlanButton => 'KI-Plan generieren';
 
   @override
   String get gigiStartTransformation =>
-      'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!';
+      'Starte deine transformation in 3 Schritten:\n1️⃣ Mach den Athletik-Check\n2️⃣ Generiere deinen KI-Plan\n3️⃣ Starte dein erstes Workout!';
 
   @override
-  String get gigiStartAssessmentButton => 'Inizia Valutazione';
+  String get gigiStartAssessmentButton => 'Check starten';
 
   @override
   String get gigiReadyForWorkout =>
-      'Pronto per l\'allenamento? Segui la tua scheda personalizzata e ricordati di registrare ogni set per monitorare i tuoi progressi!';
+      'Bereit für das Training? Folge deinem personalisierten Plan und vergiss nicht, jeden Satz zu erfassen, um deine Fortschritte zu verfolgen!';
 
   @override
-  String get newWorkout => 'Nuova Scheda';
+  String get newWorkout => 'Neuer Plan';
 
   @override
-  String get editWorkout => 'Modifica Scheda';
+  String get editWorkout => 'Plan bearbeiten';
 
   @override
   String get addAtLeastOneExercise =>
-      'Aggiungi almeno un esercizio alla scheda';
+      'Füge mindestens eine Übung zum Plan hinzu';
 
   @override
-  String get workoutUpdated => 'Scheda aggiornata!';
+  String get workoutUpdated => 'Plan aktualisiert!';
 
   @override
-  String get workoutCreated => 'Scheda creata con successo!';
+  String get workoutCreated => 'Plan erfolgreich erstellt!';
 
   @override
-  String get limitReached => 'Limite Raggiunto';
+  String get limitReached => 'Limit erreicht';
 
   @override
   String get quotaCustomWorkoutDesc =>
-      'Passa a Pro per creare più workout custom!';
+      'Upgrade auf Pro, um mehr benutzerdefinierte Workouts zu erstellen!';
 
   @override
-  String get close => 'Chiudi';
+  String get close => 'Schließen';
 
   @override
-  String get upgradePro => 'Passa a Pro';
+  String get upgradePro => 'Auf Pro upgraden';
 
   @override
-  String get workoutNameLabel => 'Nome Scheda *';
+  String get workoutNameLabel => 'Plan Name *';
 
   @override
-  String get workoutNameRequired => 'Inserisci un nome per la scheda';
+  String get workoutNameRequired => 'Bitte gib einen Namen für den Plan ein';
 
   @override
-  String get descriptionOptional => 'Descrizione (opzionale)';
+  String get descriptionOptional => 'Beschreibung (optional)';
 
   @override
-  String get noExercisesAdded => 'Nessun esercizio aggiunto';
+  String get noExercisesAdded => 'Keine Übungen hinzugefügt';
 
   @override
-  String get tapAddSearch => 'Tocca \"Aggiungi\" per cercare esercizi';
+  String get tapAddSearch =>
+      'Tippe auf \"Hinzufügen\", um nach Übungen zu suchen';
 
   @override
-  String get restSecondsLabel => 'Rest (s)';
+  String get restSecondsLabel => 'Pause (s)';
 
   @override
-  String get notesOptional => 'Note (opzionale)';
+  String get notesOptional => 'Notizen (optional)';
 
   @override
-  String get saveChanges => 'Salva Modifiche';
+  String get saveChanges => 'Änderungen speichern';
 
   @override
-  String get searchExercises => 'Cerca Esercizi';
+  String get searchExercises => 'Übungen suchen';
 
   @override
-  String get filters => 'Filtri';
+  String get filters => 'Filter';
 
   @override
-  String get clearFilters => 'Azzera';
+  String get clearFilters => 'Löschen';
 
   @override
-  String get muscleGroup => 'Gruppo Muscolare';
+  String get muscleGroup => 'Muskelgruppe';
 
   @override
-  String get equipment => 'Attrezzatura';
+  String get equipment => 'Equipment';
 
   @override
-  String get difficulty => 'Difficoltà';
+  String get difficulty => 'Schwierigkeit';
 
   @override
-  String get applyFilters => 'Applica Filtri';
+  String get applyFilters => 'Filter anwenden';
 
   @override
-  String get noExercisesFound => 'Nessun esercizio trovato';
+  String get noExercisesFound => 'Keine Übungen gefunden';
 
   @override
-  String get tryAdjustFilters => 'Prova a modificare i filtri';
+  String get tryAdjustFilters => 'Versuche, die Filter anzupassen';
 
   @override
-  String get intensity => 'Intensità';
+  String get intensity => 'Intensität';
 
   @override
-  String get moderate => 'Moderata';
+  String get moderate => 'Moderat';
 
   @override
-  String get add => 'Aggiungi';
+  String get add => 'Hinzufügen';
 
   @override
-  String get numberLabel => 'numero';
+  String get numberLabel => 'Nummer';
 }

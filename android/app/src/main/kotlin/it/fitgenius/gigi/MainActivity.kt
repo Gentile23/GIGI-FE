@@ -1,4 +1,4 @@
-package it.GIGI.gigi
+package it.fitgenius.gigi
 
 import io.flutter.embedding.android.FlutterActivity
 

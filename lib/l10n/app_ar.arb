@@ -447,5 +447,115 @@
   "mobilityPreWorkout": "مرونة قبل التمرين",
   "mobilityPreWorkoutDesc": "التحضير للحركة",
   "mobilityDedicated": "جلسة مخصصة",
-  "mobilityDedicatedDesc": "التركيز على المرونة"
+  "mobilityDedicatedDesc": "التركيز على المرونة",
+  "equipmentBench": "مقعد",
+  "equipmentBenchDesc": "مستوٍ أو مائل",
+  "equipmentDumbbells": "دمبل",
+  "equipmentDumbbellsDesc": "دمبل ثابتة أو قابلة للتعديل",
+  "equipmentBarbell": "بار",
+  "equipmentBarbellDesc": "بار أولمبي أو قياسي",
+  "equipmentBands": "حبال مقاومة",
+  "equipmentBandsDesc": "أحزمة مطاطية بمقاومات مختلفة",
+  "equipmentMachinesDesc": "أجهزة القوة، الكوابل والمحطات متعددة الوظائف",
+  "equipmentBodyweightDesc": "كاليسثينيكس، بارات، حلقات ووزن الجسم",
+  "equipmentMachinesHomeDesc": "أي أجهزة رياضية منزلية متاحة",
+  "equipmentBodyweightHomeDesc": "بار عقلة أو وزن الجسم",
+  "labelWeightParentheses": "الوزن (كغ)",
+  "labelGenderTitle": "الجنس",
+  "injuryAllAreas": "جميع المناطق",
+  "injuryAllMuscles": "جميع العضلات",
+  "injuryAllBones": "جميع العظام",
+  "injurySectionTitle": "قسم الإصابات",
+  "hintHeight": "مثال: 175",
+  "hintWeight": "مثال: 70",
+  "injuryStatusOvercome": "معافى",
+  "injuryStatusOvercomeDesc": "لم تعد مشكلة، ولكن من الجيد معرفتها",
+  "injuryStatusActive": "لا تزال موجودة",
+  "injuryStatusActiveDesc": "لا أزال أعاني من آلام أو قيود",
+  "bwEquipmentFunctionalTitle": "المعدات الوظيفية المتاحة",
+  "bwEquipmentCalisthenicsTitle": "معدات الكاليسثينيكس المتاحة",
+  "bwEquipmentSubtitle": "اختر ما يتوفر لديك",
+  "equipmentTrx": "TRX / أحبال تعليق",
+  "equipmentBandsAlt": "أحزمة مطاطية / مقاومة",
+  "equipmentFitball": "كرة تمرين / كرة سويسرية",
+  "equipmentBosu": "بوسو / لوح توازن",
+  "equipmentPullUpBar": "بار عقلة",
+  "equipmentRings": "حلقات",
+  "equipmentParallels": "متوازي / بارات غطس",
+  "equipmentWallBars": "سلم حائطي",
+  "homeTitleGreetingEarly": "أنت مستيقظ باكراً",
+  "homeTitleGreetingMorning": "صباح الخير",
+  "homeTitleGreetingAfternoon": "طاب مساؤك",
+  "homeTitleGreetingEvening": "مساء الخير",
+  "searchHint": "ابحث عن تمرين...",
+  "searchComingSoon": "البحث الشامل قريباً! 🔍",
+  "filterAll": "الكل",
+  "filterCardio": "كارديو",
+  "filterStrength": "قوة",
+  "filterFlex": "مرونة",
+  "filterHiit": "هيت",
+  "homeNextWorkoutTitle": "تمرينك القادم",
+  "homeProgressTitle": "تقدمك",
+  "viewAll": "عرض الكل",
+  "streakStart": "ابدأ تتابعك",
+  "streakKeepGoing": "لا تتوقف الآن! اقتربت من المستوى التالي.",
+  "streakStartToday": "أكمل تمريناً اليوم لإشعال الشعلة.",
+  "actionGeneratePlan": "إنشاء خطة ذكية",
+  "actionGeneratePlanDesc": "خطة مفصلة",
+  "actionCommunity": "المجتمع",
+  "actionCommunityDesc": "انضم للمجموعة",
+  "actionMyPlans": "تماريني",
+  "actionFormCheck": "فحص الأداء",
+  "snackPlanReady": "🎉 تمرينك جاهز!",
+  "loadingCategory": "جاري تحميل {category}...",
+  "pleaseWait": "يرجى الانتظار",
+  "generatePlanCardTitle": "إنشاء تمرينك",
+  "generatePlanCardSubtitle": "أنشئ خطتك المخصصة بالذكاء الاصطناعي",
+  "athleticAssessmentTitle": "التقييم الرياضي",
+  "athleticAssessmentSubtitle": "اكتشف مستواك الحقيقي في 5 دقائق.",
+  "insightsTitle": "رؤى خاصة بك",
+  "viewReport": "عرض التقرير",
+  "connectHealth": "ربط Apple Health",
+  "connectHealthDesc": "لرؤية رؤى مخصصة بناءً على بياناتك الصحية",
+  "discoveredPatterns": "الأنماط المكتشفة",
+  "aiCreatingPlanDesc": "سيستغرق الأمر بضع دقائق فقط...",
+  "aiPlanBadge": "خطة ذكية",
+  "goal": "الهدف",
+  "level": "المستوى",
+  "xp": "XP",
+  "gigiAssessmentComplete": "عمل رائع! لقد أكملت التقييم الرياضي! 🎉\n\nالآن يمكنني إنشاء خطتك المخصصة بناءً على أهدافك ومستواك.",
+  "gigiGeneratePlanButton": "إنشاء خطتي الذكية",
+  "gigiStartTransformation": "ابدأ تحولك في 3 خطوات:\n1️⃣ قم بالتقييم الرياضي\n2️⃣ أنشئ خطتك الذكية\n3️⃣ ابدأ تمرينك الأول!",
+  "gigiStartAssessmentButton": "بدء التقييم",
+  "gigiReadyForWorkout": "هل أنت مستعد للتمرين؟ اتبع خطتك المخصصة ولا تنسَ تسجيل كل مجموعة لمتابعة تقدمك!",
+  "newWorkout": "تمرين جديد",
+  "editWorkout": "تعديل التمرين",
+  "addAtLeastOneExercise": "أضف تمريناً واحداً على الأقل إلى الجلسة",
+  "workoutUpdated": "تم تحديث التمرين!",
+  "workoutCreated": "تم إنشاء التمرين بنجاح!",
+  "limitReached": "تم الوصول للحد الأقصى",
+  "quotaCustomWorkoutDesc": "رقي إلى برو لإنشاء المزيد من التمارين المخصصة!",
+  "close": "إغلاق",
+  "upgradePro": "الترقية إلى برو",
+  "workoutNameLabel": "اسم التمرين *",
+  "workoutNameRequired": "يرجى إدخال اسم للتمرين",
+  "descriptionOptional": "الوصف (اختياري)",
+  "noExercisesAdded": "لم يتم إضافة تمارين",
+  "tapAddSearch": "اضغط على \"إضافة\" للبحث عن تمارين",
+  "restSecondsLabel": "راحة (ث)",
+  "notesOptional": "ملاحظات (اختياري)",
+  "saveChanges": "حفظ التغييرات",
+  "searchExercises": "البحث عن تمارين",
+  "filters": "فلتر",
+  "clearFilters": "مسح",
+  "muscleGroup": "المجموعة العضلية",
+  "equipment": "المعدات",
+  "difficulty": "الصعوبة",
+  "applyFilters": "تطبيق الفلاتر",
+  "noExercisesFound": "لم يتم العثور على تمارين",
+  "tryAdjustFilters": "حاول تعديل الفلاتر",
+  "intensity": "الشدة",
+  "moderate": "متوسطة",
+  "add": "إضافة",
+  "numberLabel": "رقم"
 }

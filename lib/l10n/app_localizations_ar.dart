@@ -1401,347 +1401,339 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mobilityDedicatedDesc => 'التركيز على المرونة';
 
   @override
-  String get equipmentBench => 'Panca';
+  String get equipmentBench => 'مقعد';
 
   @override
-  String get equipmentBenchDesc => 'Piana o inclinata';
+  String get equipmentBenchDesc => 'مستوٍ أو مائل';
 
   @override
-  String get equipmentDumbbells => 'Manubri';
+  String get equipmentDumbbells => 'دمبل';
 
   @override
-  String get equipmentDumbbellsDesc => 'Manubri fissi o componibili';
+  String get equipmentDumbbellsDesc => 'دمبل ثابتة أو قابلة للتعديل';
 
   @override
-  String get equipmentBarbell => 'Bilanciere';
+  String get equipmentBarbell => 'بار';
 
   @override
-  String get equipmentBarbellDesc => 'Bilanciere olimpico o standard';
+  String get equipmentBarbellDesc => 'بار أولمبي أو قياسي';
 
   @override
-  String get equipmentBands => 'Elastici';
+  String get equipmentBands => 'حبال مقاومة';
 
   @override
-  String get equipmentBandsDesc => 'Bande elastiche di varie resistenze';
+  String get equipmentBandsDesc => 'أحزمة مطاطية بمقاومات مختلفة';
 
   @override
   String get equipmentMachinesDesc =>
-      'Macchinari isotonici, cavi e stazioni multifunzione';
+      'أجهزة القوة، الكوابل والمحطات متعددة الوظائف';
 
   @override
-  String get equipmentBodyweightDesc =>
-      'Calisthenics, sbarre, anelli e corpo libero';
+  String get equipmentBodyweightDesc => 'كاليسثينيكس، بارات، حلقات ووزن الجسم';
 
   @override
-  String get equipmentMachinesHomeDesc => 'Eventuali macchinari home gym';
+  String get equipmentMachinesHomeDesc => 'أي أجهزة رياضية منزلية متاحة';
 
   @override
-  String get equipmentBodyweightHomeDesc => 'Sbarra trazioni o corpo libero';
+  String get equipmentBodyweightHomeDesc => 'بار عقلة أو وزن الجسم';
 
   @override
-  String get labelWeightParentheses => 'Peso (kg)';
+  String get labelWeightParentheses => 'الوزن (كغ)';
 
   @override
-  String get labelGenderTitle => 'Genere';
+  String get labelGenderTitle => 'الجنس';
 
   @override
-  String get injuryAllAreas => 'Tutte le aree';
+  String get injuryAllAreas => 'جميع المناطق';
 
   @override
-  String get injuryAllMuscles => 'Tutti i muscoli';
+  String get injuryAllMuscles => 'جميع العضلات';
 
   @override
-  String get injuryAllBones => 'Tutte le ossa';
+  String get injuryAllBones => 'جميع العظام';
 
   @override
-  String get injurySectionTitle => 'Sezione relativa agli infortuni';
+  String get injurySectionTitle => 'قسم الإصابات';
 
   @override
-  String get hintHeight => 'Es. 175';
+  String get hintHeight => 'مثال: 175';
 
   @override
-  String get hintWeight => 'Es. 70';
+  String get hintWeight => 'مثال: 70';
 
   @override
-  String get injuryStatusOvercome => 'Superato';
+  String get injuryStatusOvercome => 'معافى';
 
   @override
-  String get injuryStatusOvercomeDesc =>
-      'Non ho più problemi, ma meglio saperlo';
+  String get injuryStatusOvercomeDesc => 'لم تعد مشكلة، ولكن من الجيد معرفتها';
 
   @override
-  String get injuryStatusActive => 'Ancora presente';
+  String get injuryStatusActive => 'لا تزال موجودة';
 
   @override
-  String get injuryStatusActiveDesc => 'Ho ancora fastidi o limitazioni';
+  String get injuryStatusActiveDesc => 'لا أزال أعاني من آلام أو قيود';
 
   @override
-  String get bwEquipmentFunctionalTitle => 'Attrezzi Funzionali Disponibili';
+  String get bwEquipmentFunctionalTitle => 'المعدات الوظيفية المتاحة';
 
   @override
-  String get bwEquipmentCalisthenicsTitle =>
-      'Attrezzi Calisthenics Disponibili';
+  String get bwEquipmentCalisthenicsTitle => 'معدات الكاليسثينيكس المتاحة';
 
   @override
-  String get bwEquipmentSubtitle => 'Seleziona quelli che hai a disposizione';
+  String get bwEquipmentSubtitle => 'اختر ما يتوفر لديك';
 
   @override
-  String get equipmentTrx => 'TRX / Suspension Trainer';
+  String get equipmentTrx => 'TRX / أحبال تعليق';
 
   @override
-  String get equipmentBandsAlt => 'Elastici / Resistance Bands';
+  String get equipmentBandsAlt => 'أحزمة مطاطية / مقاومة';
 
   @override
-  String get equipmentFitball => 'Fitball / Swiss Ball';
+  String get equipmentFitball => 'كرة تمرين / كرة سويسرية';
 
   @override
-  String get equipmentBosu => 'Bosu / Balance Board';
+  String get equipmentBosu => 'بوسو / لوح توازن';
 
   @override
-  String get equipmentPullUpBar => 'Sbarra Trazioni';
+  String get equipmentPullUpBar => 'بار عقلة';
 
   @override
-  String get equipmentRings => 'Anelli';
+  String get equipmentRings => 'حلقات';
 
   @override
-  String get equipmentParallels => 'Parallele / Dip Bars';
+  String get equipmentParallels => 'متوازي / بارات غطس';
 
   @override
-  String get equipmentWallBars => 'Spalliera / Wall Bars';
+  String get equipmentWallBars => 'سلم حائطي';
 
   @override
-  String get homeTitleGreetingEarly => 'Sei mattiniero';
+  String get homeTitleGreetingEarly => 'أنت مستيقظ باكراً';
 
   @override
-  String get homeTitleGreetingMorning => 'Buongiorno';
+  String get homeTitleGreetingMorning => 'صباح الخير';
 
   @override
-  String get homeTitleGreetingAfternoon => 'Buon pomeriggio';
+  String get homeTitleGreetingAfternoon => 'طاب مساؤك';
 
   @override
-  String get homeTitleGreetingEvening => 'Buonasera';
+  String get homeTitleGreetingEvening => 'مساء الخير';
 
   @override
-  String get searchHint => 'Cerca per nome, muscolo o attrezzatura...';
+  String get searchHint => 'ابحث عن تمرين...';
 
   @override
-  String get searchComingSoon => 'Ricerca globale in arrivo! 🔍';
+  String get searchComingSoon => 'البحث الشامل قريباً! 🔍';
 
   @override
-  String get filterAll => 'Tutti';
+  String get filterAll => 'الكل';
 
   @override
-  String get filterCardio => 'Cardio';
+  String get filterCardio => 'كارديو';
 
   @override
-  String get filterStrength => 'Forza';
+  String get filterStrength => 'قوة';
 
   @override
-  String get filterFlex => 'Flex';
+  String get filterFlex => 'مرونة';
 
   @override
-  String get filterHiit => 'HIIT';
+  String get filterHiit => 'هيت';
 
   @override
-  String get homeNextWorkoutTitle => 'Il tuo prossimo workout';
+  String get homeNextWorkoutTitle => 'تمرينك القادم';
 
   @override
-  String get homeProgressTitle => 'I tuoi progressi';
+  String get homeProgressTitle => 'تقدمك';
 
   @override
-  String get viewAll => 'Vedi tutti';
+  String get viewAll => 'عرض الكل';
 
   @override
-  String get streakStart => 'INIZIA LA TUA SERIE';
+  String get streakStart => 'ابدأ تتابعك';
 
   @override
-  String get streakKeepGoing =>
-      'Non fermarti ora! Manca poco al prossimo livello.';
+  String get streakKeepGoing => 'لا تتوقف الآن! اقتربت من المستوى التالي.';
 
   @override
-  String get streakStartToday =>
-      'Completa un workout oggi per accendere la fiamma.';
+  String get streakStartToday => 'أكمل تمريناً اليوم لإشعال الشعلة.';
 
   @override
-  String get actionGeneratePlan => 'Genera Scheda AI';
+  String get actionGeneratePlan => 'إنشاء خطة ذكية';
 
   @override
-  String get actionGeneratePlanDesc => 'Piano su misura';
+  String get actionGeneratePlanDesc => 'خطة مفصلة';
 
   @override
-  String get actionCommunity => 'Community';
+  String get actionCommunity => 'المجتمع';
 
   @override
-  String get actionCommunityDesc => 'Entra nel gruppo';
+  String get actionCommunityDesc => 'انضم للمجموعة';
 
   @override
-  String get actionMyPlans => 'Le Mie Schede';
+  String get actionMyPlans => 'تماريني';
 
   @override
-  String get actionFormCheck => 'Form Check';
+  String get actionFormCheck => 'فحص الأداء';
 
   @override
-  String get snackPlanReady => '🎉 La tua scheda è pronta!';
+  String get snackPlanReady => '🎉 تمرينك جاهز!';
 
   @override
   String loadingCategory(String category) {
-    return 'Caricamento $category...';
+    return 'جاري تحميل $category...';
   }
 
   @override
-  String get pleaseWait => 'Attendere prego';
+  String get pleaseWait => 'يرجى الانتظار';
 
   @override
-  String get generatePlanCardTitle => 'Genera la Tua Scheda';
+  String get generatePlanCardTitle => 'إنشاء تمرينك';
 
   @override
-  String get generatePlanCardSubtitle => 'Crea il tuo piano personalizzato AI';
+  String get generatePlanCardSubtitle => 'أنشئ خطتك المخصصة بالذكاء الاصطناعي';
 
   @override
-  String get athleticAssessmentTitle => 'Valutazione Atletica';
+  String get athleticAssessmentTitle => 'التقييم الرياضي';
 
   @override
-  String get athleticAssessmentSubtitle =>
-      'Scopri il tuo livello reale in 5 minuti.';
+  String get athleticAssessmentSubtitle => 'اكتشف مستواك الحقيقي في 5 دقائق.';
 
   @override
-  String get insightsTitle => 'I tuoi Insights';
+  String get insightsTitle => 'رؤى خاصة بك';
 
   @override
-  String get viewReport => 'Vedi report';
+  String get viewReport => 'عرض التقرير';
 
   @override
-  String get connectHealth => 'Connetti Apple Health';
+  String get connectHealth => 'ربط Apple Health';
 
   @override
-  String get connectHealthDesc =>
-      'Per vedere insights personalizzati sui tuoi dati di salute';
+  String get connectHealthDesc => 'لرؤية رؤى مخصصة بناءً على بياناتك الصحية';
 
   @override
-  String get discoveredPatterns => 'Pattern scoperti';
+  String get discoveredPatterns => 'الأنماط المكتشفة';
 
   @override
-  String get aiCreatingPlanDesc => 'Ci vorranno pochi minuti...';
+  String get aiCreatingPlanDesc => 'سيستغرق الأمر بضع دقائق فقط...';
 
   @override
-  String get aiPlanBadge => 'PIANO AI';
+  String get aiPlanBadge => 'خطة ذكية';
 
   @override
-  String get goal => 'Obiettivo';
+  String get goal => 'الهدف';
 
   @override
-  String get level => 'Livello';
+  String get level => 'المستوى';
 
   @override
   String get xp => 'XP';
 
   @override
   String get gigiAssessmentComplete =>
-      'Ottimo lavoro! Hai completato la valutazione atletica! 🎉\n\nOra posso creare la tua scheda personalizzata basata sui tuoi obiettivi e il tuo livello.';
+      'عمل رائع! لقد أكملت التقييم الرياضي! 🎉\n\nالآن يمكنني إنشاء خطتك المخصصة بناءً على أهدافك ومستواك.';
 
   @override
-  String get gigiGeneratePlanButton => 'Genera la Tua Scheda AI';
+  String get gigiGeneratePlanButton => 'إنشاء خطتي الذكية';
 
   @override
   String get gigiStartTransformation =>
-      'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!';
+      'ابدأ تحولك في 3 خطوات:\n1️⃣ قم بالتقييم الرياضي\n2️⃣ أنشئ خطتك الذكية\n3️⃣ ابدأ تمرينك الأول!';
 
   @override
-  String get gigiStartAssessmentButton => 'Inizia Valutazione';
+  String get gigiStartAssessmentButton => 'بدء التقييم';
 
   @override
   String get gigiReadyForWorkout =>
-      'Pronto per l\'allenamento? Segui la tua scheda personalizzata e ricordati di registrare ogni set per monitorare i tuoi progressi!';
+      'هل أنت مستعد للتمرين؟ اتبع خطتك المخصصة ولا تنسَ تسجيل كل مجموعة لمتابعة تقدمك!';
 
   @override
-  String get newWorkout => 'Nuova Scheda';
+  String get newWorkout => 'تمرين جديد';
 
   @override
-  String get editWorkout => 'Modifica Scheda';
+  String get editWorkout => 'تعديل التمرين';
 
   @override
-  String get addAtLeastOneExercise =>
-      'Aggiungi almeno un esercizio alla scheda';
+  String get addAtLeastOneExercise => 'أضف تمريناً واحداً على الأقل إلى الجلسة';
 
   @override
-  String get workoutUpdated => 'Scheda aggiornata!';
+  String get workoutUpdated => 'تم تحديث التمرين!';
 
   @override
-  String get workoutCreated => 'Scheda creata con successo!';
+  String get workoutCreated => 'تم إنشاء التمرين بنجاح!';
 
   @override
-  String get limitReached => 'Limite Raggiunto';
+  String get limitReached => 'تم الوصول للحد الأقصى';
 
   @override
   String get quotaCustomWorkoutDesc =>
-      'Passa a Pro per creare più workout custom!';
+      'رقي إلى برو لإنشاء المزيد من التمارين المخصصة!';
 
   @override
-  String get close => 'Chiudi';
+  String get close => 'إغلاق';
 
   @override
-  String get upgradePro => 'Passa a Pro';
+  String get upgradePro => 'الترقية إلى برو';
 
   @override
-  String get workoutNameLabel => 'Nome Scheda *';
+  String get workoutNameLabel => 'اسم التمرين *';
 
   @override
-  String get workoutNameRequired => 'Inserisci un nome per la scheda';
+  String get workoutNameRequired => 'يرجى إدخال اسم للتمرين';
 
   @override
-  String get descriptionOptional => 'Descrizione (opzionale)';
+  String get descriptionOptional => 'الوصف (اختياري)';
 
   @override
-  String get noExercisesAdded => 'Nessun esercizio aggiunto';
+  String get noExercisesAdded => 'لم يتم إضافة تمارين';
 
   @override
-  String get tapAddSearch => 'Tocca \"Aggiungi\" per cercare esercizi';
+  String get tapAddSearch => 'اضغط على \"إضافة\" للبحث عن تمارين';
 
   @override
-  String get restSecondsLabel => 'Rest (s)';
+  String get restSecondsLabel => 'راحة (ث)';
 
   @override
-  String get notesOptional => 'Note (opzionale)';
+  String get notesOptional => 'ملاحظات (اختياري)';
 
   @override
-  String get saveChanges => 'Salva Modifiche';
+  String get saveChanges => 'حفظ التغييرات';
 
   @override
-  String get searchExercises => 'Cerca Esercizi';
+  String get searchExercises => 'البحث عن تمارين';
 
   @override
-  String get filters => 'Filtri';
+  String get filters => 'فلتر';
 
   @override
-  String get clearFilters => 'Azzera';
+  String get clearFilters => 'مسح';
 
   @override
-  String get muscleGroup => 'Gruppo Muscolare';
+  String get muscleGroup => 'المجموعة العضلية';
 
   @override
-  String get equipment => 'Attrezzatura';
+  String get equipment => 'المعدات';
 
   @override
-  String get difficulty => 'Difficoltà';
+  String get difficulty => 'الصعوبة';
 
   @override
-  String get applyFilters => 'Applica Filtri';
+  String get applyFilters => 'تطبيق الفلاتر';
 
   @override
-  String get noExercisesFound => 'Nessun esercizio trovato';
+  String get noExercisesFound => 'لم يتم العثور على تمارين';
 
   @override
-  String get tryAdjustFilters => 'Prova a modificare i filtri';
+  String get tryAdjustFilters => 'حاول تعديل الفلاتر';
 
   @override
-  String get intensity => 'Intensità';
+  String get intensity => 'الشدة';
 
   @override
-  String get moderate => 'Moderata';
+  String get moderate => 'متوسطة';
 
   @override
-  String get add => 'Aggiungi';
+  String get add => 'إضافة';
 
   @override
-  String get numberLabel => 'numero';
+  String get numberLabel => 'رقم';
 }
