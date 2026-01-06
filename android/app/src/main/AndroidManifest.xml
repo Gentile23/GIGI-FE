@@ -21,6 +21,7 @@
         android:usesCleartextTraffic="true"
         android:label="GIGI"
         android:name="${applicationName}"
+        android:largeHeap="true"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -66,5 +67,14 @@
         </intent>
         <!-- Health Connect package -->
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- URL Launcher Intents -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="mailto" />
+        </intent>
     </queries>
 </manifest>

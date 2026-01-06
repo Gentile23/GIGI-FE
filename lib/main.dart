@@ -20,6 +20,7 @@ import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const GigiApp());
 }
 
