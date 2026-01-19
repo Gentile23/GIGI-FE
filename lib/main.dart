@@ -55,6 +55,7 @@ class GigiApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
+        Provider<ApiClient>.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => WorkoutProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => WorkoutLogProvider(apiClient)),

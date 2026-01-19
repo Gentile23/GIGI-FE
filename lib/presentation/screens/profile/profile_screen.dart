@@ -562,19 +562,6 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
-                  icon: Icons.notifications_outlined,
-                  title: AppLocalizations.of(context)!.notifications,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(AppLocalizations.of(context)!.comingSoon),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
                   icon: Icons.security_outlined,
                   title: AppLocalizations.of(context)!.privacySecurity,
                   onTap: () {
@@ -597,32 +584,6 @@ class ProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const HealthSettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.help_outline,
-                  title: AppLocalizations.of(context)!.helpSupport,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(AppLocalizations.of(context)!.comingSoon),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.info_outline,
-                  title: AppLocalizations.of(context)!.info,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(AppLocalizations.of(context)!.comingSoon),
-                        duration: const Duration(seconds: 2),
                       ),
                     );
                   },

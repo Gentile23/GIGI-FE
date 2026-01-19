@@ -38,6 +38,15 @@ class _ReferralScreenState extends State<ReferralScreen> {
     _loadReferralData();
   }
 
+  /// Helper to safely parse boolean values that may come as int (0/1) from backend
+  bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value != 0;
+    if (value is String) return value.toLowerCase() == 'true' || value == '1';
+    return false;
+  }
+
   Future<void> _loadReferralData() async {
     setState(() {
       _isLoading = true;
@@ -52,8 +61,8 @@ class _ReferralScreenState extends State<ReferralScreen> {
           _referralCode = result['referral_code'] ?? '';
           _convertedReferrals = result['converted_referrals'] ?? 0;
           _totalReferrals = result['total_referrals'] ?? 0;
-          _hasEarnedReward = result['has_earned_reward'] ?? false;
-          _rewardClaimed = result['reward_claimed'] ?? false;
+          _hasEarnedReward = _parseBool(result['has_earned_reward']);
+          _rewardClaimed = _parseBool(result['reward_claimed']);
           _isLoading = false;
         });
       } else {
