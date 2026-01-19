@@ -228,7 +228,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 children: [
                   _buildStatPill(
                     Icons.repeat,
-                    '${widget.exercise.reps}',
+                    widget.exercise.reps.toString(),
                     'reps',
                   ),
                   const SizedBox(width: 12),

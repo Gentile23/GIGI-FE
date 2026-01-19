@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'package:gigi/core/theme/clean_theme.dart';
 import 'package:gigi/providers/workout_log_provider.dart';
 import 'package:gigi/presentation/widgets/history/workout_stats_card.dart';
@@ -324,7 +325,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  workout.workoutDay?.name ?? 'Allenamento',
+                  workout.workoutDay?.name ??
+                      AppLocalizations.of(context)!.defaultWorkoutName,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

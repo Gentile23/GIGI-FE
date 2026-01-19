@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
@@ -193,7 +194,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
 
               // Reps counter
               _buildCounter(
-                label: 'RIPETIZIONI',
+                label: AppLocalizations.of(context)!.repsLabel,
                 value: _reps.toString(),
                 previousValue: widget.previousReps != null
                     ? 'Precedente: ${widget.previousReps}'
@@ -207,7 +208,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
 
               // Weight counter
               _buildCounter(
-                label: 'PESO (KG)',
+                label: AppLocalizations.of(context)!.weightLabel,
                 value: _weight > 0 ? _weight.toStringAsFixed(1) : '-',
                 previousValue: widget.previousWeight != null
                     ? 'Precedente: ${widget.previousWeight!.toStringAsFixed(1)} kg'
@@ -255,7 +256,9 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        _showSuccess ? 'SALVATO!' : 'CONFERMA',
+                        _showSuccess
+                            ? AppLocalizations.of(context)!.savedLabel
+                            : AppLocalizations.of(context)!.confirmButton,
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,

@@ -37,7 +37,9 @@ Scarica GIGI e inizia il tuo percorso fitness!
 #GIGI #Fitness #Workout #FitnessMotivation
 ''';
 
-    await Share.share(message, subject: 'Il mio workout GIGI');
+    await SharePlus.instance.share(
+      ShareParams(text: message, title: 'Il mio workout GIGI'),
+    );
   }
 
   /// Share transformation/progress
@@ -61,13 +63,17 @@ Scarica GIGI: https://gigi.app/download
 ''';
 
     if (imagePath != null) {
-      await Share.shareXFiles(
-        [XFile(imagePath)],
-        text: message,
-        subject: 'La mia trasformazione GIGI',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(imagePath)],
+          text: message,
+          title: 'La mia trasformazione GIGI',
+        ),
       );
     } else {
-      await Share.share(message, subject: 'La mia trasformazione GIGI');
+      await SharePlus.instance.share(
+        ShareParams(text: message, title: 'La mia trasformazione GIGI'),
+      );
     }
   }
 
@@ -90,7 +96,9 @@ Sfida i tuoi amici su GIGI!
 #GIGI #Achievement #FitnessGoals
 ''';
 
-    await Share.share(message, subject: 'Nuovo badge GIGI!');
+    await SharePlus.instance.share(
+      ShareParams(text: message, title: 'Nuovo badge GIGI!'),
+    );
   }
 
   /// Share streak milestone
@@ -125,7 +133,9 @@ Unisciti a me su GIGI: https://gigi.app/download
 #GIGI #FitnessStreak #Consistency #Motivation
 ''';
 
-    await Share.share(message, subject: 'Streak $streakDays giorni!');
+    await SharePlus.instance.share(
+      ShareParams(text: message, title: 'Streak $streakDays giorni!'),
+    );
   }
 
   /// Share challenge completion
@@ -147,7 +157,9 @@ Accetti la sfida?
 #GIGI #FitnessChallenge #Competition
 ''';
 
-    await Share.share(message, subject: 'Sfida completata!');
+    await SharePlus.instance.share(
+      ShareParams(text: message, title: 'Sfida completata!'),
+    );
   }
 
   /// Share referral code
@@ -173,13 +185,15 @@ Cosa ottieni:
 #GIGI #FitnessApp #FreeMonth
 ''';
 
-    await Share.share(message, subject: '1 mese Premium GIGI gratis!');
+    await SharePlus.instance.share(
+      ShareParams(text: message, title: '1 mese Premium GIGI gratis!'),
+    );
   }
 
   /// Share to specific platform
   Future<void> shareToWhatsApp({required String message}) async {
     // WhatsApp uses the same share mechanism
-    await Share.share(message);
+    await SharePlus.instance.share(ShareParams(text: message));
   }
 }
 

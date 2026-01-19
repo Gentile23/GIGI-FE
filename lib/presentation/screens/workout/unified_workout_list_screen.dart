@@ -605,6 +605,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildEmptyAIState() {
     final currentPlan = Provider.of<WorkoutProvider>(
       context,
@@ -663,6 +664,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildEmptyCustomState() {
     return Center(
       child: Padding(
@@ -707,6 +709,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildAIWorkoutCard(
     BuildContext context,
     WorkoutDay workout,
@@ -808,6 +811,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildCustomWorkoutCard(CustomWorkoutPlan plan) {
     return CleanCard(
       onTap: () {

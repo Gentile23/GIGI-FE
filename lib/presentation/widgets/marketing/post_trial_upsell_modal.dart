@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../screens/paywall/paywall_screen.dart';
@@ -131,7 +132,7 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                         const Text('🎉', style: TextStyle(fontSize: 48)),
                         const SizedBox(height: 12),
                         Text(
-                          'Ottimo Lavoro!',
+                          AppLocalizations.of(context)!.greatJob,
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -140,7 +141,7 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Hai completato il tuo primo allenamento',
+                          AppLocalizations.of(context)!.completedFirstWorkout,
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             color: Colors.white.withValues(alpha: 0.9),
@@ -193,7 +194,9 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Ti è piaciuto Gigi?',
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.didYouLikeGigi,
                                       style: GoogleFonts.outfit(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,

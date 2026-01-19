@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../../data/services/api_client.dart';
@@ -35,56 +36,94 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   final _thighLeftController = TextEditingController();
   final _calfController = TextEditingController();
 
-  final List<_MeasurementGuide> _guides = [
-    _MeasurementGuide(
-      title: '📏 Come prendere le misure',
-      subtitle: 'Segui questi consigli per misure accurate',
-      tips: [
-        (
-          '⏰',
-          'Misura sempre alla stessa ora',
-          'Preferibilmente al mattino, a digiuno',
-        ),
-        ('📐', 'Usa un metro da sarto flessibile', 'Non usare righelli rigidi'),
-        (
-          '🔄',
-          'Ripeti ogni misura 2 volte',
-          'Per assicurarti che sia corretta',
-        ),
-        (
-          '💨',
-          'Rilassati, non contrarre',
-          'Posizione naturale, respiro normale',
-        ),
-      ],
-    ),
-    _MeasurementGuide(
-      title: '💪 Braccia',
-      subtitle: 'Misura i tuoi bicipiti',
-      tips: [
-        ('📍', 'Posizione', 'Braccio flesso a 90°, pugno chiuso'),
-        ('📐', 'Dove misurare', 'Nel punto più spesso del muscolo'),
-        ('🔄', 'Ripeti per entrambi', 'Potrebbero essere leggermente diversi'),
-      ],
-    ),
-    _MeasurementGuide(
-      title: '🫁 Torso',
-      subtitle: 'Petto, vita e fianchi',
-      tips: [
-        ('👕', 'Petto', 'Metro sotto le ascelle, sul punto più sporgente'),
-        ('⭕', 'Vita', 'All\'altezza dell\'ombelico, posizione naturale'),
-        ('🍑', 'Fianchi', 'Nel punto più largo dei glutei'),
-      ],
-    ),
-    _MeasurementGuide(
-      title: '🦵 Gambe',
-      subtitle: 'Cosce e polpacci',
-      tips: [
-        ('📍', 'Coscia', 'A metà tra inguine e ginocchio, gamba rilassata'),
-        ('🦶', 'Polpaccio', 'Nel punto più largo, in piedi'),
-      ],
-    ),
-  ];
+  List<_MeasurementGuide> _getGuides(BuildContext context) {
+    return [
+      _MeasurementGuide(
+        title: '📏 ${AppLocalizations.of(context)!.howToTakeMeasurements}',
+        subtitle: AppLocalizations.of(context)!.followTips,
+        tips: [
+          (
+            '⏰',
+            AppLocalizations.of(context)!.measureSameTime,
+            AppLocalizations.of(context)!.morningsFasting,
+          ),
+          (
+            '📐',
+            AppLocalizations.of(context)!.flexibleTape,
+            AppLocalizations.of(context)!.noRigidRulers,
+          ),
+          (
+            '🔄',
+            AppLocalizations.of(context)!.repeatTwice,
+            AppLocalizations.of(context)!.ensureCorrect,
+          ),
+          (
+            '💨',
+            AppLocalizations.of(context)!.relaxNoContracting,
+            AppLocalizations.of(context)!.naturalPosition,
+          ),
+        ],
+      ),
+      _MeasurementGuide(
+        title: '💪 ${AppLocalizations.of(context)!.arms}',
+        subtitle: AppLocalizations.of(context)!.measureBiceps,
+        tips: [
+          (
+            '📍',
+            AppLocalizations.of(context)!.position,
+            AppLocalizations.of(context)!.bicepPositionDesc,
+          ),
+          (
+            '📐',
+            AppLocalizations.of(context)!.whereToMeasure,
+            AppLocalizations.of(context)!.whereToMeasureDesc,
+          ),
+          (
+            '🔄',
+            AppLocalizations.of(context)!.repeatBoth,
+            AppLocalizations.of(context)!.slightlyDifferent,
+          ),
+        ],
+      ),
+      _MeasurementGuide(
+        title: '🫁 ${AppLocalizations.of(context)!.torso}',
+        subtitle: AppLocalizations.of(context)!.torsoParts,
+        tips: [
+          (
+            '👕',
+            AppLocalizations.of(context)!.chest,
+            AppLocalizations.of(context)!.chestDesc,
+          ),
+          (
+            '⭕',
+            AppLocalizations.of(context)!.waist,
+            AppLocalizations.of(context)!.waistDesc,
+          ),
+          (
+            '🍑',
+            AppLocalizations.of(context)!.hips,
+            AppLocalizations.of(context)!.hipsDesc,
+          ),
+        ],
+      ),
+      _MeasurementGuide(
+        title: '🦵 ${AppLocalizations.of(context)!.legs}',
+        subtitle: AppLocalizations.of(context)!.legsParts,
+        tips: [
+          (
+            '📍',
+            AppLocalizations.of(context)!.thigh,
+            AppLocalizations.of(context)!.thighDesc,
+          ),
+          (
+            '🦶',
+            AppLocalizations.of(context)!.calf,
+            AppLocalizations.of(context)!.calfDesc,
+          ),
+        ],
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -108,7 +147,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           ? null
           : AppBar(
               title: Text(
-                'Misure Corporee',
+                AppLocalizations.of(context)!.bodyMeasurements,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   color: CleanTheme.textPrimary,
@@ -169,7 +208,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   }
 
   Widget _buildIntroPage() {
-    final guide = _guides[0];
+    final guide = _getGuides(context)[0];
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -179,7 +218,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'Il Tuo Punto di Partenza',
+              AppLocalizations.of(context)!.yourStartingPoint,
               style: GoogleFonts.outfit(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -191,7 +230,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Queste misure ci aiutano a creare la scheda perfetta per te e a tracciare i tuoi progressi nel tempo.',
+              AppLocalizations.of(context)!.measurementsHelpDesc,
               style: GoogleFonts.inter(
                 fontSize: 15,
                 color: CleanTheme.textSecondary,
@@ -226,7 +265,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
           const SizedBox(height: 32),
           CleanButton(
-            text: 'Inizia le Misure',
+            text: AppLocalizations.of(context)!.startMeasurements,
             onPressed: _nextPage,
             icon: Icons.arrow_forward,
           ),
@@ -246,7 +285,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   }
 
   Widget _buildArmsPage() {
-    final guide = _guides[1];
+    final guide = _getGuides(context)[1];
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -275,14 +314,14 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           // Inputs
           _buildMeasurementInput(
             controller: _bicepRightController,
-            label: 'Bicipite Destro',
+            label: AppLocalizations.of(context)!.bicepRight,
             emoji: '💪',
             hint: 'es. 35',
           ),
           const SizedBox(height: 16),
           _buildMeasurementInput(
             controller: _bicepLeftController,
-            label: 'Bicipite Sinistro',
+            label: AppLocalizations.of(context)!.bicepLeft,
             emoji: '💪',
             hint: 'es. 34.5',
           ),
@@ -295,7 +334,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   }
 
   Widget _buildTorsoPage() {
-    final guide = _guides[2];
+    final guide = _getGuides(context)[2];
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -322,14 +361,14 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
           _buildMeasurementInput(
             controller: _chestController,
-            label: 'Petto',
+            label: AppLocalizations.of(context)!.chest,
             emoji: '👕',
             hint: 'es. 100',
           ),
           const SizedBox(height: 16),
           _buildMeasurementInput(
             controller: _waistController,
-            label: 'Vita',
+            label: AppLocalizations.of(context)!.waist,
             emoji: '⭕',
             hint: 'es. 80',
             isRequired: true,
@@ -337,7 +376,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           const SizedBox(height: 16),
           _buildMeasurementInput(
             controller: _hipsController,
-            label: 'Fianchi',
+            label: AppLocalizations.of(context)!.hips,
             emoji: '🍑',
             hint: 'es. 95',
           ),
@@ -350,7 +389,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   }
 
   Widget _buildLegsPage() {
-    final guide = _guides[3];
+    final guide = _getGuides(context)[3];
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -377,21 +416,21 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
           _buildMeasurementInput(
             controller: _thighRightController,
-            label: 'Coscia Destra',
+            label: AppLocalizations.of(context)!.thighRight,
             emoji: '🦵',
             hint: 'es. 55',
           ),
           const SizedBox(height: 16),
           _buildMeasurementInput(
             controller: _thighLeftController,
-            label: 'Coscia Sinistra',
+            label: AppLocalizations.of(context)!.thighLeft,
             emoji: '🦵',
             hint: 'es. 54.5',
           ),
           const SizedBox(height: 16),
           _buildMeasurementInput(
             controller: _calfController,
-            label: 'Polpaccio',
+            label: AppLocalizations.of(context)!.calf,
             emoji: '🦶',
             hint: 'es. 38',
           ),
@@ -413,7 +452,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'Riepilogo Misure',
+              AppLocalizations.of(context)!.measurementsSummary,
               style: GoogleFonts.outfit(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -424,28 +463,40 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              'Ecco le tue misure di partenza',
+              AppLocalizations.of(context)!.startingMeasurementsDesc,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
           const SizedBox(height: 32),
 
           // Summary cards
-          _buildSummaryCard('💪 Braccia', [
-            ('Bicipite DX', _bicepRightController.text),
-            ('Bicipite SX', _bicepLeftController.text),
+          _buildSummaryCard('💪 ${AppLocalizations.of(context)!.arms}', [
+            (
+              AppLocalizations.of(context)!.bicepRight,
+              _bicepRightController.text,
+            ),
+            (
+              AppLocalizations.of(context)!.bicepLeft,
+              _bicepLeftController.text,
+            ),
           ]),
           const SizedBox(height: 16),
-          _buildSummaryCard('🫁 Torso', [
-            ('Petto', _chestController.text),
-            ('Vita', _waistController.text),
-            ('Fianchi', _hipsController.text),
+          _buildSummaryCard('🫁 ${AppLocalizations.of(context)!.torso}', [
+            (AppLocalizations.of(context)!.chest, _chestController.text),
+            (AppLocalizations.of(context)!.waist, _waistController.text),
+            (AppLocalizations.of(context)!.hips, _hipsController.text),
           ]),
           const SizedBox(height: 16),
-          _buildSummaryCard('🦵 Gambe', [
-            ('Coscia DX', _thighRightController.text),
-            ('Coscia SX', _thighLeftController.text),
-            ('Polpaccio', _calfController.text),
+          _buildSummaryCard('🦵 ${AppLocalizations.of(context)!.legs}', [
+            (
+              AppLocalizations.of(context)!.thighRight,
+              _thighRightController.text,
+            ),
+            (
+              AppLocalizations.of(context)!.thighLeft,
+              _thighLeftController.text,
+            ),
+            (AppLocalizations.of(context)!.calf, _calfController.text),
           ]),
 
           const SizedBox(height: 32),
@@ -466,7 +517,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Potrai aggiornare le misure ogni settimana per vedere i progressi!',
+                    AppLocalizations.of(context)!.updateWeeklyDesc,
                     style: GoogleFonts.inter(
                       color: CleanTheme.accentBlue,
                       fontSize: 13,
@@ -479,7 +530,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
           const SizedBox(height: 32),
           CleanButton(
-            text: _isLoading ? 'Salvataggio...' : 'Salva e Continua',
+            text: _isLoading
+                ? AppLocalizations.of(context)!.saving
+                : AppLocalizations.of(context)!.saveAndContinue,
             onPressed: _isLoading ? null : _saveMeasurements,
           ),
           const SizedBox(height: 12),
@@ -490,7 +543,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               side: const BorderSide(color: CleanTheme.borderPrimary),
             ),
             child: Text(
-              'Modifica',
+              AppLocalizations.of(context)!.edit,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
@@ -558,7 +611,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Come misurare',
+                AppLocalizations.of(context)!.howToMeasure,
                 style: GoogleFonts.inter(
                   fontWeight: FontWeight.w600,
                   color: CleanTheme.textPrimary,
@@ -691,7 +744,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                   side: const BorderSide(color: CleanTheme.borderPrimary),
                 ),
                 child: Text(
-                  'Indietro',
+                  AppLocalizations.of(context)!.back,
                   style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                 ),
               ),
@@ -699,7 +752,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             const SizedBox(width: 16),
             Expanded(
               flex: 2,
-              child: CleanButton(text: 'Continua', onPressed: _nextPage),
+              child: CleanButton(
+                text: AppLocalizations.of(context)!.next,
+                onPressed: _nextPage,
+              ),
             ),
           ],
         ),
@@ -818,8 +874,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Misure salvate con successo!'),
+          SnackBar(
+            content: Text(
+              '🎉 ${AppLocalizations.of(context)!.measurementsSummary}',
+            ), // Reusing summary for now or adding a new one
             backgroundColor: CleanTheme.accentGreen,
           ),
         );

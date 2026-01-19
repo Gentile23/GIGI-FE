@@ -1,4 +1,9 @@
+library;
+
 /// Injury tracking model with detailed muscle, joint, and bone areas
+import 'package:flutter/material.dart';
+import 'package:gigi/l10n/app_localizations.dart';
+
 class InjuryModel {
   final String id;
   final InjuryCategory category;
@@ -180,6 +185,17 @@ extension InjuryCategoryExtension on InjuryCategory {
     }
   }
 
+  String getLocalizedName(BuildContext context) {
+    switch (this) {
+      case InjuryCategory.muscular:
+        return AppLocalizations.of(context)!.injuryMuscular;
+      case InjuryCategory.articular:
+        return AppLocalizations.of(context)!.injuryArticular;
+      case InjuryCategory.bone:
+        return AppLocalizations.of(context)!.injuryBone;
+    }
+  }
+
   String get icon {
     switch (this) {
       case InjuryCategory.muscular:
@@ -309,6 +325,122 @@ extension InjuryAreaExtension on InjuryArea {
     }
   }
 
+  String getLocalizedName(BuildContext context) {
+    switch (this) {
+      // Muscular
+      case InjuryArea.neck:
+        return AppLocalizations.of(context)!.injuryAreaNeck;
+      case InjuryArea.trapezius:
+        return AppLocalizations.of(context)!.injuryAreaTrapezius;
+      case InjuryArea.deltoids:
+        return AppLocalizations.of(context)!.injuryAreaDeltoids;
+      case InjuryArea.pectorals:
+        return AppLocalizations.of(context)!.injuryAreaPectorals;
+      case InjuryArea.biceps:
+        return AppLocalizations.of(context)!.injuryAreaBiceps;
+      case InjuryArea.triceps:
+        return AppLocalizations.of(context)!.injuryAreaTriceps;
+      case InjuryArea.forearms:
+        return AppLocalizations.of(context)!.injuryAreaForearms;
+      case InjuryArea.abs:
+        return AppLocalizations.of(context)!.injuryAreaAbs;
+      case InjuryArea.obliques:
+        return AppLocalizations.of(context)!.injuryAreaObliques;
+      case InjuryArea.lowerBack:
+        return AppLocalizations.of(context)!.injuryAreaLowerBack;
+      case InjuryArea.upperBack:
+        return AppLocalizations.of(context)!.injuryAreaUpperBack;
+      case InjuryArea.lats:
+        return AppLocalizations.of(context)!.injuryAreaLats;
+      case InjuryArea.glutes:
+        return AppLocalizations.of(context)!.injuryAreaGlutes;
+      case InjuryArea.hipFlexors:
+        return AppLocalizations.of(context)!.injuryAreaHipFlexors;
+      case InjuryArea.quadriceps:
+        return AppLocalizations.of(context)!.injuryAreaQuadriceps;
+      case InjuryArea.hamstrings:
+        return AppLocalizations.of(context)!.injuryAreaHamstrings;
+      case InjuryArea.calves:
+        return AppLocalizations.of(context)!.injuryAreaCalves;
+      case InjuryArea.adductors:
+        return AppLocalizations.of(context)!.injuryAreaAdductors;
+      case InjuryArea.abductors:
+        return AppLocalizations.of(context)!.injuryAreaAbductors;
+      case InjuryArea.rotatorCuff:
+        return AppLocalizations.of(context)!.injuryAreaRotatorCuff;
+
+      // Articular
+      case InjuryArea.cervicalSpine:
+        return AppLocalizations.of(context)!.injuryAreaCervicalSpine;
+      case InjuryArea.shoulder:
+        return AppLocalizations.of(context)!.injuryAreaShoulder;
+      case InjuryArea.elbow:
+        return AppLocalizations.of(context)!.injuryAreaElbow;
+      case InjuryArea.wrist:
+        return AppLocalizations.of(context)!.injuryAreaWrist;
+      case InjuryArea.fingers:
+        return AppLocalizations.of(context)!.injuryAreaFingers;
+      case InjuryArea.thoracicSpine:
+        return AppLocalizations.of(context)!.injuryAreaThoracicSpine;
+      case InjuryArea.lumbarSpine:
+        return AppLocalizations.of(context)!.injuryAreaLumbarSpine;
+      case InjuryArea.hip:
+        return AppLocalizations.of(context)!.injuryAreaHip;
+      case InjuryArea.knee:
+        return AppLocalizations.of(context)!.injuryAreaKnee;
+      case InjuryArea.ankle:
+        return AppLocalizations.of(context)!.injuryAreaAnkle;
+      case InjuryArea.toes:
+        return AppLocalizations.of(context)!.injuryAreaToes;
+      case InjuryArea.sacroiliac:
+        return AppLocalizations.of(context)!.injuryAreaSacroiliac;
+      case InjuryArea.temporomandibular:
+        return AppLocalizations.of(context)!.injuryAreaTemporomandibular;
+
+      // Bone
+      case InjuryArea.skull:
+        return AppLocalizations.of(context)!.injuryAreaSkull;
+      case InjuryArea.clavicle:
+        return AppLocalizations.of(context)!.injuryAreaClavicle;
+      case InjuryArea.scapula:
+        return AppLocalizations.of(context)!.injuryAreaScapula;
+      case InjuryArea.ribs:
+        return AppLocalizations.of(context)!.injuryAreaRibs;
+      case InjuryArea.sternum:
+        return AppLocalizations.of(context)!.injuryAreaSternum;
+      case InjuryArea.humerus:
+        return AppLocalizations.of(context)!.injuryAreaHumerus;
+      case InjuryArea.radius:
+        return AppLocalizations.of(context)!.injuryAreaRadius;
+      case InjuryArea.ulna:
+        return AppLocalizations.of(context)!.injuryAreaUlna;
+      case InjuryArea.carpals:
+        return AppLocalizations.of(context)!.injuryAreaCarpals;
+      case InjuryArea.metacarpals:
+        return AppLocalizations.of(context)!.injuryAreaMetacarpals;
+      case InjuryArea.phalangesHand:
+        return AppLocalizations.of(context)!.injuryAreaPhalangesHand;
+      case InjuryArea.vertebrae:
+        return AppLocalizations.of(context)!.injuryAreaVertebrae;
+      case InjuryArea.pelvis:
+        return AppLocalizations.of(context)!.injuryAreaPelvis;
+      case InjuryArea.femur:
+        return AppLocalizations.of(context)!.injuryAreaFemur;
+      case InjuryArea.patella:
+        return AppLocalizations.of(context)!.injuryAreaPatella;
+      case InjuryArea.tibia:
+        return AppLocalizations.of(context)!.injuryAreaTibia;
+      case InjuryArea.fibula:
+        return AppLocalizations.of(context)!.injuryAreaFibula;
+      case InjuryArea.tarsals:
+        return AppLocalizations.of(context)!.injuryAreaTarsals;
+      case InjuryArea.metatarsals:
+        return AppLocalizations.of(context)!.injuryAreaMetatarsals;
+      case InjuryArea.phalangesFoot:
+        return AppLocalizations.of(context)!.injuryAreaPhalangesFoot;
+    }
+  }
+
   InjuryCategory get category {
     if ([
       InjuryArea.neck,
@@ -367,6 +499,17 @@ extension InjurySeverityExtension on InjurySeverity {
     }
   }
 
+  String getLocalizedName(BuildContext context) {
+    switch (this) {
+      case InjurySeverity.mild:
+        return AppLocalizations.of(context)!.injurySeverityMild;
+      case InjurySeverity.moderate:
+        return AppLocalizations.of(context)!.injurySeverityModerate;
+      case InjurySeverity.severe:
+        return AppLocalizations.of(context)!.injurySeveritySevere;
+    }
+  }
+
   String get icon {
     switch (this) {
       case InjurySeverity.mild:
@@ -389,6 +532,15 @@ extension InjuryTimingExtension on InjuryTiming {
     }
   }
 
+  String getLocalizedName(BuildContext context) {
+    switch (this) {
+      case InjuryTiming.current:
+        return AppLocalizations.of(context)!.injuryTimingCurrent;
+      case InjuryTiming.past:
+        return AppLocalizations.of(context)!.injuryTimingPast;
+    }
+  }
+
   String get icon {
     switch (this) {
       case InjuryTiming.current:
@@ -408,6 +560,17 @@ extension InjuryStatusExtension on InjuryStatus {
         return 'In Recupero';
       case InjuryStatus.resolved:
         return 'Risolto';
+    }
+  }
+
+  String getLocalizedName(BuildContext context) {
+    switch (this) {
+      case InjuryStatus.active:
+        return AppLocalizations.of(context)!.injuryStatusActive;
+      case InjuryStatus.recovering:
+        return AppLocalizations.of(context)!.injuryStatusRecovering;
+      case InjuryStatus.resolved:
+        return AppLocalizations.of(context)!.injuryStatusResolved;
     }
   }
 }

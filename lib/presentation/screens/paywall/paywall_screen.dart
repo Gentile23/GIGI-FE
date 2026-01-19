@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../widgets/clean_widgets.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -32,13 +33,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
         title: Text(
-          'Scegli il Piano',
+          l10n.paywallTitle, // 'Scegli il Piano'
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -58,7 +60,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           children: [
             // Header - Emotional, benefit-focused
             Text(
-              'Allenati Sempre Con Un Coach',
+              l10n.paywallSubtitle, // 'Allenati Sempre Con Un Coach'
               style: GoogleFonts.outfit(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -67,7 +69,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'GIGI ti parla mentre ti alleni e ti corregge come un PT vero.',
+              l10n.paywallDescription, // 'GIGI ti parla mentre ti alleni...'
               style: GoogleFonts.inter(
                 fontSize: 15,
                 color: CleanTheme.textSecondary,
@@ -96,7 +98,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Hai provato il coaching reale. Immagina ogni allenamento così.',
+                      l10n.paywallPsychologicalFull, // 'Hai provato il coaching reale...'
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: CleanTheme.primaryColor,
@@ -153,10 +155,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
             // Subscribe button
             CleanButton(
               text: _selectedTier == SubscriptionTier.free
-                  ? 'Piano Attuale'
+                  ? l10n.paywallCurrentPlan
                   : _isYearly
-                  ? 'Abbonati - ${_getSelectedConfig().priceYearly.toStringAsFixed(2)}€/anno'
-                  : 'Abbonati - ${_getSelectedConfig().priceMonthly.toStringAsFixed(2)}€/mese',
+                  ? l10n.paywallSubscribeButtonYearly(
+                      _getSelectedConfig().priceYearly.toStringAsFixed(2),
+                    )
+                  : l10n.paywallSubscribeButtonMonthly(
+                      _getSelectedConfig().priceMonthly.toStringAsFixed(2),
+                    ),
               onPressed: _selectedTier == SubscriptionTier.free
                   ? null
                   : _handleSubscribe,
@@ -186,7 +192,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '7 giorni di prova gratuita',
+                      l10n.paywallGuarantee, // '7 giorni di prova gratuita'
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -201,7 +207,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             // Terms
             Text(
-              'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.',
+              l10n.paywallTerms, // 'Abbonandoti accetti...'
               style: GoogleFonts.inter(
                 fontSize: 12,
                 color: CleanTheme.textTertiary,
@@ -215,6 +221,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Widget _buildBillingToggle() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -236,7 +243,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Mensile',
+                  l10n.paywallBillingMonthly, // 'Mensile'
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,
@@ -262,7 +269,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Annuale',
+                      l10n.paywallBillingYearly, // 'Annuale'
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -284,7 +291,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '-37%',
+                        l10n.paywallDiscount, // '-37%'
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -511,6 +518,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   void _handleSubscribe() {
+    final l10n = AppLocalizations.of(context)!;
     final config = _getSelectedConfig();
     final price = _isYearly ? config.priceYearly : config.priceMonthly;
     final period = _isYearly ? 'anno' : 'mese';
@@ -521,7 +529,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          'Attiva ${config.name}',
+          l10n.paywallActivateTitle(config.name),
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -532,12 +540,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Stai per attivare il piano ${config.name} a €${price.toStringAsFixed(2)}/$period.',
+              l10n.paywallActivateDesc(
+                config.name,
+                price.toStringAsFixed(2),
+                period,
+              ),
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
             const SizedBox(height: 16),
             Text(
-              '⚠️ RevenueCat non configurato',
+              l10n.paywallRevenueCatWarning,
               style: GoogleFonts.inter(
                 color: CleanTheme.accentOrange,
                 fontWeight: FontWeight.w500,
@@ -545,7 +557,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Configura RevenueCat per abilitare i pagamenti reali.',
+              l10n.paywallRevenueCatDesc,
               style: GoogleFonts.inter(
                 color: CleanTheme.textTertiary,
                 fontSize: 12,
@@ -570,6 +582,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Widget _buildUrgencyTimer() {
+    final l10n = AppLocalizations.of(context)!;
     final hours = _timeRemaining.inHours;
     final minutes = (_timeRemaining.inMinutes % 60);
     final seconds = (_timeRemaining.inSeconds % 60);
@@ -594,7 +607,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           Icon(Icons.timer_outlined, color: CleanTheme.accentOrange, size: 20),
           const SizedBox(width: 8),
           Text(
-            'Offerta valida ancora per ',
+            l10n.paywallUrgencyText, // 'Offerta valida ancora per '
             style: GoogleFonts.inter(
               fontSize: 13,
               color: CleanTheme.textSecondary,
@@ -614,6 +627,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Widget _buildSocialProof() {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -646,7 +660,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ),
         const SizedBox(width: 8),
         Text(
-          '12,847 utenti ',
+          l10n.paywallSocialProofUsers, // '12,847 utenti '
           style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -654,7 +668,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ),
         Text(
-          'sono passati a Pro questo mese',
+          l10n.paywallSocialProofAction, // 'sono passati a Pro questo mese'
           style: GoogleFonts.inter(
             fontSize: 13,
             color: CleanTheme.textSecondary,

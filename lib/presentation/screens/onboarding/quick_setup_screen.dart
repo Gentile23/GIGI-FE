@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../providers/auth_provider.dart';
@@ -279,7 +280,7 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
             GestureDetector(
               onTap: _nextPage,
               child: Text(
-                'Salta',
+                AppLocalizations.of(context)!.skipButton,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

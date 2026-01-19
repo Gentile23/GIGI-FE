@@ -88,7 +88,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 slivers: [
                   // Premium App Bar
                   SliverAppBar(
-                    expandedHeight: 120,
+                    expandedHeight: 100,
                     floating: true,
                     pinned: true,
                     backgroundColor: CleanTheme.surfaceColor,
@@ -154,30 +154,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 ],
               ),
             ),
-      floatingActionButton: _goal != null
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 100),
-              child: FloatingActionButton.extended(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MealLoggingScreen(),
-                    ),
-                  );
-                  if (result == true) _loadData();
-                },
-                backgroundColor: CleanTheme.primaryColor,
-                foregroundColor: Colors.white,
-                elevation: 4,
-                icon: const Icon(Icons.add_a_photo),
-                label: Text(
-                  AppLocalizations.of(context)!.logMeal,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                ),
-              ),
-            )
-          : null,
     );
   }
 

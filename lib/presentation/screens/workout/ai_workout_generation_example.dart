@@ -96,6 +96,7 @@ class _AIWorkoutGenerationExampleState
       final result = await workoutService.generateAIPlan(
         user: user,
         profile: profile,
+        language: Localizations.localeOf(context).languageCode,
       );
 
       if (result['success'] == true) {

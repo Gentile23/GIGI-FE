@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
@@ -20,6 +21,8 @@ import '../../../data/services/api_client.dart';
 import 'dart:async';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/voice_coaching_service.dart';
+import '../../../data/services/trial_workout_service.dart'; // [NEW]
+import '../../../data/models/trial_workout_model.dart'; // [NEW]
 import 'package:gigi/l10n/app_localizations.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
@@ -36,6 +39,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Set<String> _completedSections = {};
   final Set<String> _skippedSections = {};
 
+  // Trial Workout Local State [NEW]
+  // Trial Workout Local State [NEW]
+
   // Session Timer
   bool _isSessionActive = false;
   DateTime? _sessionStartTime;
@@ -51,12 +57,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   // Voice Coaching API Service
   late VoiceCoachingService _voiceCoachingService;
 
+  // Trial Service [NEW]
+  late TrialWorkoutService _trialWorkoutService;
+
   @override
   void initState() {
     super.initState();
 
+    final apiClient = ApiClient();
+
     // Initialize services in correct order for dependency injection
-    _voiceCoachingService = VoiceCoachingService(ApiClient());
+    _voiceCoachingService = VoiceCoachingService(apiClient);
+    _trialWorkoutService = TrialWorkoutService(apiClient); // [NEW]
+
     _gigiTTS = GigiTTSService(_voiceCoachingService);
     _gigiTTS.initialize();
 
@@ -239,52 +252,35 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background behind image
+      backgroundColor: CleanTheme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: CleanTheme.surfaceColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: CleanTheme.textPrimary,
+          ),
+          onPressed: () => _confirmExit(),
+        ),
+        title: Text(
+          widget.workoutDay.name.split(' - ').first,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Stack(
         children: [
-          // 1. Full Screen Image Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.5,
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: const AssetImage('assets/images/workout_hero.png'),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withValues(alpha: 0.3),
-                    BlendMode.darken,
-                  ),
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back button
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios_new,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => _confirmExit(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
           // 2. Sliding Content Sheet
+          // Full Screen Content Sheet (no hero image)
           DraggableScrollableSheet(
-            initialChildSize: 0.65,
-            minChildSize: 0.6,
-            maxChildSize: 0.95,
+            initialChildSize: 1.0,
+            minChildSize: 0.85,
+            maxChildSize: 1.0,
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
@@ -294,36 +290,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.fromLTRB(
+                  padding: EdgeInsets.fromLTRB(
                     20,
                     24,
                     20,
-                    100,
-                  ), // Bottom padding for floating button
+                    ResponsiveUtils.floatingElementPadding(
+                      context,
+                      baseHeight: 200,
+                    ),
+                  ), // Dynamic bottom padding for floating stats + button
                   children: [
-                    // Handle Bar
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Title & Info
-                    Text(
-                      widget.workoutDay.name,
-                      style: GoogleFonts.outfit(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                    // Stats Header
                     _buildStatsHeader(),
                     const SizedBox(height: 24),
 
@@ -358,7 +335,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           Positioned(
             left: 20,
             right: 20,
-            bottom: 24,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -367,7 +344,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
-                      vertical: 16,
+                      vertical: 10,
                       horizontal: 20,
                     ),
                     decoration: BoxDecoration(
@@ -546,6 +523,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
 
                 // Finish Workout Button (when session is active)
+                if (_isSessionActive) const SizedBox(height: 12),
                 if (_isSessionActive)
                   SizedBox(
                     width: double.infinity,
@@ -943,6 +921,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildNavigationButton({
     required String id,
     required String title,
@@ -1252,14 +1231,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER: Exercise name + number + stats
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 1. Number Badge
                     Container(
                       width: 32,
                       height: 32,
+                      margin: const EdgeInsets.only(top: 4),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isCompleted
@@ -1284,49 +1265,26 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
+
+                    // 2. Title & Info
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  exercise.exercise.name,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: isCompleted
-                                        ? CleanTheme.textTertiary
-                                        : CleanTheme.textPrimary,
-                                    decoration: isCompleted
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
-                                ),
-                              ),
-                              if (isNext)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: CleanTheme.primaryColor,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.nextBadge,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          Text(
+                            exercise.exercise.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: isCompleted
+                                  ? CleanTheme.textTertiary
+                                  : CleanTheme.textPrimary,
+                              decoration: isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
                               _buildDifficultyBadge(
@@ -1351,69 +1309,61 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   ),
                                 ),
                               ),
-                              // Suggested Weight Badge - Only show if no history and weight suggested
-                              if (exercise.suggestedWeightKg != null &&
-                                  exercise.suggestedWeightKg! > 0 &&
-                                  (exerciseLog?.setLogs.isEmpty ?? true)) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: CleanTheme.accentBlue.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: CleanTheme.accentBlue.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.lightbulb_outline,
-                                        size: 12,
-                                        color: CleanTheme.accentBlue,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${exercise.suggestedWeightKg!.toStringAsFixed(0)} kg',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: CleanTheme.accentBlue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
+                          // Suggested Weight Badge
+                          if (exercise.suggestedWeightKg != null &&
+                              exercise.suggestedWeightKg! > 0 &&
+                              (exerciseLog?.setLogs.isEmpty ?? true)) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.accentBlue.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: CleanTheme.accentBlue.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lightbulb_outline,
+                                    size: 12,
+                                    color: CleanTheme.accentBlue,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Suggerito: ${exercise.suggestedWeightKg!.toStringAsFixed(0)} kg',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: CleanTheme.accentBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
 
-              // ALWAYS VISIBLE: Anatomy + Muscles Row
-              if (exercise.exerciseType != 'cardio' &&
-                  exercise.exerciseType != 'mobility')
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    // 3. Anatomical View (Top Right)
+                    if (exercise.exerciseType != 'cardio' &&
+                        exercise.exerciseType != 'mobility') ...[
+                      const SizedBox(width: 4),
                       Container(
-                        width: 60,
-                        height: 80,
-                        margin: const EdgeInsets.only(right: 12),
+                        width: 80,
+                        height: 105, // Larger size
                         decoration: BoxDecoration(
                           color: CleanTheme.backgroundColor,
                           borderRadius: BorderRadius.circular(8),
@@ -1421,45 +1371,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: DualAnatomicalView(
-                            muscleGroups: exercise.exercise.muscleGroups,
-                            height: 80,
-                            highlightColor: CleanTheme.primaryColor,
+                            muscleGroups:
+                                exercise.exercise.muscleGroups.isNotEmpty
+                                ? exercise.exercise.muscleGroups
+                                : [exercise.exercise.name],
+                            height: 105,
+                            highlightColor: const Color(0xFFE53935),
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children: exercise.exercise.muscleGroups.map((
-                            muscle,
-                          ) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: CleanTheme.primaryColor.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                muscle,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: CleanTheme.primaryColor,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
                     ],
-                  ),
+                  ],
                 ),
+              ),
 
               const SizedBox(height: 12),
 
@@ -1469,23 +1393,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 exerciseLog: exerciseLog?.id.isNotEmpty == true
                     ? exerciseLog
                     : null,
+                isTrial: widget.workoutDay.id.startsWith('trial_'),
                 onCompletionChanged: (allSetsCompleted) {
                   setState(() {
                     if (allSetsCompleted) {
                       _completedExercises.add(exercise.exercise.id);
-                      // Audio triggers disabled
-                      // _voiceController.onUserInteraction(
-                      //   GigiInteractionEvent.exerciseCompleted,
-                      //   exerciseName: exercise.exercise.name,
-                      // );
                     } else {
                       _completedExercises.remove(exercise.exercise.id);
                     }
                   });
                 },
                 onSetCompleted: (setData) {
-                  // Voice coaching disabled on checkbox click per user request
-                  // Gigi only speaks on: activation, session start/end, "Esegui con Gigi"
+                  // [NEW] Track trial progress locally
+                  if (widget.workoutDay.id.startsWith('trial_')) {
+                    // We just track that the set was done.
+                  }
                 },
                 onRestTimerSkipped: () {
                   // Voice coaching disabled on rest skip per user request
@@ -1597,6 +1519,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Future<void> _finishWorkout() async {
+    // [NEW] Trial Workout Handling
+    if (widget.workoutDay.id.startsWith('trial_')) {
+      _finishTrialWorkout();
+      return;
+    }
+
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
 
     showDialog(
@@ -1687,8 +1615,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               } catch (e) {
                 if (!mounted) return;
                 navigator.pop();
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
+                    // ignore: use_build_context_synchronously
                     content: Text(AppLocalizations.of(context)!.saveError(e)),
                     backgroundColor: CleanTheme.accentRed,
                   ),
@@ -1705,6 +1635,178 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // [NEW] Trial Workout Completion Flow
+  void _finishTrialWorkout() {
+    // Show assessment dialog to capture fatigue and submit
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _TrialAssessmentDialog(
+        onConfirm: (fatigue, difficulty) {
+          _submitTrialResults(fatigue, difficulty);
+        },
+      ),
+    );
+  }
+
+  Future<void> _submitTrialResults(int fatigue, int difficulty) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    try {
+      // 1. Calculate Stats
+      final skippedExercises = widget.workoutDay.exercises
+          .where((e) => !_completedExercises.contains(e.exercise.id))
+          .map((e) => e.exercise.id)
+          .toList();
+
+      // Create difficulty map (using overall difficulty for all completed exercises for now)
+      final difficultyMap = <String, int>{};
+      for (final exerciseId in _completedExercises) {
+        difficultyMap[exerciseId] = difficulty;
+      }
+
+      final performanceData = TrialPerformanceData(
+        difficultyRatings: difficultyMap,
+        skippedExercises: skippedExercises,
+        totalRestTime: 0,
+        overallFatigue: fatigue,
+        formIssues: [],
+        feedback: "Trial completed via app",
+      );
+
+      // 2. Submit to Backend
+      final result = await _trialWorkoutService.submitTrialResults(
+        performanceData,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Pop loading
+
+      if (result != null) {
+        // Success!
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.workoutCompleted),
+            backgroundColor: CleanTheme.accentGreen,
+          ),
+        );
+
+        // Navigate to Home or specific success screen
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        throw Exception("Failed to submit results");
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Pop loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Errore salvataggio valutazione: $e"),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+    }
+  }
+}
+
+// [NEW] Simple Assessment Dialog for Trial
+class _TrialAssessmentDialog extends StatefulWidget {
+  final Function(int fatigue, int difficulty) onConfirm;
+
+  const _TrialAssessmentDialog({required this.onConfirm});
+
+  @override
+  State<_TrialAssessmentDialog> createState() => _TrialAssessmentDialogState();
+}
+
+class _TrialAssessmentDialogState extends State<_TrialAssessmentDialog> {
+  int _fatigue = 3;
+  int _difficulty = 3;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: CleanTheme.surfaceColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        "Completamento Valutazione",
+        style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSlider(
+            "Fatica Complessiva (1-5)",
+            _fatigue,
+            (val) => setState(() => _fatigue = val),
+          ),
+          const SizedBox(height: 16),
+          _buildSlider(
+            "Difficoltà Percepita (1-5)",
+            _difficulty,
+            (val) => setState(() => _difficulty = val),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            "Annulla",
+            style: TextStyle(color: CleanTheme.textSecondary),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onConfirm(_fatigue, _difficulty);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: CleanTheme.primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text("Completa", style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlider(String label, int value, Function(int) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: GoogleFonts.inter(fontSize: 14)),
+            Text(
+              "$value",
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        Slider(
+          value: value.toDouble(),
+          min: 1,
+          max: 5,
+          divisions: 4,
+          activeColor: CleanTheme.primaryColor,
+          onChanged: (v) => onChanged(v.toInt()),
+        ),
+      ],
     );
   }
 }

@@ -1,0 +1,39 @@
+﻿Analyzing GiGi...                                               
+
+warning - The declaration '_buildPersonalizedGreeting' isn't referenced - lib\core\services\synchronized_voice_controller.dart:226:10 - unused_element
+warning - The declaration '_speakPersonalizedCelebration' isn't referenced - lib\core\services\synchronized_voice_controller.dart:358:16 - unused_element
+warning - The declaration '_speakExerciseComplete' isn't referenced - lib\core\services\synchronized_voice_controller.dart:394:16 - unused_element
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\core\services\synchronized_voice_controller.dart:561:5 - prefer_conditional_assignment
+warning - The operand can't be 'null', so the condition is always 'true' - lib\core\services\synchronized_voice_controller.dart:584:55 - unnecessary_null_comparison
+warning - The operand can't be 'null', so the condition is always 'true' - lib\core\services\synchronized_voice_controller.dart:616:49 - unnecessary_null_comparison
+   info - Library names are not necessary - lib\data\models\injury_model.dart:1:9 - unnecessary_library_name
+   info - The imported package 'google_sign_in_platform_interface' isn't a dependency of the importing package - lib\presentation\screens\auth\google_sign_in_button_web.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'google_sign_in_web' isn't a dependency of the importing package - lib\presentation\screens\auth\google_sign_in_button_web.dart:3:8 - depend_on_referenced_packages
+warning - The operand can't be 'null', so the condition is always 'true' - lib\presentation\screens\home\home_screen.dart:311:49 - unnecessary_null_comparison
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\home\home_screen.dart:1051:7 - use_build_context_synchronously
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:821:35 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\presentation\screens\questionnaire\unified_questionnaire_screen.dart:821:39 - unnecessary_underscores
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1691:38 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1693:55 - use_build_context_synchronously
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:130:23 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:131:23 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:137:23 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:138:23 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:144:23 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - test\integration\onboarding_flow_test.dart:145:23 - deprecated_member_use
+   info - Statements in an if should be enclosed in a block - test\unit\api_service_test.dart:110:7 - curly_braces_in_flow_control_structures
+
+flutter : 22 issues found. (ran 
+in 48.0s)
+In riga:1 car:1
++ flutter analyze 2>&1 | 
+Out-File -FilePath 
+analyze_output4.txt -Encodi ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : No 
+   tSpecified: (22 issues found  
+  . (ran in 48.0s):String) [],   
+  RemoteException
+    + FullyQualifiedErrorId : Na 
+   tiveCommandError
+ 

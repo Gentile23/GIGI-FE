@@ -7,6 +7,7 @@ import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 
 class FormAnalysisScreen extends StatefulWidget {
@@ -68,8 +69,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         if (fileSize > 50 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Video troppo grande! Max 50MB'),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.videoTooLarge),
                 backgroundColor: CleanTheme.accentRed,
               ),
             );
@@ -91,8 +92,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   Future<void> _analyzeVideo() async {
     if (_videoFile == null || _exerciseController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Seleziona video e inserisci nome esercizio'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.selectVideoAndExercise),
         ),
       );
       return;
@@ -128,7 +129,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           ),
         );
       } else {
-        throw Exception('Analisi fallita');
+        if (!mounted) return;
+        throw Exception(AppLocalizations.of(context)!.analysisFailed);
       }
     } catch (e) {
       if (mounted) {
@@ -153,26 +155,28 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
-          'Limite Raggiunto',
+          AppLocalizations.of(context)!.limitReached,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
         content: Text(
-          'Hai raggiunto il limite giornaliero di ${_quota?.dailyLimit ?? 3} analisi.\n\nUpgrade a Premium per analisi illimitate!',
+          AppLocalizations.of(
+            context,
+          )!.limitReachedDesc(_quota?.dailyLimit ?? 3),
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Chiudi',
+              AppLocalizations.of(context)!.close,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
           CleanButton(
-            text: 'Upgrade',
+            text: AppLocalizations.of(context)!.upgrade,
             onPressed: () {
               Navigator.pop(context);
             },
@@ -188,7 +192,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'AI Form Check',
+          AppLocalizations.of(context)!.aiFormCheck,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -219,16 +223,15 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                   const SizedBox(height: 32),
                   if (_videoFile != null && !_isAnalyzing)
                     CleanButton(
-                      text: 'Analizza Esecuzione',
+                      text: AppLocalizations.of(context)!.analyzeForm,
                       icon: Icons.auto_awesome,
                       width: double.infinity,
                       onPressed: _analyzeVideo,
                     ),
                   if (_isAnalyzing) _buildAnalyzingWidget(),
                   const SizedBox(height: 24),
-                  const GigiCoachMessage(
-                    message:
-                        'Ciao! Per un risultato perfetto, chiedi a qualcuno di riprenderti di profilo o appoggia il telefono. Assicurati che tutto il corpo sia visibile!',
+                  GigiCoachMessage(
+                    message: AppLocalizations.of(context)!.gigiFormMessage,
                     emotion: GigiEmotion.expert,
                   ),
                   const SizedBox(height: 24),
@@ -271,7 +274,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isPremium ? '✨ Premium User' : 'Analisi Giornaliere',
+                  isPremium
+                      ? '✨ Premium User'
+                      : AppLocalizations.of(context)!.dailyAnalyses,
                   style: GoogleFonts.outfit(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -281,8 +286,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                 const SizedBox(height: 4),
                 Text(
                   isPremium
-                      ? 'Analisi illimitate'
-                      : '$remaining/${_quota!.dailyLimit} rimaste oggi',
+                      ? AppLocalizations.of(context)!.unlimitedAnalyses
+                      : AppLocalizations.of(
+                          context,
+                        )!.remainingToday(remaining, _quota!.dailyLimit),
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: remaining > 0 || isPremium
@@ -304,9 +311,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       controller: _exerciseController,
       style: GoogleFonts.inter(color: CleanTheme.textPrimary),
       decoration: InputDecoration(
-        labelText: 'Nome Esercizio',
+        labelText: AppLocalizations.of(context)!.exerciseName,
         labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
-        hintText: 'es. Squat, Panca piana, Stacco...',
+        hintText: AppLocalizations.of(context)!.exerciseHint,
         hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
         prefixIcon: const Icon(
           Icons.fitness_center_outlined,
@@ -355,7 +362,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Registra Video',
+                AppLocalizations.of(context)!.recordVideo,
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -364,7 +371,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Max 15 secondi',
+                AppLocalizations.of(context)!.max15Seconds,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   color: CleanTheme.textTertiary,
@@ -386,7 +393,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Carica dalla Galleria',
+                AppLocalizations.of(context)!.uploadFromGallery,
                 style: GoogleFonts.inter(
                   fontSize: 15,
                   color: CleanTheme.textPrimary,
@@ -431,7 +438,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Video selezionato',
+                    AppLocalizations.of(context)!.videoSelected,
                     style: GoogleFonts.inter(
                       color: CleanTheme.accentGreen,
                       fontWeight: FontWeight.w500,
@@ -447,7 +454,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                   size: 20,
                 ),
                 label: Text(
-                  'Rimuovi',
+                  AppLocalizations.of(context)!.remove,
                   style: GoogleFonts.inter(color: CleanTheme.accentRed),
                 ),
               ),
@@ -467,8 +474,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           const SizedBox(height: 20),
           Text(
             _uploadProgress < 1.0
-                ? 'Caricamento... ${(_uploadProgress * 100).toInt()}%'
-                : 'Gigi sta analizzando la tua tecnica...',
+                ? AppLocalizations.of(
+                    context,
+                  )!.loadingProgress((_uploadProgress * 100).toInt())
+                : AppLocalizations.of(context)!.analyzingForm,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -488,7 +497,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
             ),
           const SizedBox(height: 12),
           Text(
-            'Questo può richiedere 30-60 secondi',
+            AppLocalizations.of(context)!.takeTimeDesc,
             style: GoogleFonts.inter(
               fontSize: 13,
               color: CleanTheme.textTertiary,
@@ -521,7 +530,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Come funziona',
+                AppLocalizations.of(context)!.howItWorks,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -531,10 +540,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoItem('📹', 'Registra o carica un video (max 15 sec)'),
-          _buildInfoItem('🤖', 'Gigi analizza la tua esecuzione'),
-          _buildInfoItem('📊', 'Ricevi feedback su postura ed errori'),
-          _buildInfoItem('💡', 'Migliora con suggerimenti personalizzati'),
+          _buildInfoItem('📹', AppLocalizations.of(context)!.howItWorksStep1),
+          _buildInfoItem('🤖', AppLocalizations.of(context)!.howItWorksStep2),
+          _buildInfoItem('📊', AppLocalizations.of(context)!.howItWorksStep3),
+          _buildInfoItem('💡', AppLocalizations.of(context)!.howItWorksStep4),
         ],
       ),
     );

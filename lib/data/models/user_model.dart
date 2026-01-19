@@ -8,6 +8,7 @@ class UserModel {
   final String name;
   final SubscriptionModel? subscription;
   final String? goal;
+  final List<String>? goals; // NEW
   final String? experienceLevel;
   final int? weeklyFrequency;
   final String? trainingLocation;
@@ -28,6 +29,7 @@ class UserModel {
   final DateTime? createdAt;
   final DateTime?
   lastPlanGeneration; // Track when user last generated a workout plan
+  final String? avatarUrl;
 
   // Professional Trainer Fields
   final TrainingHistory? trainingHistory;
@@ -44,6 +46,7 @@ class UserModel {
     required this.name,
     this.subscription,
     this.goal,
+    this.goals,
     this.experienceLevel,
     this.weeklyFrequency,
     this.trainingLocation,
@@ -63,6 +66,7 @@ class UserModel {
     this.workoutType,
     this.createdAt,
     this.lastPlanGeneration,
+    this.avatarUrl,
     // Professional Trainer Fields
     this.trainingHistory,
     this.preferredDays,
@@ -146,6 +150,7 @@ class UserModel {
       lastPlanGeneration: json['last_plan_generation'] != null
           ? DateTime.parse(json['last_plan_generation'] as String)
           : null,
+      avatarUrl: json['avatar_url'] as String?,
       // Professional Trainer Fields
       trainingHistory: profile?['training_history'] != null
           ? TrainingHistory.values.firstWhere(
@@ -320,6 +325,7 @@ class UserModel {
       'workout_type': workoutType,
       'created_at': createdAt?.toIso8601String(),
       'last_plan_generation': lastPlanGeneration?.toIso8601String(),
+      'avatar_url': avatarUrl,
       // Professional Trainer Fields
       'training_history': trainingHistory?.toString().split('.').last,
       'preferred_days': preferredDays,
@@ -337,6 +343,7 @@ class UserModel {
     String? name,
     SubscriptionModel? subscription,
     String? goal,
+    List<String>? goals,
     String? experienceLevel,
     int? weeklyFrequency,
     String? trainingLocation,
@@ -356,6 +363,7 @@ class UserModel {
     String? workoutType,
     DateTime? createdAt,
     DateTime? lastPlanGeneration,
+    String? avatarUrl,
     // Professional Trainer Fields
     TrainingHistory? trainingHistory,
     List<String>? preferredDays,
@@ -371,6 +379,7 @@ class UserModel {
       name: name ?? this.name,
       subscription: subscription ?? this.subscription,
       goal: goal ?? this.goal,
+      goals: goals ?? this.goals,
       experienceLevel: experienceLevel ?? this.experienceLevel,
       weeklyFrequency: weeklyFrequency ?? this.weeklyFrequency,
       trainingLocation: trainingLocation ?? this.trainingLocation,
@@ -393,6 +402,7 @@ class UserModel {
       workoutType: workoutType ?? this.workoutType,
       createdAt: createdAt ?? this.createdAt,
       lastPlanGeneration: lastPlanGeneration ?? this.lastPlanGeneration,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
       trainingHistory: trainingHistory ?? this.trainingHistory,
       preferredDays: preferredDays ?? this.preferredDays,
       timePreference: timePreference ?? this.timePreference,

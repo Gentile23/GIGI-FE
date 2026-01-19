@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/exercise_intro_model.dart';
 import '../clean_widgets.dart';
@@ -187,8 +188,8 @@ class _ModeSelectionSheetState extends State<ModeSelectionSheet> {
                       mode: CoachingMode.voice,
                       icon: Icons.mic,
                       emoji: '🎤',
-                      title: 'VOICE MODE',
-                      subtitle: 'Gigi ti guida\nogni ripetizione',
+                      title: AppLocalizations.of(context)!.voiceModeTitle,
+                      subtitle: AppLocalizations.of(context)!.voiceModeSubtitle,
                       isSelected: _selectedMode == CoachingMode.voice,
                     ),
                   ),
@@ -199,8 +200,8 @@ class _ModeSelectionSheetState extends State<ModeSelectionSheet> {
                       mode: CoachingMode.music,
                       icon: Icons.music_note,
                       emoji: '🎵',
-                      title: 'MUSIC MODE',
-                      subtitle: 'La tua musica\n+ cue minimi',
+                      title: AppLocalizations.of(context)!.musicModeTitle,
+                      subtitle: AppLocalizations.of(context)!.musicModeSubtitle,
                       isSelected: _selectedMode == CoachingMode.music,
                     ),
                   ),

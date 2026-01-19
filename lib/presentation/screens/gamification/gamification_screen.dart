@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../data/models/gamification_model.dart';
 import '../../../data/services/gamification_service.dart';
 import '../../../data/services/api_client.dart';
@@ -112,7 +113,7 @@ class _GamificationScreenState extends State<GamificationScreen>
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Level Card
             Container(
@@ -346,7 +347,9 @@ class _GamificationScreenState extends State<GamificationScreen>
         children: [
           if (_unlockedAchievements.isNotEmpty) ...[
             CleanSectionHeader(
-              title: 'Sbloccati (${_unlockedAchievements.length})',
+              title: AppLocalizations.of(
+                context,
+              )!.unlockedCount(_unlockedAchievements.length),
             ),
             const SizedBox(height: 16),
             ..._unlockedAchievements.map(
@@ -357,7 +360,9 @@ class _GamificationScreenState extends State<GamificationScreen>
           ],
           if (_lockedAchievements.isNotEmpty) ...[
             CleanSectionHeader(
-              title: 'Da Sbloccare (${_lockedAchievements.length})',
+              title: AppLocalizations.of(
+                context,
+              )!.toUnlockCount(_lockedAchievements.length),
             ),
             const SizedBox(height: 16),
             ..._lockedAchievements.map(

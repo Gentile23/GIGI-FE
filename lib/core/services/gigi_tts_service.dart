@@ -86,41 +86,6 @@ class GigiTTSService extends ChangeNotifier {
     }
   }
 
-  /// Helper to play URL (fire and forget - for backwards compatibility)
-  Future<void> _playUrl(String url) async {
-    String fullUrl = url;
-    if (!url.startsWith('http')) {
-      try {
-        final baseUri = Uri.parse(ApiConfig.baseUrl);
-        final rootDomain =
-            '${baseUri.scheme}://${baseUri.host}:${baseUri.port}';
-        final cleanPath = url.startsWith('/') ? url.substring(1) : url;
-        fullUrl = '$rootDomain/$cleanPath';
-      } catch (e) {
-        debugPrint('Error parsing base URL: $e');
-        // Fallback to naive concatenation if parsing fails
-        fullUrl = '${ApiConfig.baseUrl.replaceAll('/api/', '')}/$url';
-      }
-    }
-
-    debugPrint('🎧 Playing audio: $fullUrl');
-
-    // Optimistically set speaking state to prevent race conditions
-    _isSpeaking = true;
-    notifyListeners();
-    onSpeakStart?.call();
-
-    try {
-      await _audioPlayer.setVolume(_volume);
-      await _audioPlayer.play(UrlSource(fullUrl));
-    } catch (e) {
-      debugPrint('Error playing audio: $e');
-      _isSpeaking = false;
-      notifyListeners();
-      onSpeakComplete?.call();
-    }
-  }
-
   /// Helper to play URL AND WAIT for completion
   /// Uses Completer to await the onPlayerComplete event
   Future<void> _playUrlAndWait(String url) async {

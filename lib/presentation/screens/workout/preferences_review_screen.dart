@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
@@ -18,7 +19,7 @@ class PreferencesReviewScreen extends StatelessWidget {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Rivedi Preferenze',
+          AppLocalizations.of(context)!.reviewPreferences,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -161,7 +162,7 @@ class PreferencesReviewScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CleanButton(
-                        text: 'Modifica',
+                        text: AppLocalizations.of(context)!.edit,
                         isOutlined: true,
                         onPressed: () {
                           Navigator.push(
@@ -178,7 +179,7 @@ class PreferencesReviewScreen extends StatelessWidget {
                     Expanded(
                       flex: 2,
                       child: CleanButton(
-                        text: 'Genera Piano',
+                        text: AppLocalizations.of(context)!.generatePlan,
                         onPressed: () => _proceedToGeneration(context, user),
                       ),
                     ),
@@ -350,7 +351,10 @@ class PreferencesReviewScreen extends StatelessWidget {
     );
 
     try {
-      final success = await workoutProvider.generatePlan();
+      final languageCode = Localizations.localeOf(context).languageCode;
+      final success = await workoutProvider.generatePlan(
+        language: languageCode,
+      );
 
       if (context.mounted) {
         Navigator.pop(context);

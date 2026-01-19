@@ -39,6 +39,7 @@ class TrialExercise {
   final String? voiceCoachingPreUrl;
   final String? voiceCoachingDuringUrl;
   final String? voiceCoachingPostUrl;
+  final List<String> muscleGroups;
 
   TrialExercise({
     this.id,
@@ -50,6 +51,7 @@ class TrialExercise {
     this.voiceCoachingPreUrl,
     this.voiceCoachingDuringUrl,
     this.voiceCoachingPostUrl,
+    this.muscleGroups = const [],
   });
 
   factory TrialExercise.fromJson(Map<String, dynamic> json) {
@@ -63,6 +65,11 @@ class TrialExercise {
       voiceCoachingPreUrl: json['voice_coaching_pre_url'] as String?,
       voiceCoachingDuringUrl: json['voice_coaching_during_url'] as String?,
       voiceCoachingPostUrl: json['voice_coaching_post_url'] as String?,
+      muscleGroups:
+          (json['muscle_groups'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

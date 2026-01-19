@@ -110,8 +110,8 @@ class WorkoutProvider with ChangeNotifier {
           );
         }
 
-        // If plan is processing, start polling
-        if (_currentPlan?.status == 'processing') {
+        // If plan is processing, start polling (but only if not already polling)
+        if (_currentPlan?.status == 'processing' && !_isGenerating) {
           debugPrint('DEBUG: Plan is processing, starting poll');
           _isGenerating = true;
           _pollPlanStatus(_currentPlan!.id);
@@ -132,12 +132,12 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> generatePlan() async {
+  Future<bool> generatePlan({String? language}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    final result = await _workoutService.generatePlan();
+    final result = await _workoutService.generatePlan(language: language);
 
     if (result['success']) {
       final plan = result['plan'];
@@ -160,13 +160,19 @@ class WorkoutProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> generateCustomPlan(Map<String, dynamic> filters) async {
+  Future<bool> generateCustomPlan(
+    Map<String, dynamic> filters, {
+    String? language,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     debugPrint('DEBUG: Generating custom plan with filters: $filters');
-    final result = await _workoutService.generatePlan(filters: filters);
+    final result = await _workoutService.generatePlan(
+      filters: filters,
+      language: language,
+    );
 
     if (result['success']) {
       final plan = result['plan'];

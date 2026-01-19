@@ -6,6 +6,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/health_insights_service.dart';
 import '../../../core/services/haptic_service.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// WEEKLY REPORT SCREEN
@@ -56,19 +57,19 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     final text =
         '''
-📊 Il mio Report Settimanale GIGI
+📊 ${AppLocalizations.of(context)!.myWeeklyReport}
 
-😴 Sonno: ${_report!.sleep.avgHours.toStringAsFixed(1)}h/notte
-🚶 Passi: ${_report!.activity.avgDailySteps}/giorno  
-💪 Workout: ${_report!.activity.workoutsCompleted} completati
-❤️ HR: ${_report!.heartRate.restingAvg} bpm
+😴 ${AppLocalizations.of(context)!.sleep}: ${_report!.sleep.avgHours.toStringAsFixed(1)}h${AppLocalizations.of(context)!.perNight}
+🚶 ${AppLocalizations.of(context)!.steps}: ${_report!.activity.avgDailySteps}${AppLocalizations.of(context)!.perDay}  
+💪 ${AppLocalizations.of(context)!.workouts}: ${_report!.activity.workoutsCompleted} ${AppLocalizations.of(context)!.completed}
+❤️ ${AppLocalizations.of(context)!.heartRate}: ${_report!.heartRate.restingAvg} bpm
 
 💡 ${_report!.aiTip}
 
 #GIGI #Fitness #HealthTracking
 ''';
 
-    Share.share(text);
+    SharePlus.instance.share(ShareParams(text: text));
   }
 
   @override
@@ -93,7 +94,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           expandedHeight: 180,
           pinned: true,
           backgroundColor: const Color(0xFF1A1A2E),
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: Text(
+            AppLocalizations.of(context)!.weeklyReport,
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
           flexibleSpace: FlexibleSpaceBar(
+            collapseMode: CollapseMode.parallax,
             background: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -118,7 +128,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Report Settimanale',
+                                  AppLocalizations.of(context)!.weeklyReport,
                                   style: GoogleFonts.outfit(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
@@ -164,28 +174,40 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 const SizedBox(height: 24),
 
                 // Sleep chart
-                _buildSectionTitle('😴', 'Andamento Sonno'),
+                _buildSectionTitle(
+                  '😴',
+                  AppLocalizations.of(context)!.sleepTrend,
+                ),
                 const SizedBox(height: 12),
                 _buildSleepChart(),
 
                 const SizedBox(height: 24),
 
                 // Activity summary
-                _buildSectionTitle('🚶', 'Attività'),
+                _buildSectionTitle(
+                  '🚶',
+                  AppLocalizations.of(context)!.activity,
+                ),
                 const SizedBox(height: 12),
                 _buildActivityCard(),
 
                 const SizedBox(height: 24),
 
                 // Insights
-                _buildSectionTitle('💡', 'Insights AI'),
+                _buildSectionTitle(
+                  '💡',
+                  AppLocalizations.of(context)!.aiInsights,
+                ),
                 const SizedBox(height: 12),
                 _buildInsightsList(),
 
                 const SizedBox(height: 24),
 
                 // Correlations
-                _buildSectionTitle('🔮', 'Pattern Discovery'),
+                _buildSectionTitle(
+                  '🔮',
+                  AppLocalizations.of(context)!.patternDiscovery,
+                ),
                 const SizedBox(height: 12),
                 _buildCorrelationsList(),
 
@@ -205,7 +227,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   String _formatPeriod() {
     if (_report == null) return '';
-    final dateFormat = DateFormat('d MMM', 'it');
+    final dateFormat = DateFormat(
+      'd MMM',
+      AppLocalizations.of(context)!.localeName,
+    );
     return '${dateFormat.format(_report!.periodStart)} - ${dateFormat.format(_report!.periodEnd)}';
   }
 
@@ -229,28 +254,28 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           _buildStatItem(
             '😴',
             '${_report!.sleep.avgHours.toStringAsFixed(1)}h',
-            'Sonno medio',
+            AppLocalizations.of(context)!.avgSleep,
             _getTrendIcon(_report!.sleep.trend),
           ),
           _buildDivider(),
           _buildStatItem(
             '🚶',
             '${(_report!.activity.avgDailySteps / 1000).toStringAsFixed(1)}k',
-            'Passi/giorno',
+            AppLocalizations.of(context)!.stepsPerDay,
             null,
           ),
           _buildDivider(),
           _buildStatItem(
             '💪',
             '${_report!.activity.workoutsCompleted}',
-            'Workout',
+            AppLocalizations.of(context)!.workouts,
             null,
           ),
           _buildDivider(),
           _buildStatItem(
             '❤️',
             '${_report!.heartRate.restingAvg}',
-            'HR bpm',
+            AppLocalizations.of(context)!.hrBpm,
             null,
           ),
         ],
@@ -431,7 +456,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Passi totali',
+                AppLocalizations.of(context)!.totalSteps,
                 style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               ),
               Text(
@@ -456,7 +481,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Obiettivo: 70.000 passi/settimana',
+            AppLocalizations.of(context)!.weeklyStepGoal,
             style: GoogleFonts.inter(
               fontSize: 12,
               color: CleanTheme.textTertiary,
@@ -547,7 +572,9 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Basato su ${c.dataPoints} giorni di dati',
+                          AppLocalizations.of(
+                            context,
+                          )!.basedOnDataPoints(c.dataPoints),
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             color: CleanTheme.textTertiary,
@@ -606,7 +633,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               const Text('🤖', style: TextStyle(fontSize: 24)),
               const SizedBox(width: 8),
               Text(
-                'Consiglio di Gigi',
+                AppLocalizations.of(context)!.gigiTip,
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -643,7 +670,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Nessun dato disponibile',
+              AppLocalizations.of(context)!.noDataAvailable,
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -652,7 +679,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Connetti Apple Health per generare il tuo report settimanale personalizzato.',
+              AppLocalizations.of(context)!.connectHealthDesc,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               textAlign: TextAlign.center,
             ),

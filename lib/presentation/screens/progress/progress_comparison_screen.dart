@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../../data/services/api_client.dart';
@@ -107,8 +108,8 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
     if (photos.isEmpty) {
       return _buildEmptyState(
         emoji: '📸',
-        title: 'Nessuna foto ancora',
-        subtitle: 'Aggiungi foto per vedere la tua trasformazione nel tempo',
+        title: AppLocalizations.of(context)!.noPhotosYetTitle,
+        subtitle: AppLocalizations.of(context)!.noPhotosYetDesc,
         action: 'Aggiungi Foto',
         onAction: () => Navigator.pushNamed(context, '/progress/photos'),
       );
@@ -172,9 +173,9 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
     required int daysApart,
   }) {
     final typeLabels = {
-      'front': 'Fronte',
-      'side_left': 'Lato',
-      'back': 'Dietro',
+      'front': AppLocalizations.of(context)!.frontPhoto,
+      'side_left': AppLocalizations.of(context)!.sidePhoto,
+      'back': AppLocalizations.of(context)!.backPhoto,
     };
 
     return Padding(
@@ -330,8 +331,8 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
     if (initial == null) {
       return _buildEmptyState(
         emoji: '📏',
-        title: 'Nessuna misura ancora',
-        subtitle: 'Aggiungi le tue misure per tracciare i progressi',
+        title: AppLocalizations.of(context)!.noMeasurementsYetTitle,
+        subtitle: AppLocalizations.of(context)!.noMeasurementsYetDesc,
         action: 'Aggiungi Misure',
         onAction: () => Navigator.pushNamed(context, '/progress/measurements'),
       );

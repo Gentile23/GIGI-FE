@@ -13,6 +13,7 @@ class OpenAIService {
     required UserModel user,
     required UserProfile profile,
     Map<String, dynamic>? bodyMeasurements,
+    String language = 'it',
   }) async {
     try {
       final prompt = _buildPrompt(user, profile, bodyMeasurements);
@@ -28,7 +29,7 @@ class OpenAIService {
         body: jsonEncode({
           'model': ApiConfig.openAiModel,
           'messages': [
-            {'role': 'system', 'content': _getSystemPrompt()},
+            {'role': 'developer', 'content': _getSystemPrompt(language)},
             {'role': 'user', 'content': prompt},
           ],
           'temperature': 0.7,
@@ -52,7 +53,7 @@ class OpenAIService {
   }
 
   /// System prompt with role definition and output format
-  String _getSystemPrompt() {
+  String _getSystemPrompt(String language) {
     return '''Sei un personal trainer esperto certificato con oltre 15 anni di esperienza nella creazione di programmi di allenamento personalizzati. 
 
 La tua specializzazione include:
@@ -63,7 +64,10 @@ La tua specializzazione include:
 - Adattamento dei programmi a limitazioni fisiche
 - Analisi delle proporzioni corporee per un allenamento bilanciato
 
-IMPORTANTE: Devi rispondere SEMPRE in formato JSON valido seguendo ESATTAMENTE questa struttura:
+IMPORTANTE: DEVI RISPONDERE SEMPRE NELLA LINGUA: $language.
+Tutto il contenuto, tranne i nomi degli esercizi che devono essere in inglese, deve essere esclusivamente in lingua $language.
+
+DEVI rispondere SEMPRE in formato JSON valido seguendo ESATTAMENTE questa struttura:
 
 {
   "workoutPlan": {

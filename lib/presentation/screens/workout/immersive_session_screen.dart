@@ -16,6 +16,7 @@ import '../../widgets/celebrations/celebration_overlay.dart';
 import '../../../core/services/gigi_tts_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/voice_coaching_service.dart';
+import 'exercise_detail_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// IMMERSIVE SESSION SCREEN - Sequential workout experience
@@ -362,7 +363,14 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
                 currentSet: _currentSetNumber,
                 totalSets: _currentExercise.sets,
                 onInfoTap: () {
-                  // TODO: Navigate to exercise detail
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExerciseDetailScreen(
+                        workoutExercise: _currentExercise,
+                      ),
+                    ),
+                  );
                 },
                 // Show skip button for cardio/mobility exercises
                 onSkip:

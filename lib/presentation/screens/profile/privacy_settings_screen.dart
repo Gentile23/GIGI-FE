@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/services/api_client.dart';
@@ -88,7 +89,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           const SizedBox(height: 24),
 
           // Consent Management
-          CleanSectionHeader(title: 'Gestione Consensi'),
+          CleanSectionHeader(
+            title: AppLocalizations.of(context)!.consentManagementSection,
+          ),
           const SizedBox(height: 12),
 
           CleanCard(
@@ -97,8 +100,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               children: [
                 _buildToggleTile(
                   icon: Icons.notifications_outlined,
-                  title: 'Notifiche Push',
-                  subtitle: 'Promemoria allenamenti e progressi',
+                  title: AppLocalizations.of(context)!.pushNotificationsTitle,
+                  subtitle: AppLocalizations.of(context)!.pushNotificationsDesc,
                   value: _notificationsEnabled,
                   onChanged: (val) =>
                       setState(() => _notificationsEnabled = val),
@@ -106,16 +109,16 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 _buildDivider(),
                 _buildToggleTile(
                   icon: Icons.mail_outline,
-                  title: 'Email Marketing',
-                  subtitle: 'Promozioni e novità',
+                  title: AppLocalizations.of(context)!.emailMarketingTitle,
+                  subtitle: AppLocalizations.of(context)!.emailMarketingDesc,
                   value: _marketingEnabled,
                   onChanged: (val) => setState(() => _marketingEnabled = val),
                 ),
                 _buildDivider(),
                 _buildToggleTile(
                   icon: Icons.analytics_outlined,
-                  title: 'Analytics',
-                  subtitle: 'Aiutaci a migliorare l\'app',
+                  title: AppLocalizations.of(context)!.analyticsTitle,
+                  subtitle: AppLocalizations.of(context)!.analyticsDesc,
                   value: _analyticsEnabled,
                   onChanged: (val) => setState(() => _analyticsEnabled = val),
                 ),
@@ -126,7 +129,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           const SizedBox(height: 24),
 
           // Legal Documents
-          CleanSectionHeader(title: 'Documenti Legali'),
+          CleanSectionHeader(
+            title: AppLocalizations.of(context)!.legalDocumentsSection,
+          ),
           const SizedBox(height: 12),
 
           CleanCard(
@@ -161,7 +166,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           const SizedBox(height: 24),
 
           // Data Rights (GDPR)
-          CleanSectionHeader(title: 'I Tuoi Diritti GDPR'),
+          CleanSectionHeader(
+            title: AppLocalizations.of(context)!.gdprRightsSection,
+          ),
           const SizedBox(height: 12),
 
           CleanCard(
@@ -170,8 +177,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
               children: [
                 _buildActionTile(
                   icon: Icons.download_outlined,
-                  title: 'Esporta i Miei Dati',
-                  subtitle: 'Scarica tutti i tuoi dati in formato JSON',
+                  title: AppLocalizations.of(context)!.exportDataTitle,
+                  subtitle: AppLocalizations.of(context)!.exportDataDesc,
                   color: CleanTheme.accentBlue,
                   isLoading: _isExporting,
                   onTap: _handleExportData,
@@ -179,8 +186,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 _buildDivider(),
                 _buildActionTile(
                   icon: Icons.delete_forever_outlined,
-                  title: 'Elimina Account',
-                  subtitle: 'Cancella permanentemente i tuoi dati',
+                  title: AppLocalizations.of(context)!.deleteAccountTitle,
+                  subtitle: AppLocalizations.of(context)!.deleteAccountDesc,
                   color: CleanTheme.accentRed,
                   isLoading: _isDeleting,
                   onTap: _showDeleteAccountDialog,
@@ -435,7 +442,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.cancelButton,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),

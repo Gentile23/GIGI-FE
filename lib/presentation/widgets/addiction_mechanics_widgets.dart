@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import '../../core/theme/clean_theme.dart';
 import '../../data/models/addiction_mechanics_model.dart';
 import 'clean_widgets.dart';
@@ -23,12 +24,12 @@ class StreakDisplayWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (compact) {
-      return _buildCompact();
+      return _buildCompact(context);
     }
-    return _buildFull();
+    return _buildFull(context);
   }
 
-  Widget _buildCompact() {
+  Widget _buildCompact(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -79,7 +80,7 @@ class StreakDisplayWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildFull() {
+  Widget _buildFull(BuildContext context) {
     return CleanCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -100,7 +101,7 @@ class StreakDisplayWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${streakData.currentStreak} giorni',
+                        '${streakData.currentStreak} ${AppLocalizations.of(context)!.days}',
                         style: GoogleFonts.outfit(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -151,7 +152,7 @@ class StreakDisplayWidget extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'XP BONUS',
+                        AppLocalizations.of(context)!.xpBonus,
                         style: GoogleFonts.inter(
                           fontSize: 8,
                           fontWeight: FontWeight.w600,
@@ -169,7 +170,7 @@ class StreakDisplayWidget extends StatelessWidget {
 
           // Progress to next multiplier
           if (streakData.currentStreak < 30) ...[
-            _buildNextMultiplierProgress(),
+            _buildNextMultiplierProgress(context),
             const SizedBox(height: 16),
           ],
 
@@ -179,7 +180,7 @@ class StreakDisplayWidget extends StatelessWidget {
               const Text('❄️', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 8),
               Text(
-                '${streakData.freezeTokensRemaining} Freeze Token',
+                '${streakData.freezeTokensRemaining} ${AppLocalizations.of(context)!.freezeTokens}',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: CleanTheme.textSecondary,
@@ -190,7 +191,7 @@ class StreakDisplayWidget extends StatelessWidget {
                 GestureDetector(
                   onTap: onFreezeTokenTap,
                   child: Text(
-                    'Usa',
+                    AppLocalizations.of(context)!.use,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -219,7 +220,7 @@ class StreakDisplayWidget extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'La tua streak è a rischio! Allenati oggi per mantenerla.',
+                      AppLocalizations.of(context)!.streakRisk,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: CleanTheme.accentRed,
@@ -236,7 +237,7 @@ class StreakDisplayWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNextMultiplierProgress() {
+  Widget _buildNextMultiplierProgress(BuildContext context) {
     int nextMilestone;
     String nextMultiplier;
 
@@ -263,7 +264,7 @@ class StreakDisplayWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Prossimo bonus: $nextMultiplier XP',
+              AppLocalizations.of(context)!.nextBonus(nextMultiplier),
               style: GoogleFonts.inter(
                 fontSize: 12,
                 color: CleanTheme.textSecondary,
@@ -406,7 +407,8 @@ class _LiveActivityBannerState extends State<LiveActivityBanner>
                         ),
                       ),
                       TextSpan(
-                        text: ' persone si stanno allenando ora',
+                        text:
+                            ' ${AppLocalizations.of(context)!.peopleWorkingOut}',
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           color: CleanTheme.textSecondary,
@@ -417,7 +419,7 @@ class _LiveActivityBannerState extends State<LiveActivityBanner>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '📈 ${_formatNumber(_data.workoutsCompletedToday)} workout completati oggi',
+                  '📈 ${_formatNumber(_data.workoutsCompletedToday)} ${AppLocalizations.of(context)!.workoutsCompleted}',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: CleanTheme.textTertiary,
@@ -571,7 +573,7 @@ class _RewardChestWidgetState extends State<RewardChestWidget>
                       border: Border.all(color: _glowColor),
                     ),
                     child: Text(
-                      'CHEST ${widget.chest.rarityName.toUpperCase()}',
+                      '${AppLocalizations.of(context)!.chestLabel} ${widget.chest.rarityName.toUpperCase()}',
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -584,7 +586,7 @@ class _RewardChestWidgetState extends State<RewardChestWidget>
                   // Open button
                   if (!widget.chest.isOpened && !_isOpening)
                     CleanButton(
-                      text: 'Apri Chest',
+                      text: AppLocalizations.of(context)!.openChest,
                       icon: Icons.lock_open,
                       onPressed: () {
                         setState(() => _isOpening = true);
@@ -668,18 +670,18 @@ class ChallengeCard extends StatelessWidget {
     }
   }
 
-  String get _typeLabel {
+  String _getTypeLabel(BuildContext context) {
     switch (challenge.type) {
       case ChallengeType.daily:
-        return 'DAILY';
+        return AppLocalizations.of(context)!.challengeDaily;
       case ChallengeType.weekly:
-        return 'WEEKLY';
+        return AppLocalizations.of(context)!.challengeWeekly;
       case ChallengeType.monthly:
-        return 'MONTHLY';
+        return AppLocalizations.of(context)!.challengeMonthly;
       case ChallengeType.community:
-        return 'COMMUNITY';
+        return AppLocalizations.of(context)!.challengeCommunity;
       case ChallengeType.oneVsOne:
-        return '1v1';
+        return AppLocalizations.of(context)!.challengeOneVsOne;
     }
   }
 
@@ -706,7 +708,7 @@ class ChallengeCard extends StatelessWidget {
                   border: Border.all(color: _typeColor.withValues(alpha: 0.3)),
                 ),
                 child: Text(
-                  _typeLabel,
+                  _getTypeLabel(context),
                   style: GoogleFonts.outfit(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,

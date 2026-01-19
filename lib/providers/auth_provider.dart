@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../data/models/user_model.dart';
 import '../data/services/api_client.dart';
@@ -68,6 +69,7 @@ class AuthProvider with ChangeNotifier {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   }) async {
     _isLoading = true;
     _error = null;
@@ -78,6 +80,7 @@ class AuthProvider with ChangeNotifier {
         name: name,
         email: email,
         password: password,
+        referralCode: referralCode,
       );
 
       _isLoading = false;
@@ -374,6 +377,38 @@ class AuthProvider with ChangeNotifier {
       debugPrint('AuthProvider UpdateProfile Error: $e');
       _isLoading = false;
       _error = 'Si è verificato un errore durante l\'aggiornamento del profilo';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Upload user avatar
+  Future<bool> uploadAvatar(XFile imageFile) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _userService.uploadAvatar(imageFile);
+
+      _isLoading = false;
+
+      if (result['success']) {
+        // Update user with new avatar URL
+        if (_user != null) {
+          _user = _user!.copyWith(avatarUrl: result['avatar_url']);
+        }
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      debugPrint('AuthProvider UploadAvatar Error: $e');
+      _isLoading = false;
+      _error = 'Errore durante il caricamento dell\'immagine';
       notifyListeners();
       return false;
     }

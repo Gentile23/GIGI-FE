@@ -459,7 +459,7 @@ class _UnifiedQuestionnaireScreenState
       final limitations = _injuries
           .map(
             (i) =>
-                '${i.category.displayName}: ${i.area.displayName} (${i.severity.displayName})',
+                '${i.category.getLocalizedName(context)}: ${i.area.getLocalizedName(context)} (${i.severity.getLocalizedName(context)})',
           )
           .toList();
 
@@ -527,10 +527,7 @@ class _UnifiedQuestionnaireScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                authProvider.error ??
-                    'Errore durante il salvataggio del profilo',
-              ),
+              content: Text(AppLocalizations.of(context)!.errorSavingProfile),
               backgroundColor: Colors.red,
             ),
           );
@@ -540,7 +537,9 @@ class _UnifiedQuestionnaireScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore imprevisto: $e'),
+            content: Text(
+              '${AppLocalizations.of(context)!.unexpectedError}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -819,7 +818,7 @@ class _UnifiedQuestionnaireScreenState
               child: Image.asset(
                 'assets/images/gigi_trainer.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
+                errorBuilder: (context, error, stackTrace) => const Icon(
                   Icons.person,
                   size: 80,
                   color: CleanTheme.primaryColor,
@@ -1096,7 +1095,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -1181,7 +1180,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   const Spacer(),
                   const SizedBox(height: 16),
                   CleanButton(
@@ -1365,7 +1364,7 @@ class _UnifiedQuestionnaireScreenState
           SizedBox(
             width: double.infinity,
             child: CleanButton(
-              text: 'Continua',
+              text: AppLocalizations.of(context)!.continueButton,
               onPressed: _selectedEquipment.isNotEmpty ? _nextPage : null,
             ),
           ),
@@ -1451,7 +1450,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   const Spacer(),
                   const SizedBox(height: 16),
                   const SizedBox(height: 16),
@@ -1575,7 +1574,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -1770,14 +1769,14 @@ class _UnifiedQuestionnaireScreenState
                             style: const TextStyle(fontSize: 24),
                           ),
                           title: Text(
-                            injury.area.displayName,
+                            injury.area.getLocalizedName(context),
                             style: GoogleFonts.inter(
                               color: CleanTheme.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           subtitle: Text(
-                            injury.severity.displayName,
+                            injury.severity.getLocalizedName(context),
                             style: GoogleFonts.inter(
                               color: CleanTheme.textSecondary,
                             ),
@@ -1792,7 +1791,7 @@ class _UnifiedQuestionnaireScreenState
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 24),
                   ],
 
@@ -1859,7 +1858,7 @@ class _UnifiedQuestionnaireScreenState
       options: InjuryCategory.values
           .map(
             (c) => _Option(
-              label: c.displayName,
+              label: c.getLocalizedName(context),
               icon: Icons
                   .healing, // Placeholder, ideally map c.icon (string) to widget
               description: 'Es. ${_getInjuryExample(c)}',
@@ -1913,7 +1912,7 @@ class _UnifiedQuestionnaireScreenState
                             height: 100,
                             alignment: Alignment.center,
                             child: Text(
-                              area.displayName,
+                              area.getLocalizedName(context),
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
@@ -1976,7 +1975,7 @@ class _UnifiedQuestionnaireScreenState
                     Text(t.icon, style: const TextStyle(fontSize: 24)),
                     const SizedBox(width: 16),
                     Text(
-                      t.displayName,
+                      t.getLocalizedName(context),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],
@@ -2129,7 +2128,7 @@ class _UnifiedQuestionnaireScreenState
                     Text(s.icon, style: const TextStyle(fontSize: 24)),
                     const SizedBox(width: 16),
                     Text(
-                      s.displayName,
+                      s.getLocalizedName(context),
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ],
@@ -2452,7 +2451,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -3257,7 +3256,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -3406,7 +3405,7 @@ class _UnifiedQuestionnaireScreenState
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   const Spacer(),
                   const SizedBox(height: 16),
                   CleanButton(

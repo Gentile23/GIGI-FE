@@ -70,6 +70,7 @@ enum BodyFatPercentage {
 class UserProfile {
   final String userId;
   final FitnessGoal? goal;
+  final List<FitnessGoal>? goals; // NEW
   final ExperienceLevel? level;
   final int? weeklyFrequency;
   final TrainingLocation? trainingLocation;
@@ -104,6 +105,7 @@ class UserProfile {
     this.bodyShape,
     this.workoutType,
     this.goal,
+    this.goals,
     this.level,
     this.weeklyFrequency,
     this.trainingLocation,
@@ -159,6 +161,16 @@ class UserProfile {
               (e) => e.toString().split('.').last == json['goal'],
               orElse: () => FitnessGoal.wellness,
             )
+          : null,
+      goals: json['goals'] != null
+          ? (json['goals'] as List)
+                .map(
+                  (g) => FitnessGoal.values.firstWhere(
+                    (e) => e.toString().split('.').last == g,
+                    orElse: () => FitnessGoal.wellness,
+                  ),
+                )
+                .toList()
           : null,
       level: json['experience_level'] != null
           ? ExperienceLevel.values.firstWhere(

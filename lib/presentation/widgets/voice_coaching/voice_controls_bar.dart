@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
 
@@ -70,7 +71,7 @@ class VoiceControlsBar extends StatelessWidget {
                       size: 28,
                     ),
                     onPressed: () => controller.pauseAudio(),
-                    tooltip: 'Pausa',
+                    tooltip: AppLocalizations.of(context)!.pause,
                   ),
                   IconButton(
                     icon: const Icon(
@@ -79,7 +80,7 @@ class VoiceControlsBar extends StatelessWidget {
                       size: 28,
                     ),
                     onPressed: () => controller.resumeAudio(),
-                    tooltip: 'Riprendi',
+                    tooltip: AppLocalizations.of(context)!.resume,
                   ),
 
                   // Forward 10s
@@ -104,7 +105,7 @@ class VoiceControlsBar extends StatelessWidget {
                       color: CleanTheme.accentRed,
                     ),
                     onPressed: () => controller.stopGuidedExecution(),
-                    tooltip: 'Chiudi',
+                    tooltip: AppLocalizations.of(context)!.close,
                   ),
                 ],
               ),

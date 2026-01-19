@@ -126,7 +126,7 @@ class LandingScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       CleanButton(
-                        text: AppLocalizations.of(context)!.login.toUpperCase(),
+                        text: AppLocalizations.of(context)!.login,
                         onPressed: () {
                           Navigator.push(
                             context,

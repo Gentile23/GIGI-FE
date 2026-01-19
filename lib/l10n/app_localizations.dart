@@ -184,6 +184,24 @@ abstract class AppLocalizations {
   /// **'La password deve essere di almeno 6 caratteri'**
   String get passwordTooShort;
 
+  /// No description provided for @confirmPassword.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma Password'**
+  String get confirmPassword;
+
+  /// No description provided for @enterConfirmPassword.
+  ///
+  /// In it, this message translates to:
+  /// **'Conferma la tua password'**
+  String get enterConfirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In it, this message translates to:
+  /// **'Le password non corrispondono'**
+  String get passwordsDoNotMatch;
+
   /// No description provided for @login.
   ///
   /// In it, this message translates to:
@@ -277,7 +295,7 @@ abstract class AppLocalizations {
   /// No description provided for @home.
   ///
   /// In it, this message translates to:
-  /// **'Home'**
+  /// **'Casa'**
   String get home;
 
   /// No description provided for @workout.
@@ -355,7 +373,7 @@ abstract class AppLocalizations {
   /// No description provided for @unexpectedError.
   ///
   /// In it, this message translates to:
-  /// **'Si è verificato un errore inatteso'**
+  /// **'Errore imprevisto'**
   String get unexpectedError;
 
   /// No description provided for @googleSignInError.
@@ -619,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @sets.
   ///
   /// In it, this message translates to:
-  /// **'Sets'**
+  /// **'Serie'**
   String get sets;
 
   /// No description provided for @reps.
@@ -691,7 +709,7 @@ abstract class AppLocalizations {
   /// No description provided for @weightLabel.
   ///
   /// In it, this message translates to:
-  /// **'Peso'**
+  /// **'PESO (KG)'**
   String get weightLabel;
 
   /// No description provided for @ageLabel.
@@ -937,13 +955,13 @@ abstract class AppLocalizations {
   /// No description provided for @injuryMuscular.
   ///
   /// In it, this message translates to:
-  /// **'Strappi, contratture'**
+  /// **'Muscolare'**
   String get injuryMuscular;
 
   /// No description provided for @injuryArticular.
   ///
   /// In it, this message translates to:
-  /// **'Distorsioni, infiammazioni'**
+  /// **'Articolare'**
   String get injuryArticular;
 
   /// No description provided for @injuryBone.
@@ -955,7 +973,7 @@ abstract class AppLocalizations {
   /// No description provided for @myWorkoutsTitle.
   ///
   /// In it, this message translates to:
-  /// **'I Miei Workout'**
+  /// **'Le Mie Schede'**
   String get myWorkoutsTitle;
 
   /// No description provided for @aiAnalyzingProfile.
@@ -1972,6 +1990,168 @@ abstract class AppLocalizations {
   /// **'💧 Aggiungi Acqua'**
   String get addWater;
 
+  /// No description provided for @appBarTitleGoals.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta Obiettivi'**
+  String get appBarTitleGoals;
+
+  /// No description provided for @profileDataSummary.
+  ///
+  /// In it, this message translates to:
+  /// **'Dati dal profilo: {height} cm • {weight} kg • {age} anni'**
+  String profileDataSummary(int height, int weight, int age);
+
+  /// No description provided for @goalStepTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'🎯 Qual è il tuo obiettivo?'**
+  String get goalStepTitle;
+
+  /// No description provided for @goalStepSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli cosa vuoi raggiungere'**
+  String get goalStepSubtitle;
+
+  /// No description provided for @goalLoseWeight.
+  ///
+  /// In it, this message translates to:
+  /// **'Perdere Peso'**
+  String get goalLoseWeight;
+
+  /// No description provided for @goalsSavedSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivi salvati con successo!'**
+  String get goalsSavedSuccess;
+
+  /// No description provided for @goalMaintain.
+  ///
+  /// In it, this message translates to:
+  /// **'Mantenere Peso'**
+  String get goalMaintain;
+
+  /// No description provided for @goalGainMuscle.
+  ///
+  /// In it, this message translates to:
+  /// **'Aumentare Massa Muscolare'**
+  String get goalGainMuscle;
+
+  /// No description provided for @goalGainWeight.
+  ///
+  /// In it, this message translates to:
+  /// **'Aumentare Peso Corporeo'**
+  String get goalGainWeight;
+
+  /// No description provided for @dietStepTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'🥗 Tipo di dieta'**
+  String get dietStepTitle;
+
+  /// No description provided for @dietStepSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai preferenze alimentari?'**
+  String get dietStepSubtitle;
+
+  /// No description provided for @dietStandard.
+  ///
+  /// In it, this message translates to:
+  /// **'Standard'**
+  String get dietStandard;
+
+  /// No description provided for @dietStandardDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna restrizione'**
+  String get dietStandardDesc;
+
+  /// No description provided for @dietLowCarb.
+  ///
+  /// In it, this message translates to:
+  /// **'Low Carb'**
+  String get dietLowCarb;
+
+  /// No description provided for @dietLowCarbDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Pochi carboidrati'**
+  String get dietLowCarbDesc;
+
+  /// No description provided for @dietVegetarian.
+  ///
+  /// In it, this message translates to:
+  /// **'Vegetariana'**
+  String get dietVegetarian;
+
+  /// No description provided for @dietVegetarianDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'No carne'**
+  String get dietVegetarianDesc;
+
+  /// No description provided for @dietVegan.
+  ///
+  /// In it, this message translates to:
+  /// **'Vegana'**
+  String get dietVegan;
+
+  /// No description provided for @dietVeganDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Solo vegetali'**
+  String get dietVeganDesc;
+
+  /// No description provided for @dietKeto.
+  ///
+  /// In it, this message translates to:
+  /// **'Keto'**
+  String get dietKeto;
+
+  /// No description provided for @dietKetoDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Chetogenica'**
+  String get dietKetoDesc;
+
+  /// No description provided for @dietMediterranean.
+  ///
+  /// In it, this message translates to:
+  /// **'Mediterranea'**
+  String get dietMediterranean;
+
+  /// No description provided for @dietMediterraneanDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Stile italiano'**
+  String get dietMediterraneanDesc;
+
+  /// No description provided for @resultsStepTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'🎉 Il tuo piano!'**
+  String get resultsStepTitle;
+
+  /// No description provided for @resultsStepSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Ecco i tuoi obiettivi giornalieri personalizzati'**
+  String get resultsStepSubtitle;
+
+  /// No description provided for @caloriesPerDay.
+  ///
+  /// In it, this message translates to:
+  /// **'calorie/giorno'**
+  String get caloriesPerDay;
+
+  /// No description provided for @saveGoalsButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva Obiettivi'**
+  String get saveGoalsButton;
+
   /// No description provided for @yourProgress.
   ///
   /// In it, this message translates to:
@@ -2596,6 +2776,12 @@ abstract class AppLocalizations {
   /// **'Multifrequenza'**
   String get splitMultifrequency;
 
+  /// No description provided for @errorSavingProfile.
+  ///
+  /// In it, this message translates to:
+  /// **'Errore durante il salvataggio del profilo'**
+  String get errorSavingProfile;
+
   /// No description provided for @splitMultifrequencyDesc.
   ///
   /// In it, this message translates to:
@@ -2893,7 +3079,7 @@ abstract class AppLocalizations {
   /// No description provided for @injuryStatusActive.
   ///
   /// In it, this message translates to:
-  /// **'Ancora presente'**
+  /// **'Attivo'**
   String get injuryStatusActive;
 
   /// No description provided for @injuryStatusActiveDesc.
@@ -3169,7 +3355,7 @@ abstract class AppLocalizations {
   /// No description provided for @connectHealthDesc.
   ///
   /// In it, this message translates to:
-  /// **'Per vedere insights personalizzati sui tuoi dati di salute'**
+  /// **'Connetti Apple Health per generare il tuo report settimanale personalizzato.'**
   String get connectHealthDesc;
 
   /// No description provided for @discoveredPatterns.
@@ -3417,6 +3603,3360 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'numero'**
   String get numberLabel;
+
+  /// No description provided for @communityTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Community'**
+  String get communityTitle;
+
+  /// No description provided for @activitiesToday.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} attività oggi'**
+  String activitiesToday(Object count);
+
+  /// No description provided for @feedTab.
+  ///
+  /// In it, this message translates to:
+  /// **'Feed'**
+  String get feedTab;
+
+  /// No description provided for @challengesTab.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfide'**
+  String get challengesTab;
+
+  /// No description provided for @leaderboardTab.
+  ///
+  /// In it, this message translates to:
+  /// **'Classifica'**
+  String get leaderboardTab;
+
+  /// No description provided for @noRecentActivity.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna attività recente'**
+  String get noRecentActivity;
+
+  /// No description provided for @communityGigiMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Entrare a far parte della community aumenta la tua costanza del 35%. Interagisci con gli altri per restare motivato! 🚀'**
+  String get communityGigiMessage;
+
+  /// No description provided for @kudos.
+  ///
+  /// In it, this message translates to:
+  /// **'Kudos'**
+  String get kudos;
+
+  /// No description provided for @before.
+  ///
+  /// In it, this message translates to:
+  /// **'Prima'**
+  String get before;
+
+  /// No description provided for @newRecord.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuovo Record!'**
+  String get newRecord;
+
+  /// No description provided for @activeChallengesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfide Attive'**
+  String get activeChallengesTitle;
+
+  /// No description provided for @availableChallengesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfide Disponibili'**
+  String get availableChallengesTitle;
+
+  /// No description provided for @noActiveChallenges.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna sfida attiva al momento'**
+  String get noActiveChallenges;
+
+  /// No description provided for @percentCompleted.
+  ///
+  /// In it, this message translates to:
+  /// **'{percent}% completato'**
+  String percentCompleted(Object percent);
+
+  /// No description provided for @daysRemaining.
+  ///
+  /// In it, this message translates to:
+  /// **'{days} giorni rimasti'**
+  String daysRemaining(Object days);
+
+  /// No description provided for @participantsCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count} partecipanti'**
+  String participantsCount(Object count);
+
+  /// No description provided for @joinButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Unisciti'**
+  String get joinButton;
+
+  /// No description provided for @leaderboardComingSoon.
+  ///
+  /// In it, this message translates to:
+  /// **'Classifica in arrivo...'**
+  String get leaderboardComingSoon;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In it, this message translates to:
+  /// **'{minutes}m fa'**
+  String timeMinutesAgo(Object minutes);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In it, this message translates to:
+  /// **'{hours}h fa'**
+  String timeHoursAgo(Object hours);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In it, this message translates to:
+  /// **'{days}g fa'**
+  String timeDaysAgo(Object days);
+
+  /// No description provided for @feedUpdated.
+  ///
+  /// In it, this message translates to:
+  /// **'Feed aggiornato!'**
+  String get feedUpdated;
+
+  /// No description provided for @commentsCount.
+  ///
+  /// In it, this message translates to:
+  /// **'Commenti ({count})'**
+  String commentsCount(Object count);
+
+  /// No description provided for @writeCommentHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Scrivi un commento...'**
+  String get writeCommentHint;
+
+  /// No description provided for @commentSent.
+  ///
+  /// In it, this message translates to:
+  /// **'Commento inviato!'**
+  String get commentSent;
+
+  /// No description provided for @kudosSentTo.
+  ///
+  /// In it, this message translates to:
+  /// **'Kudos inviato a {name}! 🎉'**
+  String kudosSentTo(Object name);
+
+  /// No description provided for @joinChallengeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Unisciti alla sfida'**
+  String get joinChallengeTitle;
+
+  /// No description provided for @joinChallengeConfirm.
+  ///
+  /// In it, this message translates to:
+  /// **'Vuoi unirti a \"{title}\"?\n\nPremio: {reward} XP'**
+  String joinChallengeConfirm(Object reward, Object title);
+
+  /// No description provided for @joinedChallengeSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Ti sei unito a \"{title}\"! 🎯'**
+  String joinedChallengeSuccess(Object title);
+
+  /// No description provided for @joinChallengeError.
+  ///
+  /// In it, this message translates to:
+  /// **'Errore: impossibile unirsi alla sfida.'**
+  String get joinChallengeError;
+
+  /// No description provided for @bodyMeasurementsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Misure Corporee'**
+  String get bodyMeasurementsTitle;
+
+  /// No description provided for @howToMeasure.
+  ///
+  /// In it, this message translates to:
+  /// **'Come misurare'**
+  String get howToMeasure;
+
+  /// No description provided for @howToMeasureSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Segui questi consigli per misure accurate'**
+  String get howToMeasureSubtitle;
+
+  /// No description provided for @measureSameTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Misura sempre alla stessa ora'**
+  String get measureSameTime;
+
+  /// No description provided for @morningFasting.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferibilmente al mattino, a digiuno'**
+  String get morningFasting;
+
+  /// No description provided for @useFlexibleTape.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa un metro da sarto flessibile'**
+  String get useFlexibleTape;
+
+  /// No description provided for @noRigidRulers.
+  ///
+  /// In it, this message translates to:
+  /// **'Non usare righelli rigidi'**
+  String get noRigidRulers;
+
+  /// No description provided for @repeatEveryMeasure.
+  ///
+  /// In it, this message translates to:
+  /// **'Ripeti ogni misura 2 volte'**
+  String get repeatEveryMeasure;
+
+  /// No description provided for @ensureCorrect.
+  ///
+  /// In it, this message translates to:
+  /// **'Per assicurarti che sia corretta'**
+  String get ensureCorrect;
+
+  /// No description provided for @relaxDoNotContract.
+  ///
+  /// In it, this message translates to:
+  /// **'Rilassati, non contrarre'**
+  String get relaxDoNotContract;
+
+  /// No description provided for @naturalPosition.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione naturale, respiro normale'**
+  String get naturalPosition;
+
+  /// No description provided for @arms.
+  ///
+  /// In it, this message translates to:
+  /// **'Braccia'**
+  String get arms;
+
+  /// No description provided for @measureBiceps.
+  ///
+  /// In it, this message translates to:
+  /// **'Misura i tuoi bicipiti'**
+  String get measureBiceps;
+
+  /// No description provided for @positionLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione'**
+  String get positionLabel;
+
+  /// No description provided for @armFlexed90.
+  ///
+  /// In it, this message translates to:
+  /// **'Braccio flesso a 90°, pugno chiuso'**
+  String get armFlexed90;
+
+  /// No description provided for @whereToMeasure.
+  ///
+  /// In it, this message translates to:
+  /// **'Dove misurare'**
+  String get whereToMeasure;
+
+  /// No description provided for @thickestPoint.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più spesso del muscolo'**
+  String get thickestPoint;
+
+  /// No description provided for @repeatBoth.
+  ///
+  /// In it, this message translates to:
+  /// **'Ripeti per entrambi'**
+  String get repeatBoth;
+
+  /// No description provided for @mightBeDifferent.
+  ///
+  /// In it, this message translates to:
+  /// **'Potrebbero essere leggermente diversi'**
+  String get mightBeDifferent;
+
+  /// No description provided for @torso.
+  ///
+  /// In it, this message translates to:
+  /// **'Torso'**
+  String get torso;
+
+  /// No description provided for @chestWaistHips.
+  ///
+  /// In it, this message translates to:
+  /// **'Petto, vita e fianchi'**
+  String get chestWaistHips;
+
+  /// No description provided for @underArmpits.
+  ///
+  /// In it, this message translates to:
+  /// **'Metro sotto le ascelle, sul punto più sporgente'**
+  String get underArmpits;
+
+  /// No description provided for @bellyButtonHeight.
+  ///
+  /// In it, this message translates to:
+  /// **'All\'altezza dell\'ombelico, posizione naturale'**
+  String get bellyButtonHeight;
+
+  /// No description provided for @widestHips.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più largo dei glutei'**
+  String get widestHips;
+
+  /// No description provided for @legs.
+  ///
+  /// In it, this message translates to:
+  /// **'Gambe'**
+  String get legs;
+
+  /// No description provided for @thighsCalves.
+  ///
+  /// In it, this message translates to:
+  /// **'Cosce e polpacci'**
+  String get thighsCalves;
+
+  /// No description provided for @thigh.
+  ///
+  /// In it, this message translates to:
+  /// **'Coscia'**
+  String get thigh;
+
+  /// No description provided for @midThigh.
+  ///
+  /// In it, this message translates to:
+  /// **'A metà tra inguine e ginocchio, gamba rilassata'**
+  String get midThigh;
+
+  /// No description provided for @calf.
+  ///
+  /// In it, this message translates to:
+  /// **'Polpaccio'**
+  String get calf;
+
+  /// No description provided for @widestCalf.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più largo, in piedi'**
+  String get widestCalf;
+
+  /// No description provided for @startingPoint.
+  ///
+  /// In it, this message translates to:
+  /// **'Il Tuo Punto di Partenza'**
+  String get startingPoint;
+
+  /// No description provided for @startingPointDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Queste misure ci aiutano a creare la scheda perfetta per te e a tracciare i tuoi progressi nel tempo.'**
+  String get startingPointDesc;
+
+  /// No description provided for @startMeasurements.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizia le Misure'**
+  String get startMeasurements;
+
+  /// No description provided for @bicepRight.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipite DX'**
+  String get bicepRight;
+
+  /// No description provided for @bicepLeft.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipite SX'**
+  String get bicepLeft;
+
+  /// No description provided for @thighRight.
+  ///
+  /// In it, this message translates to:
+  /// **'Coscia DX'**
+  String get thighRight;
+
+  /// No description provided for @thighLeft.
+  ///
+  /// In it, this message translates to:
+  /// **'Coscia SX'**
+  String get thighLeft;
+
+  /// No description provided for @measurementsSummary.
+  ///
+  /// In it, this message translates to:
+  /// **'Riepilogo Misure'**
+  String get measurementsSummary;
+
+  /// No description provided for @startingMeasurementsNote.
+  ///
+  /// In it, this message translates to:
+  /// **'Ecco le tue misure di partenza'**
+  String get startingMeasurementsNote;
+
+  /// No description provided for @bicepDX.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipite DX'**
+  String get bicepDX;
+
+  /// No description provided for @bicepSX.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipite SX'**
+  String get bicepSX;
+
+  /// No description provided for @thighDX.
+  ///
+  /// In it, this message translates to:
+  /// **'Coscia DX'**
+  String get thighDX;
+
+  /// No description provided for @thighSX.
+  ///
+  /// In it, this message translates to:
+  /// **'Coscia SX'**
+  String get thighSX;
+
+  /// No description provided for @updateWeeklyNote.
+  ///
+  /// In it, this message translates to:
+  /// **'Potrai aggiornare le misure ogni settimana per vedere i progressi!'**
+  String get updateWeeklyNote;
+
+  /// No description provided for @workoutStats.
+  ///
+  /// In it, this message translates to:
+  /// **'Statistiche Allenamenti'**
+  String get workoutStats;
+
+  /// No description provided for @totalSeriesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Serie totali'**
+  String get totalSeriesLabel;
+
+  /// No description provided for @totalTimeLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Tempo totale'**
+  String get totalTimeLabel;
+
+  /// No description provided for @myProgressTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'I Miei Progressi'**
+  String get myProgressTitle;
+
+  /// No description provided for @weeksCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =1{1 settimana} other{{count} settimane}}'**
+  String weeksCount(num count);
+
+  /// No description provided for @consecutiveMeasurements.
+  ///
+  /// In it, this message translates to:
+  /// **'di misurazioni consecutive'**
+  String get consecutiveMeasurements;
+
+  /// No description provided for @measurementsCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =1{1 misurazione} other{{count} misurazioni}}'**
+  String measurementsCount(num count);
+
+  /// No description provided for @lastLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'ultima'**
+  String get lastLabel;
+
+  /// No description provided for @measurementsTrend.
+  ///
+  /// In it, this message translates to:
+  /// **'Trend Misure'**
+  String get measurementsTrend;
+
+  /// No description provided for @waistCircumference.
+  ///
+  /// In it, this message translates to:
+  /// **'Circonferenza Vita'**
+  String get waistCircumference;
+
+  /// No description provided for @addMoreMeasurementsTrend.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi più misure per vedere il trend'**
+  String get addMoreMeasurementsTrend;
+
+  /// No description provided for @bodyMap.
+  ///
+  /// In it, this message translates to:
+  /// **'Mappa Corporea'**
+  String get bodyMap;
+
+  /// No description provided for @tapZoneDetails.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca una zona per vedere i dettagli'**
+  String get tapZoneDetails;
+
+  /// No description provided for @setGoal.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta un obiettivo'**
+  String get setGoal;
+
+  /// No description provided for @goalExample.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. \"Vita a 80cm\" o \"Bicipite a 40cm\"'**
+  String get goalExample;
+
+  /// No description provided for @quickActions.
+  ///
+  /// In it, this message translates to:
+  /// **'Azioni rapide'**
+  String get quickActions;
+
+  /// No description provided for @newMeasurement.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova Misura'**
+  String get newMeasurement;
+
+  /// No description provided for @progressPhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto Progresso'**
+  String get progressPhoto;
+
+  /// No description provided for @yourJourneyPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto del Tuo Percorso'**
+  String get yourJourneyPhotos;
+
+  /// No description provided for @journeyPhotosDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Tra qualche settimana potrai confrontare i tuoi progressi visivamente. È il modo più motivante per vedere i risultati!'**
+  String get journeyPhotosDesc;
+
+  /// No description provided for @privacyPrivate.
+  ///
+  /// In it, this message translates to:
+  /// **'100% Private'**
+  String get privacyPrivate;
+
+  /// No description provided for @privacyDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue foto saranno visibili SOLO a te. Non vengono mai condivise o usate per altri scopi.'**
+  String get privacyDesc;
+
+  /// No description provided for @howToGetPerfectPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Come scattare foto perfette'**
+  String get howToGetPerfectPhotos;
+
+  /// No description provided for @sameLightTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Stessa luce e ora'**
+  String get sameLightTime;
+
+  /// No description provided for @comparableResults.
+  ///
+  /// In it, this message translates to:
+  /// **'Per risultati comparabili'**
+  String get comparableResults;
+
+  /// No description provided for @minimalClothing.
+  ///
+  /// In it, this message translates to:
+  /// **'Abbigliamento minimale'**
+  String get minimalClothing;
+
+  /// No description provided for @seeChanges.
+  ///
+  /// In it, this message translates to:
+  /// **'Così vedi i cambiamenti'**
+  String get seeChanges;
+
+  /// No description provided for @neutralPosition.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione neutra'**
+  String get neutralPosition;
+
+  /// No description provided for @relaxedArms.
+  ///
+  /// In it, this message translates to:
+  /// **'Rilassato, braccia lungo i fianchi'**
+  String get relaxedArms;
+
+  /// No description provided for @useTimerMirror.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa timer o specchio'**
+  String get useTimerMirror;
+
+  /// No description provided for @easierAlone.
+  ///
+  /// In it, this message translates to:
+  /// **'Più facile da solo'**
+  String get easierAlone;
+
+  /// No description provided for @sameSpot.
+  ///
+  /// In it, this message translates to:
+  /// **'Stesso punto'**
+  String get sameSpot;
+
+  /// No description provided for @neutralBackground.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfondo neutro, stessa distanza'**
+  String get neutralBackground;
+
+  /// No description provided for @front.
+  ///
+  /// In it, this message translates to:
+  /// **'Fronte'**
+  String get front;
+
+  /// No description provided for @side.
+  ///
+  /// In it, this message translates to:
+  /// **'Lato'**
+  String get side;
+
+  /// No description provided for @backLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Dietro'**
+  String get backLabel;
+
+  /// No description provided for @savePhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva Foto'**
+  String get savePhotos;
+
+  /// No description provided for @seeProgressNote.
+  ///
+  /// In it, this message translates to:
+  /// **'Tra 4-8 settimane potrai vedere i cambiamenti confrontando le foto!'**
+  String get seeProgressNote;
+
+  /// No description provided for @chooseSource.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli sorgente'**
+  String get chooseSource;
+
+  /// No description provided for @camera.
+  ///
+  /// In it, this message translates to:
+  /// **'Fotocamera'**
+  String get camera;
+
+  /// No description provided for @gallery.
+  ///
+  /// In it, this message translates to:
+  /// **'Galleria'**
+  String get gallery;
+
+  /// No description provided for @photosSavedSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto salvate con successo!'**
+  String get photosSavedSuccess;
+
+  /// No description provided for @yourProgressTab.
+  ///
+  /// In it, this message translates to:
+  /// **'I Tuoi Progressi'**
+  String get yourProgressTab;
+
+  /// No description provided for @noPhotosYet.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna foto ancora'**
+  String get noPhotosYet;
+
+  /// No description provided for @noPhotosDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi foto per vedere la tua trasformazione nel tempo'**
+  String get noPhotosDesc;
+
+  /// No description provided for @addPhotosButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi Foto'**
+  String get addPhotosButton;
+
+  /// No description provided for @yourTransformation.
+  ///
+  /// In it, this message translates to:
+  /// **'La Tua Trasformazione'**
+  String get yourTransformation;
+
+  /// No description provided for @swipeToCompare.
+  ///
+  /// In it, this message translates to:
+  /// **'Scorri per confrontare prima e dopo'**
+  String get swipeToCompare;
+
+  /// No description provided for @addNewPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi Nuove Foto'**
+  String get addNewPhotos;
+
+  /// No description provided for @daysCount.
+  ///
+  /// In it, this message translates to:
+  /// **'{count, plural, =1{1 giorno} other{{count} giorni}}'**
+  String daysCount(num count);
+
+  /// No description provided for @beforeLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'PRIMA'**
+  String get beforeLabel;
+
+  /// No description provided for @afterLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'DOPO'**
+  String get afterLabel;
+
+  /// No description provided for @noMeasurementsYet.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna misura ancora'**
+  String get noMeasurementsYet;
+
+  /// No description provided for @noMeasurementsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi le tue misure per tracciare i progressi'**
+  String get noMeasurementsDesc;
+
+  /// No description provided for @addMeasurementsButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi Misure'**
+  String get addMeasurementsButton;
+
+  /// No description provided for @measurementsComparison.
+  ///
+  /// In it, this message translates to:
+  /// **'Confronto Misure'**
+  String get measurementsComparison;
+
+  /// No description provided for @history.
+  ///
+  /// In it, this message translates to:
+  /// **'Storico'**
+  String get history;
+
+  /// No description provided for @updateMeasurements.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiorna Misure'**
+  String get updateMeasurements;
+
+  /// No description provided for @startLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizio'**
+  String get startLabel;
+
+  /// No description provided for @lastMeasurementsHistory.
+  ///
+  /// In it, this message translates to:
+  /// **'Ultimi {count} rilevamenti'**
+  String lastMeasurementsHistory(Object count);
+
+  /// No description provided for @waistTrendOverTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Circonferenza vita nel tempo'**
+  String get waistTrendOverTime;
+
+  /// No description provided for @heightCm.
+  ///
+  /// In it, this message translates to:
+  /// **'Altezza (cm)'**
+  String get heightCm;
+
+  /// No description provided for @weightKg.
+  ///
+  /// In it, this message translates to:
+  /// **'Peso (kg)'**
+  String get weightKg;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Profilo aggiornato con successo'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @saveErrorGeneric.
+  ///
+  /// In it, this message translates to:
+  /// **'Errore durante il salvataggio'**
+  String get saveErrorGeneric;
+
+  /// No description provided for @voiceModeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'VOICE MODE'**
+  String get voiceModeTitle;
+
+  /// No description provided for @voiceModeSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Gigi ti guida\nogni ripetizione'**
+  String get voiceModeSubtitle;
+
+  /// No description provided for @musicModeTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'MUSIC MODE'**
+  String get musicModeTitle;
+
+  /// No description provided for @musicModeSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua musica\n+ cue minimi'**
+  String get musicModeSubtitle;
+
+  /// No description provided for @discreteMode.
+  ///
+  /// In it, this message translates to:
+  /// **'Modalità Discreta'**
+  String get discreteMode;
+
+  /// No description provided for @unlockedCount.
+  ///
+  /// In it, this message translates to:
+  /// **'Sbloccati ({count})'**
+  String unlockedCount(Object count);
+
+  /// No description provided for @toUnlockCount.
+  ///
+  /// In it, this message translates to:
+  /// **'Da Sbloccare ({count})'**
+  String toUnlockCount(Object count);
+
+  /// No description provided for @howToMeasureTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'📏 Come prendere le misure'**
+  String get howToMeasureTitle;
+
+  /// No description provided for @howToMeasureDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Segui questi consigli per misure accurate'**
+  String get howToMeasureDesc;
+
+  /// No description provided for @armsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'💪 Braccia'**
+  String get armsSection;
+
+  /// No description provided for @armsSectionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Misura i tuoi bicipiti'**
+  String get armsSectionDesc;
+
+  /// No description provided for @torsoSection.
+  ///
+  /// In it, this message translates to:
+  /// **'🫁 Torso'**
+  String get torsoSection;
+
+  /// No description provided for @torsoSectionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Petto, vita e fianchi'**
+  String get torsoSectionDesc;
+
+  /// No description provided for @legsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'🦵 Gambe'**
+  String get legsSection;
+
+  /// No description provided for @legsSectionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Cosce e polpacci'**
+  String get legsSectionDesc;
+
+  /// No description provided for @frontPhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Fronte'**
+  String get frontPhoto;
+
+  /// No description provided for @sidePhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Lato'**
+  String get sidePhoto;
+
+  /// No description provided for @backPhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Retro'**
+  String get backPhoto;
+
+  /// No description provided for @cameraOption.
+  ///
+  /// In it, this message translates to:
+  /// **'Fotocamera'**
+  String get cameraOption;
+
+  /// No description provided for @galleryOption.
+  ///
+  /// In it, this message translates to:
+  /// **'Galleria'**
+  String get galleryOption;
+
+  /// No description provided for @noPhotosYetTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna foto ancora'**
+  String get noPhotosYetTitle;
+
+  /// No description provided for @noPhotosYetDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi foto per vedere la tua trasformazione nel tempo'**
+  String get noPhotosYetDesc;
+
+  /// No description provided for @noMeasurementsYetTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessuna misura ancora'**
+  String get noMeasurementsYetTitle;
+
+  /// No description provided for @noMeasurementsYetDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi le tue misure per tracciare i progressi'**
+  String get noMeasurementsYetDesc;
+
+  /// No description provided for @newMeasurementAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Nuova Misura'**
+  String get newMeasurementAction;
+
+  /// No description provided for @progressPhotoAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto Progresso'**
+  String get progressPhotoAction;
+
+  /// No description provided for @compareAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Confronta'**
+  String get compareAction;
+
+  /// No description provided for @weightStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Peso'**
+  String get weightStat;
+
+  /// No description provided for @bodyFatStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Body Fat'**
+  String get bodyFatStat;
+
+  /// No description provided for @daysStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Giorni'**
+  String get daysStat;
+
+  /// No description provided for @streakStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Streak'**
+  String get streakStat;
+
+  /// No description provided for @measurementsStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Misure'**
+  String get measurementsStat;
+
+  /// No description provided for @waistStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Vita'**
+  String get waistStat;
+
+  /// No description provided for @bicepStat.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipite'**
+  String get bicepStat;
+
+  /// No description provided for @exercisesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Esercizi'**
+  String get exercisesLabel;
+
+  /// No description provided for @durationLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata'**
+  String get durationLabel;
+
+  /// No description provided for @caloriesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Calorie'**
+  String get caloriesLabel;
+
+  /// No description provided for @totalSetsLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Serie Totali'**
+  String get totalSetsLabel;
+
+  /// No description provided for @minutesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Minuti'**
+  String get minutesLabel;
+
+  /// No description provided for @seriesLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Serie'**
+  String get seriesLabel;
+
+  /// No description provided for @startButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizia'**
+  String get startButton;
+
+  /// No description provided for @completeButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Completa'**
+  String get completeButton;
+
+  /// No description provided for @completedButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Completa 🎉'**
+  String get completedButton;
+
+  /// No description provided for @trialWorkoutTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Trial Workout'**
+  String get trialWorkoutTitle;
+
+  /// No description provided for @recommendedLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Consigliato'**
+  String get recommendedLabel;
+
+  /// No description provided for @skipTrialTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Salta il Trial'**
+  String get skipTrialTitle;
+
+  /// No description provided for @generateNowLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Genera subito'**
+  String get generateNowLabel;
+
+  /// No description provided for @exampleTen.
+  ///
+  /// In it, this message translates to:
+  /// **'Es: 10'**
+  String get exampleTen;
+
+  /// No description provided for @exampleWeight.
+  ///
+  /// In it, this message translates to:
+  /// **'Es: 20.5'**
+  String get exampleWeight;
+
+  /// No description provided for @confirmButton.
+  ///
+  /// In it, this message translates to:
+  /// **'CONFERMA'**
+  String get confirmButton;
+
+  /// No description provided for @errorTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Errore'**
+  String get errorTitle;
+
+  /// No description provided for @setTimeLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Tempo serie'**
+  String get setTimeLabel;
+
+  /// No description provided for @minutesLabelWithValue.
+  ///
+  /// In it, this message translates to:
+  /// **'{value} minuti'**
+  String minutesLabelWithValue(Object value);
+
+  /// No description provided for @exampleDifficultyHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es: Ho trovato difficile l\'esercizio X...'**
+  String get exampleDifficultyHint;
+
+  /// No description provided for @instructionsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Istruzioni'**
+  String get instructionsSection;
+
+  /// No description provided for @videoDemoSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Video Dimostrazione'**
+  String get videoDemoSection;
+
+  /// No description provided for @intensityLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Intensità'**
+  String get intensityLabel;
+
+  /// No description provided for @heartRateZone.
+  ///
+  /// In it, this message translates to:
+  /// **'Zona FC'**
+  String get heartRateZone;
+
+  /// No description provided for @basicInfoSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Informazioni Base'**
+  String get basicInfoSection;
+
+  /// No description provided for @goalsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivi'**
+  String get goalsSection;
+
+  /// No description provided for @workoutPreferencesSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenze Allenamento'**
+  String get workoutPreferencesSection;
+
+  /// No description provided for @editButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica'**
+  String get editButton;
+
+  /// No description provided for @introPhase.
+  ///
+  /// In it, this message translates to:
+  /// **'Intro'**
+  String get introPhase;
+
+  /// No description provided for @duringPhase.
+  ///
+  /// In it, this message translates to:
+  /// **'Durante'**
+  String get duringPhase;
+
+  /// No description provided for @finalPhase.
+  ///
+  /// In it, this message translates to:
+  /// **'Finale'**
+  String get finalPhase;
+
+  /// No description provided for @stopButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Stop'**
+  String get stopButton;
+
+  /// No description provided for @repsLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'RIPETIZIONI'**
+  String get repsLabel;
+
+  /// No description provided for @weightKgLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'PESO (KG)'**
+  String get weightKgLabel;
+
+  /// No description provided for @consentManagementSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestione Consensi'**
+  String get consentManagementSection;
+
+  /// No description provided for @pushNotificationsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Notifiche Push'**
+  String get pushNotificationsTitle;
+
+  /// No description provided for @pushNotificationsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Promemoria allenamenti e progressi'**
+  String get pushNotificationsDesc;
+
+  /// No description provided for @emailMarketingTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Email Marketing'**
+  String get emailMarketingTitle;
+
+  /// No description provided for @emailMarketingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Promozioni e novità'**
+  String get emailMarketingDesc;
+
+  /// No description provided for @analyticsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Analytics'**
+  String get analyticsTitle;
+
+  /// No description provided for @analyticsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Aiutaci a migliorare l\'app'**
+  String get analyticsDesc;
+
+  /// No description provided for @legalDocumentsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'Documenti Legali'**
+  String get legalDocumentsSection;
+
+  /// No description provided for @gdprRightsSection.
+  ///
+  /// In it, this message translates to:
+  /// **'I Tuoi Diritti GDPR'**
+  String get gdprRightsSection;
+
+  /// No description provided for @exportDataTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Esporta i Miei Dati'**
+  String get exportDataTitle;
+
+  /// No description provided for @exportDataDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Scarica tutti i tuoi dati in formato JSON'**
+  String get exportDataDesc;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina Account'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Cancella permanentemente i tuoi dati'**
+  String get deleteAccountDesc;
+
+  /// No description provided for @goalLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivo'**
+  String get goalLabel;
+
+  /// No description provided for @experienceLevelLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Livello di Esperienza'**
+  String get experienceLevelLabel;
+
+  /// No description provided for @weeklyFrequencyLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Frequenza Settimanale'**
+  String get weeklyFrequencyLabel;
+
+  /// No description provided for @trainingLocationLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Dove ti alleni?'**
+  String get trainingLocationLabel;
+
+  /// No description provided for @workoutTypeLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo di Allenamento'**
+  String get workoutTypeLabel;
+
+  /// No description provided for @trainingSplitLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Split di Allenamento'**
+  String get trainingSplitLabel;
+
+  /// No description provided for @sessionDurationLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata Sessione'**
+  String get sessionDurationLabel;
+
+  /// No description provided for @cardioPreferenceLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenza Cardio'**
+  String get cardioPreferenceLabel;
+
+  /// No description provided for @mobilityPreferenceLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenza Mobilità'**
+  String get mobilityPreferenceLabel;
+
+  /// No description provided for @trialWorkoutLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Trial Workout'**
+  String get trialWorkoutLabel;
+
+  /// No description provided for @heightWeightLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Altezza e Peso'**
+  String get heightWeightLabel;
+
+  /// No description provided for @defaultWorkoutName.
+  ///
+  /// In it, this message translates to:
+  /// **'Allenamento'**
+  String get defaultWorkoutName;
+
+  /// No description provided for @goToWorkoutButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Vai all\'Allenamento'**
+  String get goToWorkoutButton;
+
+  /// No description provided for @startText.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizia'**
+  String get startText;
+
+  /// No description provided for @nextText.
+  ///
+  /// In it, this message translates to:
+  /// **'Avanti'**
+  String get nextText;
+
+  /// No description provided for @yourNameHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo nome'**
+  String get yourNameHint;
+
+  /// No description provided for @detailsLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Dettagli'**
+  String get detailsLabel;
+
+  /// No description provided for @whatsappShare.
+  ///
+  /// In it, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsappShare;
+
+  /// No description provided for @instagramShare.
+  ///
+  /// In it, this message translates to:
+  /// **'Instagram'**
+  String get instagramShare;
+
+  /// No description provided for @otherShare.
+  ///
+  /// In it, this message translates to:
+  /// **'Altro'**
+  String get otherShare;
+
+  /// No description provided for @totalReferrals.
+  ///
+  /// In it, this message translates to:
+  /// **'Totali'**
+  String get totalReferrals;
+
+  /// No description provided for @pendingReferrals.
+  ///
+  /// In it, this message translates to:
+  /// **'In attesa'**
+  String get pendingReferrals;
+
+  /// No description provided for @convertedReferrals.
+  ///
+  /// In it, this message translates to:
+  /// **'Convertiti'**
+  String get convertedReferrals;
+
+  /// No description provided for @yourReferralCode.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo codice referral'**
+  String get yourReferralCode;
+
+  /// No description provided for @skipButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Salta'**
+  String get skipButton;
+
+  /// No description provided for @instructionsLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Istruzioni'**
+  String get instructionsLabel;
+
+  /// No description provided for @videoDemoLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Video Dimostrazione'**
+  String get videoDemoLabel;
+
+  /// No description provided for @pause.
+  ///
+  /// In it, this message translates to:
+  /// **'Pausa'**
+  String get pause;
+
+  /// No description provided for @resume.
+  ///
+  /// In it, this message translates to:
+  /// **'Riprendi'**
+  String get resume;
+
+  /// No description provided for @savedLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'SALVATO!'**
+  String get savedLabel;
+
+  /// No description provided for @deleteWorkoutTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina Scheda'**
+  String get deleteWorkoutTitle;
+
+  /// No description provided for @reviewPreferences.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi Preferenze'**
+  String get reviewPreferences;
+
+  /// No description provided for @edit.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica'**
+  String get edit;
+
+  /// No description provided for @workoutCompleted.
+  ///
+  /// In it, this message translates to:
+  /// **'Workout Completato! 🎉'**
+  String get workoutCompleted;
+
+  /// No description provided for @greatJobKeepItUp.
+  ///
+  /// In it, this message translates to:
+  /// **'Ottimo lavoro! Continua così.'**
+  String get greatJobKeepItUp;
+
+  /// No description provided for @greatJob.
+  ///
+  /// In it, this message translates to:
+  /// **'Ottimo Lavoro!'**
+  String get greatJob;
+
+  /// No description provided for @completedFirstWorkout.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai completato il tuo primo allenamento'**
+  String get completedFirstWorkout;
+
+  /// No description provided for @didYouLikeGigi.
+  ///
+  /// In it, this message translates to:
+  /// **'Ti è piaciuto Gigi?'**
+  String get didYouLikeGigi;
+
+  /// No description provided for @workoutSession.
+  ///
+  /// In it, this message translates to:
+  /// **'Sessione Allenamento'**
+  String get workoutSession;
+
+  /// No description provided for @volume.
+  ///
+  /// In it, this message translates to:
+  /// **'Volume'**
+  String get volume;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Annulla'**
+  String get cancelButton;
+
+  /// No description provided for @deleteButton.
+  ///
+  /// In it, this message translates to:
+  /// **'Elimina'**
+  String get deleteButton;
+
+  /// No description provided for @searchExercisesHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca esercizi...'**
+  String get searchExercisesHint;
+
+  /// No description provided for @searchWorkoutsHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Cerca scheda, esercizi...'**
+  String get searchWorkoutsHint;
+
+  /// No description provided for @ingredientsHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. pollo, riso, broccoli...'**
+  String get ingredientsHint;
+
+  /// No description provided for @exerciseHint.
+  ///
+  /// In it, this message translates to:
+  /// **'es. Squat, Panca piana, Stacco...'**
+  String get exerciseHint;
+
+  /// No description provided for @paywallTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Scegli il Piano'**
+  String get paywallTitle;
+
+  /// No description provided for @paywallSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Allenati Sempre Con Un Coach'**
+  String get paywallSubtitle;
+
+  /// No description provided for @paywallDescription.
+  ///
+  /// In it, this message translates to:
+  /// **'GIGI ti parla mentre ti alleni e ti corregge come un PT vero.'**
+  String get paywallDescription;
+
+  /// No description provided for @paywallPsychologicalFull.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai provato il coaching reale. Immagina ogni allenamento così.'**
+  String get paywallPsychologicalFull;
+
+  /// No description provided for @paywallUrgencyText.
+  ///
+  /// In it, this message translates to:
+  /// **'Offerta valida ancora per'**
+  String get paywallUrgencyText;
+
+  /// No description provided for @paywallSocialProofUsers.
+  ///
+  /// In it, this message translates to:
+  /// **'12,847 utenti'**
+  String get paywallSocialProofUsers;
+
+  /// No description provided for @paywallSocialProofAction.
+  ///
+  /// In it, this message translates to:
+  /// **'sono passati a Pro questo mese'**
+  String get paywallSocialProofAction;
+
+  /// No description provided for @paywallBillingMonthly.
+  ///
+  /// In it, this message translates to:
+  /// **'Mensile'**
+  String get paywallBillingMonthly;
+
+  /// No description provided for @paywallBillingYearly.
+  ///
+  /// In it, this message translates to:
+  /// **'Annuale'**
+  String get paywallBillingYearly;
+
+  /// No description provided for @paywallDiscount.
+  ///
+  /// In it, this message translates to:
+  /// **'-37%'**
+  String get paywallDiscount;
+
+  /// No description provided for @paywallSubscribeButtonYearly.
+  ///
+  /// In it, this message translates to:
+  /// **'Abbonati - {price}€/anno'**
+  String paywallSubscribeButtonYearly(Object price);
+
+  /// No description provided for @paywallSubscribeButtonMonthly.
+  ///
+  /// In it, this message translates to:
+  /// **'Abbonati - {price}€/mese'**
+  String paywallSubscribeButtonMonthly(Object price);
+
+  /// No description provided for @paywallCurrentPlan.
+  ///
+  /// In it, this message translates to:
+  /// **'Piano Attuale'**
+  String get paywallCurrentPlan;
+
+  /// No description provided for @paywallGuarantee.
+  ///
+  /// In it, this message translates to:
+  /// **'7 giorni di prova gratuita'**
+  String get paywallGuarantee;
+
+  /// No description provided for @paywallTerms.
+  ///
+  /// In it, this message translates to:
+  /// **'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.'**
+  String get paywallTerms;
+
+  /// No description provided for @paywallActivateTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Attiva {planName}'**
+  String paywallActivateTitle(Object planName);
+
+  /// No description provided for @paywallActivateDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Stai per attivare il piano {planName} a €{price}/{period}.'**
+  String paywallActivateDesc(Object period, Object planName, Object price);
+
+  /// No description provided for @paywallRevenueCatWarning.
+  ///
+  /// In it, this message translates to:
+  /// **'RevenueCat non configurato'**
+  String get paywallRevenueCatWarning;
+
+  /// No description provided for @paywallRevenueCatDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Configura RevenueCat per abilitare i pagamenti reali.'**
+  String get paywallRevenueCatDesc;
+
+  /// No description provided for @privacyPolicyTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyTitle;
+
+  /// No description provided for @privacyPolicySubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua privacy è importante per noi'**
+  String get privacyPolicySubtitle;
+
+  /// No description provided for @termsOfServiceTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Termini di Servizio'**
+  String get termsOfServiceTitle;
+
+  /// No description provided for @termsOfServiceSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Condizioni d\'uso del servizio GIGI'**
+  String get termsOfServiceSubtitle;
+
+  /// No description provided for @mealBreakfast.
+  ///
+  /// In it, this message translates to:
+  /// **'Colazione'**
+  String get mealBreakfast;
+
+  /// No description provided for @mealLunch.
+  ///
+  /// In it, this message translates to:
+  /// **'Pranzo'**
+  String get mealLunch;
+
+  /// No description provided for @mealDinner.
+  ///
+  /// In it, this message translates to:
+  /// **'Cena'**
+  String get mealDinner;
+
+  /// No description provided for @mealSnack.
+  ///
+  /// In it, this message translates to:
+  /// **'Snack'**
+  String get mealSnack;
+
+  /// No description provided for @mealPreWorkout.
+  ///
+  /// In it, this message translates to:
+  /// **'Pre-Workout'**
+  String get mealPreWorkout;
+
+  /// No description provided for @mealPostWorkout.
+  ///
+  /// In it, this message translates to:
+  /// **'Post-Workout'**
+  String get mealPostWorkout;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In it, this message translates to:
+  /// **'Tutti'**
+  String get categoryAll;
+
+  /// No description provided for @categoryStrength.
+  ///
+  /// In it, this message translates to:
+  /// **'Forza'**
+  String get categoryStrength;
+
+  /// No description provided for @categoryCardio.
+  ///
+  /// In it, this message translates to:
+  /// **'Cardio'**
+  String get categoryCardio;
+
+  /// No description provided for @categoryMobility.
+  ///
+  /// In it, this message translates to:
+  /// **'Mobilità'**
+  String get categoryMobility;
+
+  /// No description provided for @challengesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfide'**
+  String get challengesTitle;
+
+  /// No description provided for @challengesTabActive.
+  ///
+  /// In it, this message translates to:
+  /// **'Attive'**
+  String get challengesTabActive;
+
+  /// No description provided for @challengesTabDaily.
+  ///
+  /// In it, this message translates to:
+  /// **'Giornaliere'**
+  String get challengesTabDaily;
+
+  /// No description provided for @challengesTabWeekly.
+  ///
+  /// In it, this message translates to:
+  /// **'Settimanali'**
+  String get challengesTabWeekly;
+
+  /// No description provided for @challengesTabCommunity.
+  ///
+  /// In it, this message translates to:
+  /// **'Community'**
+  String get challengesTabCommunity;
+
+  /// No description provided for @challengesActiveTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue sfide attive'**
+  String get challengesActiveTitle;
+
+  /// No description provided for @progressTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'I Miei Progressi'**
+  String get progressTitle;
+
+  /// No description provided for @progressStatsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Statistiche Allenamenti'**
+  String get progressStatsTitle;
+
+  /// No description provided for @progressWorkouts.
+  ///
+  /// In it, this message translates to:
+  /// **'Allenamenti'**
+  String get progressWorkouts;
+
+  /// No description provided for @progressTotalSets.
+  ///
+  /// In it, this message translates to:
+  /// **'Serie totali'**
+  String get progressTotalSets;
+
+  /// No description provided for @progressCalories.
+  ///
+  /// In it, this message translates to:
+  /// **'Calorie bruciate'**
+  String get progressCalories;
+
+  /// No description provided for @progressTotalTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Tempo totale'**
+  String get progressTotalTime;
+
+  /// No description provided for @progressBodyMapTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Mappa Corporea'**
+  String get progressBodyMapTitle;
+
+  /// No description provided for @progressBodyMapHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Tocca una zona per vedere i dettagli'**
+  String get progressBodyMapHint;
+
+  /// No description provided for @progressChangesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambiamenti'**
+  String get progressChangesTitle;
+
+  /// No description provided for @progressTrendTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Trend Misure'**
+  String get progressTrendTitle;
+
+  /// No description provided for @progressAddMoreData.
+  ///
+  /// In it, this message translates to:
+  /// **'Aggiungi più misure per vedere il trend'**
+  String get progressAddMoreData;
+
+  /// No description provided for @progressGoalsTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivi'**
+  String get progressGoalsTitle;
+
+  /// No description provided for @progressSetGoal.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta un obiettivo'**
+  String get progressSetGoal;
+
+  /// No description provided for @progressGoalHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Es. Vita a 80cm o Bicipite a 40cm'**
+  String get progressGoalHint;
+
+  /// No description provided for @weeks.
+  ///
+  /// In it, this message translates to:
+  /// **'settimane'**
+  String get weeks;
+
+  /// No description provided for @measurements.
+  ///
+  /// In it, this message translates to:
+  /// **'misurazioni'**
+  String get measurements;
+
+  /// No description provided for @lastMeasurement.
+  ///
+  /// In it, this message translates to:
+  /// **'ultima'**
+  String get lastMeasurement;
+
+  /// No description provided for @xpBonus.
+  ///
+  /// In it, this message translates to:
+  /// **'XP BONUS'**
+  String get xpBonus;
+
+  /// No description provided for @nextBonus.
+  ///
+  /// In it, this message translates to:
+  /// **'Prossimo bonus: {multiplier} XP'**
+  String nextBonus(Object multiplier);
+
+  /// No description provided for @freezeTokens.
+  ///
+  /// In it, this message translates to:
+  /// **'Freeze Token'**
+  String get freezeTokens;
+
+  /// No description provided for @use.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa'**
+  String get use;
+
+  /// No description provided for @streakRisk.
+  ///
+  /// In it, this message translates to:
+  /// **'La tua streak è a rischio! Allenati oggi per mantenerla.'**
+  String get streakRisk;
+
+  /// No description provided for @peopleWorkingOut.
+  ///
+  /// In it, this message translates to:
+  /// **'persone si stanno allenando ora'**
+  String get peopleWorkingOut;
+
+  /// No description provided for @workoutsCompleted.
+  ///
+  /// In it, this message translates to:
+  /// **'workout completati oggi'**
+  String get workoutsCompleted;
+
+  /// No description provided for @chestLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'CHEST'**
+  String get chestLabel;
+
+  /// No description provided for @openChest.
+  ///
+  /// In it, this message translates to:
+  /// **'Apri Chest'**
+  String get openChest;
+
+  /// No description provided for @challengeDaily.
+  ///
+  /// In it, this message translates to:
+  /// **'DAILY'**
+  String get challengeDaily;
+
+  /// No description provided for @challengeWeekly.
+  ///
+  /// In it, this message translates to:
+  /// **'WEEKLY'**
+  String get challengeWeekly;
+
+  /// No description provided for @challengeMonthly.
+  ///
+  /// In it, this message translates to:
+  /// **'MONTHLY'**
+  String get challengeMonthly;
+
+  /// No description provided for @challengeCommunity.
+  ///
+  /// In it, this message translates to:
+  /// **'COMMUNITY'**
+  String get challengeCommunity;
+
+  /// No description provided for @challengeOneVsOne.
+  ///
+  /// In it, this message translates to:
+  /// **'1v1'**
+  String get challengeOneVsOne;
+
+  /// No description provided for @injuryAreaNeck.
+  ///
+  /// In it, this message translates to:
+  /// **'Collo'**
+  String get injuryAreaNeck;
+
+  /// No description provided for @injuryAreaTrapezius.
+  ///
+  /// In it, this message translates to:
+  /// **'Trapezio'**
+  String get injuryAreaTrapezius;
+
+  /// No description provided for @injuryAreaDeltoids.
+  ///
+  /// In it, this message translates to:
+  /// **'Deltoidi'**
+  String get injuryAreaDeltoids;
+
+  /// No description provided for @injuryAreaPectorals.
+  ///
+  /// In it, this message translates to:
+  /// **'Pettorali'**
+  String get injuryAreaPectorals;
+
+  /// No description provided for @injuryAreaBiceps.
+  ///
+  /// In it, this message translates to:
+  /// **'Bicipiti'**
+  String get injuryAreaBiceps;
+
+  /// No description provided for @injuryAreaTriceps.
+  ///
+  /// In it, this message translates to:
+  /// **'Tricipiti'**
+  String get injuryAreaTriceps;
+
+  /// No description provided for @injuryAreaForearms.
+  ///
+  /// In it, this message translates to:
+  /// **'Avambracci'**
+  String get injuryAreaForearms;
+
+  /// No description provided for @injuryAreaAbs.
+  ///
+  /// In it, this message translates to:
+  /// **'Addominali'**
+  String get injuryAreaAbs;
+
+  /// No description provided for @injuryAreaObliques.
+  ///
+  /// In it, this message translates to:
+  /// **'Obliqui'**
+  String get injuryAreaObliques;
+
+  /// No description provided for @injuryAreaLowerBack.
+  ///
+  /// In it, this message translates to:
+  /// **'Zona Lombare'**
+  String get injuryAreaLowerBack;
+
+  /// No description provided for @injuryAreaUpperBack.
+  ///
+  /// In it, this message translates to:
+  /// **'Parte Alta Schiena'**
+  String get injuryAreaUpperBack;
+
+  /// No description provided for @injuryAreaLats.
+  ///
+  /// In it, this message translates to:
+  /// **'Dorsali'**
+  String get injuryAreaLats;
+
+  /// No description provided for @injuryAreaGlutes.
+  ///
+  /// In it, this message translates to:
+  /// **'Glutei'**
+  String get injuryAreaGlutes;
+
+  /// No description provided for @injuryAreaHipFlexors.
+  ///
+  /// In it, this message translates to:
+  /// **'Flessori Anca'**
+  String get injuryAreaHipFlexors;
+
+  /// No description provided for @injuryAreaQuadriceps.
+  ///
+  /// In it, this message translates to:
+  /// **'Quadricipiti'**
+  String get injuryAreaQuadriceps;
+
+  /// No description provided for @injuryAreaHamstrings.
+  ///
+  /// In it, this message translates to:
+  /// **'Femorali'**
+  String get injuryAreaHamstrings;
+
+  /// No description provided for @injuryAreaCalves.
+  ///
+  /// In it, this message translates to:
+  /// **'Polpacci'**
+  String get injuryAreaCalves;
+
+  /// No description provided for @injuryAreaAdductors.
+  ///
+  /// In it, this message translates to:
+  /// **'Adduttori'**
+  String get injuryAreaAdductors;
+
+  /// No description provided for @injuryAreaAbductors.
+  ///
+  /// In it, this message translates to:
+  /// **'Abduttori'**
+  String get injuryAreaAbductors;
+
+  /// No description provided for @injuryAreaRotatorCuff.
+  ///
+  /// In it, this message translates to:
+  /// **'Cuffia Rotatori'**
+  String get injuryAreaRotatorCuff;
+
+  /// No description provided for @injuryAreaCervicalSpine.
+  ///
+  /// In it, this message translates to:
+  /// **'Colonna Cervicale'**
+  String get injuryAreaCervicalSpine;
+
+  /// No description provided for @injuryAreaShoulder.
+  ///
+  /// In it, this message translates to:
+  /// **'Spalla'**
+  String get injuryAreaShoulder;
+
+  /// No description provided for @injuryAreaElbow.
+  ///
+  /// In it, this message translates to:
+  /// **'Gomito'**
+  String get injuryAreaElbow;
+
+  /// No description provided for @injuryAreaWrist.
+  ///
+  /// In it, this message translates to:
+  /// **'Polso'**
+  String get injuryAreaWrist;
+
+  /// No description provided for @injuryAreaFingers.
+  ///
+  /// In it, this message translates to:
+  /// **'Dita Mano'**
+  String get injuryAreaFingers;
+
+  /// No description provided for @injuryAreaThoracicSpine.
+  ///
+  /// In it, this message translates to:
+  /// **'Colonna Toracica'**
+  String get injuryAreaThoracicSpine;
+
+  /// No description provided for @injuryAreaLumbarSpine.
+  ///
+  /// In it, this message translates to:
+  /// **'Colonna Lombare'**
+  String get injuryAreaLumbarSpine;
+
+  /// No description provided for @injuryAreaHip.
+  ///
+  /// In it, this message translates to:
+  /// **'Anca'**
+  String get injuryAreaHip;
+
+  /// No description provided for @injuryAreaKnee.
+  ///
+  /// In it, this message translates to:
+  /// **'Ginocchio'**
+  String get injuryAreaKnee;
+
+  /// No description provided for @injuryAreaAnkle.
+  ///
+  /// In it, this message translates to:
+  /// **'Caviglia'**
+  String get injuryAreaAnkle;
+
+  /// No description provided for @injuryAreaToes.
+  ///
+  /// In it, this message translates to:
+  /// **'Dita Piede'**
+  String get injuryAreaToes;
+
+  /// No description provided for @injuryAreaSacroiliac.
+  ///
+  /// In it, this message translates to:
+  /// **'Sacroiliac'**
+  String get injuryAreaSacroiliac;
+
+  /// No description provided for @injuryAreaTemporomandibular.
+  ///
+  /// In it, this message translates to:
+  /// **'Temporo-Mandibolare'**
+  String get injuryAreaTemporomandibular;
+
+  /// No description provided for @injuryAreaSkull.
+  ///
+  /// In it, this message translates to:
+  /// **'Cranio'**
+  String get injuryAreaSkull;
+
+  /// No description provided for @injuryAreaClavicle.
+  ///
+  /// In it, this message translates to:
+  /// **'Clavicola'**
+  String get injuryAreaClavicle;
+
+  /// No description provided for @injuryAreaScapula.
+  ///
+  /// In it, this message translates to:
+  /// **'Scapola'**
+  String get injuryAreaScapula;
+
+  /// No description provided for @injuryAreaRibs.
+  ///
+  /// In it, this message translates to:
+  /// **'Costole'**
+  String get injuryAreaRibs;
+
+  /// No description provided for @injuryAreaSternum.
+  ///
+  /// In it, this message translates to:
+  /// **'Sterno'**
+  String get injuryAreaSternum;
+
+  /// No description provided for @injuryAreaHumerus.
+  ///
+  /// In it, this message translates to:
+  /// **'Omero'**
+  String get injuryAreaHumerus;
+
+  /// No description provided for @injuryAreaRadius.
+  ///
+  /// In it, this message translates to:
+  /// **'Radio'**
+  String get injuryAreaRadius;
+
+  /// No description provided for @injuryAreaUlna.
+  ///
+  /// In it, this message translates to:
+  /// **'Ulna'**
+  String get injuryAreaUlna;
+
+  /// No description provided for @injuryAreaCarpals.
+  ///
+  /// In it, this message translates to:
+  /// **'Carpo'**
+  String get injuryAreaCarpals;
+
+  /// No description provided for @injuryAreaMetacarpals.
+  ///
+  /// In it, this message translates to:
+  /// **'Metacarpo'**
+  String get injuryAreaMetacarpals;
+
+  /// No description provided for @injuryAreaPhalangesHand.
+  ///
+  /// In it, this message translates to:
+  /// **'Falangi Mano'**
+  String get injuryAreaPhalangesHand;
+
+  /// No description provided for @injuryAreaVertebrae.
+  ///
+  /// In it, this message translates to:
+  /// **'Vertebre'**
+  String get injuryAreaVertebrae;
+
+  /// No description provided for @injuryAreaPelvis.
+  ///
+  /// In it, this message translates to:
+  /// **'Bacino'**
+  String get injuryAreaPelvis;
+
+  /// No description provided for @injuryAreaFemur.
+  ///
+  /// In it, this message translates to:
+  /// **'Femore'**
+  String get injuryAreaFemur;
+
+  /// No description provided for @injuryAreaPatella.
+  ///
+  /// In it, this message translates to:
+  /// **'Rotula'**
+  String get injuryAreaPatella;
+
+  /// No description provided for @injuryAreaTibia.
+  ///
+  /// In it, this message translates to:
+  /// **'Tibia'**
+  String get injuryAreaTibia;
+
+  /// No description provided for @injuryAreaFibula.
+  ///
+  /// In it, this message translates to:
+  /// **'Perone'**
+  String get injuryAreaFibula;
+
+  /// No description provided for @injuryAreaTarsals.
+  ///
+  /// In it, this message translates to:
+  /// **'Tarso'**
+  String get injuryAreaTarsals;
+
+  /// No description provided for @injuryAreaMetatarsals.
+  ///
+  /// In it, this message translates to:
+  /// **'Metatarso'**
+  String get injuryAreaMetatarsals;
+
+  /// No description provided for @injuryAreaPhalangesFoot.
+  ///
+  /// In it, this message translates to:
+  /// **'Falangi Piede'**
+  String get injuryAreaPhalangesFoot;
+
+  /// No description provided for @injurySeverityMild.
+  ///
+  /// In it, this message translates to:
+  /// **'Lieve'**
+  String get injurySeverityMild;
+
+  /// No description provided for @injurySeverityModerate.
+  ///
+  /// In it, this message translates to:
+  /// **'Moderato'**
+  String get injurySeverityModerate;
+
+  /// No description provided for @injurySeveritySevere.
+  ///
+  /// In it, this message translates to:
+  /// **'Grave'**
+  String get injurySeveritySevere;
+
+  /// No description provided for @injuryTimingCurrent.
+  ///
+  /// In it, this message translates to:
+  /// **'Attuale'**
+  String get injuryTimingCurrent;
+
+  /// No description provided for @injuryTimingPast.
+  ///
+  /// In it, this message translates to:
+  /// **'Passato'**
+  String get injuryTimingPast;
+
+  /// No description provided for @injuryStatusRecovering.
+  ///
+  /// In it, this message translates to:
+  /// **'In Recupero'**
+  String get injuryStatusRecovering;
+
+  /// No description provided for @injuryStatusResolved.
+  ///
+  /// In it, this message translates to:
+  /// **'Risolto'**
+  String get injuryStatusResolved;
+
+  /// No description provided for @scanMealWithAi.
+  ///
+  /// In it, this message translates to:
+  /// **'Scansiona Pasto con AI'**
+  String get scanMealWithAi;
+
+  /// No description provided for @takePhotoForAnalysis.
+  ///
+  /// In it, this message translates to:
+  /// **'Scatta una foto per analisi automatica'**
+  String get takePhotoForAnalysis;
+
+  /// No description provided for @nextReward.
+  ///
+  /// In it, this message translates to:
+  /// **'Prossimo premio'**
+  String get nextReward;
+
+  /// No description provided for @minimalClothingDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Così vedi i cambiamenti'**
+  String get minimalClothingDesc;
+
+  /// No description provided for @neutralPositionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Rilassato, braccia lungo i fianchi'**
+  String get neutralPositionDesc;
+
+  /// No description provided for @sameSpotDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Sfondo neutro, stessa distanza'**
+  String get sameSpotDesc;
+
+  /// No description provided for @notSpecified.
+  ///
+  /// In it, this message translates to:
+  /// **'Non specificato'**
+  String get notSpecified;
+
+  /// No description provided for @whereToMeasureDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più spesso del muscolo'**
+  String get whereToMeasureDesc;
+
+  /// No description provided for @homeWorkout.
+  ///
+  /// In it, this message translates to:
+  /// **'Allenamento domestico'**
+  String get homeWorkout;
+
+  /// No description provided for @maybeLater.
+  ///
+  /// In it, this message translates to:
+  /// **'Magari dopo'**
+  String get maybeLater;
+
+  /// No description provided for @averageSleep.
+  ///
+  /// In it, this message translates to:
+  /// **'Sonno medio'**
+  String get averageSleep;
+
+  /// No description provided for @totalSteps.
+  ///
+  /// In it, this message translates to:
+  /// **'Passi totali'**
+  String get totalSteps;
+
+  /// No description provided for @startHere.
+  ///
+  /// In it, this message translates to:
+  /// **'Inizia qui'**
+  String get startHere;
+
+  /// No description provided for @yourWorkout.
+  ///
+  /// In it, this message translates to:
+  /// **'Il tuo allenamento'**
+  String get yourWorkout;
+
+  /// No description provided for @recommendedPrograms.
+  ///
+  /// In it, this message translates to:
+  /// **'Programmi consigliati'**
+  String get recommendedPrograms;
+
+  /// No description provided for @completeNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Completa ora'**
+  String get completeNow;
+
+  /// No description provided for @seeMore.
+  ///
+  /// In it, this message translates to:
+  /// **'Vedi altro'**
+  String get seeMore;
+
+  /// No description provided for @burnedCalories.
+  ///
+  /// In it, this message translates to:
+  /// **'Calorie bruciate'**
+  String get burnedCalories;
+
+  /// No description provided for @totalTime.
+  ///
+  /// In it, this message translates to:
+  /// **'Tempo totale'**
+  String get totalTime;
+
+  /// No description provided for @completedWorkouts.
+  ///
+  /// In it, this message translates to:
+  /// **'Workout completati'**
+  String get completedWorkouts;
+
+  /// No description provided for @earnedBadges.
+  ///
+  /// In it, this message translates to:
+  /// **'Badge guadagnati'**
+  String get earnedBadges;
+
+  /// No description provided for @analysisFailed.
+  ///
+  /// In it, this message translates to:
+  /// **'Analisi fallita'**
+  String get analysisFailed;
+
+  /// No description provided for @unlimitedAnalyses.
+  ///
+  /// In it, this message translates to:
+  /// **'Analisi illimitate'**
+  String get unlimitedAnalyses;
+
+  /// No description provided for @selectedVideo.
+  ///
+  /// In it, this message translates to:
+  /// **'Video selezionato'**
+  String get selectedVideo;
+
+  /// No description provided for @howItWorks.
+  ///
+  /// In it, this message translates to:
+  /// **'Come funziona'**
+  String get howItWorks;
+
+  /// No description provided for @progressPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto Progresso'**
+  String get progressPhotos;
+
+  /// No description provided for @yourPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue foto'**
+  String get yourPhotos;
+
+  /// No description provided for @journeyPhotos.
+  ///
+  /// In it, this message translates to:
+  /// **'Foto del Tuo Percorso'**
+  String get journeyPhotos;
+
+  /// No description provided for @visiblyCompare.
+  ///
+  /// In it, this message translates to:
+  /// **'Tra qualche settimana potrai confrontare i tuoi progressi visivamente. È il modo più motivante per vedere i risultati!'**
+  String get visiblyCompare;
+
+  /// No description provided for @privateAssurance.
+  ///
+  /// In it, this message translates to:
+  /// **'100% Private'**
+  String get privateAssurance;
+
+  /// No description provided for @privateDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Le tue foto saranno visibili SOLO a te. Non vengono mai condivise o usate per altri scopi.'**
+  String get privateDesc;
+
+  /// No description provided for @perfectPhotoTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Come scattare foto perfette'**
+  String get perfectPhotoTitle;
+
+  /// No description provided for @saving.
+  ///
+  /// In it, this message translates to:
+  /// **'Salvataggio...'**
+  String get saving;
+
+  /// No description provided for @savePhoto.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva Foto'**
+  String get savePhoto;
+
+  /// No description provided for @skipForNow.
+  ///
+  /// In it, this message translates to:
+  /// **'Salta per ora'**
+  String get skipForNow;
+
+  /// No description provided for @motivationDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Tra 4-8 settimane potrai vedere i cambiamenti confrontando le foto!'**
+  String get motivationDesc;
+
+  /// No description provided for @howToTakeMeasurements.
+  ///
+  /// In it, this message translates to:
+  /// **'Come prendere le misure'**
+  String get howToTakeMeasurements;
+
+  /// No description provided for @followTips.
+  ///
+  /// In it, this message translates to:
+  /// **'Segui questi consigli per misure accurate'**
+  String get followTips;
+
+  /// No description provided for @morningsFasting.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferibilmente al mattino, a digiuno'**
+  String get morningsFasting;
+
+  /// No description provided for @flexibleTape.
+  ///
+  /// In it, this message translates to:
+  /// **'Usa un metro da sarto flessibile'**
+  String get flexibleTape;
+
+  /// No description provided for @repeatTwice.
+  ///
+  /// In it, this message translates to:
+  /// **'Ripeti ogni misura 2 volte'**
+  String get repeatTwice;
+
+  /// No description provided for @relaxNoContracting.
+  ///
+  /// In it, this message translates to:
+  /// **'Rilassati, non contrarre'**
+  String get relaxNoContracting;
+
+  /// No description provided for @position.
+  ///
+  /// In it, this message translates to:
+  /// **'Posizione'**
+  String get position;
+
+  /// No description provided for @bicepPositionDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Braccio flesso a 90°, pugno chiuso'**
+  String get bicepPositionDesc;
+
+  /// No description provided for @slightlyDifferent.
+  ///
+  /// In it, this message translates to:
+  /// **'Potrebbero essere leggermente diversi'**
+  String get slightlyDifferent;
+
+  /// No description provided for @torsoParts.
+  ///
+  /// In it, this message translates to:
+  /// **'Petto, vita e fianchi'**
+  String get torsoParts;
+
+  /// No description provided for @chest.
+  ///
+  /// In it, this message translates to:
+  /// **'Petto'**
+  String get chest;
+
+  /// No description provided for @chestDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Metro sotto le ascelle, sul punto più sporgente'**
+  String get chestDesc;
+
+  /// No description provided for @waist.
+  ///
+  /// In it, this message translates to:
+  /// **'Vita'**
+  String get waist;
+
+  /// No description provided for @waistDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'All\'altezza dell\'ombelico, posizione naturale'**
+  String get waistDesc;
+
+  /// No description provided for @hips.
+  ///
+  /// In it, this message translates to:
+  /// **'Fianchi'**
+  String get hips;
+
+  /// No description provided for @hipsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più largo dei glutei'**
+  String get hipsDesc;
+
+  /// No description provided for @legsParts.
+  ///
+  /// In it, this message translates to:
+  /// **'Cosce e polpacci'**
+  String get legsParts;
+
+  /// No description provided for @thighDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'A metà tra inguine e ginocchio, gamba rilassata'**
+  String get thighDesc;
+
+  /// No description provided for @calfDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Nel punto più largo, in piedi'**
+  String get calfDesc;
+
+  /// No description provided for @bodyMeasurements.
+  ///
+  /// In it, this message translates to:
+  /// **'Misure Corporee'**
+  String get bodyMeasurements;
+
+  /// No description provided for @yourStartingPoint.
+  ///
+  /// In it, this message translates to:
+  /// **'Il Tuo Punto di Partenza'**
+  String get yourStartingPoint;
+
+  /// No description provided for @measurementsHelpDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Queste misure ci aiutano a creare la scheda perfetta per te e a tracciare i tuoi progressi nel tempo.'**
+  String get measurementsHelpDesc;
+
+  /// No description provided for @startingMeasurementsDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Ecco le tue misure di partenza'**
+  String get startingMeasurementsDesc;
+
+  /// No description provided for @updateWeeklyDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Potrai aggiornare le misure ogni settimana per vedere i progressi!'**
+  String get updateWeeklyDesc;
+
+  /// No description provided for @saveAndContinue.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva e Continua'**
+  String get saveAndContinue;
+
+  /// No description provided for @editPreferences.
+  ///
+  /// In it, this message translates to:
+  /// **'Modifica Preferenze'**
+  String get editPreferences;
+
+  /// No description provided for @reviewPreferencesDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Rivedi le tue preferenze prima di generare il piano. Puoi modificarle se necessario.'**
+  String get reviewPreferencesDesc;
+
+  /// No description provided for @height.
+  ///
+  /// In it, this message translates to:
+  /// **'Altezza'**
+  String get height;
+
+  /// No description provided for @age.
+  ///
+  /// In it, this message translates to:
+  /// **'Età'**
+  String get age;
+
+  /// No description provided for @gender.
+  ///
+  /// In it, this message translates to:
+  /// **'Genere'**
+  String get gender;
+
+  /// No description provided for @bodyShape.
+  ///
+  /// In it, this message translates to:
+  /// **'Forma Fisica'**
+  String get bodyShape;
+
+  /// No description provided for @trainingGoals.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivi di Allenamento'**
+  String get trainingGoals;
+
+  /// No description provided for @experienceLevel.
+  ///
+  /// In it, this message translates to:
+  /// **'Livello di Esperienza'**
+  String get experienceLevel;
+
+  /// No description provided for @weeklyFrequency.
+  ///
+  /// In it, this message translates to:
+  /// **'Frequenza Settimanale'**
+  String get weeklyFrequency;
+
+  /// No description provided for @daysPerWeek.
+  ///
+  /// In it, this message translates to:
+  /// **'giorni/settimana'**
+  String get daysPerWeek;
+
+  /// No description provided for @trainingLocation.
+  ///
+  /// In it, this message translates to:
+  /// **'Luogo di Allenamento'**
+  String get trainingLocation;
+
+  /// No description provided for @whereDoYouTrain.
+  ///
+  /// In it, this message translates to:
+  /// **'Dove ti alleni?'**
+  String get whereDoYouTrain;
+
+  /// No description provided for @availableEquipment.
+  ///
+  /// In it, this message translates to:
+  /// **'Attrezzatura Disponibile'**
+  String get availableEquipment;
+
+  /// No description provided for @trainingPreferences.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenze di Allenamento'**
+  String get trainingPreferences;
+
+  /// No description provided for @workoutType.
+  ///
+  /// In it, this message translates to:
+  /// **'Tipo di Allenamento'**
+  String get workoutType;
+
+  /// No description provided for @trainingSplit.
+  ///
+  /// In it, this message translates to:
+  /// **'Split di Allenamento'**
+  String get trainingSplit;
+
+  /// No description provided for @sessionDuration.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata Sessione'**
+  String get sessionDuration;
+
+  /// No description provided for @cardioPreference.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenza Cardio'**
+  String get cardioPreference;
+
+  /// No description provided for @mobilityPreference.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenza Mobilità'**
+  String get mobilityPreference;
+
+  /// No description provided for @generatePlanWithPrefs.
+  ///
+  /// In it, this message translates to:
+  /// **'Genera Piano con Queste Preferenze'**
+  String get generatePlanWithPrefs;
+
+  /// No description provided for @savePreferences.
+  ///
+  /// In it, this message translates to:
+  /// **'Salva Preferenze'**
+  String get savePreferences;
+
+  /// No description provided for @preferencesSavedSuccess.
+  ///
+  /// In it, this message translates to:
+  /// **'Preferenze salvate con successo'**
+  String get preferencesSavedSuccess;
+
+  /// No description provided for @errorSavingPreferences.
+  ///
+  /// In it, this message translates to:
+  /// **'Errore durante il salvataggio'**
+  String get errorSavingPreferences;
+
+  /// No description provided for @unspecified.
+  ///
+  /// In it, this message translates to:
+  /// **'Non specificato'**
+  String get unspecified;
+
+  /// No description provided for @male.
+  ///
+  /// In it, this message translates to:
+  /// **'Maschio'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In it, this message translates to:
+  /// **'Femmina'**
+  String get female;
+
+  /// No description provided for @verySkinny.
+  ///
+  /// In it, this message translates to:
+  /// **'Molto Magro'**
+  String get verySkinny;
+
+  /// No description provided for @skinny.
+  ///
+  /// In it, this message translates to:
+  /// **'Magro'**
+  String get skinny;
+
+  /// No description provided for @lean.
+  ///
+  /// In it, this message translates to:
+  /// **'Snello'**
+  String get lean;
+
+  /// No description provided for @athletic.
+  ///
+  /// In it, this message translates to:
+  /// **'Atletico'**
+  String get athletic;
+
+  /// No description provided for @muscular.
+  ///
+  /// In it, this message translates to:
+  /// **'Muscoloso'**
+  String get muscular;
+
+  /// No description provided for @overweight.
+  ///
+  /// In it, this message translates to:
+  /// **'Sovrappeso'**
+  String get overweight;
+
+  /// No description provided for @average.
+  ///
+  /// In it, this message translates to:
+  /// **'Medio'**
+  String get average;
+
+  /// No description provided for @muscleGain.
+  ///
+  /// In it, this message translates to:
+  /// **'Aumento Massa Muscolare'**
+  String get muscleGain;
+
+  /// No description provided for @weightLoss.
+  ///
+  /// In it, this message translates to:
+  /// **'Perdita di Peso'**
+  String get weightLoss;
+
+  /// No description provided for @toning.
+  ///
+  /// In it, this message translates to:
+  /// **'Tonificazione'**
+  String get toning;
+
+  /// No description provided for @strength.
+  ///
+  /// In it, this message translates to:
+  /// **'Forza'**
+  String get strength;
+
+  /// No description provided for @wellness.
+  ///
+  /// In it, this message translates to:
+  /// **'Benessere'**
+  String get wellness;
+
+  /// No description provided for @beginner.
+  ///
+  /// In it, this message translates to:
+  /// **'Principiante'**
+  String get beginner;
+
+  /// No description provided for @intermediate.
+  ///
+  /// In it, this message translates to:
+  /// **'Intermedio'**
+  String get intermediate;
+
+  /// No description provided for @advanced.
+  ///
+  /// In it, this message translates to:
+  /// **'Avanzato'**
+  String get advanced;
+
+  /// No description provided for @gym.
+  ///
+  /// In it, this message translates to:
+  /// **'Palestra'**
+  String get gym;
+
+  /// No description provided for @outdoor.
+  ///
+  /// In it, this message translates to:
+  /// **'All\'aperto'**
+  String get outdoor;
+
+  /// No description provided for @bench.
+  ///
+  /// In it, this message translates to:
+  /// **'Panca'**
+  String get bench;
+
+  /// No description provided for @dumbbells.
+  ///
+  /// In it, this message translates to:
+  /// **'Manubri'**
+  String get dumbbells;
+
+  /// No description provided for @barbell.
+  ///
+  /// In it, this message translates to:
+  /// **'Bilanciere'**
+  String get barbell;
+
+  /// No description provided for @resistanceBands.
+  ///
+  /// In it, this message translates to:
+  /// **'Bande Elastiche'**
+  String get resistanceBands;
+
+  /// No description provided for @machines.
+  ///
+  /// In it, this message translates to:
+  /// **'Macchine'**
+  String get machines;
+
+  /// No description provided for @ipertrofia.
+  ///
+  /// In it, this message translates to:
+  /// **'Ipertrofia'**
+  String get ipertrofia;
+
+  /// No description provided for @ipertrophy.
+  ///
+  /// In it, this message translates to:
+  /// **'Ipertrofia'**
+  String get ipertrophy;
+
+  /// No description provided for @endurance.
+  ///
+  /// In it, this message translates to:
+  /// **'Resistenza'**
+  String get endurance;
+
+  /// No description provided for @functional.
+  ///
+  /// In it, this message translates to:
+  /// **'Funzionale'**
+  String get functional;
+
+  /// No description provided for @calisthenics.
+  ///
+  /// In it, this message translates to:
+  /// **'Calisthenics'**
+  String get calisthenics;
+
+  /// No description provided for @weeklyReport.
+  ///
+  /// In it, this message translates to:
+  /// **'Report Settimanale'**
+  String get weeklyReport;
+
+  /// No description provided for @myWeeklyReport.
+  ///
+  /// In it, this message translates to:
+  /// **'Il mio Report Settimanale GIGI'**
+  String get myWeeklyReport;
+
+  /// No description provided for @sleep.
+  ///
+  /// In it, this message translates to:
+  /// **'Sonno'**
+  String get sleep;
+
+  /// No description provided for @workouts.
+  ///
+  /// In it, this message translates to:
+  /// **'Workout'**
+  String get workouts;
+
+  /// No description provided for @heartRate.
+  ///
+  /// In it, this message translates to:
+  /// **'HR'**
+  String get heartRate;
+
+  /// No description provided for @perNight.
+  ///
+  /// In it, this message translates to:
+  /// **'/notte'**
+  String get perNight;
+
+  /// No description provided for @perDay.
+  ///
+  /// In it, this message translates to:
+  /// **'/giorno'**
+  String get perDay;
+
+  /// No description provided for @completed.
+  ///
+  /// In it, this message translates to:
+  /// **'completati'**
+  String get completed;
+
+  /// No description provided for @sleepTrend.
+  ///
+  /// In it, this message translates to:
+  /// **'Andamento Sonno'**
+  String get sleepTrend;
+
+  /// No description provided for @activity.
+  ///
+  /// In it, this message translates to:
+  /// **'Attività'**
+  String get activity;
+
+  /// No description provided for @aiInsights.
+  ///
+  /// In it, this message translates to:
+  /// **'Insights AI'**
+  String get aiInsights;
+
+  /// No description provided for @patternDiscovery.
+  ///
+  /// In it, this message translates to:
+  /// **'Pattern Discovery'**
+  String get patternDiscovery;
+
+  /// No description provided for @gigiTip.
+  ///
+  /// In it, this message translates to:
+  /// **'Consiglio di Gigi'**
+  String get gigiTip;
+
+  /// No description provided for @avgSleep.
+  ///
+  /// In it, this message translates to:
+  /// **'Sonno medio'**
+  String get avgSleep;
+
+  /// No description provided for @stepsPerDay.
+  ///
+  /// In it, this message translates to:
+  /// **'Passi/giorno'**
+  String get stepsPerDay;
+
+  /// No description provided for @hrBpm.
+  ///
+  /// In it, this message translates to:
+  /// **'HR bpm'**
+  String get hrBpm;
+
+  /// No description provided for @weeklyStepGoal.
+  ///
+  /// In it, this message translates to:
+  /// **'Obiettivo: 70.000 passi/settimana'**
+  String get weeklyStepGoal;
+
+  /// No description provided for @basedOnDataPoints.
+  ///
+  /// In it, this message translates to:
+  /// **'Basato su {count} giorni di dati'**
+  String basedOnDataPoints(int count);
+
+  /// No description provided for @noDataAvailable.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun dato disponibile'**
+  String get noDataAvailable;
+
+  /// No description provided for @aiFormCheck.
+  ///
+  /// In it, this message translates to:
+  /// **'AI Form Check'**
+  String get aiFormCheck;
+
+  /// No description provided for @exerciseName.
+  ///
+  /// In it, this message translates to:
+  /// **'Nome Esercizio'**
+  String get exerciseName;
+
+  /// No description provided for @recordVideo.
+  ///
+  /// In it, this message translates to:
+  /// **'Registra Video'**
+  String get recordVideo;
+
+  /// No description provided for @max15Seconds.
+  ///
+  /// In it, this message translates to:
+  /// **'Max 15 secondi'**
+  String get max15Seconds;
+
+  /// No description provided for @uploadFromGallery.
+  ///
+  /// In it, this message translates to:
+  /// **'Carica dalla Galleria'**
+  String get uploadFromGallery;
+
+  /// No description provided for @videoSelected.
+  ///
+  /// In it, this message translates to:
+  /// **'Video selezionato'**
+  String get videoSelected;
+
+  /// No description provided for @remove.
+  ///
+  /// In it, this message translates to:
+  /// **'Rimuovi'**
+  String get remove;
+
+  /// No description provided for @analyzeForm.
+  ///
+  /// In it, this message translates to:
+  /// **'Analizza Esecuzione'**
+  String get analyzeForm;
+
+  /// No description provided for @analyzingForm.
+  ///
+  /// In it, this message translates to:
+  /// **'Gigi sta analizzando la tua tecnica...'**
+  String get analyzingForm;
+
+  /// No description provided for @loadingProgress.
+  ///
+  /// In it, this message translates to:
+  /// **'Caricamento... {progress}%'**
+  String loadingProgress(int progress);
+
+  /// No description provided for @takeTimeDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Questo può richiedere 30-60 secondi'**
+  String get takeTimeDesc;
+
+  /// No description provided for @gigiFormMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Ciao! Per un risultato perfetto, chiedi a qualcuno di riprenderti di profilo o appoggia il telefono. Assicurati che tutto il corpo sia visibile!'**
+  String get gigiFormMessage;
+
+  /// No description provided for @howItWorksStep1.
+  ///
+  /// In it, this message translates to:
+  /// **'Registra o carica un video (max 15 sec)'**
+  String get howItWorksStep1;
+
+  /// No description provided for @howItWorksStep2.
+  ///
+  /// In it, this message translates to:
+  /// **'Gigi analizza la tua esecuzione'**
+  String get howItWorksStep2;
+
+  /// No description provided for @howItWorksStep3.
+  ///
+  /// In it, this message translates to:
+  /// **'Ricevi feedback su postura ed errori'**
+  String get howItWorksStep3;
+
+  /// No description provided for @howItWorksStep4.
+  ///
+  /// In it, this message translates to:
+  /// **'Migliora con suggerimenti personalizzati'**
+  String get howItWorksStep4;
+
+  /// No description provided for @dailyAnalyses.
+  ///
+  /// In it, this message translates to:
+  /// **'Analisi Giornaliere'**
+  String get dailyAnalyses;
+
+  /// No description provided for @remainingToday.
+  ///
+  /// In it, this message translates to:
+  /// **'{count}/{total} rimaste oggi'**
+  String remainingToday(int count, int total);
+
+  /// No description provided for @limitReachedDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Hai raggiunto il limite giornaliero di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!'**
+  String limitReachedDesc(int limit);
+
+  /// No description provided for @upgrade.
+  ///
+  /// In it, this message translates to:
+  /// **'Upgrade'**
+  String get upgrade;
+
+  /// No description provided for @videoTooLarge.
+  ///
+  /// In it, this message translates to:
+  /// **'Video troppo grande! Max 50MB'**
+  String get videoTooLarge;
+
+  /// No description provided for @selectVideoAndExercise.
+  ///
+  /// In it, this message translates to:
+  /// **'Seleziona video e inserisci nome esercizio'**
+  String get selectVideoAndExercise;
+
+  /// No description provided for @ml.
+  ///
+  /// In it, this message translates to:
+  /// **'ml'**
+  String get ml;
+
+  /// No description provided for @glasses.
+  ///
+  /// In it, this message translates to:
+  /// **'bicchieri'**
+  String get glasses;
+
+  /// No description provided for @exercise.
+  ///
+  /// In it, this message translates to:
+  /// **'Esercizio'**
+  String get exercise;
+
+  /// No description provided for @kcal.
+  ///
+  /// In it, this message translates to:
+  /// **'kcal'**
+  String get kcal;
+
+  /// No description provided for @platform.
+  ///
+  /// In it, this message translates to:
+  /// **'Piattaforma'**
+  String get platform;
+
+  /// No description provided for @description.
+  ///
+  /// In it, this message translates to:
+  /// **'Descrizione'**
+  String get description;
+
+  /// No description provided for @title.
+  ///
+  /// In it, this message translates to:
+  /// **'Titolo'**
+  String get title;
+
+  /// No description provided for @current.
+  ///
+  /// In it, this message translates to:
+  /// **'Attuale'**
+  String get current;
 }
 
 class _AppLocalizationsDelegate

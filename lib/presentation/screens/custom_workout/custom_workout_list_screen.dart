@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/custom_workout_model.dart';
 import '../../../data/services/custom_workout_service.dart';
@@ -55,7 +56,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: CleanTheme.cardColor,
         title: Text(
-          'Elimina Scheda',
+          AppLocalizations.of(context)!.deleteWorkoutTitle,
           style: GoogleFonts.outfit(
             color: CleanTheme.textPrimary,
             fontWeight: FontWeight.bold,
@@ -69,7 +70,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.outfit(color: CleanTheme.textSecondary),
             ),
           ),
@@ -77,7 +78,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text(
-              'Elimina',
+              AppLocalizations.of(context)!.delete,
               style: GoogleFonts.outfit(color: Colors.white),
             ),
           ),
@@ -116,7 +117,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Le Mie Schede',
+          AppLocalizations.of(context)!.myWorkoutsTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,

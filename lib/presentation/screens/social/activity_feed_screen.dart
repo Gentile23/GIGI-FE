@@ -6,6 +6,7 @@ import '../../widgets/clean_widgets.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/social_provider.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 /// Screen per il feed delle attività della community
 class ActivityFeedScreen extends StatefulWidget {
@@ -66,11 +67,6 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: CleanTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
@@ -84,7 +80,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Community',
+                AppLocalizations.of(context)!.communityTitle,
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -94,7 +90,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
               Consumer<SocialProvider>(
                 builder: (context, provider, child) {
                   return Text(
-                    '${provider.activities.length} attività oggi',
+                    AppLocalizations.of(
+                      context,
+                    )!.activitiesToday(provider.activities.length),
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: CleanTheme.textSecondary,
@@ -149,10 +147,10 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         padding: const EdgeInsets.all(4),
-        tabs: const [
-          Tab(text: 'Feed'),
-          Tab(text: 'Sfide'),
-          Tab(text: 'Classifica'),
+        tabs: [
+          Tab(text: AppLocalizations.of(context)!.feedTab),
+          Tab(text: AppLocalizations.of(context)!.challengesTab),
+          Tab(text: AppLocalizations.of(context)!.leaderboardTab),
         ],
       ),
     );
@@ -168,7 +166,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
         if (provider.activities.isEmpty) {
           return Center(
             child: Text(
-              'Nessuna attività recente',
+              AppLocalizations.of(context)!.noRecentActivity,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           );
@@ -183,11 +181,10 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             itemCount: provider.activities.length + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return const Padding(
+                return Padding(
                   padding: EdgeInsets.only(bottom: 20),
                   child: GigiCoachMessage(
-                    message:
-                        'Entrare a far parte della community aumenta la tua costanza del 35%. Interagisci con gli altri per restare motivato! 🚀',
+                    message: AppLocalizations.of(context)!.communityGigiMessage,
                     emotion: GigiEmotion.motivational,
                   ),
                 );
@@ -318,7 +315,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
               // Kudos
               _buildActionButton(
                 icon: Icons.thumb_up_outlined,
-                label: 'Kudos',
+                label: AppLocalizations.of(context)!.kudos,
                 onTap: () {
                   HapticService.celebrationPattern();
                   _sendKudos(activity);
@@ -480,7 +477,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 ),
               ),
               Text(
-                'Prima',
+                AppLocalizations.of(context)!.before,
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   color: CleanTheme.textTertiary,
@@ -500,7 +497,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 ),
               ),
               Text(
-                'Nuovo Record!',
+                AppLocalizations.of(context)!.newRecord,
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   color: CleanTheme.primaryColor,
@@ -526,7 +523,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
           children: [
             // Active challenges
             if (provider.activeChallenges.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Sfide Attive'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.activeChallengesTitle,
+              ),
               const SizedBox(height: 16),
               ...provider.activeChallenges.map(
                 (challenge) => _buildChallengeCard(challenge),
@@ -537,8 +536,8 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             // Available challenges
             if (provider.availableChallenges.isNotEmpty) ...[
               CleanSectionHeader(
-                title: 'Sfide Disponibili',
-                actionText: 'Vedi tutte',
+                title: AppLocalizations.of(context)!.availableChallengesTitle,
+                actionText: AppLocalizations.of(context)!.viewAll,
                 onAction: () {},
               ),
               const SizedBox(height: 16),
@@ -553,7 +552,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 padding: const EdgeInsets.only(top: 40),
                 child: Center(
                   child: Text(
-                    'Nessuna sfida attiva al momento',
+                    AppLocalizations.of(context)!.noActiveChallenges,
                     style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                   ),
                 ),
@@ -638,7 +637,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${(challenge.progress * 100).toInt()}% completato',
+                AppLocalizations.of(
+                  context,
+                )!.percentCompleted((challenge.progress * 100).toInt()),
                 style: GoogleFonts.inter(
                   color: CleanTheme.textTertiary,
                   fontSize: 12,
@@ -653,7 +654,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '$daysRemaining giorni rimasti',
+                    AppLocalizations.of(context)!.daysRemaining(daysRemaining),
                     style: GoogleFonts.inter(
                       color: daysRemaining <= 1
                           ? CleanTheme.accentRed
@@ -680,7 +681,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${challenge.participants} partecipanti',
+                    AppLocalizations.of(
+                      context,
+                    )!.participantsCount(challenge.participants),
                     style: GoogleFonts.inter(
                       color: CleanTheme.textTertiary,
                       fontSize: 12,
@@ -749,7 +752,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 Row(
                   children: [
                     Text(
-                      '${challenge.participants} partecipanti',
+                      AppLocalizations.of(
+                        context,
+                      )!.participantsCount(challenge.participants),
                       style: GoogleFonts.inter(
                         color: CleanTheme.textTertiary,
                         fontSize: 12,
@@ -770,7 +775,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
             ),
           ),
           CleanButton(
-            text: 'Unisciti',
+            text: AppLocalizations.of(context)!.joinButton,
             onPressed: () {
               HapticService.mediumTap();
               _joinChallenge(challenge);
@@ -785,7 +790,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   Widget _buildLeaderboardTab() {
     return Center(
       child: Text(
-        'Classifica in arrivo...',
+        AppLocalizations.of(context)!.leaderboardComingSoon,
         style: GoogleFonts.inter(color: CleanTheme.textSecondary),
       ),
     );
@@ -794,11 +799,11 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   String _formatTimeAgo(DateTime timestamp) {
     final diff = DateTime.now().difference(timestamp);
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m fa';
+      return AppLocalizations.of(context)!.timeMinutesAgo(diff.inMinutes);
     } else if (diff.inHours < 24) {
-      return '${diff.inHours}h fa';
+      return AppLocalizations.of(context)!.timeHoursAgo(diff.inHours);
     } else {
-      return '${diff.inDays}g fa';
+      return AppLocalizations.of(context)!.timeDaysAgo(diff.inDays);
     }
   }
 
@@ -809,8 +814,8 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feed aggiornato!'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.feedUpdated),
           backgroundColor: CleanTheme.primaryColor,
           duration: Duration(seconds: 1),
         ),
@@ -849,7 +854,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
               child: Row(
                 children: [
                   Text(
-                    'Commenti (${activity.comments})',
+                    AppLocalizations.of(
+                      context,
+                    )!.commentsCount(activity.comments),
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -892,7 +899,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                     child: TextField(
                       style: GoogleFonts.inter(color: CleanTheme.textPrimary),
                       decoration: InputDecoration(
-                        hintText: 'Scrivi un commento...',
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.writeCommentHint,
                         hintStyle: GoogleFonts.inter(
                           color: CleanTheme.textTertiary,
                         ),
@@ -915,8 +924,10 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                       HapticService.lightTap();
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Commento inviato!'),
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context)!.commentSent,
+                          ),
                           backgroundColor: CleanTheme.primaryColor,
                         ),
                       );
@@ -983,7 +994,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     // Optimistic UI update
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Kudos inviato a ${activity.userName}! 🎉'),
+        content: Text(
+          AppLocalizations.of(context)!.kudosSentTo(activity.userName),
+        ),
         backgroundColor: CleanTheme.primaryColor,
         duration: const Duration(seconds: 2),
       ),
@@ -1004,21 +1017,23 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'Unisciti alla sfida',
+          AppLocalizations.of(context)!.joinChallengeTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
         content: Text(
-          'Vuoi unirti a "${challenge.title}"?\n\nPremio: ${challenge.reward} XP',
+          AppLocalizations.of(
+            context,
+          )!.joinChallengeConfirm(challenge.title, challenge.reward),
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
@@ -1037,7 +1052,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Ti sei unito a "${challenge.title}"! 🎯',
+                          AppLocalizations.of(
+                            context,
+                          )!.joinedChallengeSuccess(challenge.title),
                         ),
                         backgroundColor: CleanTheme.primaryColor,
                       ),
@@ -1046,8 +1063,10 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 } else {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Errore: impossibile unirsi alla sfida.'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context)!.joinChallengeError,
+                        ),
                         backgroundColor: CleanTheme.accentRed,
                       ),
                     );
@@ -1056,7 +1075,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
               });
             },
             child: Text(
-              'Unisciti',
+              AppLocalizations.of(context)!.joinButton,
               style: GoogleFonts.inter(
                 color: CleanTheme.primaryColor,
                 fontWeight: FontWeight.w600,

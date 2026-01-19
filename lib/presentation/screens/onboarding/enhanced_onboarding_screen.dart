@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/responsive_utils.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -157,14 +158,16 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
 
   Widget _buildPage(OnboardingPageData page) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.scale(context, 32),
+      ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Image/Icon container - larger for impact
           Container(
-            width: 180,
-            height: 180,
+            width: ResponsiveUtils.scale(context, 180),
+            height: ResponsiveUtils.scale(context, 180),
             decoration: BoxDecoration(
               color: page.accentColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
@@ -174,20 +177,23 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
                     child: Image.asset(
                       page.imagePath!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          Icon(page.icon, size: 80, color: page.accentColor),
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        page.icon,
+                        size: ResponsiveUtils.scale(context, 80),
+                        color: page.accentColor,
+                      ),
                     ),
                   )
                 : Icon(page.icon, size: 80, color: page.accentColor),
           ),
 
-          const SizedBox(height: 48),
+          SizedBox(height: ResponsiveUtils.scale(context, 48)),
 
           // Title
           Text(
             page.title,
             style: GoogleFonts.outfit(
-              fontSize: 32,
+              fontSize: ResponsiveUtils.responsiveFontSize(context, 32),
               fontWeight: FontWeight.w700,
               color: CleanTheme.textPrimary,
             ),
@@ -200,14 +206,14 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
           Text(
             page.description,
             style: GoogleFonts.inter(
-              fontSize: 16,
+              fontSize: ResponsiveUtils.responsiveFontSize(context, 16),
               color: CleanTheme.textSecondary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: ResponsiveUtils.scale(context, 32)),
 
           // Highlight text
           Container(

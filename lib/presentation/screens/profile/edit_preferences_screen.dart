@@ -5,6 +5,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/training_preferences_model.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../widgets/clean_widgets.dart';
 
 class EditPreferencesScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   bool _isLoading = false;
 
   // User preferences
-  FitnessGoal? _goal;
+  final Set<FitnessGoal> _goals = {};
   ExperienceLevel? _level;
   int? _weeklyFrequency;
   TrainingLocation? _location;
@@ -40,7 +41,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   double? _weight;
   Gender? _gender;
   int? _age;
-  BodyShape? _bodyShape;
+  BodyFatPercentage? _bodyFatPercentage;
 
   @override
   void initState() {
@@ -67,28 +68,45 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
         if (user.gender != null) {
           _gender = Gender.values.firstWhere(
-            (e) => e.toString().split('.').last == user.gender,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.gender!.toLowerCase(),
             orElse: () => Gender.male,
           );
         }
 
-        if (user.bodyShape != null) {
-          _bodyShape = BodyShape.values.firstWhere(
-            (e) => e.toString().split('.').last == user.bodyShape,
-            orElse: () => BodyShape.average,
-          );
+        if (user.bodyFatPercentage != null) {
+          _bodyFatPercentage = user.bodyFatPercentage;
         }
 
-        if (user.goal != null) {
-          _goal = FitnessGoal.values.firstWhere(
-            (e) => e.toString().split('.').last == user.goal,
-            orElse: () => FitnessGoal.wellness,
-          );
+        if (user.goals != null && user.goals!.isNotEmpty) {
+          _goals.clear();
+          for (final g in user.goals!) {
+            try {
+              final goal = FitnessGoal.values.firstWhere(
+                (e) =>
+                    e.toString().split('.').last.toLowerCase() ==
+                    g.toLowerCase(),
+              );
+              _goals.add(goal);
+            } catch (_) {}
+          }
+        } else if (user.goal != null) {
+          try {
+            final goal = FitnessGoal.values.firstWhere(
+              (e) =>
+                  e.toString().split('.').last.toLowerCase() ==
+                  user.goal!.toLowerCase(),
+            );
+            _goals.add(goal);
+          } catch (_) {}
         }
 
         if (user.experienceLevel != null) {
           _level = ExperienceLevel.values.firstWhere(
-            (e) => e.toString().split('.').last == user.experienceLevel,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.experienceLevel!.toLowerCase(),
             orElse: () => ExperienceLevel.beginner,
           );
         }
@@ -97,7 +115,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
         if (user.trainingLocation != null) {
           _location = TrainingLocation.values.firstWhere(
-            (e) => e.toString().split('.').last == user.trainingLocation,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.trainingLocation!.toLowerCase(),
             orElse: () => TrainingLocation.gym,
           );
         }
@@ -106,7 +126,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           _equipment = user.availableEquipment!
               .map(
                 (e) => Equipment.values.firstWhere(
-                  (eq) => eq.toString().split('.').last == e,
+                  (eq) =>
+                      eq.toString().split('.').last.toLowerCase() ==
+                      e.toLowerCase(),
                   orElse: () => Equipment.bodyweight,
                 ),
               )
@@ -115,7 +137,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
         if (user.trainingSplit != null) {
           _trainingSplit = TrainingSplit.values.firstWhere(
-            (e) => e.toString().split('.').last == user.trainingSplit,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.trainingSplit!.toLowerCase(),
             orElse: () => TrainingSplit.multifrequency,
           );
         }
@@ -124,21 +148,27 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
         if (user.cardioPreference != null) {
           _cardioPreference = CardioPreference.values.firstWhere(
-            (e) => e.toString().split('.').last == user.cardioPreference,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.cardioPreference!.toLowerCase(),
             orElse: () => CardioPreference.none,
           );
         }
 
         if (user.mobilityPreference != null) {
           _mobilityPreference = MobilityPreference.values.firstWhere(
-            (e) => e.toString().split('.').last == user.mobilityPreference,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.mobilityPreference!.toLowerCase(),
             orElse: () => MobilityPreference.postWorkout,
           );
         }
 
         if (user.workoutType != null) {
           _workoutType = WorkoutType.values.firstWhere(
-            (e) => e.toString().split('.').last == user.workoutType,
+            (e) =>
+                e.toString().split('.').last.toLowerCase() ==
+                user.workoutType!.toLowerCase(),
             orElse: () => WorkoutType.hypertrophy,
           );
         }
@@ -159,8 +189,13 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         weight: _weight,
         age: _age,
         gender: _gender?.toString().split('.').last,
-        bodyShape: _bodyShape?.toString().split('.').last,
-        goal: _goal?.toString().split('.').last,
+        bodyFatPercentage: _camelToSnake(
+          _bodyFatPercentage?.toString().split('.').last,
+        ),
+        goals: _goals.map((g) => g.toString().split('.').last).toList(),
+        goal: _goals.isNotEmpty
+            ? _goals.first.toString().split('.').last
+            : null, // Backward compatibility
         level: _level?.toString().split('.').last,
         weeklyFrequency: _weeklyFrequency,
         location: _location?.toString().split('.').last,
@@ -176,8 +211,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Preferenze salvate con successo'),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.preferencesSavedSuccess,
+              ),
               backgroundColor: CleanTheme.primaryColor,
             ),
           );
@@ -188,7 +225,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                authProvider.error ?? 'Errore durante il salvataggio',
+                authProvider.error ??
+                    AppLocalizations.of(context)!.errorSavingPreferences,
               ),
               backgroundColor: CleanTheme.accentRed,
             ),
@@ -218,8 +256,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       appBar: AppBar(
         title: Text(
           widget.showGenerateButton
-              ? 'Rivedi Preferenze'
-              : 'Modifica Preferenze',
+              ? AppLocalizations.of(context)!.reviewPreferences
+              : AppLocalizations.of(context)!.editPreferences,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -247,7 +285,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Rivedi le tue preferenze prima di generare il piano. Puoi modificarle se necessario.',
+                        AppLocalizations.of(context)!.reviewPreferencesDesc,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: CleanTheme.textSecondary,
@@ -261,59 +299,66 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             ],
 
             // Personal Info Section
-            _buildSectionTitle('Informazioni Personali'),
+            _buildSectionTitle(AppLocalizations.of(context)!.personalInfo),
             CleanCard(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   _buildInfoRow(
-                    'Altezza',
+                    AppLocalizations.of(context)!.height,
                     '${_height?.toStringAsFixed(0) ?? '-'} cm',
                   ),
                   _buildInfoRow(
-                    'Peso',
+                    AppLocalizations.of(context)!.weight,
                     '${_weight?.toStringAsFixed(0) ?? '-'} kg',
                   ),
-                  _buildInfoRow('Età', '${_age ?? '-'} anni'),
-                  _buildInfoRow('Genere', _getGenderLabel(_gender)),
-                  _buildInfoRow('Forma Fisica', _getBodyShapeLabel(_bodyShape)),
+                  _buildInfoRow(
+                    AppLocalizations.of(context)!.age,
+                    '${_age ?? '-'} ${AppLocalizations.of(context)!.years}',
+                  ),
+                  _buildInfoRow(
+                    AppLocalizations.of(context)!.gender,
+                    _getGenderLabel(_gender),
+                  ),
                 ],
               ),
+            ),
+            const SizedBox(height: 16),
+            _buildDropdown<BodyFatPercentage>(
+              label: AppLocalizations.of(context)!.bodyShape,
+              value: _bodyFatPercentage,
+              items: BodyFatPercentage.values,
+              itemLabel: _getBodyFatLabel,
+              onChanged: (value) => setState(() => _bodyFatPercentage = value),
             ),
             const SizedBox(height: 24),
 
             // Training Goals Section
-            _buildSectionTitle('Obiettivi di Allenamento'),
-            _buildDropdown<FitnessGoal>(
-              label: 'Obiettivo',
-              value: _goal,
-              items: FitnessGoal.values,
-              itemLabel: _getGoalLabel,
-              onChanged: (value) => setState(() => _goal = value),
-            ),
+            _buildSectionTitle(AppLocalizations.of(context)!.trainingGoals),
+            _buildGoalsSelector(), // NEW: Multi-select
             _buildDropdown<ExperienceLevel>(
-              label: 'Livello di Esperienza',
+              label: AppLocalizations.of(context)!.experienceLevel,
               value: _level,
               items: ExperienceLevel.values,
               itemLabel: _getLevelLabel,
               onChanged: (value) => setState(() => _level = value),
             ),
             _buildSlider(
-              label: 'Frequenza Settimanale',
+              label: AppLocalizations.of(context)!.weeklyFrequency,
               value: _weeklyFrequency?.toDouble() ?? 3,
               min: 1,
               max: 7,
               divisions: 6,
-              suffix: 'giorni/settimana',
+              suffix: AppLocalizations.of(context)!.daysPerWeek,
               onChanged: (value) =>
                   setState(() => _weeklyFrequency = value.toInt()),
             ),
             const SizedBox(height: 24),
 
             // Training Location Section
-            _buildSectionTitle('Luogo di Allenamento'),
+            _buildSectionTitle(AppLocalizations.of(context)!.trainingLocation),
             _buildDropdown<TrainingLocation>(
-              label: 'Dove ti alleni?',
+              label: AppLocalizations.of(context)!.whereDoYouTrain,
               value: _location,
               items: TrainingLocation.values,
               itemLabel: _getLocationLabel,
@@ -323,40 +368,42 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             const SizedBox(height: 24),
 
             // Training Preferences Section
-            _buildSectionTitle('Preferenze di Allenamento'),
+            _buildSectionTitle(
+              AppLocalizations.of(context)!.trainingPreferences,
+            ),
             _buildDropdown<WorkoutType>(
-              label: 'Tipo di Allenamento',
+              label: AppLocalizations.of(context)!.workoutType,
               value: _workoutType,
               items: WorkoutType.values,
               itemLabel: _getWorkoutTypeLabel,
               onChanged: (value) => setState(() => _workoutType = value),
             ),
             _buildDropdown<TrainingSplit>(
-              label: 'Split di Allenamento',
+              label: AppLocalizations.of(context)!.trainingSplit,
               value: _trainingSplit,
               items: TrainingSplit.values,
               itemLabel: (split) => split.displayName,
               onChanged: (value) => setState(() => _trainingSplit = value),
             ),
             _buildSlider(
-              label: 'Durata Sessione',
+              label: AppLocalizations.of(context)!.sessionDuration,
               value: _sessionDuration?.toDouble() ?? 60,
               min: 30,
               max: 120,
               divisions: 9,
-              suffix: 'minuti',
+              suffix: AppLocalizations.of(context)!.minutes,
               onChanged: (value) =>
                   setState(() => _sessionDuration = value.toInt()),
             ),
             _buildDropdown<CardioPreference>(
-              label: 'Preferenza Cardio',
+              label: AppLocalizations.of(context)!.cardioPreference,
               value: _cardioPreference,
               items: CardioPreference.values,
               itemLabel: (pref) => pref.displayName,
               onChanged: (value) => setState(() => _cardioPreference = value),
             ),
             _buildDropdown<MobilityPreference>(
-              label: 'Preferenza Mobilità',
+              label: AppLocalizations.of(context)!.mobilityPreference,
               value: _mobilityPreference,
               items: MobilityPreference.values,
               itemLabel: (pref) => pref.displayName,
@@ -367,20 +414,20 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             // Action Buttons
             if (widget.showGenerateButton) ...[
               CleanButton(
-                text: 'Genera Piano con Queste Preferenze',
+                text: AppLocalizations.of(context)!.generatePlanWithPrefs,
                 width: double.infinity,
                 onPressed: _isLoading ? null : widget.onGenerate,
               ),
               const SizedBox(height: 12),
               CleanButton(
-                text: 'Salva Modifiche',
+                text: AppLocalizations.of(context)!.saveChanges,
                 width: double.infinity,
                 isOutlined: true,
                 onPressed: _isLoading ? null : _savePreferences,
               ),
             ] else ...[
               CleanButton(
-                text: 'Salva Preferenze',
+                text: AppLocalizations.of(context)!.savePreferences,
                 width: double.infinity,
                 onPressed: _isLoading ? null : _savePreferences,
               ),
@@ -526,6 +573,67 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     );
   }
 
+  Widget _buildGoalsSelector() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context)!.goal,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: FitnessGoal.values.map((goal) {
+              final isSelected = _goals.contains(goal);
+              return FilterChip(
+                label: Text(
+                  _getGoalLabel(goal),
+                  style: GoogleFonts.inter(
+                    color: isSelected ? Colors.white : CleanTheme.textPrimary,
+                  ),
+                ),
+                selected: isSelected,
+                selectedColor: CleanTheme.primaryColor,
+                checkmarkColor: Colors.white,
+                backgroundColor: CleanTheme.surfaceColor,
+                side: BorderSide(
+                  color: isSelected
+                      ? CleanTheme.primaryColor
+                      : CleanTheme.borderPrimary,
+                ),
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      // Exclusive logic if needed (e.g. WeightLoss vs MuscleGain)
+                      // For now, mirroring unified_questionnaire logic if desired,
+                      // or allowing full multi-select.
+                      // UnifiedQuestionnaire enforces some exclusivity:
+                      if (goal == FitnessGoal.weightLoss) {
+                        _goals.remove(FitnessGoal.muscleGain);
+                      } else if (goal == FitnessGoal.muscleGain) {
+                        _goals.remove(FitnessGoal.weightLoss);
+                      }
+                      _goals.add(goal);
+                    } else {
+                      _goals.remove(goal);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEquipmentSelector() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -533,7 +641,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Attrezzatura Disponibile',
+            AppLocalizations.of(context)!.availableEquipment,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,
@@ -579,94 +687,104 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   }
 
   String _getGenderLabel(Gender? gender) {
-    if (gender == null) return 'Non specificato';
-    return gender == Gender.male ? 'Maschio' : 'Femmina';
+    if (gender == null) return AppLocalizations.of(context)!.unspecified;
+    return gender == Gender.male
+        ? AppLocalizations.of(context)!.male
+        : AppLocalizations.of(context)!.female;
   }
 
-  String _getBodyShapeLabel(BodyShape? shape) {
-    if (shape == null) return 'Non specificato';
-    switch (shape) {
-      case BodyShape.skinny:
-        return 'Molto Magro';
-      case BodyShape.lean:
-        return 'Magro';
-      case BodyShape.athletic:
-        return 'Atletico';
-      case BodyShape.muscular:
-        return 'Muscoloso';
-      case BodyShape.overweight:
-        return 'Sovrappeso';
-      case BodyShape.average:
-        return 'Medio';
+  String _getBodyFatLabel(BodyFatPercentage? bodyFat) {
+    if (bodyFat == null) return AppLocalizations.of(context)!.unspecified;
+    switch (bodyFat) {
+      case BodyFatPercentage.veryHigh:
+        return 'Evidente sovrappeso (20-25%+)';
+      case BodyFatPercentage.high:
+        return 'Sovrappeso leggero (15-20%)';
+      case BodyFatPercentage.average:
+        return 'Normale (10-15%)';
+      case BodyFatPercentage.athletic:
+        return 'Atletico (6-10%)';
+      case BodyFatPercentage.veryLean:
+        return 'Molto magro (<6%)';
     }
+  }
+
+  String _camelToSnake(String? value) {
+    if (value == null) return '';
+    return value
+        .replaceAllMapped(
+          RegExp(r'(?<=[a-z])[A-Z]'),
+          (match) => '_${match.group(0)!.toLowerCase()}',
+        )
+        .toLowerCase();
   }
 
   String _getGoalLabel(FitnessGoal goal) {
     switch (goal) {
       case FitnessGoal.muscleGain:
-        return 'Aumento Massa Muscolare';
+        return AppLocalizations.of(context)!.muscleGain;
       case FitnessGoal.weightLoss:
-        return 'Perdita di Peso';
+        return AppLocalizations.of(context)!.weightLoss;
       case FitnessGoal.toning:
-        return 'Tonificazione';
+        return AppLocalizations.of(context)!.toning;
       case FitnessGoal.strength:
-        return 'Forza';
+        return AppLocalizations.of(context)!.strength;
       case FitnessGoal.wellness:
-        return 'Benessere';
+        return AppLocalizations.of(context)!.wellness;
     }
   }
 
   String _getLevelLabel(ExperienceLevel level) {
     switch (level) {
       case ExperienceLevel.beginner:
-        return 'Principiante';
+        return AppLocalizations.of(context)!.beginner;
       case ExperienceLevel.intermediate:
-        return 'Intermedio';
+        return AppLocalizations.of(context)!.intermediate;
       case ExperienceLevel.advanced:
-        return 'Avanzato';
+        return AppLocalizations.of(context)!.advanced;
     }
   }
 
   String _getLocationLabel(TrainingLocation location) {
     switch (location) {
       case TrainingLocation.gym:
-        return 'Palestra';
+        return AppLocalizations.of(context)!.gym;
       case TrainingLocation.home:
-        return 'Casa';
+        return AppLocalizations.of(context)!.home;
       case TrainingLocation.outdoor:
-        return 'All\'aperto';
+        return AppLocalizations.of(context)!.outdoor;
     }
   }
 
   String _getEquipmentLabel(Equipment equipment) {
     switch (equipment) {
       case Equipment.bench:
-        return 'Panca';
+        return AppLocalizations.of(context)!.bench;
       case Equipment.dumbbells:
-        return 'Manubri';
+        return AppLocalizations.of(context)!.dumbbells;
       case Equipment.barbell:
-        return 'Bilanciere';
+        return AppLocalizations.of(context)!.barbell;
       case Equipment.resistanceBands:
-        return 'Bande Elastiche';
+        return AppLocalizations.of(context)!.resistanceBands;
       case Equipment.machines:
-        return 'Macchine';
+        return AppLocalizations.of(context)!.machines;
       case Equipment.bodyweight:
-        return 'Corpo Libero';
+        return AppLocalizations.of(context)!.bodyweight;
     }
   }
 
   String _getWorkoutTypeLabel(WorkoutType type) {
     switch (type) {
       case WorkoutType.strength:
-        return 'Forza';
+        return AppLocalizations.of(context)!.strength;
       case WorkoutType.hypertrophy:
-        return 'Ipertrofia';
+        return AppLocalizations.of(context)!.ipertrofia;
       case WorkoutType.endurance:
-        return 'Resistenza';
+        return AppLocalizations.of(context)!.endurance;
       case WorkoutType.functional:
-        return 'Funzionale';
+        return AppLocalizations.of(context)!.functional;
       case WorkoutType.calisthenics:
-        return 'Calisthenics';
+        return AppLocalizations.of(context)!.calisthenics;
     }
   }
 }

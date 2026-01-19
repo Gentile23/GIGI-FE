@@ -1,6 +1,7 @@
 class ApiConfig {
   // Backend URL - Modifica solo questa variabile per cambiare l'URL del backend
   static const String baseUrl = 'https://gigi.azienda-agricola-gentile.it/api/';
+  // static const String baseUrl = 'http://gest_one.test/api/'; // Android Emulator Localhost
 
   // API endpoints - Non modificare questi, usano automaticamente baseUrl
   static const String register = '/register';

@@ -19,7 +19,12 @@ class FloatingNavBar extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(24, 0, 24, 34),
+        margin: EdgeInsets.fromLTRB(
+          24,
+          0,
+          24,
+          MediaQuery.of(context).padding.bottom + 16,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: CleanTheme.primaryColor, // Black background

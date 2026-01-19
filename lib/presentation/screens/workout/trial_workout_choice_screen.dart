@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import 'trial_workout_generation_screen.dart';
@@ -38,8 +39,8 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
 
               _buildOptionCard(
                 context: context,
-                title: 'Trial Workout',
-                subtitle: 'Consigliato',
+                title: AppLocalizations.of(context)!.trialWorkoutTitle,
+                subtitle: AppLocalizations.of(context)!.recommendedLabel,
                 description:
                     'Completa un breve allenamento di prova per creare il piano perfetto per te.',
                 icon: Icons.fitness_center,
@@ -67,8 +68,8 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
 
               _buildOptionCard(
                 context: context,
-                title: 'Salta il Trial',
-                subtitle: 'Genera subito',
+                title: AppLocalizations.of(context)!.skipTrialTitle,
+                subtitle: AppLocalizations.of(context)!.generateNowLabel,
                 description:
                     'Genera il tuo piano direttamente, senza il trial workout.',
                 icon: Icons.fast_forward,

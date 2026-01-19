@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/constants/privacy_policy.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -12,7 +13,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Privacy Policy',
+          AppLocalizations.of(context)!.privacyPolicyTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -44,7 +45,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'La tua privacy è importante per noi',
+                      AppLocalizations.of(context)!.privacyPolicySubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

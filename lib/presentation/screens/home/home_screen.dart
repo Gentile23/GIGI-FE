@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -31,7 +32,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
-  final List<String> _categories = ['Tutti', 'Forza', 'Cardio', 'Mobilità'];
+
+  List<String> get _categories {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.categoryAll,
+      l10n.categoryStrength,
+      l10n.categoryCardio,
+      l10n.categoryMobility,
+    ];
+  }
 
   // Progress data
   Map<String, dynamic>? _progressData;
@@ -67,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('🎉 Piano generato con successo!'),
+              content: Text('🎉 Plan generated successfully!'),
               backgroundColor: CleanTheme.accentGreen,
               duration: Duration(seconds: 3),
             ),
@@ -265,8 +275,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: CleanSectionHeader(
-                      title: isNewUser ? 'Inizia qui' : 'Il tuo allenamento',
-                      actionText: isNewUser ? null : 'Vedi tutti',
+                      title: isNewUser
+                          ? AppLocalizations.of(context)!.startHere
+                          : AppLocalizations.of(context)!.yourWorkout,
+                      actionText: isNewUser
+                          ? null
+                          : AppLocalizations.of(context)!.seeAll,
                       onAction: isNewUser ? null : () {},
                     ),
                   ),
@@ -298,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
 
                   // Weekly Progress Ring - For returning users
-                  if (!isNewUser && currentPlan != null) ...[
+                  if (!isNewUser) ...[
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -306,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           WeeklyProgressRing(
                             completedWorkouts:
-                                0, // TODO: Track completed workouts
+                                _progressData?['weekly_completed'] as int? ?? 0,
                             totalWorkouts: currentPlan.workouts.length,
                             compact: true,
                           ),
@@ -362,8 +376,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: CleanSectionHeader(
-                      title: 'Programmi consigliati',
-                      actionText: 'Vedi tutti',
+                      title: AppLocalizations.of(context)!.recommendedPrograms,
+                      actionText: AppLocalizations.of(context)!.seeAll,
                       onAction: () {},
                     ),
                   ),
@@ -459,7 +473,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: CleanSectionHeader(title: 'Azioni rapide'),
+                    child: CleanSectionHeader(
+                      title: AppLocalizations.of(context)!.quickActions,
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -876,9 +892,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                'Completa ora',
-                style: TextStyle(color: Colors.white),
+              child: Text(
+                AppLocalizations.of(context)!.completeNow,
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ],
@@ -1037,7 +1053,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Proceed to preferences review (plan generation)
+    if (!mounted) return;
     Navigator.push(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (context) => const PreferencesReviewScreen()),
     );

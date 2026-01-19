@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/constants/terms_of_service.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
@@ -12,7 +13,7 @@ class TermsOfServiceScreen extends StatelessWidget {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Termini di Servizio',
+          AppLocalizations.of(context)!.termsOfServiceTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -44,7 +45,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Condizioni d\'uso del servizio GIGI',
+                      AppLocalizations.of(context)!.termsOfServiceSubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

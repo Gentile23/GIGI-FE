@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -38,14 +39,17 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   final ImagePicker _picker = ImagePicker();
   int? _createdMealId;
 
-  final Map<String, String> _mealTypes = {
-    'breakfast': 'Colazione',
-    'lunch': 'Pranzo',
-    'dinner': 'Cena',
-    'snack': 'Snack',
-    'pre_workout': 'Pre-Workout',
-    'post_workout': 'Post-Workout',
-  };
+  Map<String, String> get _mealTypes {
+    final l10n = AppLocalizations.of(context)!;
+    return {
+      'breakfast': l10n.mealBreakfast,
+      'lunch': l10n.mealLunch,
+      'dinner': l10n.mealDinner,
+      'snack': l10n.mealSnack,
+      'pre_workout': l10n.mealPreWorkout,
+      'post_workout': l10n.mealPostWorkout,
+    };
+  }
 
   @override
   void initState() {
@@ -491,6 +495,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                   onTap: _showImageSourceDialog,
                   padding: const EdgeInsets.all(32),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -506,16 +511,17 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Scansiona Pasto con AI',
+                        AppLocalizations.of(context)!.scanMealWithAi,
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: CleanTheme.primaryColor,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Scatta una foto per analisi automatica',
+                        AppLocalizations.of(context)!.takePhotoForAnalysis,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: CleanTheme.textSecondary,

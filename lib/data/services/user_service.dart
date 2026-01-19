@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
 import '../models/user_model.dart';
@@ -131,6 +133,43 @@ class UserService {
       return {
         'success': false,
         'message': e.response?.data['message'] ?? 'Failed to update profile',
+      };
+    }
+  }
+
+  /// Upload user avatar
+  Future<Map<String, dynamic>> uploadAvatar(XFile imageFile) async {
+    try {
+      MultipartFile photoPart;
+
+      if (kIsWeb) {
+        photoPart = MultipartFile.fromBytes(
+          await imageFile.readAsBytes(),
+          filename: 'avatar.jpg',
+        );
+      } else {
+        photoPart = await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'avatar.jpg',
+        );
+      }
+
+      final formData = FormData.fromMap({'avatar': photoPart});
+
+      final response = await _apiClient.dio.post(
+        '/user/avatar',
+        data: formData,
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'avatar_url': response.data['avatar_url']};
+      }
+
+      return {'success': false, 'message': 'Failed to upload avatar'};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Failed to upload avatar',
       };
     }
   }

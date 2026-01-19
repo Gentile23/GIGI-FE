@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gigi/core/theme/clean_theme.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 import 'package:gigi/presentation/widgets/clean_widgets.dart';
 import 'package:gigi/data/models/workout_log_model.dart';
 import 'package:gigi/presentation/screens/history/exercise_history_screen.dart';
@@ -53,7 +54,8 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    workoutLog.workoutDay?.name ?? 'Sessione Allenamento',
+                    workoutLog.workoutDay?.name ??
+                        AppLocalizations.of(context)!.workoutSession,
                     style: GoogleFonts.outfit(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
@@ -68,17 +70,17 @@ class WorkoutHistoryDetailScreen extends StatelessWidget {
                       _buildHeaderStat(
                         Icons.timer_outlined,
                         workoutLog.durationFormatted,
-                        'Durata',
+                        AppLocalizations.of(context)!.duration,
                       ),
                       _buildHeaderStat(
                         Icons.fitness_center_outlined,
                         '${workoutLog.totalVolume.toInt()} kg',
-                        'Volume',
+                        AppLocalizations.of(context)!.volume,
                       ),
                       _buildHeaderStat(
                         Icons.check_circle_outline,
                         '${workoutLog.totalExercises}',
-                        'Esercizi',
+                        AppLocalizations.of(context)!.exercises,
                       ),
                     ],
                   ),

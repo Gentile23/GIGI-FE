@@ -13,11 +13,18 @@ class AuthService {
     required String name,
     required String email,
     required String password,
+    String? referralCode,
   }) async {
     try {
       final response = await _apiClient.dio.post(
         ApiConfig.register,
-        data: {'name': name, 'email': email, 'password': password},
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          if (referralCode != null && referralCode.isNotEmpty)
+            'referral_code': referralCode,
+        },
       );
 
       if (response.statusCode == 201) {

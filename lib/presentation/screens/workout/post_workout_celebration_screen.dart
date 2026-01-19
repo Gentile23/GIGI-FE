@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/addiction_mechanics_model.dart';
 import '../../widgets/clean_widgets.dart';
@@ -168,7 +169,7 @@ class _PostWorkoutCelebrationScreenState
           ),
           const SizedBox(height: 24),
           Text(
-            'Workout Completato! 🎉',
+            AppLocalizations.of(context)!.workoutCompleted,
             style: GoogleFonts.outfit(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -177,7 +178,7 @@ class _PostWorkoutCelebrationScreenState
           ),
           const SizedBox(height: 8),
           Text(
-            'Ottimo lavoro! Continua così.',
+            AppLocalizations.of(context)!.greatJobKeepItUp,
             style: GoogleFonts.inter(
               fontSize: 16,
               color: CleanTheme.textSecondary,
@@ -197,21 +198,21 @@ class _PostWorkoutCelebrationScreenState
           _buildStatItem(
             icon: Icons.timer_outlined,
             value: '${widget.workoutDurationMinutes}',
-            label: 'Minuti',
+            label: AppLocalizations.of(context)!.minutes,
             color: CleanTheme.accentBlue,
           ),
           _buildStatDivider(),
           _buildStatItem(
             icon: Icons.fitness_center,
             value: '${widget.exercisesCompleted}',
-            label: 'Esercizi',
+            label: AppLocalizations.of(context)!.exercises,
             color: CleanTheme.accentGreen,
           ),
           _buildStatDivider(),
           _buildStatItem(
             icon: Icons.repeat,
             value: '${widget.setsCompleted}',
-            label: 'Serie',
+            label: AppLocalizations.of(context)!.sets,
             color: CleanTheme.accentOrange,
           ),
           if (widget.caloriesBurned > 0) ...[
@@ -219,7 +220,7 @@ class _PostWorkoutCelebrationScreenState
             _buildStatItem(
               icon: Icons.local_fire_department,
               value: '${widget.caloriesBurned}',
-              label: 'Calorie',
+              label: AppLocalizations.of(context)!.calories,
               color: CleanTheme.accentRed,
             ),
           ],

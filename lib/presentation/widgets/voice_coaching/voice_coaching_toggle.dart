@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/synchronized_voice_controller.dart';
 
@@ -361,7 +362,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
                 icon: controller.minimalMode
                     ? Icons.notifications_off_outlined
                     : Icons.notifications_active_outlined,
-                title: 'Modalità Discreta',
+                title: AppLocalizations.of(context)!.discreteMode,
                 subtitle: controller.minimalMode
                     ? 'Feedback solo su prima e ultima serie'
                     : 'Feedback su ogni serie completata',
@@ -474,7 +475,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
             Switch(
               value: isActive,
               onChanged: (_) => onTap(),
-              activeColor: const Color(0xFF6366F1),
+              activeTrackColor: const Color(0xFF6366F1),
             ),
           ],
         ),

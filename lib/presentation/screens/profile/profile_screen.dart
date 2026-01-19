@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../core/utils/responsive_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -35,24 +37,14 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
         centerTitle: true,
-        actions: [
-          CleanIconButton(
-            icon: Icons.edit_outlined,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
-                ),
-              );
-            },
-            hasBorder: false,
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          ResponsiveUtils.floatingElementPadding(context, baseHeight: 80),
+        ),
         children: [
           // User info card
           Consumer<AuthProvider>(
@@ -572,7 +564,14 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsTile(
                   icon: Icons.notifications_outlined,
                   title: AppLocalizations.of(context)!.notifications,
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.comingSoon),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
@@ -589,7 +588,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
-                  icon: Icons.favorite_outline,
+                  icon: Icons.monitor_heart_outlined,
                   title: AppLocalizations.of(context)!.healthFitness,
                   subtitle: AppLocalizations.of(context)!.healthFitnessSubtitle,
                   color: const Color(0xFFE91E63),
@@ -606,13 +605,27 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsTile(
                   icon: Icons.help_outline,
                   title: AppLocalizations.of(context)!.helpSupport,
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.comingSoon),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.info_outline,
                   title: AppLocalizations.of(context)!.info,
-                  onTap: () {},
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.comingSoon),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -841,6 +854,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploadingAvatar = false;
 
   @override
   void initState() {
@@ -863,13 +878,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickAndUploadAvatar() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+
+    if (image == null) return;
+
+    if (!mounted) return;
+
+    setState(() {
+      _isUploadingAvatar = true;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.uploadAvatar(image);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess),
+            backgroundColor: CleanTheme.primaryColor,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.error ??
+                  AppLocalizations.of(context)!.saveErrorGeneric,
+            ),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingAvatar = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Modifica Profilo',
+          AppLocalizations.of(context)!.editProfile,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -892,27 +956,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Consumer<AuthProvider>(
                     builder: (context, auth, _) {
                       final name = auth.user?.name ?? 'U';
+                      final avatarUrl = auth.user?.avatarUrl;
                       return CleanAvatar(
                         initials: name.isNotEmpty ? name[0].toUpperCase() : 'U',
                         size: 100,
                         backgroundColor: CleanTheme.primaryLight,
+                        imageUrl: avatarUrl,
                       );
                     },
                   ),
                   Positioned(
                     bottom: 0,
                     right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
+                    child: GestureDetector(
+                      onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: _isUploadingAvatar
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                       ),
                     ),
                   ),
@@ -924,11 +1002,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Name
               _buildTextField(
                 controller: _nameController,
-                label: 'Nome Completo',
+                label: AppLocalizations.of(context)!.fullName,
                 icon: Icons.person_outline,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Inserisci il tuo nome';
+                    return AppLocalizations.of(context)!.enterYourName;
                   }
                   return null;
                 },
@@ -939,15 +1017,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Email
               _buildTextField(
                 controller: _emailController,
-                label: 'Email',
+                label: AppLocalizations.of(context)!.email,
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Inserisci la tua email';
+                    return AppLocalizations.of(context)!.enterYourEmail;
                   }
                   if (!value.contains('@')) {
-                    return 'Inserisci un\'email valida';
+                    return AppLocalizations.of(context)!.enterValidEmail;
                   }
                   return null;
                 },
@@ -958,7 +1036,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Height
               _buildTextField(
                 controller: _heightController,
-                label: 'Altezza (cm)',
+                label: AppLocalizations.of(context)!.heightCm,
                 icon: Icons.height,
                 keyboardType: TextInputType.number,
               ),
@@ -968,7 +1046,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Weight
               _buildTextField(
                 controller: _weightController,
-                label: 'Peso (kg)',
+                label: AppLocalizations.of(context)!.weightKg,
                 icon: Icons.monitor_weight_outlined,
                 keyboardType: TextInputType.number,
               ),
@@ -977,7 +1055,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // Save button
               CleanButton(
-                text: 'Salva Modifiche',
+                text: AppLocalizations.of(context)!.saveChanges,
                 width: double.infinity,
                 onPressed: _saveProfile,
               ),
@@ -1046,8 +1124,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profilo aggiornato con successo'),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.profileUpdatedSuccess,
+              ),
               backgroundColor: CleanTheme.primaryColor,
             ),
           );
@@ -1056,7 +1136,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                authProvider.error ?? 'Errore durante il salvataggio',
+                authProvider.error ??
+                    AppLocalizations.of(context)!.saveErrorGeneric,
               ),
               backgroundColor: CleanTheme.accentRed,
             ),
@@ -1067,7 +1148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

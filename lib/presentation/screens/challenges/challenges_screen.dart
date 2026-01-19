@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/addiction_mechanics_model.dart';
 import '../../widgets/addiction_mechanics_widgets.dart';
@@ -41,7 +42,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
         backgroundColor: CleanTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          'Sfide',
+          AppLocalizations.of(context)!.challengesTitle,
           style: GoogleFonts.outfit(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -58,11 +59,11 @@ class _ChallengesScreenState extends State<ChallengesScreen>
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
-          tabs: const [
-            Tab(text: 'Attive'),
-            Tab(text: 'Giornaliere'),
-            Tab(text: 'Settimanali'),
-            Tab(text: 'Community'),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.challengesTabActive),
+            Tab(text: AppLocalizations.of(context)!.challengesTabDaily),
+            Tab(text: AppLocalizations.of(context)!.challengesTabWeekly),
+            Tab(text: AppLocalizations.of(context)!.challengesTabCommunity),
           ],
         ),
       ),
@@ -95,7 +96,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
 
           // Active Challenges
           Text(
-            'Le tue sfide attive',
+            AppLocalizations.of(context)!.challengesActiveTitle,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -584,7 +585,7 @@ class _ChallengeDetailSheet extends StatelessWidget {
 
                 // Action Button
                 CleanButton(
-                  text: 'Vai all\'Allenamento',
+                  text: AppLocalizations.of(context)!.goToWorkoutButton,
                   width: double.infinity,
                   onPressed: () => Navigator.pop(context),
                 ),

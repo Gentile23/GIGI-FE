@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../../data/models/addiction_mechanics_model.dart';
+import '../../../data/services/api_client.dart';
+import '../../../data/services/referral_service.dart';
 import '../../widgets/clean_widgets.dart';
 
 /// ═══════════════════════════════════════════════════════════
@@ -17,13 +20,58 @@ class ReferralScreen extends StatefulWidget {
 }
 
 class _ReferralScreenState extends State<ReferralScreen> {
-  // Mock referral data - would come from backend
-  final ReferralData _referralData = const ReferralData(
-    referralCode: 'GIGI2024',
-    totalReferrals: 3,
-    pendingReferrals: 1,
-    convertedReferrals: 2,
-  );
+  late ReferralService _referralService;
+  bool _isLoading = true;
+  String? _error;
+
+  // Referral data from API
+  String _referralCode = '';
+  int _convertedReferrals = 0;
+  int _totalReferrals = 0;
+  bool _hasEarnedReward = false;
+  bool _rewardClaimed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _referralService = ReferralService(context.read<ApiClient>());
+    _loadReferralData();
+  }
+
+  Future<void> _loadReferralData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final result = await _referralService.getStats();
+
+      if (result['success'] == true) {
+        setState(() {
+          _referralCode = result['referral_code'] ?? '';
+          _convertedReferrals = result['converted_referrals'] ?? 0;
+          _totalReferrals = result['total_referrals'] ?? 0;
+          _hasEarnedReward = result['has_earned_reward'] ?? false;
+          _rewardClaimed = result['reward_claimed'] ?? false;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = result['message'] ?? 'Errore nel caricamento';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  int get _invitesUntilReward => (3 - _convertedReferrals).clamp(0, 3);
+  double get _progressToReward => _convertedReferrals / 3;
 
   @override
   Widget build(BuildContext context) {
@@ -45,41 +93,45 @@ class _ReferralScreenState extends State<ReferralScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Hero Banner
-            _buildHeroBanner(),
-
-            const SizedBox(height: 24),
-
-            // Referral Code Section
-            _buildReferralCodeSection(),
-
-            const SizedBox(height: 24),
-
-            // Progress to Next Reward
-            _buildProgressSection(),
-
-            const SizedBox(height: 24),
-
-            // Rewards Milestones
-            _buildRewardsMilestones(),
-
-            const SizedBox(height: 24),
-
-            // Share Buttons
-            _buildShareButtons(),
-
-            const SizedBox(height: 24),
-
-            // Stats
-            _buildStatsSection(),
-          ],
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadReferralData,
+                    child: const Text('Riprova'),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadReferralData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeroBanner(),
+                    const SizedBox(height: 24),
+                    _buildReferralCodeSection(),
+                    const SizedBox(height: 24),
+                    _buildProgressSection(),
+                    const SizedBox(height: 24),
+                    _buildRewardCard(),
+                    const SizedBox(height: 24),
+                    _buildShareButtons(),
+                    const SizedBox(height: 24),
+                    _buildStatsSection(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -119,7 +171,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Invita un amico e ricevete entrambi\n1 mese di Premium gratis!',
+            'Invita 3 amici e ricevi\n1 mese di Premium gratis!',
             style: GoogleFonts.inter(
               fontSize: 15,
               color: Colors.white.withValues(alpha: 0.9),
@@ -138,7 +190,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
       child: Column(
         children: [
           Text(
-            'Il tuo codice referral',
+            AppLocalizations.of(context)!.yourReferralCode,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,
@@ -159,7 +211,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  _referralData.referralCode,
+                  _referralCode,
                   style: GoogleFonts.outfit(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -192,9 +244,6 @@ class _ReferralScreenState extends State<ReferralScreen> {
   }
 
   Widget _buildProgressSection() {
-    final nextMilestone = _referralData.nextMilestone;
-    final reward = ReferralData.milestoneRewards[nextMilestone];
-
     return CleanCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -212,7 +261,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
               ),
               const Spacer(),
               Text(
-                '${_referralData.convertedReferrals}/$nextMilestone inviti',
+                '$_convertedReferrals/3 inviti',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: CleanTheme.accentPurple,
@@ -225,147 +274,140 @@ class _ReferralScreenState extends State<ReferralScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: _referralData.progressToNextMilestone,
+              value: _progressToReward.clamp(0.0, 1.0),
               backgroundColor: CleanTheme.borderSecondary,
-              color: CleanTheme.accentPurple,
+              color: _hasEarnedReward
+                  ? CleanTheme.accentGreen
+                  : CleanTheme.accentPurple,
               minHeight: 10,
             ),
           ),
           const SizedBox(height: 16),
-          if (reward != null)
-            Row(
-              children: [
-                Text(reward.iconEmoji, style: const TextStyle(fontSize: 24)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reward.title,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.textPrimary,
-                        ),
+          Row(
+            children: [
+              const Text('🎁', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '1 Mese Premium Gratis',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _hasEarnedReward
+                            ? CleanTheme.accentGreen
+                            : CleanTheme.textPrimary,
                       ),
-                      Text(
-                        reward.description,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: CleanTheme.textSecondary,
-                        ),
+                    ),
+                    Text(
+                      _hasEarnedReward
+                          ? (_rewardClaimed
+                                ? 'Premio già riscattato!'
+                                : 'Premio sbloccato! Riscattalo!')
+                          : 'Mancano $_invitesUntilReward inviti',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: _hasEarnedReward
+                            ? CleanTheme.accentGreen
+                            : CleanTheme.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildRewardsMilestones() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Premi Referral',
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ...ReferralData.milestoneRewards.entries.map((entry) {
-          final milestone = entry.key;
-          final reward = entry.value;
-          final isUnlocked = _referralData.convertedReferrals >= milestone;
-          final isNext = _referralData.nextMilestone == milestone;
+  Widget _buildRewardCard() {
+    final isUnlocked = _hasEarnedReward;
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isUnlocked
+            ? CleanTheme.accentGreen.withValues(alpha: 0.1)
+            : CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isUnlocked
+              ? CleanTheme.accentGreen.withValues(alpha: 0.3)
+              : CleanTheme.borderPrimary,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               color: isUnlocked
-                  ? CleanTheme.accentGreen.withValues(alpha: 0.1)
-                  : isNext
-                  ? CleanTheme.accentPurple.withValues(alpha: 0.05)
-                  : CleanTheme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isUnlocked
-                    ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                    : isNext
-                    ? CleanTheme.accentPurple.withValues(alpha: 0.3)
-                    : CleanTheme.borderPrimary,
-              ),
+                  ? CleanTheme.accentGreen
+                  : CleanTheme.backgroundColor,
+              shape: BoxShape.circle,
             ),
-            child: Row(
+            child: Center(
+              child: isUnlocked
+                  ? const Icon(Icons.check, color: Colors.white, size: 24)
+                  : Text(
+                      '3',
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
+                Text(
+                  '1 Mese Premium Gratis',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                     color: isUnlocked
                         ? CleanTheme.accentGreen
-                        : CleanTheme.backgroundColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: isUnlocked
-                        ? const Icon(Icons.check, color: Colors.white, size: 20)
-                        : Text(
-                            '$milestone',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: CleanTheme.textPrimary,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reward.title,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isUnlocked
-                              ? CleanTheme.accentGreen
-                              : CleanTheme.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        reward.description,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: CleanTheme.textSecondary,
-                        ),
-                      ),
-                    ],
+                        : CleanTheme.textPrimary,
                   ),
                 ),
                 Text(
-                  reward.iconEmoji,
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: isUnlocked
-                        ? null
-                        : Colors.grey.withValues(alpha: 0.5),
+                  'Invita 3 amici per ottenerlo',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
                   ),
                 ),
               ],
             ),
-          );
-        }),
-      ],
+          ),
+          if (isUnlocked && !_rewardClaimed)
+            ElevatedButton(
+              onPressed: _claimReward,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CleanTheme.accentGreen,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Riscatta'),
+            )
+          else
+            Text(
+              '🎁',
+              style: TextStyle(
+                fontSize: 28,
+                color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.5),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -389,7 +431,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                 icon: Icons.message,
                 label: 'WhatsApp',
                 color: const Color(0xFF25D366),
-                onTap: () => _shareToWhatsApp(),
+                onTap: _shareToWhatsApp,
               ),
             ),
             const SizedBox(width: 12),
@@ -398,7 +440,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                 icon: Icons.camera_alt,
                 label: 'Instagram',
                 color: const Color(0xFFE4405F),
-                onTap: () => _shareToInstagram(),
+                onTap: _shareToInstagram,
               ),
             ),
             const SizedBox(width: 12),
@@ -407,7 +449,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                 icon: Icons.share,
                 label: 'Altro',
                 color: CleanTheme.primaryColor,
-                onTap: () => _shareGeneral(),
+                onTap: _shareGeneral,
               ),
             ),
           ],
@@ -456,24 +498,16 @@ class _ReferralScreenState extends State<ReferralScreen> {
         children: [
           Expanded(
             child: _buildStatItem(
-              value: '${_referralData.totalReferrals}',
-              label: 'Totali',
+              value: '$_totalReferrals',
+              label: AppLocalizations.of(context)!.totalReferrals,
               icon: Icons.people_outline,
             ),
           ),
           Container(width: 1, height: 40, color: CleanTheme.borderPrimary),
           Expanded(
             child: _buildStatItem(
-              value: '${_referralData.pendingReferrals}',
-              label: 'In attesa',
-              icon: Icons.hourglass_empty,
-            ),
-          ),
-          Container(width: 1, height: 40, color: CleanTheme.borderPrimary),
-          Expanded(
-            child: _buildStatItem(
-              value: '${_referralData.convertedReferrals}',
-              label: 'Convertiti',
+              value: '$_convertedReferrals',
+              label: AppLocalizations.of(context)!.convertedReferrals,
               icon: Icons.check_circle_outline,
             ),
           ),
@@ -511,7 +545,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
   }
 
   void _copyCode() {
-    Clipboard.setData(ClipboardData(text: _referralData.referralCode));
+    Clipboard.setData(ClipboardData(text: _referralCode));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Codice copiato! 📋'),
@@ -521,10 +555,32 @@ class _ReferralScreenState extends State<ReferralScreen> {
     );
   }
 
+  Future<void> _claimReward() async {
+    final result = await _referralService.claimReward();
+
+    if (result['success'] == true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Premio riscattato!'),
+          backgroundColor: CleanTheme.accentGreen,
+        ),
+      );
+      _loadReferralData(); // Refresh data
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] ?? 'Errore nel riscatto'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _shareToWhatsApp() {
     final message =
-        'Prova GIGI, la migliore app fitness con AI coach! Usa il mio codice ${_referralData.referralCode} per 1 mese Premium gratis 💪🔥';
-    // In production: url_launcher to open WhatsApp
+        'Prova GIGI, la migliore app fitness con AI coach! Usa il mio codice $_referralCode per 1 mese Premium gratis 💪🔥';
     _showSharePreview(message);
   }
 
@@ -534,7 +590,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
 
   void _shareGeneral() {
     final message =
-        'Prova GIGI, la migliore app fitness con AI coach! Usa il mio codice ${_referralData.referralCode} per 1 mese Premium gratis 💪🔥\n\nScarica: https://gigi.app';
+        'Prova GIGI, la migliore app fitness con AI coach! Usa il mio codice $_referralCode per 1 mese Premium gratis 💪🔥\n\nScarica: https://gigi.app';
     _showSharePreview(message);
   }
 

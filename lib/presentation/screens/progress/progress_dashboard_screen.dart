@@ -8,6 +8,7 @@ import 'body_measurements_screen.dart';
 import 'progress_photos_screen.dart';
 import 'progress_comparison_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class ProgressDashboardScreen extends StatefulWidget {
   const ProgressDashboardScreen({super.key});
@@ -155,7 +156,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '🏋️ Statistiche Allenamenti',
+          '🏋️ ${AppLocalizations.of(context)!.progressStatsTitle}',
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -173,7 +174,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     child: _buildWorkoutStatItem(
                       '💪',
                       '$_totalWorkouts',
-                      'Allenamenti',
+                      AppLocalizations.of(context)!.progressWorkouts,
                       CleanTheme.primaryColor,
                     ),
                   ),
@@ -181,7 +182,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     child: _buildWorkoutStatItem(
                       '🔄',
                       '$_totalSeries',
-                      'Serie totali',
+                      AppLocalizations.of(context)!.progressTotalSets,
                       CleanTheme.accentBlue,
                     ),
                   ),
@@ -194,7 +195,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     child: _buildWorkoutStatItem(
                       '🔥',
                       '$_totalCalories',
-                      'Calorie bruciate',
+                      AppLocalizations.of(context)!.progressCalories,
                       CleanTheme.accentOrange,
                     ),
                   ),
@@ -202,7 +203,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     child: _buildWorkoutStatItem(
                       '⏱️',
                       hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
-                      'Tempo totale',
+                      AppLocalizations.of(context)!.progressTotalTime,
                       CleanTheme.accentPurple,
                     ),
                   ),
@@ -260,7 +261,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'I Miei Progressi',
+          AppLocalizations.of(context)!.progressTitle,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -368,7 +369,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '$_streak settimane',
+                          '$_streak ${AppLocalizations.of(context)!.weeks}',
                           style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -376,7 +377,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                           ),
                         ),
                         Text(
-                          'di misurazioni consecutive',
+                          AppLocalizations.of(context)!.consecutiveMeasurements,
                           style: GoogleFonts.inter(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 13,
@@ -392,13 +393,13 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                     _buildMiniStat(
                       '📏',
                       '${_measurementsHistory.length}',
-                      'misurazioni',
+                      AppLocalizations.of(context)!.measurements,
                     ),
                     const SizedBox(width: 24),
                     _buildMiniStat(
                       '📅',
                       _latestMeasurements != null ? 'Oggi' : '-',
-                      'ultima',
+                      AppLocalizations.of(context)!.lastMeasurement,
                     ),
                   ],
                 ),
@@ -473,7 +474,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '📈 Cambiamenti',
+              '📈 ${AppLocalizations.of(context)!.progressChangesTitle}',
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -487,7 +488,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                   builder: (_) => const ProgressComparisonScreen(),
                 ),
               ),
-              child: const Text('Vedi tutti'),
+              child: Text(AppLocalizations.of(context)!.viewAll),
             ),
           ],
         ),
@@ -597,7 +598,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '📊 Trend Misure',
+          '📊 ${AppLocalizations.of(context)!.progressTrendTitle}',
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -641,7 +642,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Text(
-          'Aggiungi più misure per vedere il trend',
+          AppLocalizations.of(context)!.progressAddMoreData,
           style: GoogleFonts.inter(color: CleanTheme.textTertiary),
         ),
       );
@@ -710,7 +711,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '🧍 Mappa Corporea',
+          '🧍 ${AppLocalizations.of(context)!.progressBodyMapTitle}',
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -719,7 +720,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Tocca una zona per vedere i dettagli',
+          AppLocalizations.of(context)!.progressBodyMapHint,
           style: GoogleFonts.inter(
             color: CleanTheme.textSecondary,
             fontSize: 13,
@@ -748,7 +749,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '🎯 Obiettivi',
+              '🎯 ${AppLocalizations.of(context)!.progressGoalsTitle}',
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -758,7 +759,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             TextButton.icon(
               onPressed: _showAddGoalDialog,
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Aggiungi'),
+              label: Text(AppLocalizations.of(context)!.add),
             ),
           ],
         ),
@@ -780,7 +781,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           const Text('🎯', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
           Text(
-            'Imposta un obiettivo',
+            AppLocalizations.of(context)!.progressSetGoal,
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w600,
               color: CleanTheme.textPrimary,
@@ -788,7 +789,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Es. "Vita a 80cm" o "Bicipite a 40cm"',
+            AppLocalizations.of(context)!.progressGoalHint,
             style: GoogleFonts.inter(
               color: CleanTheme.textSecondary,
               fontSize: 13,
@@ -1035,8 +1036,8 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               final unlocked = achievement['unlocked'] as bool;
 
               return Container(
-                width: 90,
-                margin: const EdgeInsets.only(right: 12),
+                width: 115,
+                margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.all(8), // Reduced padding
                 decoration: BoxDecoration(
                   color: unlocked

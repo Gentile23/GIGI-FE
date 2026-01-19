@@ -1,0 +1,24 @@
+﻿Analyzing GiGi...                                               
+
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\core\services\synchronized_voice_controller.dart:555:5 - prefer_conditional_assignment
+   info - The imported package 'google_sign_in_platform_interface' isn't a dependency of the importing package - lib\presentation\screens\auth\google_sign_in_button_web.dart:2:8 - depend_on_referenced_packages
+   info - The imported package 'google_sign_in_web' isn't a dependency of the importing package - lib\presentation\screens\auth\google_sign_in_button_web.dart:3:8 - depend_on_referenced_packages
+warning - The operand can't be 'null', so the condition is always 'true' - lib\presentation\screens\home\home_screen.dart:311:49 - unnecessary_null_comparison
+   info - Don't use 'BuildContext's across async gaps - lib\presentation\screens\home\home_screen.dart:1051:7 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1691:38 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\presentation\screens\workout\workout_session_screen.dart:1693:55 - use_build_context_synchronously
+
+flutter : 7 issues found. (ran 
+in 4.4s)
+In riga:1 car:1
++ flutter analyze 2>&1 | 
+Out-File -FilePath 
+analyze_final_7.txt -Encodi ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : No 
+   tSpecified: (7 issues found.  
+   (ran in 4.4s):String) [], R   
+ emoteException
+    + FullyQualifiedErrorId : Na 
+   tiveCommandError
+ 

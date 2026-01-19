@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 
@@ -40,7 +41,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
           ? null
           : AppBar(
               title: Text(
-                'Foto Progresso',
+                AppLocalizations.of(context)!.progressPhotos,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   color: CleanTheme.textPrimary,
@@ -69,7 +70,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
 
               // Photo slots
               Text(
-                '📸 Le tue foto',
+                '📸 ${AppLocalizations.of(context)!.yourPhotos}',
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -96,7 +97,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
         const SizedBox(height: 16),
         Center(
           child: Text(
-            'Foto del Tuo Percorso',
+            AppLocalizations.of(context)!.journeyPhotos,
             style: GoogleFonts.outfit(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -107,7 +108,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
         const SizedBox(height: 8),
         Center(
           child: Text(
-            'Tra qualche settimana potrai confrontare i tuoi progressi visivamente. È il modo più motivante per vedere i risultati!',
+            AppLocalizations.of(context)!.visiblyCompare,
             style: GoogleFonts.inter(
               fontSize: 14,
               color: CleanTheme.textSecondary,
@@ -149,7 +150,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '🔒 100% Private',
+                  '🔒 ${AppLocalizations.of(context)!.privateAssurance}',
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     color: CleanTheme.accentGreen,
@@ -157,7 +158,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Le tue foto saranno visibili SOLO a te. Non vengono mai condivise o usate per altri scopi.',
+                  AppLocalizations.of(context)!.privateDesc,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     color: CleanTheme.textSecondary,
@@ -193,7 +194,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Come scattare foto perfette',
+                AppLocalizations.of(context)!.perfectPhotoTitle,
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   color: CleanTheme.textPrimary,
@@ -246,7 +247,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
       children: [
         Expanded(
           child: _buildPhotoSlot(
-            title: 'Fronte',
+            title: AppLocalizations.of(context)!.frontPhoto,
             emoji: '🧍',
             photo: _frontPhotoBytes,
             onTap: () => _pickPhoto('front'),
@@ -255,7 +256,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildPhotoSlot(
-            title: 'Lato',
+            title: AppLocalizations.of(context)!.sidePhoto,
             emoji: '🧍‍♂️',
             photo: _sidePhotoBytes,
             onTap: () => _pickPhoto('side'),
@@ -264,7 +265,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _buildPhotoSlot(
-            title: 'Dietro',
+            title: AppLocalizations.of(context)!.backPhoto,
             emoji: '🔙',
             photo: _backPhotoBytes,
             onTap: () => _pickPhoto('back'),
@@ -375,7 +376,9 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
       children: [
         if (hasAnyPhoto) ...[
           CleanButton(
-            text: _isLoading ? 'Salvataggio...' : 'Salva Foto',
+            text: _isLoading
+                ? AppLocalizations.of(context)!.saving
+                : AppLocalizations.of(context)!.savePhoto,
             onPressed: _isLoading ? null : _savePhotos,
             icon: Icons.save,
           ),
@@ -388,7 +391,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
             side: const BorderSide(color: CleanTheme.borderPrimary),
           ),
           child: Text(
-            'Salta per ora',
+            AppLocalizations.of(context)!.skipForNow,
             style: GoogleFonts.inter(color: CleanTheme.textSecondary),
           ),
         ),
@@ -408,7 +411,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Tra 4-8 settimane potrai vedere i cambiamenti confrontando le foto!',
+                  AppLocalizations.of(context)!.motivationDesc,
                   style: GoogleFonts.inter(
                     color: CleanTheme.textPrimary,
                     fontSize: 13,
@@ -436,7 +439,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Scegli sorgente',
+                AppLocalizations.of(context)!.chooseSource,
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -449,7 +452,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
                   Expanded(
                     child: _buildSourceOption(
                       icon: Icons.camera_alt,
-                      label: 'Fotocamera',
+                      label: AppLocalizations.of(context)!.cameraOption,
                       onTap: () => Navigator.pop(context, ImageSource.camera),
                     ),
                   ),
@@ -457,7 +460,7 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
                   Expanded(
                     child: _buildSourceOption(
                       icon: Icons.photo_library,
-                      label: 'Galleria',
+                      label: AppLocalizations.of(context)!.galleryOption,
                       onTap: () => Navigator.pop(context, ImageSource.gallery),
                     ),
                   ),
@@ -557,8 +560,10 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('🎉 Foto salvate con successo!'),
+          SnackBar(
+            content: Text(
+              '🎉 ${AppLocalizations.of(context)!.photosSavedSuccess}',
+            ),
             backgroundColor: CleanTheme.accentGreen,
           ),
         );

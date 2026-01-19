@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 
@@ -65,7 +66,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: TextButton(
                   onPressed: _skipToEnd,
                   child: Text(
-                    'Salta',
+                    AppLocalizations.of(context)!.skipButton,
                     style: GoogleFonts.inter(
                       color: CleanTheme.textSecondary,
                       fontWeight: FontWeight.w500,
@@ -111,7 +112,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
               child: CleanButton(
-                text: _currentPage == _pages.length - 1 ? 'Inizia' : 'Avanti',
+                text: _currentPage == _pages.length - 1
+                    ? AppLocalizations.of(context)!.startText
+                    : AppLocalizations.of(context)!.nextText,
                 width: double.infinity,
                 onPressed: _currentPage == _pages.length - 1
                     ? _getStarted

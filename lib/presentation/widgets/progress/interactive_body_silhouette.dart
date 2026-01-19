@@ -111,6 +111,7 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildBodyPartCircle({
     required double top,
     required double left,
@@ -158,6 +159,7 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildBodyPartRect({
     required double top,
     required double left,

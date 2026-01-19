@@ -61,6 +61,10 @@ class WorkoutService {
       debugPrint('DEBUG: No plan found - status: ${response.statusCode}');
       return {'success': false, 'message': 'No current plan found'};
     } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        debugPrint('DEBUG: No current plan found (404)');
+        return {'success': false, 'message': 'No current plan found'};
+      }
       debugPrint('ERROR: DioException in getCurrentPlan: ${e.message}');
       debugPrint('ERROR: Response data: ${e.response?.data}');
       return {
@@ -76,11 +80,17 @@ class WorkoutService {
 
   Future<Map<String, dynamic>> generatePlan({
     Map<String, dynamic>? filters,
+    String? language,
   }) async {
     try {
+      final Map<String, dynamic> data = filters ?? {};
+      if (language != null) {
+        data['language'] = language;
+      }
+
       final response = await _apiClient.dio.post(
         ApiConfig.workoutPlansGenerate,
-        data: filters, // Pass filters in body if present
+        data: data,
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -131,6 +141,7 @@ class WorkoutService {
   Future<Map<String, dynamic>> generateAIPlan({
     required UserModel user,
     required UserProfile profile,
+    String language = 'it',
   }) async {
     try {
       // Fetch latest body measurements for personalization
@@ -155,6 +166,7 @@ class WorkoutService {
         user: user,
         profile: profile,
         bodyMeasurements: bodyMeasurements,
+        language: language,
       );
 
       // Convert OpenAI response to WorkoutPlan model

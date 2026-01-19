@@ -5,6 +5,7 @@ import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import 'package:gigi/l10n/app_localizations.dart';
 
 class GoalSetupWizardScreen extends StatefulWidget {
   const GoalSetupWizardScreen({super.key});
@@ -100,7 +101,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Imposta Obiettivi',
+          AppLocalizations.of(context)!.appBarTitleGoals,
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -158,7 +159,9 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Dati dal profilo: ${_height.toInt()} cm • ${_weight.toInt()} kg • $_age anni',
+              AppLocalizations.of(
+                context,
+              )!.profileDataSummary(_height.toInt(), _weight.toInt(), _age),
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textPrimary,
@@ -194,15 +197,16 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
   }
 
   Widget _buildGoalStep() {
+    final l10n = AppLocalizations.of(context)!;
     return _buildStepContainer(
-      title: '🎯 Qual è il tuo obiettivo?',
-      subtitle: 'Scegli cosa vuoi raggiungere',
+      title: l10n.goalStepTitle,
+      subtitle: l10n.goalStepSubtitle,
       child: Column(
         children: [
-          _buildGoalOption('lose_weight', '🔥', 'Perdere Peso'),
-          _buildGoalOption('maintain', '⚖️', 'Mantenere Peso'),
-          _buildGoalOption('gain_muscle', '💪', 'Aumentare Massa Muscolare'),
-          _buildGoalOption('gain_weight', '📈', 'Aumentare Peso Corporeo'),
+          _buildGoalOption('lose_weight', '🔥', l10n.goalLoseWeight),
+          _buildGoalOption('maintain', '⚖️', l10n.goalMaintain),
+          _buildGoalOption('gain_muscle', '💪', l10n.goalGainMuscle),
+          _buildGoalOption('gain_weight', '📈', l10n.goalGainWeight),
         ],
       ),
       onNext: () => _goToStep(1),
@@ -251,26 +255,37 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
   }
 
   Widget _buildDietStep() {
+    final l10n = AppLocalizations.of(context)!;
     return _buildStepContainer(
-      title: '🥗 Tipo di dieta',
-      subtitle: 'Hai preferenze alimentari?',
+      title: l10n.dietStepTitle,
+      subtitle: l10n.dietStepSubtitle,
       child: Column(
         children: [
           _buildDietOption(
             'standard',
             '🍽️',
-            'Standard',
-            'Nessuna restrizione',
+            l10n.dietStandard,
+            l10n.dietStandardDesc,
           ),
-          _buildDietOption('low_carb', '🥩', 'Low Carb', 'Pochi carboidrati'),
-          _buildDietOption('vegetarian', '🥬', 'Vegetariana', 'No carne'),
-          _buildDietOption('vegan', '🌱', 'Vegana', 'Solo vegetali'),
-          _buildDietOption('keto', '🥑', 'Keto', 'Chetogenica'),
+          _buildDietOption(
+            'low_carb',
+            '🥩',
+            l10n.dietLowCarb,
+            l10n.dietLowCarbDesc,
+          ),
+          _buildDietOption(
+            'vegetarian',
+            '🥬',
+            l10n.dietVegetarian,
+            l10n.dietVegetarianDesc,
+          ),
+          _buildDietOption('vegan', '🌱', l10n.dietVegan, l10n.dietVeganDesc),
+          _buildDietOption('keto', '🥑', l10n.dietKeto, l10n.dietKetoDesc),
           _buildDietOption(
             'mediterranean',
             '🫒',
-            'Mediterranea',
-            'Stile italiano',
+            l10n.dietMediterranean,
+            l10n.dietMediterraneanDesc,
           ),
         ],
       ),
@@ -348,9 +363,10 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     final carbs = macros['carbs_grams'] ?? 200;
     final fat = macros['fat_grams'] ?? 70;
 
+    final l10n = AppLocalizations.of(context)!;
     return _buildStepContainer(
-      title: '🎉 Il tuo piano!',
-      subtitle: 'Ecco i tuoi obiettivi giornalieri personalizzati',
+      title: l10n.resultsStepTitle,
+      subtitle: l10n.resultsStepSubtitle,
       child: Column(
         children: [
           // Calorie Card
@@ -378,7 +394,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
                   ),
                 ),
                 Text(
-                  'calorie/giorno',
+                  l10n.caloriesPerDay,
                   style: GoogleFonts.inter(fontSize: 16, color: Colors.white70),
                 ),
               ],
@@ -392,7 +408,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
               Expanded(
                 child: _buildMacroResultCard(
                   '🥩',
-                  'Proteine',
+                  l10n.protein,
                   '${protein}g',
                   CleanTheme.accentBlue,
                 ),
@@ -401,7 +417,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
               Expanded(
                 child: _buildMacroResultCard(
                   '🍞',
-                  'Carboidrati',
+                  l10n.carbs,
                   '${carbs}g',
                   CleanTheme.accentOrange,
                 ),
@@ -410,7 +426,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
               Expanded(
                 child: _buildMacroResultCard(
                   '🥑',
-                  'Grassi',
+                  l10n.fats,
                   '${fat}g',
                   CleanTheme.accentPurple,
                 ),
@@ -420,7 +436,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         ],
       ),
       onNext: _saveGoals,
-      nextLabel: 'Salva Obiettivi',
+      nextLabel: l10n.saveGoalsButton,
       onBack: () => _goToStep(2),
     );
   }
@@ -468,8 +484,11 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
     required Widget child,
     VoidCallback? onNext,
     VoidCallback? onBack,
-    String nextLabel = 'Continua',
+    String? nextLabel,
   }) {
+    final defaultNextLabel = AppLocalizations.of(context)!.continueButton;
+    final buttonLabel = nextLabel ?? defaultNextLabel;
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -507,7 +526,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
                       side: const BorderSide(color: CleanTheme.borderPrimary),
                     ),
                     child: Text(
-                      'Indietro',
+                      AppLocalizations.of(context)!.back,
                       style: GoogleFonts.inter(color: CleanTheme.textSecondary),
                     ),
                   ),
@@ -531,7 +550,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
                           ),
                         )
                       : Text(
-                          nextLabel,
+                          buttonLabel,
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
@@ -578,7 +597,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -605,14 +624,18 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🎉 Obiettivi salvati con successo!'),
+            SnackBar(
+              content: Text(
+                '🎉 ${AppLocalizations.of(context)!.goalsSavedSuccess}',
+              ),
               backgroundColor: CleanTheme.accentGreen,
             ),
           );
           Navigator.pop(context, true);
         } else {
-          throw Exception('Errore nel salvataggio');
+          throw Exception(
+            AppLocalizations.of(context)!.errorSavingProfile,
+          ); // Reusing existing error key or generic error
         }
       }
     } catch (e) {
@@ -620,7 +643,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: $e'),
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

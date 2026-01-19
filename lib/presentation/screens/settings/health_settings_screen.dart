@@ -126,14 +126,14 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
-              'Annulla',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(
-              'Disconnetti',
+              AppLocalizations.of(context)!.disconnect,
               style: GoogleFonts.inter(color: CleanTheme.accentRed),
             ),
           ),

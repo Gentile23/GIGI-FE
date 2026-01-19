@@ -199,7 +199,7 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
               child: Image.asset(
                 'assets/images/gigi_trainer.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                   child: const Icon(
                     Icons.fitness_center,
@@ -281,7 +281,7 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
           Expanded(
             child: ListView.separated(
               itemCount: _goals.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final goal = _goals[index];
                 final isSelected = _selectedGoal == goal['id'];
@@ -344,7 +344,7 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
           Expanded(
             child: ListView.separated(
               itemCount: _experiences.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 final exp = _experiences[index];
                 final isSelected = _selectedExperience == exp['id'];

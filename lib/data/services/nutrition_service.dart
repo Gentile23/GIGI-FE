@@ -330,6 +330,15 @@ class NutritionService {
         },
       );
       return response.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 422) {
+        final message = e.response?.data['message'] ?? 'Validation error';
+        final errors = e.response?.data['errors'];
+        debugPrint('TDEE Validation Error: $message $errors');
+        throw Exception(message);
+      }
+      debugPrint('Error calculating TDEE: $e');
+      return null;
     } catch (e) {
       debugPrint('Error calculating TDEE: $e');
       return null;
@@ -371,6 +380,13 @@ class NutritionService {
     try {
       final response = await _apiClient.dio.get('/nutrition/suggestions');
       return response.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        debugPrint('DEBUG: Smart suggestions not available (400)');
+        return null;
+      }
+      debugPrint('Error getting smart suggestions: $e');
+      return null;
     } catch (e) {
       debugPrint('Error getting smart suggestions: $e');
       return null;

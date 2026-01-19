@@ -1,3 +1,4 @@
+// ignore_for_file: unused_element
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,6 +60,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   String _userName = 'Campione';
   String _userGoal =
       'general'; // muscleGain, weightLoss, toning, strength, wellness
+  // ignore: unused_field
   String _currentMuscleGroup = '';
   int _currentSet = 0;
   int _totalSets = 0;
@@ -67,6 +69,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
   // New: Streak and mood tracking
   int _streakDays = 0;
+  // ignore: unused_field
   String _userMood = 'neutral'; // energized, tired, stressed, neutral
 
   // Rest timer
@@ -245,7 +248,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     } else {
       // Not started yet - tell them to start
       buffer.write(
-        'Premi \"Inizia sessione\" quando vuoi cominciare, sarò al tuo fianco!',
+        'Premi "Inizia sessione" quando vuoi cominciare, sarò al tuo fianco!',
       );
     }
 
@@ -549,9 +552,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
     }
 
     // 3. Final fallback generic guide
-    if (scriptToSpeak == null) {
-      scriptToSpeak =
-          '''
+    scriptToSpeak ??=
+        '''
 $firstName, eseguiamo insieme 2 ripetizioni perfette di $exerciseName.
 
 Posizionati correttamente, mantieni una postura stabile.
@@ -567,12 +569,11 @@ Stessa tecnica perfetta. Controllo totale del movimento.
 
 Perfetto $firstName! Ora sei pronto per le tue serie!
 ''';
-    }
 
     // Attempt to use high-quality TTS (ElevenLabs) via API
     bool playedWithHighQuality = false;
 
-    if (voiceCoachingService != null && scriptToSpeak != null) {
+    if (voiceCoachingService != null) {
       try {
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
         debugPrint(
@@ -604,7 +605,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     }
 
     // Fallback to local TTS if high-quality failed
-    if (!playedWithHighQuality && scriptToSpeak != null) {
+    if (!playedWithHighQuality) {
       debugPrint('🗣️ using local TTS');
       await _speak(scriptToSpeak);
     }

@@ -39,6 +39,10 @@ class SetLoggingWidget extends StatefulWidget {
   /// Called when rest timer is skipped - for voice coaching sync
   final VoidCallback? onRestTimerSkipped;
 
+  /// Whether this is a trial workout (athletic assessment)
+  /// If true, logs are not sent to backend immediately, but timer and callbacks still fire.
+  final bool isTrial;
+
   const SetLoggingWidget({
     super.key,
     required this.exercise,
@@ -46,6 +50,7 @@ class SetLoggingWidget extends StatefulWidget {
     required this.onCompletionChanged,
     this.onSetCompleted,
     this.onRestTimerSkipped,
+    this.isTrial = false,
   });
 
   @override
@@ -310,8 +315,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: 55,
+                Expanded(
+                  flex: 2,
                   child: Text(
                     'PREC.',
                     style: GoogleFonts.inter(
@@ -321,8 +326,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                SizedBox(
-                  width: 55,
+                Expanded(
+                  flex: 2,
                   child: Text(
                     'KG',
                     style: GoogleFonts.inter(
@@ -334,8 +339,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                SizedBox(
-                  width: 50,
+                Expanded(
+                  flex: 2,
                   child: Text(
                     'REPS',
                     style: GoogleFonts.inter(
@@ -347,8 +352,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                SizedBox(
-                  width: 45,
+                Expanded(
+                  flex: 2,
                   child: Text(
                     'RPE',
                     style: GoogleFonts.inter(
@@ -359,7 +364,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 28),
+                const SizedBox(width: 32), // Space for checkbox
               ],
             ),
           ),
@@ -496,13 +501,15 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           ),
 
           // Previous Data
-          SizedBox(
-            width: 55,
+          Expanded(
+            flex: 2,
             child: _loadingPrevious
-                ? const SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(strokeWidth: 1),
+                ? const Center(
+                    child: SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(strokeWidth: 1),
+                    ),
                   )
                 : Text(
                     previousSet != null
@@ -517,8 +524,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           ),
 
           // Weight Input
-          SizedBox(
-            width: 55,
+          Expanded(
+            flex: 2,
             child: Container(
               height: 32,
               decoration: BoxDecoration(
@@ -559,8 +566,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           const SizedBox(width: 6),
 
           // Reps Input
-          SizedBox(
-            width: 50,
+          Expanded(
+            flex: 2,
             child: Container(
               height: 32,
               decoration: BoxDecoration(
@@ -598,8 +605,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           const SizedBox(width: 6),
 
           // RPE Selector
-          SizedBox(
-            width: 45,
+          Expanded(
+            flex: 2,
             child: GestureDetector(
               onTap: () => _showRPEPicker(setNumber),
               child: Container(
@@ -631,17 +638,43 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
           const SizedBox(width: 6),
 
-          // Checkbox
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: Checkbox(
-              value: isCompleted,
-              activeColor: CleanTheme.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+          // Custom Checkbox Button
+          GestureDetector(
+            onTap: () => _toggleSet(setNumber, !isCompleted),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.surfaceColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isCompleted
+                      ? CleanTheme.primaryColor
+                      : CleanTheme.borderSecondary,
+                  width: 2,
+                ),
+                boxShadow: isCompleted
+                    ? [
+                        BoxShadow(
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : [],
               ),
-              onChanged: (value) => _toggleSet(setNumber, value),
+              child: Center(
+                child: isCompleted
+                    ? const Icon(Icons.check, size: 20, color: Colors.white)
+                    : Icon(
+                        Icons.check,
+                        size: 20,
+                        color: CleanTheme.borderSecondary,
+                      ),
+              ),
             ),
           ),
         ],
@@ -771,6 +804,39 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       _completedSets[setNumber] = value;
     });
 
+    // Start rest timer IMMEDIATELY after checking the set for instant feedback
+    if (value && setNumber <= widget.exercise.sets && !_isRestTimerActive) {
+      _startRestTimer();
+    }
+
+    // [NEW] Trial Workout Logic: Bypass backend logging, just do UI/Timer/Callback
+    if (widget.isTrial) {
+      if (value) {
+        // Fire Callbacks
+        final previousSet = _previousData?[setNumber];
+        widget.onSetCompleted?.call(
+          SetCompletionData(
+            setNumber: setNumber,
+            weightKg: _weights[setNumber],
+            reps: _reps[setNumber],
+            rpe: _rpe[setNumber],
+            previousWeightKg: previousSet?['weight_kg'] as double?,
+            isLastSet: setNumber == widget.exercise.sets,
+          ),
+        );
+      }
+
+      // Update completion status
+      final allCompleted =
+          _completedSets.values.where((v) => v).length == widget.exercise.sets;
+      widget.onCompletionChanged(allCompleted);
+
+      if (allCompleted && _showCoachingControls) {
+        _stopRestTimer();
+      }
+      return;
+    }
+
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
 
     String? exerciseLogId = widget.exerciseLog?.id;
@@ -806,11 +872,6 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           isLastSet: setNumber == widget.exercise.sets,
         ),
       );
-
-      // Auto-start rest timer after completing a set (if not last set)
-      if (setNumber < widget.exercise.sets && !_isRestTimerActive) {
-        _startRestTimer();
-      }
     }
 
     final allCompleted =
@@ -831,83 +892,115 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     return ListenableBuilder(
       listenable: _coachingPlayer,
       builder: (context, _) {
+        if (!_showCoachingControls) return const SizedBox.shrink();
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: CleanTheme.primaryColor.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFF1E1E1E), // Dark futuristic background
+            borderRadius: BorderRadius.circular(32), // Stadium shape
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
             border: Border.all(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
+              // Header with glowing indicator
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.headset_outlined,
-                    color: CleanTheme.primaryColor,
-                    size: 20,
+                  Icon(
+                    Icons.graphic_eq,
+                    color: _coachingPlayer.isPlaying
+                        ? const Color(0xFF00E676) // Neon Green when playing
+                        : Colors.white54,
+                    size: 16,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Voice Coaching',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: CleanTheme.primaryColor,
-                      fontWeight: FontWeight.w600,
+                    'GIGI LIVE COACHING',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                      color: Colors.white54,
                     ),
                   ),
-                  const Spacer(),
-                  if (_coachingPlayer.isPlaying)
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: CleanTheme.primaryColor,
-                      ),
-                    ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+
+              // Main Controls
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildCoachingButton(
-                    icon: Icons.play_circle_outline,
-                    label: 'Intro',
-                    onPressed: () => _coachingPlayer.playPreExercise(),
+                  // Intro Button (Previous/Rewind styled)
+                  _buildFuturisticButton(
+                    icon: Icons.skip_previous_rounded,
+                    label: 'INTRO',
                     isActive:
                         _coachingPlayer.state ==
                         CoachingPlayerState.playingPreExercise,
+                    onTap: () => _coachingPlayer.playPreExercise(),
                   ),
-                  _buildCoachingButton(
-                    icon: Icons.fitness_center,
-                    label: 'Durante',
-                    onPressed: () => _coachingPlayer.playDuringExecution(),
+
+                  // Divider
+                  Container(width: 1, height: 24, color: Colors.white10),
+
+                  // EXECUTION (Play styled - Main)
+                  _buildMainPlayButton(
                     isActive:
                         _coachingPlayer.state ==
                         CoachingPlayerState.playingDuringExecution,
+                    isPlaying:
+                        _coachingPlayer.isPlaying &&
+                        _coachingPlayer.state ==
+                            CoachingPlayerState.playingDuringExecution,
+                    onTap: () => _coachingPlayer.playDuringExecution(),
                   ),
-                  _buildCoachingButton(
-                    icon: Icons.check_circle_outline,
-                    label: 'Finale',
-                    onPressed: () => _coachingPlayer.playPostExercise(),
+
+                  // Divider
+                  Container(width: 1, height: 24, color: Colors.white10),
+
+                  // Outro Button (Next/Forward styled)
+                  _buildFuturisticButton(
+                    icon: Icons.skip_next_rounded,
+                    label: 'FINALE',
                     isActive:
                         _coachingPlayer.state ==
                         CoachingPlayerState.playingPostExercise,
+                    onTap: () => _coachingPlayer.playPostExercise(),
                   ),
-                  if (_coachingPlayer.isPlaying)
-                    _buildCoachingButton(
-                      icon: Icons.stop,
-                      label: 'Stop',
-                      onPressed: () => _coachingPlayer.stop(),
-                      isActive: false,
+
+                  // Stop Button (Red X or Stop)
+                  if (_coachingPlayer.isPlaying) ...[
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => _coachingPlayer.stop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                      ),
                     ),
+                  ],
                 ],
               ),
             ],
@@ -917,40 +1010,76 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     );
   }
 
-  Widget _buildCoachingButton({
+  Widget _buildFuturisticButton({
     required IconData icon,
     required String label,
-    required VoidCallback onPressed,
     required bool isActive,
+    required VoidCallback onTap,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: isActive ? CleanTheme.primaryColor : CleanTheme.surfaceColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: CleanTheme.primaryColor, width: 1.5),
-          ),
-          child: IconButton(
-            icon: Icon(icon),
-            color: isActive ? Colors.white : CleanTheme.primaryColor,
-            iconSize: 24,
-            onPressed: onPressed,
-          ),
+    final color = isActive
+        ? const Color(0xFF00E676)
+        : Colors.white; // Neon Green or White
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: color.withValues(alpha: isActive ? 1.0 : 0.7),
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: color.withValues(alpha: isActive ? 1.0 : 0.5),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            color: isActive
-                ? CleanTheme.primaryColor
-                : CleanTheme.textSecondary,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
+      ),
+    );
+  }
+
+  Widget _buildMainPlayButton({
+    required bool isActive,
+    required bool isPlaying,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 56,
+        width: 56,
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF00E676)
+              : Colors.white.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF00E676).withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : [],
         ),
-      ],
+        child: Icon(
+          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          color: isActive ? Colors.black : Colors.white,
+          size: 32,
+        ),
+      ),
     );
   }
 }

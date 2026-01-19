@@ -48,6 +48,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passwordTooShort => 'يجب أن تكون كلمة المرور 6 أحرف على الأقل';
 
   @override
+  String get confirmPassword => 'تأكيد كلمة المرور';
+
+  @override
+  String get enterConfirmPassword => 'أكد كلمة المرور';
+
+  @override
+  String get passwordsDoNotMatch => 'كلمتا المرور غير متطابقتين';
+
+  @override
   String get login => 'تسجيل الدخول';
 
   @override
@@ -137,7 +146,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.';
 
   @override
-  String get unexpectedError => 'حدث خطأ غير متوقع';
+  String get unexpectedError => 'خطأ غير متوقع';
 
   @override
   String get googleSignInError => 'خطأ في تسجيل الدخول بواسطة جوجل';
@@ -266,7 +275,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get restDay => 'يوم راحة';
 
   @override
-  String get exercises => 'التمارين';
+  String get exercises => 'تمارين';
 
   @override
   String get sets => 'مجموعات';
@@ -363,7 +372,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transformationSubtitle => 'Before/After tracking';
 
   @override
-  String get personalInfo => 'Personal Info';
+  String get personalInfo => 'المعلومات الشخصية';
 
   @override
   String get fitnessGoals => 'Fitness Goals';
@@ -399,7 +408,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goalMuscleGainLabel => 'Muscle Gain';
 
   @override
-  String get goalWeightLossLabel => 'Weight Loss';
+  String get goalWeightLossLabel => 'إنقاص الوزن';
 
   @override
   String get goalToningLabel => 'Definition';
@@ -429,16 +438,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationOutdoorLabel => 'Outdoor';
 
   @override
-  String get injuryMuscular => 'Strains, contractures';
+  String get injuryMuscular => 'عضلي';
 
   @override
-  String get injuryArticular => 'Sprains, inflammation';
+  String get injuryArticular => 'مفصلي';
 
   @override
-  String get injuryBone => 'Fractures';
+  String get injuryBone => 'عظمي';
 
   @override
-  String get myWorkoutsTitle => 'My Workouts';
+  String get myWorkoutsTitle => 'تماريني';
 
   @override
   String get aiAnalyzingProfile => '🧠 Gigi is analyzing your profile';
@@ -817,7 +826,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'How many times a week do you want to train?';
 
   @override
-  String get days => 'days';
+  String get days => 'أيام';
 
   @override
   String get continueButton => 'متابعة';
@@ -985,7 +994,90 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noMealsLogged => 'لم يتم تسجيل أي وجبات';
 
   @override
-  String get addWater => '💧 إضافة ماء';
+  String get addWater => '💧 إضافة الماء';
+
+  @override
+  String get appBarTitleGoals => 'تحديد الأهداف';
+
+  @override
+  String profileDataSummary(int height, int weight, int age) {
+    return 'بيانات الملف الشخصي: $height سم • $weight كجم • $age سنوات';
+  }
+
+  @override
+  String get goalStepTitle => '🎯 ما هو هدفك؟';
+
+  @override
+  String get goalStepSubtitle => 'اختر ما تريد تحقيقه';
+
+  @override
+  String get goalLoseWeight => 'فقدان الوزن';
+
+  @override
+  String get goalsSavedSuccess => 'تم حفظ الأهداف بنجاح!';
+
+  @override
+  String get goalMaintain => 'الحفاظ على الوزن';
+
+  @override
+  String get goalGainMuscle => 'زيادة الكتلة العضلية';
+
+  @override
+  String get goalGainWeight => 'زيادة وزن الجسم';
+
+  @override
+  String get dietStepTitle => '🥗 نوع النظام الغذائي';
+
+  @override
+  String get dietStepSubtitle => 'هل لديك تفضيلات غذائية؟';
+
+  @override
+  String get dietStandard => 'قياسي';
+
+  @override
+  String get dietStandardDesc => 'لا توجد قيود';
+
+  @override
+  String get dietLowCarb => 'منخفض الكربوهيدرات';
+
+  @override
+  String get dietLowCarbDesc => 'قليل الكربوهيدرات';
+
+  @override
+  String get dietVegetarian => 'نباتي';
+
+  @override
+  String get dietVegetarianDesc => 'لا لحوم';
+
+  @override
+  String get dietVegan => 'نباتي صرف';
+
+  @override
+  String get dietVeganDesc => 'نباتي فقط';
+
+  @override
+  String get dietKeto => 'كيتو';
+
+  @override
+  String get dietKetoDesc => 'كيتوني';
+
+  @override
+  String get dietMediterranean => 'البحر الأبيض المتوسط';
+
+  @override
+  String get dietMediterraneanDesc => 'نمط إيطالي';
+
+  @override
+  String get resultsStepTitle => '🎉 خطتك!';
+
+  @override
+  String get resultsStepSubtitle => 'إليك أهدافك اليومية المخصصة';
+
+  @override
+  String get caloriesPerDay => 'سعرة حرارية/يوم';
+
+  @override
+  String get saveGoalsButton => 'حفظ الأهداف';
 
   @override
   String get yourProgress => 'تقدمك';
@@ -1320,6 +1412,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get splitMultifrequency => 'تردد متعدد';
 
   @override
+  String get errorSavingProfile => 'خطأ في حفظ الملف الشخصي';
+
+  @override
   String get splitMultifrequencyDesc => 'كل مجموعة عضلية 2-3 مرات في الأسبوع';
 
   @override
@@ -1468,7 +1563,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get injuryStatusOvercomeDesc => 'لم تعد مشكلة، ولكن من الجيد معرفتها';
 
   @override
-  String get injuryStatusActive => 'لا تزال موجودة';
+  String get injuryStatusActive => 'نشط';
 
   @override
   String get injuryStatusActiveDesc => 'لا أزال أعاني من آلام أو قيود';
@@ -1608,7 +1703,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connectHealth => 'ربط Apple Health';
 
   @override
-  String get connectHealthDesc => 'لرؤية رؤى مخصصة بناءً على بياناتك الصحية';
+  String get connectHealthDesc =>
+      'اربط Apple Health للحصول على تقرير أسبوعي مخصص';
 
   @override
   String get discoveredPatterns => 'الأنماط المكتشفة';
@@ -1736,4 +1832,1765 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get numberLabel => 'رقم';
+
+  @override
+  String get communityTitle => 'المجتمع';
+
+  @override
+  String activitiesToday(Object count) {
+    return '$count نشاط اليوم';
+  }
+
+  @override
+  String get feedTab => 'الخلاصات';
+
+  @override
+  String get challengesTab => 'التحديات';
+
+  @override
+  String get leaderboardTab => 'لوحة المتصدرين';
+
+  @override
+  String get noRecentActivity => 'لا يوجد نشاط حديث';
+
+  @override
+  String get communityGigiMessage =>
+      'الانضمام إلى المجتمع يزيد من استمرارك بنسبة 35%. تفاعل مع الآخرين لتبقى متحفزاً! 🚀';
+
+  @override
+  String get kudos => 'كودوس';
+
+  @override
+  String get before => 'قبل';
+
+  @override
+  String get newRecord => 'رقم قياسي جديد!';
+
+  @override
+  String get activeChallengesTitle => 'التحديات النشطة';
+
+  @override
+  String get availableChallengesTitle => 'التحديات المتاحة';
+
+  @override
+  String get noActiveChallenges => 'لا توجد تحديات نشطة حالياً';
+
+  @override
+  String percentCompleted(Object percent) {
+    return 'تم إكمال $percent%';
+  }
+
+  @override
+  String daysRemaining(Object days) {
+    return 'بقي $days يوم';
+  }
+
+  @override
+  String participantsCount(Object count) {
+    return '$count مشارك';
+  }
+
+  @override
+  String get joinButton => 'انضمام';
+
+  @override
+  String get leaderboardComingSoon => 'لوحة المتصدرين قريباً...';
+
+  @override
+  String timeMinutesAgo(Object minutes) {
+    return 'منذ $minutes دقيقة';
+  }
+
+  @override
+  String timeHoursAgo(Object hours) {
+    return 'منذ $hours ساعة';
+  }
+
+  @override
+  String timeDaysAgo(Object days) {
+    return 'منذ $days يوم';
+  }
+
+  @override
+  String get feedUpdated => 'تم تحديث الخلاصات!';
+
+  @override
+  String commentsCount(Object count) {
+    return 'التعليقات ($count)';
+  }
+
+  @override
+  String get writeCommentHint => 'اكتب تعليقاً...';
+
+  @override
+  String get commentSent => 'تم إرسال التعليق!';
+
+  @override
+  String kudosSentTo(Object name) {
+    return 'تم إرسال كودوس إلى $name! 🎉';
+  }
+
+  @override
+  String get joinChallengeTitle => 'الانضمام إلى التحدي';
+
+  @override
+  String joinChallengeConfirm(Object reward, Object title) {
+    return 'هل تريد الانضمام إلى \"$title\"؟\n\nالمكافأة: $reward XP';
+  }
+
+  @override
+  String joinedChallengeSuccess(Object title) {
+    return 'لقد انضممت إلى \"$title\"! 🎯';
+  }
+
+  @override
+  String get joinChallengeError => 'خطأ: تعذر الانضمام إلى التحدي.';
+
+  @override
+  String get bodyMeasurementsTitle => 'قياسات الجسم';
+
+  @override
+  String get howToMeasure => 'كيفية القياس';
+
+  @override
+  String get howToMeasureSubtitle => 'اتبع هذه النصائح للحصول على قياسات دقيقة';
+
+  @override
+  String get measureSameTime => 'قم بالقياس دائماً في نفس الوقت';
+
+  @override
+  String get morningFasting => 'يفضل في الصباح، على الريق';
+
+  @override
+  String get useFlexibleTape => 'استخدم شريط قياس مرن';
+
+  @override
+  String get noRigidRulers => 'لا تستخدم مساطر صلبة';
+
+  @override
+  String get repeatEveryMeasure => 'كرر كل قياس مرتين';
+
+  @override
+  String get ensureCorrect => 'للتأكد من صحته';
+
+  @override
+  String get relaxDoNotContract => 'استرخِ، لا تشد العضلات';
+
+  @override
+  String get naturalPosition => 'وضعية طبيعية، تنفس عادي';
+
+  @override
+  String get arms => 'الذراعين';
+
+  @override
+  String get measureBiceps => 'قس عضلة البايسبس';
+
+  @override
+  String get positionLabel => 'الوضعية';
+
+  @override
+  String get armFlexed90 => 'الذراع مثنية بزاوية 90 درجة، قبضة مغلقة';
+
+  @override
+  String get whereToMeasure => 'مكان القياس';
+
+  @override
+  String get thickestPoint => 'في أسمك نقطة من العضلة';
+
+  @override
+  String get repeatBoth => 'كرر لكلا الجانبين';
+
+  @override
+  String get mightBeDifferent => 'قد تكون مختلفة قليلاً';
+
+  @override
+  String get torso => 'الجذع';
+
+  @override
+  String get chestWaistHips => 'الصدر، الخصر والأرداف';
+
+  @override
+  String get underArmpits => 'الشريط تحت الإبطين، في أوسع نقطة';
+
+  @override
+  String get bellyButtonHeight => 'عند مستوى السرة، وضعية طبيعية';
+
+  @override
+  String get widestHips => 'في أوسع نقطة من الأرداف';
+
+  @override
+  String get legs => 'الأرجل';
+
+  @override
+  String get thighsCalves => 'الفخذين والسمانة';
+
+  @override
+  String get thigh => 'الفخذ';
+
+  @override
+  String get midThigh => 'في منتصف المسافة بين الفخذ والركبة، الساق مسترخية';
+
+  @override
+  String get calf => 'السمانة';
+
+  @override
+  String get widestCalf => 'في أوسع نقطة، واقفاً';
+
+  @override
+  String get startingPoint => 'نقطة انطلاقك';
+
+  @override
+  String get startingPointDesc =>
+      'تساعدنا هذه القياسات في إنشاء الخطة المثالية لك وتتبع تقدمك بمرور الوقت.';
+
+  @override
+  String get startMeasurements => 'ابدأ القياسات';
+
+  @override
+  String get bicepRight => 'البايسبس الأيمن';
+
+  @override
+  String get bicepLeft => 'البايسبس الأيسر';
+
+  @override
+  String get thighRight => 'الفخذ الأيمن';
+
+  @override
+  String get thighLeft => 'الفخذ الأيسر';
+
+  @override
+  String get measurementsSummary => 'ملخص القياسات';
+
+  @override
+  String get startingMeasurementsNote => 'إليك قياسات البداية الخاصة بك';
+
+  @override
+  String get bicepDX => 'بايسبس يمين';
+
+  @override
+  String get bicepSX => 'بايسبس يسار';
+
+  @override
+  String get thighDX => 'فخذ يمين';
+
+  @override
+  String get thighSX => 'فخذ يسار';
+
+  @override
+  String get updateWeeklyNote => 'يمكنك تحديث القياسات كل أسبوع لرؤية التقدم!';
+
+  @override
+  String get workoutStats => 'إحصائيات التمارين';
+
+  @override
+  String get totalSeriesLabel => 'مجموع المجموعات';
+
+  @override
+  String get totalTimeLabel => 'الوقت الإجمالي';
+
+  @override
+  String get myProgressTitle => 'تقدمي';
+
+  @override
+  String weeksCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسابيع',
+      one: 'أسبوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get consecutiveMeasurements => 'من القياسات المتتالية';
+
+  @override
+  String measurementsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count قياسات',
+      one: 'قياس واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get lastLabel => 'الأخير';
+
+  @override
+  String get measurementsTrend => 'اتجاه القياسات';
+
+  @override
+  String get waistCircumference => 'محيط الخصر';
+
+  @override
+  String get addMoreMeasurementsTrend => 'أضف المزيد من القياسات لرؤية الاتجاه';
+
+  @override
+  String get bodyMap => 'خريطة الجسم';
+
+  @override
+  String get tapZoneDetails => 'اضغط على منطقة لرؤية التفاصيل';
+
+  @override
+  String get setGoal => 'حدد هدفاً';
+
+  @override
+  String get goalExample =>
+      'مثال: \"الخصر عند 80 سم\" أو \"البايسبس عند 40 سم\"';
+
+  @override
+  String get quickActions => 'إجراءات سريعة';
+
+  @override
+  String get newMeasurement => 'قياس جديد';
+
+  @override
+  String get progressPhoto => 'صورة التقدم';
+
+  @override
+  String get yourJourneyPhotos => 'صور رحلتك';
+
+  @override
+  String get journeyPhotosDesc =>
+      'في غضون بضعة أسابيع، ستتمكن من مقارنة تقدمك بصرياً. إنها الطريقة الأكثر تحفيزاً لرؤية النتائج!';
+
+  @override
+  String get privacyPrivate => 'خاصة بنسبة 100%';
+
+  @override
+  String get privacyDesc =>
+      'ستكون صورك مرئية لك فقط. لا يتم مشاركتها أو استخدامها لأغراض أخرى أبداً.';
+
+  @override
+  String get howToGetPerfectPhotos => 'كيفية التقاط صور مثالية';
+
+  @override
+  String get sameLightTime => 'نفس الإضاءة والوقت';
+
+  @override
+  String get comparableResults => 'للحصول على نتائج قابلة للمقارنة';
+
+  @override
+  String get minimalClothing => 'ملابس بسيطة';
+
+  @override
+  String get seeChanges => 'حتى تتمكن من رؤية التغييرات';
+
+  @override
+  String get neutralPosition => 'وضعية محايدة';
+
+  @override
+  String get relaxedArms => 'مسترخٍ، الذراعان بجانبك';
+
+  @override
+  String get useTimerMirror => 'استخدم المؤقت أو المرآة';
+
+  @override
+  String get easierAlone => 'أسهل بمفردك';
+
+  @override
+  String get sameSpot => 'نفس المكان';
+
+  @override
+  String get neutralBackground => 'خلفية محايدة، نفس المسافة';
+
+  @override
+  String get front => 'الأمام';
+
+  @override
+  String get side => 'الجانب';
+
+  @override
+  String get backLabel => 'الخلف';
+
+  @override
+  String get savePhotos => 'حفظ الصور';
+
+  @override
+  String get seeProgressNote =>
+      'في غضون 4-8 أسابيع، سترى التغييرات من خلال مقارنة الصور!';
+
+  @override
+  String get chooseSource => 'اختر المصدر';
+
+  @override
+  String get camera => 'الكاميرا';
+
+  @override
+  String get gallery => 'المعرض';
+
+  @override
+  String get photosSavedSuccess => '🎉 تم حفظ الصور بنجاح!';
+
+  @override
+  String get yourProgressTab => 'تقدمك';
+
+  @override
+  String get noPhotosYet => 'لا توجد صور بعد';
+
+  @override
+  String get noPhotosDesc => 'أضف صوراً لرؤية تحولك بمرور الوقت';
+
+  @override
+  String get addPhotosButton => 'أضف صوراً';
+
+  @override
+  String get yourTransformation => 'تحولك';
+
+  @override
+  String get swipeToCompare => 'اسحب للمقارنة بين قبل وبعد';
+
+  @override
+  String get addNewPhotos => 'أضف صوراً جديدة';
+
+  @override
+  String daysCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أيام',
+      one: 'يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get beforeLabel => 'قبل';
+
+  @override
+  String get afterLabel => 'بعد';
+
+  @override
+  String get noMeasurementsYet => 'لا توجد قياسات بعد';
+
+  @override
+  String get noMeasurementsDesc => 'أضف قياساتك لتتبع التقدم';
+
+  @override
+  String get addMeasurementsButton => 'أضف قياسات';
+
+  @override
+  String get measurementsComparison => 'مقارنة القياسات';
+
+  @override
+  String get history => 'السجل';
+
+  @override
+  String get updateMeasurements => 'تحديث القياسات';
+
+  @override
+  String get startLabel => 'البداية';
+
+  @override
+  String lastMeasurementsHistory(Object count) {
+    return 'آخر $count سجلات';
+  }
+
+  @override
+  String get waistTrendOverTime => 'محيط الخصر بمرور الوقت';
+
+  @override
+  String get heightCm => 'الطول (سم)';
+
+  @override
+  String get weightKg => 'الوزن (كجم)';
+
+  @override
+  String get profileUpdatedSuccess => 'تم تحديث الملف الشخصي بنجاح';
+
+  @override
+  String get saveErrorGeneric => 'خطأ أثناء الحفظ';
+
+  @override
+  String get voiceModeTitle => 'وضع الصوت';
+
+  @override
+  String get voiceModeSubtitle => 'جيجي يرشدك\nفي كل تكرار';
+
+  @override
+  String get musicModeTitle => 'وضع الموسيقى';
+
+  @override
+  String get musicModeSubtitle => 'موسيقاك\n+ إشارات بسيطة';
+
+  @override
+  String get discreteMode => 'الوضع المنفصل';
+
+  @override
+  String unlockedCount(Object count) {
+    return 'مفتوح ($count)';
+  }
+
+  @override
+  String toUnlockCount(Object count) {
+    return 'للفتح ($count)';
+  }
+
+  @override
+  String get howToMeasureTitle => '📏 كيفية أخذ القياسات';
+
+  @override
+  String get howToMeasureDesc => 'اتبع هذه النصائح للحصول على قياسات دقيقة';
+
+  @override
+  String get armsSection => '💪 الذراعين';
+
+  @override
+  String get armsSectionDesc => 'قس عضلة البايسبس';
+
+  @override
+  String get torsoSection => '🫁 الجذع';
+
+  @override
+  String get torsoSectionDesc => 'الصدر والخصر والأرداف';
+
+  @override
+  String get legsSection => '🦵 الأرجل';
+
+  @override
+  String get legsSectionDesc => 'الفخذين والسمانة';
+
+  @override
+  String get frontPhoto => 'أمامي';
+
+  @override
+  String get sidePhoto => 'جانبي';
+
+  @override
+  String get backPhoto => 'خلفي';
+
+  @override
+  String get cameraOption => 'الكاميرا';
+
+  @override
+  String get galleryOption => 'المعرض';
+
+  @override
+  String get noPhotosYetTitle => 'لا توجد صور بعد';
+
+  @override
+  String get noPhotosYetDesc => 'أضف صوراً لرؤية تحولك';
+
+  @override
+  String get noMeasurementsYetTitle => 'لا توجد قياسات بعد';
+
+  @override
+  String get noMeasurementsYetDesc => 'أضف قياساتك لتتبع التقدم';
+
+  @override
+  String get newMeasurementAction => 'قياس جديد';
+
+  @override
+  String get progressPhotoAction => 'صورة التقدم';
+
+  @override
+  String get compareAction => 'مقارنة';
+
+  @override
+  String get weightStat => 'الوزن';
+
+  @override
+  String get bodyFatStat => 'دهون الجسم';
+
+  @override
+  String get daysStat => 'أيام';
+
+  @override
+  String get streakStat => 'التتابع';
+
+  @override
+  String get measurementsStat => 'القياسات';
+
+  @override
+  String get waistStat => 'الخصر';
+
+  @override
+  String get bicepStat => 'البايسبس';
+
+  @override
+  String get exercisesLabel => 'التمارين';
+
+  @override
+  String get durationLabel => 'المدة';
+
+  @override
+  String get caloriesLabel => 'السعرات';
+
+  @override
+  String get totalSetsLabel => 'إجمالي المجموعات';
+
+  @override
+  String get minutesLabel => 'دقائق';
+
+  @override
+  String get seriesLabel => 'مجموعات';
+
+  @override
+  String get startButton => 'ابدأ';
+
+  @override
+  String get completeButton => 'إكمال';
+
+  @override
+  String get completedButton => 'مكتمل 🎉';
+
+  @override
+  String get trialWorkoutTitle => 'تمرين تجريبي';
+
+  @override
+  String get recommendedLabel => 'موصى به';
+
+  @override
+  String get skipTrialTitle => 'تخطي التجربة';
+
+  @override
+  String get generateNowLabel => 'إنشاء الآن';
+
+  @override
+  String get exampleTen => 'مثال: 10';
+
+  @override
+  String get exampleWeight => 'مثال: 20.5';
+
+  @override
+  String get confirmButton => 'تأكيد';
+
+  @override
+  String get errorTitle => 'خطأ';
+
+  @override
+  String get setTimeLabel => 'وقت المجموعة';
+
+  @override
+  String minutesLabelWithValue(Object value) {
+    return '$value دقائق';
+  }
+
+  @override
+  String get exampleDifficultyHint => 'مثال: وجدت التمرين X صعباً...';
+
+  @override
+  String get instructionsSection => 'التعليمات';
+
+  @override
+  String get videoDemoSection => 'فيديو توضيحي';
+
+  @override
+  String get intensityLabel => 'الشدة';
+
+  @override
+  String get heartRateZone => 'منطقة نبض القلب';
+
+  @override
+  String get basicInfoSection => 'معلومات أساسية';
+
+  @override
+  String get goalsSection => 'الأهداف';
+
+  @override
+  String get workoutPreferencesSection => 'تفضيلات التمرين';
+
+  @override
+  String get editButton => 'تعديل';
+
+  @override
+  String get introPhase => 'مقدمة';
+
+  @override
+  String get duringPhase => 'أثناء';
+
+  @override
+  String get finalPhase => 'نهائي';
+
+  @override
+  String get stopButton => 'إيقاف';
+
+  @override
+  String get repsLabel => 'التكرارات';
+
+  @override
+  String get weightKgLabel => 'الوزن (كغ)';
+
+  @override
+  String get consentManagementSection => 'إدارة الموافقات';
+
+  @override
+  String get pushNotificationsTitle => 'الإشعارات';
+
+  @override
+  String get pushNotificationsDesc => 'تذكيرات التمرين والتقدم';
+
+  @override
+  String get emailMarketingTitle => 'البريد التسويقي';
+
+  @override
+  String get emailMarketingDesc => 'العروض والأخبار';
+
+  @override
+  String get analyticsTitle => 'التحليلات';
+
+  @override
+  String get analyticsDesc => 'ساعدنا في تحسين التطبيق';
+
+  @override
+  String get legalDocumentsSection => 'المستندات القانونية';
+
+  @override
+  String get gdprRightsSection => 'حقوقك القانونية';
+
+  @override
+  String get exportDataTitle => 'تصدير بياناتي';
+
+  @override
+  String get exportDataDesc => 'تنزيل جميع بياناتك بصيغة JSON';
+
+  @override
+  String get deleteAccountTitle => 'حذف الحساب';
+
+  @override
+  String get deleteAccountDesc => 'حذف بياناتك نهائياً';
+
+  @override
+  String get goalLabel => 'الهدف';
+
+  @override
+  String get experienceLevelLabel => 'مستوى الخبرة';
+
+  @override
+  String get weeklyFrequencyLabel => 'التردد الأسبوعي';
+
+  @override
+  String get trainingLocationLabel => 'أين تتدرب؟';
+
+  @override
+  String get workoutTypeLabel => 'نوع التمرين';
+
+  @override
+  String get trainingSplitLabel => 'تقسيم التدريب';
+
+  @override
+  String get sessionDurationLabel => 'مدة الجلسة';
+
+  @override
+  String get cardioPreferenceLabel => 'تفضيل الكارديو';
+
+  @override
+  String get mobilityPreferenceLabel => 'تفضيل المرونة';
+
+  @override
+  String get trialWorkoutLabel => 'تمرين تجريبي';
+
+  @override
+  String get heightWeightLabel => 'الطول والوزن';
+
+  @override
+  String get defaultWorkoutName => 'تمرين';
+
+  @override
+  String get goToWorkoutButton => 'اذهب للتمرين';
+
+  @override
+  String get startText => 'ابدأ';
+
+  @override
+  String get nextText => 'التالي';
+
+  @override
+  String get yourNameHint => 'اسمك';
+
+  @override
+  String get detailsLabel => 'التفاصيل';
+
+  @override
+  String get whatsappShare => 'واتساب';
+
+  @override
+  String get instagramShare => 'إنستغرام';
+
+  @override
+  String get otherShare => 'آخر';
+
+  @override
+  String get totalReferrals => 'الإجمالي';
+
+  @override
+  String get pendingReferrals => 'قيد الانتظار';
+
+  @override
+  String get convertedReferrals => 'محولة';
+
+  @override
+  String get yourReferralCode => 'رمز الإحالة الخاص بك';
+
+  @override
+  String get skipButton => 'تخطي';
+
+  @override
+  String get instructionsLabel => 'التعليمات';
+
+  @override
+  String get videoDemoLabel => 'عرض الفيديو';
+
+  @override
+  String get pause => 'إيقاف مؤقت';
+
+  @override
+  String get resume => 'استئناف';
+
+  @override
+  String get savedLabel => 'تم الحفظ!';
+
+  @override
+  String get deleteWorkoutTitle => 'حذف التمرين';
+
+  @override
+  String get reviewPreferences => 'مراجعة التفضيلات';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get workoutCompleted => 'اكتمل التمرين! 🎉';
+
+  @override
+  String get greatJobKeepItUp => 'عمل رائع! استمر.';
+
+  @override
+  String get greatJob => 'عمل رائع!';
+
+  @override
+  String get completedFirstWorkout => 'لقد أكملت تمرينك الأول';
+
+  @override
+  String get didYouLikeGigi => 'هل أعجبتك جيجي؟';
+
+  @override
+  String get workoutSession => 'جلسة تمرين';
+
+  @override
+  String get volume => 'الحجم';
+
+  @override
+  String get cancelButton => 'إلغاء';
+
+  @override
+  String get deleteButton => 'حذف';
+
+  @override
+  String get searchExercisesHint => 'البحث عن تمارين...';
+
+  @override
+  String get searchWorkoutsHint => 'البحث عن تمرين، تمارين...';
+
+  @override
+  String get ingredientsHint => 'مثال: دجاج، أرز، بروكلي...';
+
+  @override
+  String get exerciseHint => 'مثال: قرفصاء، ضغط صدر، رفعة ميتة...';
+
+  @override
+  String get paywallTitle => 'اختر خطتك';
+
+  @override
+  String get paywallSubtitle => 'تذرب دائما مع مدرب';
+
+  @override
+  String get paywallDescription =>
+      'تتحدث جيجي معك أثناء التدريب وتصححك مثل مدرب حقيقي.';
+
+  @override
+  String get paywallPsychologicalFull =>
+      'لقد جربت التدريب الحقيقي. تخيل كل تمرين هكذا.';
+
+  @override
+  String get paywallUrgencyText => 'العرض ساري لمدة';
+
+  @override
+  String get paywallSocialProofUsers => '12,847 مستخدم';
+
+  @override
+  String get paywallSocialProofAction => 'تم الترقية إلى Pro هذا الشهر';
+
+  @override
+  String get paywallBillingMonthly => 'شهري';
+
+  @override
+  String get paywallBillingYearly => 'سنوي';
+
+  @override
+  String get paywallDiscount => '-37%';
+
+  @override
+  String paywallSubscribeButtonYearly(Object price) {
+    return 'اشتراك - $price€/سنة';
+  }
+
+  @override
+  String paywallSubscribeButtonMonthly(Object price) {
+    return 'اشتراك - $price€/شهر';
+  }
+
+  @override
+  String get paywallCurrentPlan => 'الخطة الحالية';
+
+  @override
+  String get paywallGuarantee => 'تجربة مجانية لمدة 7 أيام';
+
+  @override
+  String get paywallTerms =>
+      'عند الاشتراك، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.';
+
+  @override
+  String paywallActivateTitle(Object planName) {
+    return 'تفعيل $planName';
+  }
+
+  @override
+  String paywallActivateDesc(Object period, Object planName, Object price) {
+    return 'أنت على وشك تفعيل خطة $planName مقابل €$price/$period.';
+  }
+
+  @override
+  String get paywallRevenueCatWarning => 'RevenueCat غير مكون';
+
+  @override
+  String get paywallRevenueCatDesc =>
+      'قم بتكوين RevenueCat لتمكين المدفوعات الحقيقية.';
+
+  @override
+  String get privacyPolicyTitle => 'سياسة الخصوصية';
+
+  @override
+  String get privacyPolicySubtitle => 'خصوصيتك مهمة بالنسبة لنا';
+
+  @override
+  String get termsOfServiceTitle => 'شروط الخدمة';
+
+  @override
+  String get termsOfServiceSubtitle => 'شروط استخدام خدمة GIGI';
+
+  @override
+  String get mealBreakfast => 'الإفطار';
+
+  @override
+  String get mealLunch => 'الغداء';
+
+  @override
+  String get mealDinner => 'العشاء';
+
+  @override
+  String get mealSnack => 'وجبة خفيفة';
+
+  @override
+  String get mealPreWorkout => 'قبل التمرين';
+
+  @override
+  String get mealPostWorkout => 'بعد التمرين';
+
+  @override
+  String get categoryAll => 'الكل';
+
+  @override
+  String get categoryStrength => 'القوة';
+
+  @override
+  String get categoryCardio => 'كارديو';
+
+  @override
+  String get categoryMobility => 'المرونة';
+
+  @override
+  String get challengesTitle => 'التحديات';
+
+  @override
+  String get challengesTabActive => 'نشطة';
+
+  @override
+  String get challengesTabDaily => 'يومية';
+
+  @override
+  String get challengesTabWeekly => 'أسبوعية';
+
+  @override
+  String get challengesTabCommunity => 'المجتمع';
+
+  @override
+  String get challengesActiveTitle => 'تحدياتك النشطة';
+
+  @override
+  String get progressTitle => 'تقدمي';
+
+  @override
+  String get progressStatsTitle => 'إحصائيات التدريب';
+
+  @override
+  String get progressWorkouts => 'تمارين';
+
+  @override
+  String get progressTotalSets => 'مجموع المجموعات';
+
+  @override
+  String get progressCalories => 'السعرات المحروقة';
+
+  @override
+  String get progressTotalTime => 'الوقت الكلي';
+
+  @override
+  String get progressBodyMapTitle => 'خريطة الجسم';
+
+  @override
+  String get progressBodyMapHint => 'انقر على منطقة لرؤية التفاصيل';
+
+  @override
+  String get progressChangesTitle => 'التغييرات';
+
+  @override
+  String get progressTrendTitle => 'اتجاه القياسات';
+
+  @override
+  String get progressAddMoreData => 'أضف المزيد من القياسات لرؤية الاتجاه';
+
+  @override
+  String get progressGoalsTitle => 'الأهداف';
+
+  @override
+  String get progressSetGoal => 'تحديد هدف';
+
+  @override
+  String get progressGoalHint =>
+      'مثال: الخصر عند 80 سم أو العضلة ذات الرأسين عند 40 سم';
+
+  @override
+  String get weeks => 'أسابيع';
+
+  @override
+  String get measurements => 'قياسات';
+
+  @override
+  String get lastMeasurement => 'الأخيرة';
+
+  @override
+  String get xpBonus => 'مكافأة XP';
+
+  @override
+  String nextBonus(Object multiplier) {
+    return 'المكافأة التالية: $multiplier XP';
+  }
+
+  @override
+  String get freezeTokens => 'رموز التجميد';
+
+  @override
+  String get use => 'استخدام';
+
+  @override
+  String get streakRisk => 'سلسلتك في خطر! تدرب اليوم للحفاظ عليها.';
+
+  @override
+  String get peopleWorkingOut => 'أشخاص يتدربون الآن';
+
+  @override
+  String get workoutsCompleted => 'تدريبات اكتملت اليوم';
+
+  @override
+  String get chestLabel => 'صندوق';
+
+  @override
+  String get openChest => 'فتح الصندوق';
+
+  @override
+  String get challengeDaily => 'يومي';
+
+  @override
+  String get challengeWeekly => 'أسبوعي';
+
+  @override
+  String get challengeMonthly => 'شهري';
+
+  @override
+  String get challengeCommunity => 'مجتمع';
+
+  @override
+  String get challengeOneVsOne => '1 ضد 1';
+
+  @override
+  String get injuryAreaNeck => 'رقبة';
+
+  @override
+  String get injuryAreaTrapezius => 'عضلة شبه منحرفة';
+
+  @override
+  String get injuryAreaDeltoids => 'عضلات دالية';
+
+  @override
+  String get injuryAreaPectorals => 'عضلات الصدر';
+
+  @override
+  String get injuryAreaBiceps => 'عضلة البايسبس';
+
+  @override
+  String get injuryAreaTriceps => 'عضلة الترايسيبس';
+
+  @override
+  String get injuryAreaForearms => 'سواعد';
+
+  @override
+  String get injuryAreaAbs => 'عضلات البطن';
+
+  @override
+  String get injuryAreaObliques => 'عضلات مائلة';
+
+  @override
+  String get injuryAreaLowerBack => 'أسفل الظهر';
+
+  @override
+  String get injuryAreaUpperBack => 'أعلى الظهر';
+
+  @override
+  String get injuryAreaLats => 'عضلات الظهر العريضة';
+
+  @override
+  String get injuryAreaGlutes => 'أرداف';
+
+  @override
+  String get injuryAreaHipFlexors => 'مبسطات الورك';
+
+  @override
+  String get injuryAreaQuadriceps => 'عضلات الفخذ الأمامية';
+
+  @override
+  String get injuryAreaHamstrings => 'عضلات الفخذ الخلفية';
+
+  @override
+  String get injuryAreaCalves => 'سمانة';
+
+  @override
+  String get injuryAreaAdductors => 'عضلات مقربة';
+
+  @override
+  String get injuryAreaAbductors => 'عضلات مبعدة';
+
+  @override
+  String get injuryAreaRotatorCuff => 'الكفة المدورة';
+
+  @override
+  String get injuryAreaCervicalSpine => 'العمود الفقري العنقي';
+
+  @override
+  String get injuryAreaShoulder => 'كتف';
+
+  @override
+  String get injuryAreaElbow => 'مرفق';
+
+  @override
+  String get injuryAreaWrist => 'معصم';
+
+  @override
+  String get injuryAreaFingers => 'أصابع اليد';
+
+  @override
+  String get injuryAreaThoracicSpine => 'العمود الفقري الصدري';
+
+  @override
+  String get injuryAreaLumbarSpine => 'العمود الفقري القطني';
+
+  @override
+  String get injuryAreaHip => 'ورك';
+
+  @override
+  String get injuryAreaKnee => 'ركبة';
+
+  @override
+  String get injuryAreaAnkle => 'كاحل';
+
+  @override
+  String get injuryAreaToes => 'أصابع القدم';
+
+  @override
+  String get injuryAreaSacroiliac => 'العجز الحرقفي';
+
+  @override
+  String get injuryAreaTemporomandibular => 'الفك الصدغي';
+
+  @override
+  String get injuryAreaSkull => 'جمجمة';
+
+  @override
+  String get injuryAreaClavicle => 'ترقوة';
+
+  @override
+  String get injuryAreaScapula => 'لوح الكتف';
+
+  @override
+  String get injuryAreaRibs => 'أضلاع';
+
+  @override
+  String get injuryAreaSternum => 'قص';
+
+  @override
+  String get injuryAreaHumerus => 'عظم العضد';
+
+  @override
+  String get injuryAreaRadius => 'عظم الكعبرة';
+
+  @override
+  String get injuryAreaUlna => 'عظم الزند';
+
+  @override
+  String get injuryAreaCarpals => 'عظام الرسغ';
+
+  @override
+  String get injuryAreaMetacarpals => 'عظام المشط';
+
+  @override
+  String get injuryAreaPhalangesHand => 'السلاميات (اليد)';
+
+  @override
+  String get injuryAreaVertebrae => 'فقرات';
+
+  @override
+  String get injuryAreaPelvis => 'حوض';
+
+  @override
+  String get injuryAreaFemur => 'عظم الفخذ';
+
+  @override
+  String get injuryAreaPatella => 'رضفة';
+
+  @override
+  String get injuryAreaTibia => 'قصبة الساق';
+
+  @override
+  String get injuryAreaFibula => 'شظية';
+
+  @override
+  String get injuryAreaTarsals => 'عظام الكاحل';
+
+  @override
+  String get injuryAreaMetatarsals => 'عظام المشط (القدم)';
+
+  @override
+  String get injuryAreaPhalangesFoot => 'السلاميات (القدم)';
+
+  @override
+  String get injurySeverityMild => 'خفيف';
+
+  @override
+  String get injurySeverityModerate => 'متوسط';
+
+  @override
+  String get injurySeveritySevere => 'شديد';
+
+  @override
+  String get injuryTimingCurrent => 'حالي';
+
+  @override
+  String get injuryTimingPast => 'سابق';
+
+  @override
+  String get injuryStatusRecovering => 'في طور الشفاء';
+
+  @override
+  String get injuryStatusResolved => 'تم الشفاء';
+
+  @override
+  String get scanMealWithAi => 'مسح الوجبة بالذكاء الاصطناعي';
+
+  @override
+  String get takePhotoForAnalysis => 'التقط صورة للتحليل';
+
+  @override
+  String get nextReward => 'المكافأة التالية';
+
+  @override
+  String get minimalClothingDesc => 'ملابس بسيطة لرؤية التغييرات';
+
+  @override
+  String get neutralPositionDesc => 'وضعية طبيعية، تنفس عادي';
+
+  @override
+  String get sameSpotDesc => 'نفس المكان، نفس الخلفية';
+
+  @override
+  String get notSpecified => 'غير محدد';
+
+  @override
+  String get whereToMeasureDesc => 'أين تقيس';
+
+  @override
+  String get homeWorkout => 'تمرين منزلي';
+
+  @override
+  String get maybeLater => 'ربما لاحقاً';
+
+  @override
+  String get averageSleep => 'متوسط النوم';
+
+  @override
+  String get totalSteps => 'إجمالي الخطوات';
+
+  @override
+  String get startHere => 'ابدأ هنا';
+
+  @override
+  String get yourWorkout => 'تمرينك';
+
+  @override
+  String get recommendedPrograms => 'البرامج الموصى بها';
+
+  @override
+  String get completeNow => 'أكمل الآن';
+
+  @override
+  String get seeMore => 'عرض المزيد';
+
+  @override
+  String get burnedCalories => 'السعرات المحروقة';
+
+  @override
+  String get totalTime => 'الوقت الكلي';
+
+  @override
+  String get completedWorkouts => 'التمارين المكتملة';
+
+  @override
+  String get earnedBadges => 'الشارات المكتسبة';
+
+  @override
+  String get analysisFailed => 'فشل التحليل';
+
+  @override
+  String get unlimitedAnalyses => 'تحليلات غير محدودة';
+
+  @override
+  String get selectedVideo => 'الفيديو المحدد';
+
+  @override
+  String get howItWorks => 'كيف يعمل';
+
+  @override
+  String get progressPhotos => 'صور التقدم';
+
+  @override
+  String get yourPhotos => 'صورك';
+
+  @override
+  String get journeyPhotos => 'صورك';
+
+  @override
+  String get visiblyCompare => 'المقارنة البصرية';
+
+  @override
+  String get privateAssurance => 'خاص 100%';
+
+  @override
+  String get privateDesc => 'صورك مرئية لك فقط';
+
+  @override
+  String get perfectPhotoTitle => 'كيفية التقاط صور مثالية';
+
+  @override
+  String get saving => 'جارٍ الحفظ...';
+
+  @override
+  String get savePhoto => 'حفظ الصورة';
+
+  @override
+  String get skipForNow => 'تخطي الآن';
+
+  @override
+  String get motivationDesc => 'للتحفيز والإلهام';
+
+  @override
+  String get howToTakeMeasurements => 'كيفية أخذ القياسات';
+
+  @override
+  String get followTips => 'اتبع هذه النصائح';
+
+  @override
+  String get morningsFasting => 'يفضل في الصباح، على الريق';
+
+  @override
+  String get flexibleTape => 'استخدم شريط قياس مرن';
+
+  @override
+  String get repeatTwice => 'كرر كل قياس مرتين';
+
+  @override
+  String get relaxNoContracting => 'مسترخٍ، بدون شد';
+
+  @override
+  String get position => 'الوضعية';
+
+  @override
+  String get bicepPositionDesc => 'الذراع مثنية بزاوية 90 درجة، قبضة مغلقة';
+
+  @override
+  String get slightlyDifferent => 'قد يكون مختلفاً قليلاً';
+
+  @override
+  String get torsoParts => 'الجذع';
+
+  @override
+  String get chest => 'صدر';
+
+  @override
+  String get chestDesc => 'الشريط تحت الإبطين، أوسع نقطة';
+
+  @override
+  String get waist => 'الخصر';
+
+  @override
+  String get waistDesc => 'عند مستوى السرة، وضعية طبيعية';
+
+  @override
+  String get hips => 'الأرداف';
+
+  @override
+  String get hipsDesc => 'في أوسع نقطة من الأرداف';
+
+  @override
+  String get legsParts => 'الأرجل';
+
+  @override
+  String get thighDesc => 'في منتصف المسافة بين الفخذ والركبة، الساق مسترخية';
+
+  @override
+  String get calfDesc => 'في أوسع نقطة، واقفاً';
+
+  @override
+  String get bodyMeasurements => 'قياسات الجسم';
+
+  @override
+  String get yourStartingPoint => 'نقطة انطلاقك';
+
+  @override
+  String get measurementsHelpDesc => 'القياسات تساعدنا في إنشاء الخطة المثالية';
+
+  @override
+  String get startingMeasurementsDesc => 'إليك قياساتك الأولية';
+
+  @override
+  String get updateWeeklyDesc => 'حدّث أسبوعياً لرؤية التقدم!';
+
+  @override
+  String get saveAndContinue => 'حفظ ومتابعة';
+
+  @override
+  String get editPreferences => 'تعديل التفضيلات';
+
+  @override
+  String get reviewPreferencesDesc => 'راجع تفضيلاتك';
+
+  @override
+  String get height => 'الطول';
+
+  @override
+  String get age => 'العمر';
+
+  @override
+  String get gender => 'الجنس';
+
+  @override
+  String get bodyShape => 'شكل الجسم';
+
+  @override
+  String get trainingGoals => 'أهداف التدريب';
+
+  @override
+  String get experienceLevel => 'مستوى الخبرة';
+
+  @override
+  String get weeklyFrequency => 'التكرار الأسبوعي';
+
+  @override
+  String get daysPerWeek => 'أيام في الأسبوع';
+
+  @override
+  String get trainingLocation => 'مكان التدريب';
+
+  @override
+  String get whereDoYouTrain => 'أين تتدرب؟';
+
+  @override
+  String get availableEquipment => 'المعدات المتاحة';
+
+  @override
+  String get trainingPreferences => 'تفضيلات التدريب';
+
+  @override
+  String get workoutType => 'نوع التمرين';
+
+  @override
+  String get trainingSplit => 'تقسيم التدريب';
+
+  @override
+  String get sessionDuration => 'مدة الجلسة';
+
+  @override
+  String get cardioPreference => 'تفضيل الكارديو';
+
+  @override
+  String get mobilityPreference => 'تفضيل المرونة';
+
+  @override
+  String get generatePlanWithPrefs => 'إنشاء خطة مع التفضيلات';
+
+  @override
+  String get savePreferences => 'حفظ التفضيلات';
+
+  @override
+  String get preferencesSavedSuccess => 'تم حفظ التفضيلات بنجاح!';
+
+  @override
+  String get errorSavingPreferences => 'خطأ في حفظ التفضيلات';
+
+  @override
+  String get unspecified => 'غير محدد';
+
+  @override
+  String get male => 'ذكر';
+
+  @override
+  String get female => 'أنثى';
+
+  @override
+  String get verySkinny => 'نحيف جداً';
+
+  @override
+  String get skinny => 'نحيف';
+
+  @override
+  String get lean => 'Lean';
+
+  @override
+  String get athletic => 'رياضي';
+
+  @override
+  String get muscular => 'عضلي';
+
+  @override
+  String get overweight => 'زيادة الوزن';
+
+  @override
+  String get average => 'متوسط';
+
+  @override
+  String get muscleGain => 'زيادة العضلات';
+
+  @override
+  String get weightLoss => 'فقدان الوزن';
+
+  @override
+  String get toning => 'التحديد';
+
+  @override
+  String get strength => 'القوة';
+
+  @override
+  String get wellness => 'العافية';
+
+  @override
+  String get beginner => 'مبتدئ';
+
+  @override
+  String get intermediate => 'متوسط';
+
+  @override
+  String get advanced => 'متقدم';
+
+  @override
+  String get gym => 'صالة رياضية';
+
+  @override
+  String get outdoor => 'في الهواء الطلق';
+
+  @override
+  String get bench => 'مقعد';
+
+  @override
+  String get dumbbells => 'دمبل';
+
+  @override
+  String get barbell => 'بار';
+
+  @override
+  String get resistanceBands => 'أحزمة المقاومة';
+
+  @override
+  String get machines => 'أجهزة';
+
+  @override
+  String get ipertrofia => 'تضخم عضلي';
+
+  @override
+  String get ipertrophy => 'تضخم عضلي';
+
+  @override
+  String get endurance => 'التحمل';
+
+  @override
+  String get functional => 'وظيفي';
+
+  @override
+  String get calisthenics => 'كاليسثينكس';
+
+  @override
+  String get weeklyReport => 'التقرير الأسبوعي';
+
+  @override
+  String get myWeeklyReport => 'تقريري الأسبوعي من جيجي';
+
+  @override
+  String get sleep => 'النوم';
+
+  @override
+  String get workouts => 'التمارين';
+
+  @override
+  String get heartRate => 'معدل ضربات القلب';
+
+  @override
+  String get perNight => '/ليلة';
+
+  @override
+  String get perDay => '/يوم';
+
+  @override
+  String get completed => 'مكتمل';
+
+  @override
+  String get sleepTrend => 'اتجاه النوم';
+
+  @override
+  String get activity => 'نشاط';
+
+  @override
+  String get aiInsights => 'رؤى الذكاء الاصطناعي';
+
+  @override
+  String get patternDiscovery => 'اكتشاف الأنماط';
+
+  @override
+  String get gigiTip => 'نصيحة جيجي';
+
+  @override
+  String get avgSleep => 'متوسط النوم';
+
+  @override
+  String get stepsPerDay => 'خطوات/يوم';
+
+  @override
+  String get hrBpm => 'نبضة/دقيقة';
+
+  @override
+  String get weeklyStepGoal => 'الهدف: 70,000 خطوة/أسبوع';
+
+  @override
+  String basedOnDataPoints(int count) {
+    return 'بناءً على $count أيام من البيانات';
+  }
+
+  @override
+  String get noDataAvailable => 'لا توجد بيانات متاحة';
+
+  @override
+  String get aiFormCheck => 'فحص الأداء بالذكاء الاصطناعي';
+
+  @override
+  String get exerciseName => 'اسم التمرين';
+
+  @override
+  String get recordVideo => 'تسجيل فيديو';
+
+  @override
+  String get max15Seconds => 'حد أقصى 15 ثانية';
+
+  @override
+  String get uploadFromGallery => 'تحميل من المعرض';
+
+  @override
+  String get videoSelected => 'تم تحديد الفيديو';
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get analyzeForm => 'تحليل الأداء';
+
+  @override
+  String get analyzingForm => 'جيجي تحلل تقنيتك...';
+
+  @override
+  String loadingProgress(int progress) {
+    return 'جارٍ التحميل... $progress%';
+  }
+
+  @override
+  String get takeTimeDesc => 'قد يستغرق هذا 30-60 ثانية';
+
+  @override
+  String get gigiFormMessage =>
+      'مرحباً! للحصول على نتيجة مثالية، اطلب من شخص ما تصويرك من الجانب أو ضع هاتفك. تأكد من أن جسمك بالكامل مرئي!';
+
+  @override
+  String get howItWorksStep1 => 'سجل أو حمّل فيديو (حد أقصى 15 ثانية)';
+
+  @override
+  String get howItWorksStep2 => 'جيجي تحلل أداءك';
+
+  @override
+  String get howItWorksStep3 => 'احصل على ملاحظات حول الوضعية والأخطاء';
+
+  @override
+  String get howItWorksStep4 => 'تحسن مع نصائح مخصصة';
+
+  @override
+  String get dailyAnalyses => 'التحليلات اليومية';
+
+  @override
+  String remainingToday(int count, int total) {
+    return '$count/$total متبقية اليوم';
+  }
+
+  @override
+  String limitReachedDesc(int limit) {
+    return 'لقد وصلت إلى الحد اليومي البالغ $limit تحليلات.\n\nقم بالترقية إلى بريميوم للحصول على تحليلات غير محدودة!';
+  }
+
+  @override
+  String get upgrade => 'ترقية';
+
+  @override
+  String get videoTooLarge => 'الفيديو كبير جداً! الحد الأقصى 50 ميجابايت';
+
+  @override
+  String get selectVideoAndExercise => 'حدد فيديو وأدخل اسم التمرين';
+
+  @override
+  String get ml => 'مل';
+
+  @override
+  String get glasses => 'أكواب';
+
+  @override
+  String get exercise => 'تمرين';
+
+  @override
+  String get kcal => 'سعرة';
+
+  @override
+  String get platform => 'منصة';
+
+  @override
+  String get description => 'الوصف';
+
+  @override
+  String get title => 'العنوان';
+
+  @override
+  String get current => 'حالي';
 }

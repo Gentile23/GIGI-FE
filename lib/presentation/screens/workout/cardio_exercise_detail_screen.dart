@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
@@ -101,7 +102,9 @@ class _CardioExerciseDetailScreenState
             const SizedBox(height: 24),
 
             if (widget.workoutExercise.exercise.description.isNotEmpty) ...[
-              CleanSectionHeader(title: 'Istruzioni'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.instructionsLabel,
+              ),
               const SizedBox(height: 12),
               CleanCard(
                 padding: const EdgeInsets.all(16),
@@ -121,7 +124,9 @@ class _CardioExerciseDetailScreenState
             const SizedBox(height: 24),
 
             if (_videoController != null) ...[
-              CleanSectionHeader(title: 'Video Dimostrazione'),
+              CleanSectionHeader(
+                title: AppLocalizations.of(context)!.videoDemoLabel,
+              ),
               const SizedBox(height: 12),
               _buildVideoPlayer(),
             ],

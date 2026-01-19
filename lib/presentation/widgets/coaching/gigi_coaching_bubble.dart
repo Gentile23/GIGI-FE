@@ -93,7 +93,7 @@ class _GigiCoachingBubbleState extends State<GigiCoachingBubble>
                     child: Image.asset(
                       'assets/images/gigi_new_logo.png',
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         color: CleanTheme.primaryColor,
                         child: const Icon(
                           Icons.smart_toy,

@@ -161,7 +161,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         child: _buildStatCard(
                           icon: Icons.timer_outlined,
                           value: data.formattedDuration,
-                          label: 'Durata',
+                          label: l10n.durationLabel,
                           color: CleanTheme.primaryColor,
                         ),
                       ),
@@ -170,7 +170,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         child: _buildStatCard(
                           icon: Icons.local_fire_department_rounded,
                           value: '${data.estimatedCalories}',
-                          label: 'Calorie',
+                          label: l10n.caloriesLabel,
                           color: CleanTheme.accentOrange,
                         ),
                       ),
@@ -184,7 +184,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                           icon: Icons.fitness_center_rounded,
                           value:
                               '${data.completedExercises}/${data.totalExercises}',
-                          label: 'Esercizi',
+                          label: l10n.exercisesLabel,
                           color: CleanTheme.accentGreen,
                         ),
                       ),
@@ -193,7 +193,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         child: _buildStatCard(
                           icon: Icons.repeat_rounded,
                           value: '${data.completedSets}',
-                          label: 'Serie Totali',
+                          label: l10n.totalSetsLabel,
                           color: CleanTheme.accentBlue,
                         ),
                       ),

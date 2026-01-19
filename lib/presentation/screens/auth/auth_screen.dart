@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
@@ -27,8 +26,11 @@ class _AuthScreenState extends State<AuthScreen>
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _referralCodeController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   String? _errorMessage;
 
   // GDPR Consent checkboxes
@@ -123,6 +125,8 @@ class _AuthScreenState extends State<AuthScreen>
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
+    _confirmPasswordController.dispose();
+    _referralCodeController.dispose();
     super.dispose();
   }
 
@@ -148,18 +152,6 @@ class _AuthScreenState extends State<AuthScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            // Back button
-            if (Navigator.canPop(context))
-              Positioned(
-                left: 8,
-                top: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  color: CleanTheme.textPrimary,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-
             SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Form(
@@ -202,7 +194,9 @@ class _AuthScreenState extends State<AuthScreen>
 
                     // Title
                     Text(
-                      _isLogin ? 'Bentornato!' : 'Crea Account',
+                      _isLogin
+                          ? AppLocalizations.of(context)!.welcomeBack
+                          : AppLocalizations.of(context)!.createAccount,
                       style: GoogleFonts.outfit(
                         fontSize: 32,
                         fontWeight: FontWeight.w700,
@@ -290,6 +284,53 @@ class _AuthScreenState extends State<AuthScreen>
                         return null;
                       },
                     ),
+
+                    // Confirm Password field (only for register)
+                    if (!_isLogin) ...[
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _confirmPasswordController,
+                        label: AppLocalizations.of(context)!.confirmPassword,
+                        icon: Icons.lock_outline,
+                        obscureText: _obscureConfirmPassword,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: CleanTheme.textTertiary,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppLocalizations.of(
+                              context,
+                            )!.enterConfirmPassword;
+                          }
+                          if (value != _passwordController.text) {
+                            return AppLocalizations.of(
+                              context,
+                            )!.passwordsDoNotMatch;
+                          }
+                          return null;
+                        },
+                      ),
+
+                      // Referral Code (Optional)
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        controller: _referralCodeController,
+                        label: 'Codice Referral (Opzionale)',
+                        icon: Icons.confirmation_number_outlined,
+                        validator: (value) => null, // Optional
+                      ),
+                    ],
 
                     // GDPR Consent checkboxes (only for registration)
                     if (!_isLogin) ...[
@@ -442,6 +483,18 @@ class _AuthScreenState extends State<AuthScreen>
                 ),
               ),
             ),
+
+            // Back button (Moved to end of Stack to be on top)
+            if (Navigator.canPop(context))
+              PositionedDirectional(
+                start: 8,
+                top: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: CleanTheme.textPrimary,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
           ],
         ),
       ),
@@ -547,9 +600,7 @@ class _AuthScreenState extends State<AuthScreen>
           child: Checkbox(
             value: value,
             onChanged: onChanged,
-            activeColor: isHealthData
-                ? CleanTheme.accentPurple
-                : CleanTheme.primaryColor,
+            activeColor: CleanTheme.primaryColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -575,9 +626,7 @@ class _AuthScreenState extends State<AuthScreen>
                       linkText,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: isHealthData
-                            ? CleanTheme.accentPurple
-                            : CleanTheme.primaryColor,
+                        color: CleanTheme.primaryColor,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
                       ),
@@ -656,6 +705,7 @@ class _AuthScreenState extends State<AuthScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildSocialButton({
     required IconData icon,
     required String label,
@@ -743,7 +793,7 @@ class _AuthScreenState extends State<AuthScreen>
     // Check consents for registration
     if (!_isLogin && !_allConsentsAccepted) {
       setState(() {
-        _errorMessage = 'Devi accettare tutti i consensi per registrarti.';
+        _errorMessage = AppLocalizations.of(context)!.mustAcceptConsents;
       });
       return;
     }
@@ -764,10 +814,30 @@ class _AuthScreenState extends State<AuthScreen>
       );
     } else {
       success = await authProvider.register(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
+        name: _nameController.text,
+        email: _emailController.text,
         password: _passwordController.text,
+        referralCode: _referralCodeController.text.isNotEmpty
+            ? _referralCodeController.text
+            : null,
       );
+
+      if (success && _referralCodeController.text.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Codice referral applicato! Hai 1 mese di Premium gratis! 🎉',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: const Color(0xFF00D26A),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
     }
 
     debugPrint(
