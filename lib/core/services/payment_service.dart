@@ -1,19 +1,4 @@
 import 'package:flutter/foundation.dart';
-
-/// ═══════════════════════════════════════════════════════════
-/// PAYMENT SERVICE - RevenueCat Integration
-/// Handles subscriptions, purchases, and entitlements
-/// ═══════════════════════════════════════════════════════════
-///
-/// To fully activate, add to pubspec.yaml:
-/// dependencies:
-///   purchases_flutter: ^6.0.0
-///
-/// Then configure:
-/// 1. RevenueCat dashboard: https://app.revenuecat.com
-/// 2. App Store Connect in-app purchases
-/// 3. Google Play Console subscriptions
-import 'dart:io';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../constants/subscription_tiers.dart';
@@ -89,11 +74,22 @@ class PaymentService extends ChangeNotifier {
       // In production:
       await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.info);
 
-      if (Platform.isIOS) {
+      if (kIsWeb) {
+        debugPrint(
+          'RevenueCat: RevenueCat is not supported on Web in this configuration.',
+        );
+        _isInitialized = true;
+        return;
+      }
+
+      final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+      final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+      if (isIOS) {
         // await Purchases.configure(
         //   PurchasesConfiguration('appl_YOUR_IOS_API_KEY')
         // );
-      } else if (Platform.isAndroid) {
+      } else if (isAndroid) {
         await Purchases.configure(
           PurchasesConfiguration('goog_JEcfJpSFtqYfgXvLTyYPyVaJESr'),
         );
@@ -186,6 +182,16 @@ class PaymentService extends ChangeNotifier {
     _purchaseStatus = PurchaseStatus.loading;
     _errorMessage = null;
     notifyListeners();
+
+    if (kIsWeb) {
+      debugPrint(
+        'RevenueCat: Purchases not supported on Web. Simulating success...',
+      );
+      await Future.delayed(const Duration(seconds: 1));
+      _purchaseStatus = PurchaseStatus.success;
+      notifyListeners();
+      return true;
+    }
 
     try {
       // In production:
@@ -426,6 +432,13 @@ class PaywallTriggerService {
     return true; // Always show for premium badges
   }
 
+  /// PROMO: Check if user should see the 7-day trial offer
+  bool shouldShowTrialOffer(int workoutsCount, int activeDays) {
+    // If user is already pro, don't show
+    // (This check should be done outside, but good for safety)
+    return (workoutsCount >= 3 || activeDays >= 3);
+  }
+
   /// Get trigger reason for analytics
   String getTriggerReason(PaywallTrigger trigger) {
     switch (trigger) {
@@ -439,6 +452,8 @@ class PaywallTriggerService {
         return 'form_check_limit';
       case PaywallTrigger.premiumBadge:
         return 'premium_badge';
+      case PaywallTrigger.specialOffer:
+        return 'special_offer_trial';
       case PaywallTrigger.manual:
         return 'user_initiated';
     }
@@ -451,5 +466,6 @@ enum PaywallTrigger {
   streakProtection,
   formCheck,
   premiumBadge,
+  specialOffer,
   manual,
 }

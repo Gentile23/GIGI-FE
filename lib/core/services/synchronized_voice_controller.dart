@@ -55,6 +55,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
   bool _minimalMode = true; // Non-invasive mode by default
   bool _isGuidedExecutionPlaying = false;
   bool _isSessionStarted = false;
+  int _guidedExecutionClickCount = 0; // Track clicks for varied phrases
+  String? _loadingStatus; // Status message for UI反馈
 
   // Exercise context
   String _userName = 'Campione';
@@ -95,6 +97,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   UserLevel get userLevel => _userLevel;
   bool get minimalMode => _minimalMode;
   bool get isGuidedExecutionPlaying => _isGuidedExecutionPlaying;
+  String? get loadingStatus => _loadingStatus;
 
   /// Get first name only (never full name)
   String get firstName {
@@ -258,6 +261,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
   /// Notify controller that workout session has started
   void notifySessionStarted() {
     _isSessionStarted = true;
+    _guidedExecutionClickCount = 0; // Reset for new session
     // Silent - no automatic greeting
     notifyListeners();
   }
@@ -500,6 +504,45 @@ class SynchronizedVoiceController extends ChangeNotifier {
   // "ESEGUI CON GIGI" - GUIDED EXECUTION
   // =====================================
 
+  /// Get a varied intro phrase for "Esegui con Gigi"
+  /// Personalizes based on exercise name, user name, and click count
+  String _getGuidedExecutionIntro(String exerciseName) {
+    _guidedExecutionClickCount++;
+    final isFirstClick = _guidedExecutionClickCount == 1;
+    final clickIndex =
+        (_guidedExecutionClickCount - 1) % 8; // Cycle through 8 variations
+
+    // Shorten exercise name if too long for natural speech
+    final shortName = exerciseName.length > 25
+        ? exerciseName.split(' ').take(3).join(' ')
+        : exerciseName;
+
+    if (isFirstClick) {
+      // First click in session - more enthusiastic intro
+      final firstClickPhrases = [
+        '$firstName, ottima scelta! Ti guido passo passo su $shortName...',
+        'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...',
+        '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...',
+        'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...',
+      ];
+      return firstClickPhrases[DateTime.now().second %
+          firstClickPhrases.length];
+    } else {
+      // Subsequent clicks - varied but connected phrases
+      final subsequentPhrases = [
+        'Ok $firstName, $shortName! Ti ricordo i punti chiave...',
+        '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...',
+        'Certo $firstName! Ecco la guida per $shortName...',
+        '$firstName, concentrazione su $shortName... Ti accompagno io...',
+        'Ancora $shortName? Ottima dedizione $firstName! Vediamo...',
+        'Va bene $firstName, $shortName passo per passo...',
+        '$firstName pronto per $shortName? Partiamo...',
+        'Riprendiamo $shortName $firstName, segui il mio ritmo...',
+      ];
+      return subsequentPhrases[clickIndex];
+    }
+  }
+
   /// Speak guided execution for "Esegui con Gigi" button
   /// Provides step-by-step guide for 2 perfect reps
   ///
@@ -517,16 +560,18 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _isGuidedExecutionPlaying = true;
     notifyListeners();
 
-    // 0. Immediate feedback to mask loading time
-    await _speak(
-      'Ti spiego questo esercizio con la tecnica corretta... Preparati...',
-    );
+    // 0. Immediate personalized feedback to mask loading time
+    final introPhrase = _getGuidedExecutionIntro(exerciseName);
+    await _speak(introPhrase);
 
     String? scriptToSpeak;
 
     // 1. Try API-generated script if exerciseId is provided
     if (exerciseId != null && voiceCoachingService != null) {
       try {
+        _loadingStatus = "Analizzo l'esercizio...";
+        notifyListeners();
+
         scriptToSpeak = await voiceCoachingService.getGuidedExecutionScript(
           exerciseId: exerciseId,
         );
@@ -575,6 +620,9 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
 
     if (voiceCoachingService != null) {
       try {
+        _loadingStatus = "Genero la voce...";
+        notifyListeners();
+
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
         debugPrint(
           '📝 Script to speak: ${scriptToSpeak.substring(0, scriptToSpeak.length.clamp(0, 100))}...',
@@ -585,6 +633,10 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
 
         if (audioUrl != null && audioUrl.isNotEmpty) {
           debugPrint('🎧 Playing high-quality audio: $audioUrl');
+
+          _loadingStatus = "In riproduzione...";
+          notifyListeners();
+
           // Use speak() method which waits for completion (via _playUrlAndWait internally)
           await _ttsService.speakUrl(audioUrl);
           playedWithHighQuality = true;
@@ -607,6 +659,8 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     // Fallback to local TTS if high-quality failed
     if (!playedWithHighQuality) {
       debugPrint('🗣️ using local TTS');
+      _loadingStatus = "Riproduzione locale...";
+      notifyListeners();
       await _speak(scriptToSpeak);
     }
 
@@ -640,6 +694,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     await _speakPersonalizedClosing(voiceCoachingService);
 
     _isGuidedExecutionPlaying = false;
+    _loadingStatus = null;
     notifyListeners();
   }
 
@@ -684,6 +739,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     if (_isGuidedExecutionPlaying) {
       _ttsService.stop();
       _isGuidedExecutionPlaying = false;
+      _loadingStatus = null;
       notifyListeners();
     }
   }

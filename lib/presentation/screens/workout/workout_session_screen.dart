@@ -80,6 +80,53 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startWorkoutSession();
     });
+
+    // Listen for voice coaching status updates
+    _voiceController.addListener(_onVoiceStatusChanged);
+  }
+
+  void _onVoiceStatusChanged() {
+    final status = _voiceController.loadingStatus;
+
+    if (status != null) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(status),
+            ],
+          ),
+          duration: const Duration(days: 1), // Persistent until cleared
+          backgroundColor: CleanTheme.primaryColor,
+          behavior: SnackBarBehavior.floating, // Better visibility
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } else {
+      // Hide snackbar if it was related to loading
+      // We don't want to hide other potential snackbars if we can help it,
+      // but simpler is to just hide current if we are transitioning out of loading.
+      // However, to be safe, we only hide if we were showing one.
+      // Since we can't easily check 'which' snackbar is showing, we just hide current.
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+    }
   }
 
   /// Initialize voice coaching with user data
@@ -96,6 +143,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   @override
   void dispose() {
+    _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
     _gigiTTS.dispose();
     _voiceController.dispose();

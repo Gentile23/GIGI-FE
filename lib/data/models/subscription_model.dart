@@ -11,7 +11,9 @@ class SubscriptionModel {
   final DateTime? lastPlanGenerated;
 
   // Added getter for simplified status check
-  bool get isActive => status == SubscriptionStatus.active;
+  // isActive is true only if status is active AND tier is not free
+  bool get isActive =>
+      status == SubscriptionStatus.active && tier != SubscriptionTier.free;
 
   SubscriptionModel({
     required this.id,
@@ -57,7 +59,9 @@ class SubscriptionModel {
       userId: json['user_id']?.toString() ?? json['userId']?.toString() ?? '',
       tier: SubscriptionTier.values.firstWhere(
         (e) => e.toString().split('.').last == json['tier'],
-        orElse: () => SubscriptionTier.free,
+        orElse: () => json['tier'] == 'premium'
+            ? SubscriptionTier.pro
+            : SubscriptionTier.free,
       ),
       startDate: DateTime.parse(json['start_date'] ?? json['startDate']),
       endDate: json['end_date'] != null || json['endDate'] != null
@@ -65,7 +69,10 @@ class SubscriptionModel {
           : null,
       status: SubscriptionStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
-        orElse: () => SubscriptionStatus.active,
+        orElse: () => json['tier'] == 'free' || json['tier'] == null
+            ? SubscriptionStatus
+                  .expired // Free tier doesn't have an "active" subscription object typically
+            : SubscriptionStatus.active,
       ),
       lastPlanGenerated:
           json['last_plan_generated'] != null ||

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -20,11 +21,29 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   // Urgency timer - scade a mezzanotte
   late Duration _timeRemaining;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _calculateTimeRemaining();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _calculateTimeRemaining();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _calculateTimeRemaining() {

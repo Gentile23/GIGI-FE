@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/utils/responsive_utils.dart';
@@ -5,10 +6,13 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
+import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
+import '../../../core/services/payment_service.dart';
+import '../../../providers/engagement_provider.dart';
 import '../challenges/challenges_screen.dart';
 import '../referral/referral_screen.dart';
 import '../progress/transformation_tracker_screen.dart';
@@ -130,135 +134,28 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Subscription card
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, _) {
-              final isPremium =
-                  authProvider.user?.subscription?.isActive ?? false;
-              final planName = isPremium
-                  ? AppLocalizations.of(context)!.premium
-                  : AppLocalizations.of(context)!.freeTier;
+          Consumer3<AuthProvider, PaymentService, EngagementProvider>(
+            builder:
+                (context, authProvider, paymentService, engagementProvider, _) {
+                  final isPremium =
+                      authProvider.user?.subscription?.isActive ?? false;
 
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isPremium
-                        ? [
-                            const Color(0xFFFFD700),
-                            const Color(0xFFFFA000),
-                          ] // Gold for premium
-                        : [CleanTheme.primaryColor, const Color(0xFF10B981)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          (isPremium
-                                  ? const Color(0xFFFFD700)
-                                  : CleanTheme.primaryColor)
-                              .withValues(alpha: 0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      if (!isPremium) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PaywallScreen(),
-                          ),
-                        );
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(24),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.workspace_premium_outlined,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                AppLocalizations.of(context)!.currentPlan,
-                                style: GoogleFonts.inter(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            planName,
-                            style: GoogleFonts.outfit(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            isPremium
-                                ? AppLocalizations.of(
-                                    context,
-                                  )!.premiumAccessText
-                                : AppLocalizations.of(
-                                    context,
-                                  )!.upgradeToPremiumText,
-                            style: GoogleFonts.inter(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              height: 1.4,
-                            ),
-                          ),
-                          if (!isPremium) ...[
-                            const SizedBox(height: 20),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.upgradeToPremiumButton,
-                                  style: GoogleFonts.inter(
-                                    color: CleanTheme.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+                  if (isPremium) {
+                    return _buildActiveSubscriptionCard(context, authProvider);
+                  }
+
+                  return _buildQuickBuySubscriptionCard(
+                    context,
+                    paymentService,
+                    engagementProvider,
+                  );
+                },
           ),
+
+          const SizedBox(height: 16),
+          _buildSocialProof(context),
+          const SizedBox(height: 8),
+          const LiveUrgencyTimer(),
 
           const SizedBox(height: 24),
 
@@ -636,6 +533,425 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildDivider() {
     return Container(height: 30, width: 1, color: CleanTheme.borderPrimary);
+  }
+
+  Widget _buildActiveSubscriptionCard(
+    BuildContext context,
+    AuthProvider authProvider,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.workspace_premium_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                l10n.currentPlan,
+                style: GoogleFonts.inter(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.premium,
+            style: GoogleFonts.outfit(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.premiumAccessText,
+            style: GoogleFonts.inter(
+              color: Colors.white.withValues(alpha: 0.9),
+              height: 1.4,
+            ),
+          ),
+          if (authProvider.user?.subscription?.endDate != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Scade il: ${DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!)}',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickBuySubscriptionCard(
+    BuildContext context,
+    PaymentService paymentService,
+    EngagementProvider engagementProvider,
+  ) {
+    final isEligibleForTrial = engagementProvider.isEligibleForSpecialOffer;
+
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.bolt, color: CleanTheme.accentOrange),
+                  const SizedBox(width: 8),
+                  Text(
+                    'PASSA A GIGI PRO',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: CleanTheme.accentOrange,
+                    ),
+                  ),
+                ],
+              ),
+              if (isEligibleForTrial)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: CleanTheme.accentOrange,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: CleanTheme.accentOrange,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '7 GG GRATIS',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: CleanTheme.accentOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Sblocca il tuo Coach AI',
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Side-by-side or stacked options
+          Row(
+            children: [
+              // Yearly Option (Anchoring & High Value)
+              Expanded(
+                child: _buildDirectPurchaseOption(
+                  context,
+                  paymentService,
+                  title: 'ANNUALE',
+                  price: '€8,33/mese',
+                  subPrice: '€99,99 totali',
+                  badge: 'RISPARMIA 44%',
+                  productId: ProductInfo.proYearly,
+                  isHighlighted: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Monthly Option
+              Expanded(
+                child: _buildDirectPurchaseOption(
+                  context,
+                  paymentService,
+                  title: 'MENSILE',
+                  price: '€14,99',
+                  subPrice: 'Ogni mese',
+                  productId: ProductInfo.proMonthly,
+                  isHighlighted: false,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PaywallScreen(),
+                  ),
+                );
+              },
+              child: Text(
+                'Vedi tutti i vantaggi',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textSecondary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          if (engagementProvider.isEligibleForSpecialOffer) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                'L\'offerta scade tra pochi minuti. Non perderla!',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: CleanTheme.accentOrange,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDirectPurchaseOption(
+    BuildContext context,
+    PaymentService paymentService, {
+    required String title,
+    required String price,
+    required String subPrice,
+    String? badge,
+    required String productId,
+    required bool isHighlighted,
+  }) {
+    return GestureDetector(
+      onTap: () => _handleDirectPurchase(context, paymentService, productId),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isHighlighted ? CleanTheme.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isHighlighted
+                ? CleanTheme.primaryColor
+                : CleanTheme.borderSecondary,
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          children: [
+            if (badge != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isHighlighted ? Colors.white : CleanTheme.accentOrange,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.inter(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    color: isHighlighted
+                        ? CleanTheme.primaryColor
+                        : Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isHighlighted
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : CleanTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              price,
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isHighlighted ? Colors.white : CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subPrice,
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                color: isHighlighted
+                    ? Colors.white.withValues(alpha: 0.6)
+                    : CleanTheme.textTertiary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialProof(BuildContext context) {
+    // Semi-dynamic social proof (mocked for demo effectiveness)
+    final userCount = 10 + (DateTime.now().minute % 20);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Stack(
+            children: [
+              _buildAvatarCircle('https://i.pravatar.cc/150?u=1', 0),
+              _buildAvatarCircle('https://i.pravatar.cc/150?u=2', 12),
+              _buildAvatarCircle('https://i.pravatar.cc/150?u=3', 24),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '$userCount utenti hanno scelto Gigi Pro nelle ultime 24 ore!',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarCircle(String url, double offset) {
+    return Padding(
+      padding: EdgeInsets.only(left: offset),
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: CleanTheme.surfaceColor, width: 2),
+        ),
+        child: ClipOval(
+          child: Image.network(
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+              child: const Icon(
+                Icons.person,
+                size: 14,
+                color: CleanTheme.primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleDirectPurchase(
+    BuildContext context,
+    PaymentService paymentService,
+    String productId,
+  ) async {
+    // Mostra caricamento
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    final success = await paymentService.purchaseProduct(productId);
+
+    // Rimuovi caricamento
+    if (context.mounted) Navigator.pop(context);
+
+    if (success && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Abbonamento attivato! Benvenuto in GiGi Pro.'),
+          backgroundColor: CleanTheme.accentGreen,
+        ),
+      );
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            paymentService.errorMessage ?? 'Errore durante l\'acquisto.',
+          ),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+    }
   }
 
   Widget _buildSettingsTile({
@@ -1115,5 +1431,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     }
+  }
+}
+
+class LiveUrgencyTimer extends StatefulWidget {
+  const LiveUrgencyTimer({super.key});
+
+  @override
+  State<LiveUrgencyTimer> createState() => _LiveUrgencyTimerState();
+}
+
+class _LiveUrgencyTimerState extends State<LiveUrgencyTimer> {
+  late Duration _timeRemaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateTimeRemaining();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _calculateTimeRemaining();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _calculateTimeRemaining() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    _timeRemaining = midnight.difference(now);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final hours = _timeRemaining.inHours;
+    final minutes = (_timeRemaining.inMinutes % 60);
+    final seconds = (_timeRemaining.inSeconds % 60);
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: CleanTheme.accentOrange.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.flash_on,
+              color: CleanTheme.accentOrange,
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${l10n.paywallUrgencyText}: ',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+              style: GoogleFonts.outfit(
+                fontSize: 13,
+                color: CleanTheme.accentOrange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

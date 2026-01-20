@@ -14,6 +14,9 @@ class EngagementProvider extends ChangeNotifier {
   String? _motivationMessage;
   Map<String, dynamic>? _lastReward;
   List<Map<String, dynamic>> _storyAchievements = [];
+  int _localWorkoutsCount = 0;
+  int _activeDaysCount = 0;
+  DateTime? _lastActiveDate;
 
   bool _isLoading = false;
   String? _error;
@@ -31,6 +34,12 @@ class EngagementProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get storyAchievements => _storyAchievements;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get localWorkoutsCount => _localWorkoutsCount;
+  int get activeDaysCount => _activeDaysCount;
+
+  /// Utente idoneo per l'offerta trial (3 workout o 3 giorni attivi)
+  bool get isEligibleForSpecialOffer =>
+      _localWorkoutsCount >= 3 || _activeDaysCount >= 3;
 
   // Computed getters
   bool get hasNearMiss => _nearMiss != null && _nearMiss!['show'] == true;
@@ -63,8 +72,25 @@ class EngagementProvider extends ChangeNotifier {
       debugPrint('Error loading home data: $e');
     } finally {
       _isLoading = false;
+      _updateEngagementStats();
       notifyListeners();
     }
+  }
+
+  void _updateEngagementStats() {
+    final now = DateTime.now();
+    if (_lastActiveDate == null ||
+        _lastActiveDate!.day != now.day ||
+        _lastActiveDate!.month != now.month ||
+        _lastActiveDate!.year != now.year) {
+      _activeDaysCount++;
+      _lastActiveDate = now;
+    }
+  }
+
+  void incrementWorkoutCount() {
+    _localWorkoutsCount++;
+    notifyListeners();
   }
 
   /// Roll reward dopo workout

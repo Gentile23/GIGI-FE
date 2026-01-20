@@ -19,6 +19,7 @@ import 'providers/workout_log_provider.dart';
 import 'providers/gamification_provider.dart';
 import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
+import 'core/services/payment_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,7 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => GamificationProvider()),
         ChangeNotifierProvider(create: (_) => EngagementProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => SocialProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => PaymentService()..initialize()),
       ],
       child: MaterialApp(
         title: 'GIGI',
