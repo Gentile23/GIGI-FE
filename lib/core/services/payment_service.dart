@@ -13,8 +13,13 @@ import 'package:flutter/foundation.dart';
 /// 1. RevenueCat dashboard: https://app.revenuecat.com
 /// 2. App Store Connect in-app purchases
 /// 3. Google Play Console subscriptions
+import 'dart:io';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
-enum SubscriptionPlan { free, premium, gold, platinum }
+import '../constants/subscription_tiers.dart';
+
+// Use the shared enum from constants
+// enum SubscriptionPlan { free, pro, elite } - Using SubscriptionTier instead
 
 enum PurchaseStatus { idle, loading, success, error, cancelled }
 
@@ -42,13 +47,11 @@ class ProductInfo {
   });
 
   // GIGI product identifiers (configure in RevenueCat)
-  static const String premiumMonthly = 'gigi_premium_monthly';
-  static const String premiumYearly = 'gigi_premium_yearly';
-  static const String goldMonthly = 'gigi_gold_monthly';
-  static const String goldYearly = 'gigi_gold_yearly';
-  static const String platinumMonthly = 'gigi_platinum_monthly';
-  static const String platinumYearly = 'gigi_platinum_yearly';
-  static const String lifetime = 'gigi_lifetime';
+  // GIGI product identifiers (configure in RevenueCat)
+  static const String proMonthly = 'gigi_pro_monthly';
+  static const String proYearly = 'gigi_pro_yearly';
+  static const String eliteMonthly = 'gigi_elite_monthly';
+  static const String eliteYearly = 'gigi_elite_yearly';
 }
 
 class PaymentService extends ChangeNotifier {
@@ -57,7 +60,7 @@ class PaymentService extends ChangeNotifier {
   PaymentService._internal();
 
   bool _isInitialized = false;
-  SubscriptionPlan _currentPlan = SubscriptionPlan.free;
+  SubscriptionTier _currentPlan = SubscriptionTier.free;
   PurchaseStatus _purchaseStatus = PurchaseStatus.idle;
   String? _errorMessage;
   List<ProductInfo> _availableProducts = [];
@@ -65,17 +68,18 @@ class PaymentService extends ChangeNotifier {
   bool _isTrialActive = false;
 
   // Getters
-  SubscriptionPlan get currentPlan => _currentPlan;
+  // Getters
+  SubscriptionTier get currentPlan => _currentPlan;
   PurchaseStatus get purchaseStatus => _purchaseStatus;
   String? get errorMessage => _errorMessage;
   List<ProductInfo> get availableProducts => _availableProducts;
   DateTime? get expirationDate => _expirationDate;
   bool get isTrialActive => _isTrialActive;
-  bool get isPremium => _currentPlan != SubscriptionPlan.free;
-  bool get isGoldOrAbove =>
-      _currentPlan == SubscriptionPlan.gold ||
-      _currentPlan == SubscriptionPlan.platinum;
-  bool get isPlatinum => _currentPlan == SubscriptionPlan.platinum;
+
+  bool get isProOrAbove =>
+      _currentPlan == SubscriptionTier.pro ||
+      _currentPlan == SubscriptionTier.elite;
+  bool get isElite => _currentPlan == SubscriptionTier.elite;
 
   /// Initialize RevenueCat
   Future<void> initialize() async {
@@ -83,29 +87,29 @@ class PaymentService extends ChangeNotifier {
 
     try {
       // In production:
-      // await Purchases.setDebugLogsEnabled(kDebugMode);
-      //
-      // if (Platform.isIOS) {
-      //   await Purchases.configure(
-      //     PurchasesConfiguration('appl_YOUR_IOS_API_KEY')
-      //   );
-      // } else if (Platform.isAndroid) {
-      //   await Purchases.configure(
-      //     PurchasesConfiguration('goog_YOUR_ANDROID_API_KEY')
-      //   );
-      // }
-      //
-      // // Listen to customer info updates
-      // Purchases.addCustomerInfoUpdateListener(_onCustomerInfoUpdated);
-      //
-      // // Get initial customer info
-      // final customerInfo = await Purchases.getCustomerInfo();
-      // _updateFromCustomerInfo(customerInfo);
-      //
-      // // Fetch offerings
+      await Purchases.setDebugLogsEnabled(kDebugMode);
+
+      if (Platform.isIOS) {
+        // await Purchases.configure(
+        //   PurchasesConfiguration('appl_YOUR_IOS_API_KEY')
+        // );
+      } else if (Platform.isAndroid) {
+        await Purchases.configure(
+          PurchasesConfiguration('goog_QeYHyZzVVPbenpavIcWsQfWAebu'),
+        );
+      }
+
+      // Listen to customer info updates
+      Purchases.addCustomerInfoUpdateListener(_onCustomerInfoUpdated);
+
+      // Get initial customer info
+      final customerInfo = await Purchases.getCustomerInfo();
+      _updateFromCustomerInfo(customerInfo);
+
+      // Fetch offerings
       // await _fetchProducts();
 
-      // Mock initialization
+      // Mock initialization for UI testing until API key is set
       _isInitialized = true;
       _loadMockProducts();
 
@@ -119,69 +123,26 @@ class PaymentService extends ChangeNotifier {
   void _loadMockProducts() {
     _availableProducts = [
       const ProductInfo(
-        identifier: ProductInfo.premiumMonthly,
-        title: 'Premium Mensile',
-        description: 'AI Coach + Voice Coaching',
-        price: 9.99,
-        priceString: '€9,99',
-        currencyCode: 'EUR',
-        trialDuration: '7 giorni gratis',
-      ),
-      const ProductInfo(
-        identifier: ProductInfo.premiumYearly,
-        title: 'Premium Annuale',
-        description: 'Risparmia 58%!',
-        price: 49.99,
-        priceString: '€49,99',
-        currencyCode: 'EUR',
-        introductoryPrice: '€4,17/mese',
-        trialDuration: '7 giorni gratis',
-      ),
-      const ProductInfo(
-        identifier: ProductInfo.goldMonthly,
-        title: 'Gold Mensile',
-        description: 'Premium + Nutrition + Form Check',
+        identifier: ProductInfo.proMonthly,
+        title: 'GiGi Pro Mensile',
+        description: 'Coach Vocale + AI Form Check',
         price: 14.99,
         priceString: '€14,99',
         currencyCode: 'EUR',
         trialDuration: '7 giorni gratis',
       ),
       const ProductInfo(
-        identifier: ProductInfo.goldYearly,
-        title: 'Gold Annuale',
-        description: 'Risparmia 61%!',
-        price: 69.99,
-        priceString: '€69,99',
-        currencyCode: 'EUR',
-        introductoryPrice: '€5,83/mese',
-        trialDuration: '7 giorni gratis',
-      ),
-      const ProductInfo(
-        identifier: ProductInfo.platinumMonthly,
-        title: 'Platinum Mensile',
-        description: 'Tutte le funzionalità + Priority Support',
-        price: 19.99,
-        priceString: '€19,99',
-        currencyCode: 'EUR',
-      ),
-      const ProductInfo(
-        identifier: ProductInfo.platinumYearly,
-        title: 'Platinum Annuale',
-        description: 'Risparmia 58%!',
+        identifier: ProductInfo.proYearly,
+        title: 'GiGi Pro Annuale',
+        description: 'Risparmia 44%!',
         price: 99.99,
         priceString: '€99,99',
         currencyCode: 'EUR',
         introductoryPrice: '€8,33/mese',
+        trialDuration: '7 giorni gratis',
       ),
-      const ProductInfo(
-        identifier: ProductInfo.lifetime,
-        title: 'Lifetime',
-        description: 'Paga una volta, usa per sempre',
-        price: 199.99,
-        priceString: '€199,99',
-        currencyCode: 'EUR',
-        isSubscription: false,
-      ),
+      // Elite removed from user-accessible purchase list as requested.
+      // Elite tier remains in system for manual assignment.
     ];
   }
 
@@ -193,27 +154,39 @@ class PaymentService extends ChangeNotifier {
 
     try {
       // In production:
-      // final offerings = await Purchases.getOfferings();
-      // final package = offerings.current?.availablePackages
-      //     .firstWhere((p) => p.storeProduct.identifier == productId);
-      //
-      // if (package == null) {
-      //   throw Exception('Product not found');
-      // }
-      //
-      // final customerInfo = await Purchases.purchasePackage(package);
-      // _updateFromCustomerInfo(customerInfo);
+      final offerings = await Purchases.getOfferings();
+      // Find package matching product ID
+      Package? package;
+      if (offerings.current != null &&
+          offerings.current!.availablePackages.isNotEmpty) {
+        try {
+          package = offerings.current!.availablePackages.firstWhere(
+            (p) => p.storeProduct.identifier == productId,
+          );
+        } catch (_) {}
+      }
 
-      // Mock successful purchase
+      if (package == null) {
+        // Fallback for testing/mock if not found in offerings
+        debugPrint(
+          'Product $productId not found in offerings. Simulating purchase...',
+        );
+      } else {
+        final purchaseResult = await Purchases.purchasePackage(package);
+        _updateFromCustomerInfo(purchaseResult.customerInfo);
+        _purchaseStatus = PurchaseStatus.success;
+        notifyListeners();
+        return true;
+      }
+
+      // Mock successful purchase (fallback)
       await Future.delayed(const Duration(seconds: 2));
 
       // Determine plan based on product
-      if (productId.contains('platinum')) {
-        _currentPlan = SubscriptionPlan.platinum;
-      } else if (productId.contains('gold')) {
-        _currentPlan = SubscriptionPlan.gold;
-      } else if (productId.contains('premium')) {
-        _currentPlan = SubscriptionPlan.premium;
+      if (productId.contains('elite')) {
+        _currentPlan = SubscriptionTier.elite;
+      } else if (productId.contains('pro')) {
+        _currentPlan = SubscriptionTier.pro;
       }
 
       _expirationDate = DateTime.now().add(
@@ -235,6 +208,10 @@ class PaymentService extends ChangeNotifier {
       debugPrint('Purchase failed: $e');
       return false;
     }
+  }
+
+  void _onCustomerInfoUpdated(CustomerInfo info) {
+    _updateFromCustomerInfo(info);
   }
 
   /// Restore purchases
@@ -267,13 +244,13 @@ class PaymentService extends ChangeNotifier {
     switch (featureId) {
       case 'voice_coaching':
       case 'unlimited_workouts':
-        return isPremium;
+        return isProOrAbove;
       case 'nutrition_ai':
       case 'form_check':
-        return isGoldOrAbove;
+        return isProOrAbove; // Pro includes these now
       case 'priority_support':
       case 'advanced_analytics':
-        return isPlatinum;
+        return isElite;
       default:
         return false;
     }
@@ -322,7 +299,7 @@ class PaymentService extends ChangeNotifier {
   Future<void> logout() async {
     // In production:
     // await Purchases.logOut();
-    _currentPlan = SubscriptionPlan.free;
+    _currentPlan = SubscriptionTier.free;
     _expirationDate = null;
     _isTrialActive = false;
     notifyListeners();
@@ -335,24 +312,22 @@ class PaymentService extends ChangeNotifier {
     // _updateFromCustomerInfo(customerInfo);
   }
 
-  // void _updateFromCustomerInfo(CustomerInfo info) {
-  //   if (info.entitlements.active.containsKey('platinum')) {
-  //     _currentPlan = SubscriptionPlan.platinum;
-  //   } else if (info.entitlements.active.containsKey('gold')) {
-  //     _currentPlan = SubscriptionPlan.gold;
-  //   } else if (info.entitlements.active.containsKey('premium')) {
-  //     _currentPlan = SubscriptionPlan.premium;
-  //   } else {
-  //     _currentPlan = SubscriptionPlan.free;
-  //   }
-  //
-  //   final activeSubscription = info.activeSubscriptions.firstOrNull;
-  //   if (activeSubscription != null) {
-  //     _expirationDate = info.allExpirationDates[activeSubscription];
-  //   }
-  //
-  //   notifyListeners();
-  // }
+  void _updateFromCustomerInfo(CustomerInfo info) {
+    if (info.entitlements.active.containsKey('elite')) {
+      _currentPlan = SubscriptionTier.elite;
+    } else if (info.entitlements.active.containsKey('pro')) {
+      _currentPlan = SubscriptionTier.pro;
+    } else {
+      _currentPlan = SubscriptionTier.free;
+    }
+
+    final activeSubscription = info.activeSubscriptions.firstOrNull;
+    if (activeSubscription != null && info.latestExpirationDate != null) {
+      _expirationDate = DateTime.tryParse(info.latestExpirationDate!);
+    }
+
+    notifyListeners();
+  }
 }
 
 /// ═══════════════════════════════════════════════════════════

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/subscription_tiers.dart';
+import '../../../core/services/payment_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
@@ -127,20 +129,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             const SizedBox(height: 24),
 
-            // Subscription tiers - PRICE ANCHORING: Elite first, Pro highlighted, Free last
-            _buildTierCard(
-              config: SubscriptionTierConfig.elite,
-              isPopular: false,
-              accentColor: CleanTheme.accentPurple,
-            ),
-
-            const SizedBox(height: 16),
-
+            // Subscription tiers - PRICE ANCHORING: Pro emphasized
+            // Elite tier removed from UI as requested (manual assignment only)
             _buildTierCard(
               config: SubscriptionTierConfig.pro,
               isPopular: true,
               accentColor: CleanTheme.primaryColor,
             ),
+
+            const SizedBox(height: 16),
 
             const SizedBox(height: 16),
 
@@ -517,68 +514,59 @@ class _PaywallScreenState extends State<PaywallScreen> {
     return SubscriptionTierConfig.fromTier(_selectedTier);
   }
 
-  void _handleSubscribe() {
+  Future<void> _handleSubscribe() async {
+    final paymentService = Provider.of<PaymentService>(context, listen: false);
     final l10n = AppLocalizations.of(context)!;
-    final config = _getSelectedConfig();
-    final price = _isYearly ? config.priceYearly : config.priceMonthly;
-    final period = _isYearly ? 'anno' : 'mese';
 
+    // Determine product ID
+    String productId;
+    if (_selectedTier == SubscriptionTier.pro) {
+      productId = _isYearly ? ProductInfo.proYearly : ProductInfo.proMonthly;
+    } else if (_selectedTier == SubscriptionTier.elite) {
+      productId = _isYearly
+          ? ProductInfo.eliteYearly
+          : ProductInfo.eliteMonthly;
+    } else {
+      return;
+    }
+
+    // Show loading indicator
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: CleanTheme.surfaceColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          l10n.paywallActivateTitle(config.name),
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.paywallActivateDesc(
-                config.name,
-                price.toStringAsFixed(2),
-                period,
-              ),
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.paywallRevenueCatWarning,
-              style: GoogleFonts.inter(
-                color: CleanTheme.accentOrange,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.paywallRevenueCatDesc,
-              style: GoogleFonts.inter(
-                color: CleanTheme.textTertiary,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: GoogleFonts.inter(
-                color: CleanTheme.primaryColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
       ),
     );
+
+    final success = await paymentService.purchaseProduct(productId);
+
+    // Remove loading indicator
+    if (mounted) Navigator.pop(context);
+
+    if (success && mounted) {
+      // Show success message and close paywall
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Acquisto completato con successo!'),
+          backgroundColor: CleanTheme.accentGreen,
+        ),
+      );
+      // Wait a moment before closing
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) Navigator.pop(context); // Close paywall
+    } else if (mounted) {
+      // Show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            paymentService.errorMessage ??
+                'Errore durante l\'acquisto. Riprova.',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildUrgencyTimer() {
