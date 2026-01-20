@@ -20,7 +20,6 @@ class HealthIntegrationService {
   static final List<HealthDataType> _readTypes = [
     HealthDataType.STEPS,
     HealthDataType.HEART_RATE,
-    HealthDataType.RESTING_HEART_RATE,
     HealthDataType.SLEEP_ASLEEP,
     HealthDataType.SLEEP_IN_BED,
     HealthDataType.WEIGHT,
@@ -124,17 +123,18 @@ class HealthIntegrationService {
     }
   }
 
-  /// Get resting heart rate (most recent)
+  /// Get heart rate (most recent reading)
+  /// Note: Uses regular HEART_RATE since RESTING_HEART_RATE permission was removed
   Future<int?> getRestingHeartRate() async {
     if (!_isAuthorized) return null;
 
     try {
       final now = DateTime.now();
-      final weekAgo = now.subtract(const Duration(days: 7));
+      final dayAgo = now.subtract(const Duration(days: 1));
 
       final data = await _health.getHealthDataFromTypes(
-        types: [HealthDataType.RESTING_HEART_RATE],
-        startTime: weekAgo,
+        types: [HealthDataType.HEART_RATE],
+        startTime: dayAgo,
         endTime: now,
       );
 
@@ -308,7 +308,7 @@ class HealthIntegrationService {
   Future<Map<String, dynamic>> getAllHealthData() async {
     return {
       'steps_today': await getStepsToday(),
-      'resting_heart_rate': await getRestingHeartRate(),
+      'heart_rate': await getRestingHeartRate(),
       'sleep_hours': await getSleepHours(
         DateTime.now().subtract(const Duration(days: 1)),
       ),

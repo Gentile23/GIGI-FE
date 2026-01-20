@@ -933,14 +933,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.10.6"
-  purchases_ui_flutter:
-    dependency: "direct main"
-    description:
-      name: purchases_ui_flutter
-      sha256: "350550b6fe8cf91a8de9e613ed38829fcdd5e098f0ae1ae25d5b2d45c680c842"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.10.6"
   rxdart:
     dependency: transitive
     description:

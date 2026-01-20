@@ -516,7 +516,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _handleSubscribe() async {
     final paymentService = Provider.of<PaymentService>(context, listen: false);
-    final l10n = AppLocalizations.of(context)!;
 
     // Determine product ID
     String productId;

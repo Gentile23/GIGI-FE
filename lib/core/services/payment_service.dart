@@ -47,11 +47,11 @@ class ProductInfo {
   });
 
   // GIGI product identifiers (configure in RevenueCat)
-  // GIGI product identifiers (configure in RevenueCat)
-  static const String proMonthly = 'gigi_pro_monthly';
-  static const String proYearly = 'gigi_pro_yearly';
-  static const String eliteMonthly = 'gigi_elite_monthly';
-  static const String eliteYearly = 'gigi_elite_yearly';
+  // Format: subscriptionId:basePlanId
+  static const String proMonthly = 'gigi_pro_monthly:pro-monthly-base';
+  static const String proYearly = 'gigi_pro_yearly:pro-yearly-base';
+  static const String eliteMonthly = 'gigi_elite_monthly:elite-monthly-base';
+  static const String eliteYearly = 'gigi_elite_yearly:elite-yearly-base';
 }
 
 class PaymentService extends ChangeNotifier {
@@ -87,7 +87,7 @@ class PaymentService extends ChangeNotifier {
 
     try {
       // In production:
-      await Purchases.setDebugLogsEnabled(kDebugMode);
+      await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.info);
 
       if (Platform.isIOS) {
         // await Purchases.configure(
@@ -95,7 +95,7 @@ class PaymentService extends ChangeNotifier {
         // );
       } else if (Platform.isAndroid) {
         await Purchases.configure(
-          PurchasesConfiguration('goog_QeYHyZzVVPbenpavIcWsQfWAebu'),
+          PurchasesConfiguration('goog_JEcfJpSFtqYfgXvLTyYPyVaJESr'),
         );
       }
 
@@ -106,16 +106,51 @@ class PaymentService extends ChangeNotifier {
       final customerInfo = await Purchases.getCustomerInfo();
       _updateFromCustomerInfo(customerInfo);
 
-      // Fetch offerings
-      // await _fetchProducts();
+      // Fetch real products from RevenueCat offerings
+      await _fetchProducts();
 
-      // Mock initialization for UI testing until API key is set
       _isInitialized = true;
-      _loadMockProducts();
 
       debugPrint('PaymentService initialized');
     } catch (e) {
       debugPrint('Failed to initialize PaymentService: $e');
+    }
+  }
+
+  /// Fetch products from RevenueCat Offerings
+  Future<void> _fetchProducts() async {
+    try {
+      final offerings = await Purchases.getOfferings();
+      if (offerings.current != null) {
+        final packages = offerings.current!.availablePackages;
+        _availableProducts = packages.map((package) {
+          final product = package.storeProduct;
+          return ProductInfo(
+            identifier: product.identifier,
+            title: product.title,
+            description: product.description,
+            price: product.price,
+            priceString: product.priceString,
+            currencyCode: product.currencyCode,
+            trialDuration:
+                product.introductoryPrice?.period, // Semplificato per ora
+          );
+        }).toList();
+
+        debugPrint(
+          'RevenueCat: Loaded ${_availableProducts.length} real products',
+        );
+        for (var p in _availableProducts) {
+          debugPrint(' - Product found: ${p.identifier} (${p.priceString})');
+        }
+      } else {
+        debugPrint('RevenueCat: No current offerings found. Check dashboard.');
+        _loadMockProducts(); // Fallback to mock for UI development
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('RevenueCat: Error fetching products: $e');
+      _loadMockProducts();
     }
   }
 
@@ -172,6 +207,7 @@ class PaymentService extends ChangeNotifier {
           'Product $productId not found in offerings. Simulating purchase...',
         );
       } else {
+        // ignore: deprecated_member_use
         final purchaseResult = await Purchases.purchasePackage(package);
         _updateFromCustomerInfo(purchaseResult.customerInfo);
         _purchaseStatus = PurchaseStatus.success;

@@ -292,10 +292,10 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
                 Icons.monitor_heart_outlined,
                 CleanTheme.accentPurple,
               ),
-            if (_latestData!['resting_heart_rate'] != null)
+            if (_latestData!['heart_rate'] != null)
               _buildMetricCard(
-                'FC a Riposo',
-                '${_latestData!['resting_heart_rate']['value']} ${_latestData!['resting_heart_rate']['unit']}',
+                'Frequenza Cardiaca',
+                '${_latestData!['heart_rate']['value']} ${_latestData!['heart_rate']['unit']}',
                 Icons.favorite_outline,
                 CleanTheme.accentRed,
               ),
