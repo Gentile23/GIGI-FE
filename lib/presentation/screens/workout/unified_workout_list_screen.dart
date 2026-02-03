@@ -15,6 +15,7 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_screen.dart';
 import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
+import '../questionnaire/unified_questionnaire_screen.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 /// Unified screen showing both AI-generated and custom workouts
@@ -89,32 +90,6 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                             color: CleanTheme.textPrimary,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const CreateCustomWorkoutScreen(),
-                              ),
-                            );
-                            if (result == true) {
-                              _loadCustomWorkouts();
-                            }
-                          },
-                          icon: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: CleanTheme.primaryColor,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -140,6 +115,35 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       AppLocalizations.of(
                         context,
                       )!.customWorkoutsSectionSubtitle,
+                      action: IconButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const CreateCustomWorkoutScreen(),
+                            ),
+                          );
+                          if (result == true) {
+                            _loadCustomWorkouts();
+                          }
+                        },
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: CleanTheme.surfaceColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: CleanTheme.borderSecondary,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: CleanTheme.textPrimary,
+                            size: 20,
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     _buildCustomWorkoutsList(),
@@ -155,26 +159,32 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSectionTitle(String title, String subtitle, {Widget? action}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: CleanTheme.textPrimary,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: CleanTheme.textSecondary,
-          ),
-        ),
+        if (action != null) action,
       ],
     );
   }
@@ -323,40 +333,50 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
   Widget _buildEmptyHeroCard() {
     return Container(
-      height: 180,
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: CleanTheme.borderPrimary),
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.fitness_center,
-              size: 48,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.fitness_center, size: 48, color: CleanTheme.textTertiary),
+          const SizedBox(height: 12),
+          Text(
+            AppLocalizations.of(context)!.noAiWorkoutsTitle,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppLocalizations.of(context)!.generateAiPlanSubtitle,
+            style: GoogleFonts.inter(
+              fontSize: 13,
               color: CleanTheme.textTertiary,
             ),
-            const SizedBox(height: 12),
-            Text(
-              AppLocalizations.of(context)!.noAiWorkoutsTitle,
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              AppLocalizations.of(context)!.generateAiPlanSubtitle,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: CleanTheme.textTertiary,
-              ),
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          CleanButton(
+            text: 'Genera Scheda AI',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UnifiedQuestionnaireScreen(),
+                ),
+              );
+            },
+            isPrimary: true,
+            width: double.infinity,
+          ),
+        ],
       ),
     );
   }
@@ -439,8 +459,19 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     }
 
     if (plan == null || plan.workoutDays.isEmpty) {
-      return _buildEmptySection(
-        AppLocalizations.of(context)!.noAiGeneratedPlan,
+      return _buildActionableEmptyState(
+        icon: Icons.auto_awesome,
+        title: AppLocalizations.of(context)!.noAiGeneratedPlan,
+        subtitle: 'L\'AI creerà un piano su misura per te',
+        buttonText: 'Genera Scheda AI',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const UnifiedQuestionnaireScreen(),
+            ),
+          );
+        },
       );
     }
 
@@ -475,7 +506,23 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     }
 
     if (_customPlans.isEmpty) {
-      return _buildEmptySection(AppLocalizations.of(context)!.noCustomWorkouts);
+      return _buildActionableEmptyState(
+        icon: Icons.edit_note,
+        title: AppLocalizations.of(context)!.noCustomWorkouts,
+        subtitle: 'Crea la tua scheda personalizzata',
+        buttonText: 'Crea Scheda Custom',
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateCustomWorkoutScreen(),
+            ),
+          );
+          if (result == true) {
+            _loadCustomWorkouts();
+          }
+        },
+      );
     }
 
     return Column(
@@ -496,7 +543,13 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
-  Widget _buildEmptySection(String message) {
+  Widget _buildActionableEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String buttonText,
+    required VoidCallback onTap,
+  }) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -505,12 +558,42 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: Center(
-        child: Text(
-          message,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: CleanTheme.textTertiary,
-          ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: CleanTheme.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 32, color: CleanTheme.primaryColor),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            CleanButton(
+              text: buttonText,
+              onPressed: onTap,
+              isPrimary: true,
+              width: double.infinity,
+            ),
+          ],
         ),
       ),
     );

@@ -18,70 +18,84 @@ class FloatingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Container(
-        margin: EdgeInsets.fromLTRB(
-          24,
-          0,
-          24,
-          MediaQuery.of(context).padding.bottom + 16,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: CleanTheme.primaryColor, // Black background
-          borderRadius: BorderRadius.circular(100), // Fully rounded pill
-          boxShadow: CleanTheme.floatingShadow,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: items.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            final isActive = currentIndex == index;
+      child: SafeArea(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width - 32,
+          ),
+          decoration: BoxDecoration(
+            color: CleanTheme.primaryColor,
+            borderRadius: BorderRadius.circular(100),
+            boxShadow: CleanTheme.floatingShadow,
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: items.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                final isActive = currentIndex == index;
 
-            return GestureDetector(
-              onTap: () {
-                if (!isActive) {
-                  HapticFeedback.lightImpact();
-                  onTap(index);
-                }
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutBack,
-                padding: EdgeInsets.symmetric(
-                  horizontal: isActive ? 16 : 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? Colors.white.withValues(alpha: 0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isActive ? item.activeIcon : item.icon,
-                      color: Colors.white,
-                      size: 22,
+                return GestureDetector(
+                  onTap: () {
+                    if (!isActive) {
+                      HapticFeedback.lightImpact();
+                      onTap(index);
+                    }
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutBack,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8, // Tighter horizontal padding
+                      vertical: 6, // Slimmer vertical profile
                     ),
-                    if (isActive) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        item.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(
+                            6,
+                          ), // Smaller icon circle
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isActive ? item.activeIcon : item.icon,
+                            color: isActive
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.8),
+                            size: 20, // Slightly smaller icon
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
+                        if (isActive) ...[
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              item.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ),
       ),
     );

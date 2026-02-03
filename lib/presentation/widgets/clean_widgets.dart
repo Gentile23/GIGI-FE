@@ -594,7 +594,7 @@ class CleanAvatar extends StatelessWidget {
         child: ClipOval(
           child: imageUrl != null
               ? Image.network(
-                  imageUrl!,
+                  '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}', // Cache bust
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => _buildInitials(),
                 )

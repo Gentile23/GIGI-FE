@@ -15,7 +15,7 @@ import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 import '../workout/workout_session_screen.dart';
-import '../custom_workout/custom_workout_list_screen.dart';
+import '../workout/unified_workout_list_screen.dart';
 import '../../../data/models/user_model.dart';
 
 import '../../widgets/skeleton_box.dart';
@@ -39,7 +39,6 @@ class EnhancedHomeScreen extends StatefulWidget {
 
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
-  int _selectedFilterIndex = 0;
   int _currentWorkoutIndex = 0; // Track which workout to show
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
@@ -163,16 +162,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       children: [
                         // 1. Header (Hello, Name + Avatar)
                         _buildCompactHeader(user),
-
-                        const SizedBox(height: 24),
-
-                        // 2. Search Bar
-                        _buildSearchBar(),
-
-                        const SizedBox(height: 24),
-
-                        // 3. Filter Chips (Categories)
-                        _buildFilterChips(),
 
                         const SizedBox(height: 32),
 
@@ -329,7 +318,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) =>
-                                          const CustomWorkoutListScreen(),
+                                          const UnifiedWorkoutListScreen(),
                                     ),
                                   );
                                 },
@@ -428,100 +417,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  // 2. Search Bar - Pill Shape (NO FILTER BUTTON)
-  Widget _buildSearchBar() {
-    return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.searchComingSoon),
-            backgroundColor: CleanTheme.primaryColor,
-            duration: const Duration(seconds: 1),
-          ),
-        );
-        HapticService.lightTap();
-      },
-      child: Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(100), // Pill shape
-          border: Border.all(color: CleanTheme.borderSecondary),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.search, color: CleanTheme.textPrimary, size: 22),
-            const SizedBox(width: 12),
-            Text(
-              AppLocalizations.of(context)!.searchHint,
-              style: GoogleFonts.inter(
-                color: CleanTheme.textTertiary,
-                fontSize: 15,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 3. Filter Chips
-  Widget _buildFilterChips() {
-    final filters = [
-      AppLocalizations.of(context)!.filterAll,
-      AppLocalizations.of(context)!.filterCardio,
-      AppLocalizations.of(context)!.filterStrength,
-      AppLocalizations.of(context)!.filterFlex,
-      AppLocalizations.of(context)!.filterHiit,
-    ];
-    return SizedBox(
-      height: 40,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: filters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final isSelected = index == _selectedFilterIndex;
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedFilterIndex = index);
-              HapticService.lightTap();
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected ? CleanTheme.primaryColor : Colors.white,
-                borderRadius: BorderRadius.circular(100),
-                border: isSelected
-                    ? null
-                    : Border.all(color: CleanTheme.borderSecondary),
-              ),
-              child: Text(
-                filters[index],
-                style: GoogleFonts.inter(
-                  color: isSelected ? Colors.white : CleanTheme.textSecondary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 
@@ -634,18 +529,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
     if (workoutProvider.isGenerating) return _buildGeneratingCard();
 
-    final categories = [
-      AppLocalizations.of(context)!.filterAll,
-      AppLocalizations.of(context)!.filterCardio,
-      AppLocalizations.of(context)!.filterStrength,
-      AppLocalizations.of(context)!.filterFlex,
-      AppLocalizations.of(context)!.filterHiit,
-    ];
-    final category = categories[_selectedFilterIndex];
-
-    // Get workouts filtered by category
-    final filteredWorkouts = workoutProvider.getWorkoutsByCategory(category);
-
     // Determine what to show
     String title = '';
     String subtitle = '';
@@ -654,146 +537,72 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     String actionLabel = AppLocalizations.of(context)!.start;
     bool showHeart = false;
 
-    if (_selectedFilterIndex != 0) {
-      // --- Specific Category Selected ---
-      if (filteredWorkouts.isNotEmpty) {
-        final workout = filteredWorkouts.first;
-        title = workout.name;
-        subtitle = '${workout.focus} • ${workout.estimatedDuration} min';
-        showHeart = true;
+    // --- Default Dashboard View ---
+    final hasActivePlan = workoutProvider.currentPlan != null;
+    final workouts = hasActivePlan ? workoutProvider.currentPlan!.workouts : [];
 
-        // Dynamic colors based on category/focus could go here
-        if (category == 'Cardio') {
-          gradientColors = [const Color(0xFFFF512F), const Color(0xFFDD2476)];
-        } else if (category == 'Forza') {
-          gradientColors = [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)];
-        } else if (category == 'Flex') {
-          gradientColors = [const Color(0xFF11998e), const Color(0xFF38ef7d)];
-        } else if (category == 'HIIT') {
-          gradientColors = [const Color(0xFFED213A), const Color(0xFF93291E)];
+    // Get next workout based on saved index, with wrap-around
+    final safeIndex = workouts.isNotEmpty
+        ? _currentWorkoutIndex % workouts.length
+        : 0;
+    final currentWorkout = workouts.isNotEmpty ? workouts[safeIndex] : null;
+
+    if (hasActivePlan && currentWorkout != null) {
+      title = currentWorkout.name;
+      subtitle =
+          '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min';
+      gradientColors = [const Color(0xFF1A1A2E), const Color(0xFF16213E)];
+      showHeart = true;
+
+      onActionTap = () async {
+        // Increment workout index for next time
+        final prefs = await SharedPreferences.getInstance();
+        final nextIndex = (safeIndex + 1) % workouts.length;
+        await prefs.setInt('next_workout_index', nextIndex);
+
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => WorkoutSessionScreen(workoutDay: currentWorkout),
+            ),
+          ).then((_) {
+            // Refresh index when returning from workout
+            _loadData();
+          });
         }
+      };
+    } else {
+      // No active plan - check if questionnaire is complete
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
+
+      if (isQuestionnaireComplete) {
+        // Questionario completo -> Genera scheda direttamente
+        // Il primo workout farà la calibrazione automatica in background
+        title = AppLocalizations.of(context)!.generatePlanCardTitle;
+        subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
+        gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
+        showHeart = false;
+
+        onActionTap = () {
+          _generatePlanDirectly();
+        };
+      } else {
+        // Questionario non completo - Mostra prompt per completare profilo
+        title = AppLocalizations.of(context)!.welcomeBack;
+        subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
+        gradientColors = [CleanTheme.primaryColor, Colors.black87];
 
         onActionTap = () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => WorkoutSessionScreen(workoutDay: workout),
+              builder: (_) => const UnifiedQuestionnaireScreen(),
             ),
-          );
+          ).then((_) => _loadData());
         };
-      } else {
-        // No workout found for this category - show template from DB
-        final templates = workoutProvider.getTemplatesByCategory(
-          category.toLowerCase(),
-        );
-
-        if (templates.isNotEmpty) {
-          final template = templates.first;
-          title = template.name;
-          subtitle =
-              '${template.exerciseCount} Esercizi • ${template.durationMinutes} min';
-          showHeart = true;
-
-          // Dynamic colors based on category
-          if (category == 'Cardio') {
-            gradientColors = [const Color(0xFFFF512F), const Color(0xFFDD2476)];
-          } else if (category == 'Forza') {
-            gradientColors = [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)];
-          } else if (category == 'Flex') {
-            gradientColors = [const Color(0xFF11998e), const Color(0xFF38ef7d)];
-          } else if (category == 'HIIT') {
-            gradientColors = [const Color(0xFFED213A), const Color(0xFF93291E)];
-          }
-
-          onActionTap = () {
-            // Navigate to template workout session
-            final workoutDay = template.toWorkoutDay();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => WorkoutSessionScreen(workoutDay: workoutDay),
-              ),
-            );
-          };
-        } else {
-          // No templates available - loading or empty
-          title = AppLocalizations.of(context)!.loadingCategory(category);
-          subtitle = AppLocalizations.of(context)!.pleaseWait;
-          gradientColors = [Colors.grey[800]!, Colors.black];
-          onActionTap = null;
-        }
-      }
-    } else {
-      // --- "Tutti" (Default Dashboard) ---
-      final hasActivePlan = workoutProvider.currentPlan != null;
-      final workouts = hasActivePlan
-          ? workoutProvider.currentPlan!.workouts
-          : [];
-
-      // Get next workout based on saved index, with wrap-around
-      final safeIndex = workouts.isNotEmpty
-          ? _currentWorkoutIndex % workouts.length
-          : 0;
-      final currentWorkout = workouts.isNotEmpty ? workouts[safeIndex] : null;
-
-      if (hasActivePlan && currentWorkout != null) {
-        title = currentWorkout.name;
-        subtitle =
-            '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min';
-        gradientColors = [const Color(0xFF1A1A2E), const Color(0xFF16213E)];
-        showHeart = true;
-
-        onActionTap = () async {
-          // Increment workout index for next time
-          final prefs = await SharedPreferences.getInstance();
-          final nextIndex = (safeIndex + 1) % workouts.length;
-          await prefs.setInt('next_workout_index', nextIndex);
-
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    WorkoutSessionScreen(workoutDay: currentWorkout),
-              ),
-            ).then((_) {
-              // Refresh index when returning from workout
-              _loadData();
-            });
-          }
-        };
-      } else {
-        // No active plan - check if questionnaire is complete
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final user = authProvider.user;
-        final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
-
-        if (isQuestionnaireComplete) {
-          // Questionario completo -> Genera scheda direttamente
-          // Il primo workout farà la calibrazione automatica in background
-          title = AppLocalizations.of(context)!.generatePlanCardTitle;
-          subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
-          gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
-          showHeart = false;
-
-          onActionTap = () {
-            _generatePlanDirectly();
-          };
-        } else {
-          // Questionario non completo - Mostra prompt per completare profilo
-          title = AppLocalizations.of(context)!.welcomeBack;
-          subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
-          gradientColors = [CleanTheme.primaryColor, Colors.black87];
-
-          onActionTap = () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const UnifiedQuestionnaireScreen(),
-              ),
-            ).then((_) => _loadData());
-          };
-        }
       }
     }
 
@@ -871,9 +680,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      _selectedFilterIndex == 0
-                          ? AppLocalizations.of(context)!.aiPlanBadge
-                          : category.toUpperCase(),
+                      AppLocalizations.of(context)!.aiPlanBadge,
                       style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 10,
