@@ -100,75 +100,86 @@ class _PremiumBottomNavBarState extends State<PremiumBottomNavBar>
       child: AnimatedBuilder(
         animation: controller,
         builder: (context, child) {
+          // Subtle scale effect
           final scale = 1.0 + (controller.value * 0.1);
-          final glowOpacity = controller.value * 0.4;
+          final glowOpacity = controller.value * 0.3;
 
-          return Transform.scale(
-            scale: scale,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected
-                    ? item.color.withValues(alpha: 0.15)
-                    : Colors.transparent,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: item.color.withValues(alpha: glowOpacity),
-                          blurRadius: 15,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isSelected ? item.activeIcon : item.icon,
-                    color: isSelected
-                        ? item.color
-                        : Colors.white.withValues(alpha: 0.5),
-                    size: 24,
-                  ),
-                  if (item.badge != null && item.badge! > 0)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          item.badge! > 9 ? '9+' : item.badge.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Transform.scale(
+                scale: scale,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44, // Consistent size for all circles
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? item.color.withValues(alpha: 0.15)
+                            : Colors.transparent,
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: item.color.withValues(
+                                    alpha: glowOpacity,
+                                  ),
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: Icon(
+                        isSelected ? item.activeIcon : item.icon,
+                        color: isSelected
+                            ? item.color
+                            : Colors.white.withValues(alpha: 0.5),
+                        size: 24,
+                      ),
+                    ),
+                    if (item.badge != null && item.badge! > 0)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AdvancedTheme.surfaceColor,
+                              width: 2,
+                            ),
+                          ),
+                          child: Text(
+                            item.badge! > 9 ? '9+' : item.badge.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? item.color
-                          : Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 4),
+              Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected
+                      ? item.color
+                      : Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
           );
         },
       ),

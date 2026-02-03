@@ -82,10 +82,79 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    CleanAvatar(
-                      initials: initials,
-                      size: 100,
-                      backgroundColor: CleanTheme.primaryLight,
+                    Stack(
+                      children: [
+                        CleanAvatar(
+                          initials: initials,
+                          size: 100,
+                          backgroundColor: CleanTheme.primaryLight,
+                          imageUrl: user?.avatarUrl,
+                          onTap: () async {
+                            final ImagePicker picker = ImagePicker();
+                            final XFile? image = await picker.pickImage(
+                              source: ImageSource.gallery,
+                              maxWidth: 800,
+                              imageQuality: 80,
+                            );
+
+                            if (image != null && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Caricamento immagine...'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+
+                              final success = await authProvider.uploadAvatar(
+                                image,
+                              );
+
+                              if (context.mounted) {
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Immagine profilo aggiornata!',
+                                      ),
+                                      backgroundColor: CleanTheme.accentGreen,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        authProvider.error ??
+                                            'Errore durante il caricamento',
+                                      ),
+                                      backgroundColor: CleanTheme.accentRed,
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: CleanTheme.surfaceColor,
+                                width: 3,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                     Text(
