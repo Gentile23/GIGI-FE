@@ -4,7 +4,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../progress/body_measurements_screen.dart';
 import '../workout/trial_workout_generation_screen.dart';
-import '../home/home_screen.dart';
+import '../home/enhanced_home_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ONBOARDING CHOICE SCREEN - Optional steps after form completion
@@ -113,7 +113,7 @@ class OnboardingChoiceScreen extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const HomeScreen(),
+                              builder: (_) => const EnhancedHomeScreen(),
                             ),
                           );
                         },
@@ -132,7 +132,9 @@ class OnboardingChoiceScreen extends StatelessWidget {
                     HapticService.lightTap();
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const EnhancedHomeScreen(),
+                      ),
                     );
                   },
                   child: Text(

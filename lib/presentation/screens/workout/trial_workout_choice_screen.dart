@@ -4,7 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import 'trial_workout_generation_screen.dart';
-import '../home/home_screen.dart';
+import '../home/enhanced_home_screen.dart';
 
 class TrialWorkoutChoiceScreen extends StatelessWidget {
   const TrialWorkoutChoiceScreen({super.key});
@@ -327,7 +327,9 @@ class TrialWorkoutChoiceScreen extends StatelessWidget {
               Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const EnhancedHomeScreen(),
+                ),
               );
             },
             child: Text(

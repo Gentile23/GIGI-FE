@@ -223,15 +223,16 @@ class ProfileCompletionBanner extends StatelessWidget {
     int total = 5;
     List<_MissingItem> missing = [];
 
-    // Check trial workout
-    if (user.trialWorkoutCompleted == true) {
+    // Check if first workout completed (calibration)
+    // This is now automatic, so we count it as done if questionnaire is complete
+    if (user.isQuestionnaireComplete == true) {
       completed++;
     } else {
       missing.add(
         _MissingItem(
-          icon: Icons.fitness_center,
-          label: 'Trial Workout',
-          benefit: 'Calibra il tuo livello reale',
+          icon: Icons.quiz,
+          label: 'Completa Profilo',
+          benefit: 'Configura le tue preferenze',
           onTap: () {}, // Will be overridden
         ),
       );
@@ -306,7 +307,7 @@ class ProfileCompletionProgress extends StatelessWidget {
         int completed = 0;
         int total = 4;
 
-        if (user?.trialWorkoutCompleted == true) completed++;
+        if (user?.isQuestionnaireComplete == true) completed++;
         if (user?.height != null && user?.weight != null) completed++;
         if (user?.goal != null) completed++;
         if (user?.experienceLevel != null) completed++;

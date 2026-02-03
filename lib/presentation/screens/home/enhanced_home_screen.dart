@@ -9,7 +9,7 @@ import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
-import '../onboarding/athletic_assessment_intro_screen.dart';
+import '../questionnaire/unified_questionnaire_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
@@ -264,25 +264,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                   final user = authProvider.user;
                                   final isQuestionnaireComplete =
                                       user?.isQuestionnaireComplete ?? false;
-                                  final isAssessmentComplete =
-                                      user?.trialWorkoutCompleted ?? false;
 
                                   if (workoutProvider.currentPlan == null) {
                                     if (isQuestionnaireComplete) {
-                                      if (isAssessmentComplete) {
-                                        // Both done, generate plan directly
-                                        _generatePlanDirectly();
-                                      } else {
-                                        // Questionnaire done but assessment not - show dialog
-                                        _showAssessmentRecommendationDialog();
-                                      }
+                                      // Questionnaire complete -> generate plan directly
+                                      // AI calibration happens automatically in first workout
+                                      _generatePlanDirectly();
                                     } else {
-                                      // Questionnaire not done, go to assessment
+                                      // Questionnaire not done, go to questionnaire
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) =>
-                                              const AthleticAssessmentIntroScreen(),
+                                              const UnifiedQuestionnaireScreen(),
                                         ),
                                       ).then((_) => _loadData());
                                     }
@@ -775,48 +769,29 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
 
         if (isQuestionnaireComplete) {
-          final isAssessmentComplete = user?.trialWorkoutCompleted ?? false;
+          // Questionario completo -> Genera scheda direttamente
+          // Il primo workout farà la calibrazione automatica in background
+          title = AppLocalizations.of(context)!.generatePlanCardTitle;
+          subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
+          gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
+          showHeart = false;
 
-          if (isAssessmentComplete) {
-            // Assessment done, prompt to generate plan
-            title = AppLocalizations.of(context)!.generatePlanCardTitle;
-            subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
-            gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
-            showHeart = false;
-
-            onActionTap = () {
-              _generatePlanDirectly();
-            };
-          } else {
-            // Assessment NOT done -> Show Athletic Assessment
-            title = AppLocalizations.of(context)!.athleticAssessmentTitle;
-            subtitle = AppLocalizations.of(context)!.athleticAssessmentSubtitle;
-            gradientColors = [CleanTheme.primaryColor, Colors.black87];
-            showHeart = false;
-
-            onActionTap = () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AthleticAssessmentIntroScreen(),
-                ),
-              ).then((_) => _loadData());
-            };
-          }
+          onActionTap = () {
+            _generatePlanDirectly();
+          };
         } else {
-          // Questionnaire not done - Prompt to complete profile first (or assessment if that covers it)
-          // For now, mapping to Assessment title as a catch-all safe default or keep existing
-          title = AppLocalizations.of(context)!.athleticAssessmentTitle;
-          subtitle = AppLocalizations.of(context)!.athleticAssessmentSubtitle;
+          // Questionario non completo - Mostra prompt per completare profilo
+          title = AppLocalizations.of(context)!.welcomeBack;
+          subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
           gradientColors = [CleanTheme.primaryColor, Colors.black87];
 
           onActionTap = () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const AthleticAssessmentIntroScreen(),
+                builder: (_) => const UnifiedQuestionnaireScreen(),
               ),
-            );
+            ).then((_) => _loadData());
           };
         }
       }
@@ -1144,102 +1119,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  void _showAssessmentRecommendationDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: CleanTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey.shade100,
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/gigi_new_logo.png',
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Flexible(
-              child: Text(
-                'Consiglio di Gigi',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '💪 Per creare una scheda davvero su misura ti consiglio di fare prima la Valutazione Atletica!',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: CleanTheme.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'In 5 minuti calibro i pesi giusti per il tuo livello reale.',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: CleanTheme.textSecondary.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _generatePlanDirectly();
-            },
-            child: Text(
-              'Genera comunque',
-              style: GoogleFonts.inter(
-                color: CleanTheme.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CleanTheme.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AthleticAssessmentIntroScreen(),
-                ),
-              );
-            },
-            child: Text(
-              'Fai Valutazione',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showGeneratePlanDialog() {
     showDialog(
       context: context,
@@ -1299,7 +1178,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Per risultati migliori, completa prima la Valutazione Atletica',
+                      'La calibrazione AI avviene automaticamente durante il primo allenamento',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: const Color(0xFFE65100),
@@ -1490,12 +1369,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final user = authProvider.user;
     final isQuestionnaireComplete = user?.isQuestionnaireComplete ?? false;
-    final isAssessmentComplete = user?.trialWorkoutCompleted ?? false;
 
     if (provider.currentPlan == null) {
       // User has NO plan yet
-      if (isQuestionnaireComplete && isAssessmentComplete) {
-        // BOTH Questionnaire AND Assessment DONE - suggest generating plan
+      if (isQuestionnaireComplete) {
+        // Questionnaire complete -> can generate plan directly
+        // AI calibration happens automatically during first workout
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: GigiCoachMessage(
@@ -1509,60 +1388,20 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             ),
           ),
         );
-      } else if (isQuestionnaireComplete && !isAssessmentComplete) {
-        // Questionnaire done but Assessment NOT done - prompt assessment first
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: GigiCoachMessage(
-            message:
-                '💪 Ottimo! Ora fai la Valutazione Atletica per calibrare i carichi giusti e creare una scheda su misura per te!',
-            emotion: GigiEmotion.expert,
-            action: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                CleanButton(
-                  text: AppLocalizations.of(context)!.gigiStartAssessmentButton,
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AthleticAssessmentIntroScreen(),
-                      ),
-                    ).then((_) => _loadData());
-                  },
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {
-                    _generatePlanDirectly();
-                  },
-                  child: Text(
-                    'Genera scheda senza valutazione',
-                    style: GoogleFonts.inter(
-                      color: CleanTheme.textSecondary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
       } else {
-        // Neither questionnaire nor assessment done
+        // Questionnaire not done -> prompt to complete profile
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: GigiCoachMessage(
             message: AppLocalizations.of(context)!.gigiStartTransformation,
             emotion: GigiEmotion.expert,
             action: CleanButton(
-              text: AppLocalizations.of(context)!.gigiStartAssessmentButton,
+              text: 'Completa il Profilo',
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const AthleticAssessmentIntroScreen(),
+                    builder: (_) => const UnifiedQuestionnaireScreen(),
                   ),
                 ).then((_) => _loadData());
               },

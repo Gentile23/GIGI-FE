@@ -350,7 +350,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   children: [
                     // Stats Header
                     _buildStatsHeader(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    // AI Calibration Banner (shows when user hasn't completed calibration)
+                    _buildAICalibrationBanner(),
+                    const SizedBox(height: 16),
 
                     // Pre-Workout Navigation
                     if (widget.workoutDay.warmupCardio.isNotEmpty ||
@@ -616,6 +620,77 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             right: 0,
             child: Center(
               child: VoiceControlsBar(controller: _voiceController),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// AI Calibration Banner - Shows when first workout to explain the "magic"
+  Widget _buildAICalibrationBanner() {
+    // Get user calibration status from auth provider
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    final hasCalibration = user?.trialWorkoutCompleted ?? false;
+
+    // Don't show if already calibrated
+    if (hasCalibration) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF9B59B6), const Color(0xFF8E44AD)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B59B6).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🧠 AI Calibration Attiva',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Sto analizzando ogni set per calibrare i pesi perfetti per te',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
