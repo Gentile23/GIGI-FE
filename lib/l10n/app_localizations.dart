@@ -3397,7 +3397,7 @@ abstract class AppLocalizations {
   /// No description provided for @gigiAssessmentComplete.
   ///
   /// In it, this message translates to:
-  /// **'Ottimo lavoro! Hai completato la valutazione atletica! 🎉\n\nOra posso creare la tua scheda personalizzata basata sui tuoi obiettivi e il tuo livello.'**
+  /// **'Profilo completato! 🎉\n\nOra posso creare la tua scheda personalizzata. Durante il primo allenamento calibrerò automaticamente i pesi perfetti per te.'**
   String get gigiAssessmentComplete;
 
   /// No description provided for @gigiGeneratePlanButton.
@@ -3409,13 +3409,13 @@ abstract class AppLocalizations {
   /// No description provided for @gigiStartTransformation.
   ///
   /// In it, this message translates to:
-  /// **'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!'**
+  /// **'Inizia la tua trasformazione in 2 step:\n1️⃣ Completa il tuo profilo\n2️⃣ Genera la tua Scheda AI\n\nLa calibrazione dei pesi avviene automaticamente durante il primo allenamento!'**
   String get gigiStartTransformation;
 
   /// No description provided for @gigiStartAssessmentButton.
   ///
   /// In it, this message translates to:
-  /// **'Inizia Valutazione'**
+  /// **'Completa Profilo'**
   String get gigiStartAssessmentButton;
 
   /// No description provided for @gigiReadyForWorkout.

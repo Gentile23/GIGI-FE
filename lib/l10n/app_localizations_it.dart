@@ -1749,17 +1749,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gigiAssessmentComplete =>
-      'Ottimo lavoro! Hai completato la valutazione atletica! 🎉\n\nOra posso creare la tua scheda personalizzata basata sui tuoi obiettivi e il tuo livello.';
+      'Profilo completato! 🎉\n\nOra posso creare la tua scheda personalizzata. Durante il primo allenamento calibrerò automaticamente i pesi perfetti per te.';
 
   @override
   String get gigiGeneratePlanButton => 'Genera la Tua Scheda AI';
 
   @override
   String get gigiStartTransformation =>
-      'Inizia la tua trasformazione in 3 step:\n1️⃣ Fai la Valutazione Atletica\n2️⃣ Genera la tua Scheda AI\n3️⃣ Inizia il tuo primo allenamento!';
+      'Inizia la tua trasformazione in 2 step:\n1️⃣ Completa il tuo profilo\n2️⃣ Genera la tua Scheda AI\n\nLa calibrazione dei pesi avviene automaticamente durante il primo allenamento!';
 
   @override
-  String get gigiStartAssessmentButton => 'Inizia Valutazione';
+  String get gigiStartAssessmentButton => 'Completa Profilo';
 
   @override
   String get gigiReadyForWorkout =>

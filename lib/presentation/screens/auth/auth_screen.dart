@@ -8,6 +8,9 @@ import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'google_sign_in_button_stub.dart'
+    if (dart.library.html) 'google_sign_in_button_web.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -442,9 +445,12 @@ class _AuthScreenState extends State<AuthScreen>
                     const SizedBox(height: 24),
 
                     // Google Sign In
-                    // Google Sign In
-                    // Custom styled Google button (localized)
-                    _buildGoogleButton(onPressed: _handleGoogleSignIn),
+                    // Custom styled Google button (localized) for Mobile
+                    // Native GSI button for Web
+                    if (kIsWeb)
+                      Center(child: getGoogleSignInButton())
+                    else
+                      _buildGoogleButton(onPressed: _handleGoogleSignIn),
 
                     const SizedBox(height: 32),
 
