@@ -439,11 +439,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  Widget _buildQuickActionsRow() {
-      ],
-    );
-  }
-
   Widget _buildCoachAction() {
     return _buildQuickActionCard(
       icon: Icons.assignment_ind,

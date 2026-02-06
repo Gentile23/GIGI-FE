@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../data/services/nutrition_coach_service.dart';
+import '../../../data/services/nutrition_coach_service.dart';
 
 class DietUploadScreen extends StatefulWidget {
   const DietUploadScreen({super.key});

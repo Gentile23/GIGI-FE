@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../data/services/nutrition_coach_service.dart';
+import '../../../data/services/nutrition_coach_service.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
