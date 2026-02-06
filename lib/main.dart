@@ -22,6 +22,7 @@ import 'providers/workout_log_provider.dart';
 import 'providers/gamification_provider.dart';
 import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
+import 'providers/nutrition_coach_provider.dart';
 import 'core/services/payment_service.dart';
 
 void main() {
@@ -67,6 +68,9 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EngagementProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => SocialProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => PaymentService()..initialize()),
+        ChangeNotifierProvider(
+          create: (_) => NutritionCoachProvider(apiClient),
+        ),
       ],
       child: MaterialApp(
         title: 'GIGI',

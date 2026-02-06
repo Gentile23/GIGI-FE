@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../../data/services/nutrition_coach_service.dart';
+import 'package:provider/provider.dart';
+import '../../../../providers/nutrition_coach_provider.dart';
 
 class DietUploadScreen extends StatefulWidget {
   const DietUploadScreen({super.key});
@@ -10,10 +11,8 @@ class DietUploadScreen extends StatefulWidget {
 }
 
 class _DietUploadScreenState extends State<DietUploadScreen> {
-  final NutritionCoachService _service = NutritionCoachService();
-  bool _isLoading = false;
+  // Logic migrated to Provider
   String _loadingMessage = 'Caricamento...';
-  String? _errorMessage;
 
   void _startLoadingMessages() {
     _updateMessage([
@@ -26,7 +25,7 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
 
   Future<void> _updateMessage(List<String> messages) async {
     for (final msg in messages) {
-      if (!mounted || !_isLoading) return;
+      if (!mounted) return;
       setState(() => _loadingMessage = msg);
       await Future.delayed(const Duration(seconds: 4));
     }
@@ -40,39 +39,49 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
       );
 
       if (result != null) {
-        setState(() {
-          _isLoading = true;
-          _errorMessage = null;
-        });
+        if (!mounted) return;
 
+        final provider = Provider.of<NutritionCoachProvider>(
+          context,
+          listen: false,
+        );
         _startLoadingMessages();
 
-        final response = await _service.uploadDietPdf(result.files.single);
+        final success = await provider.uploadDiet(result.files.single);
 
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (response['success'] == true) {
+        if (success) {
           if (mounted) {
+            // Success! The provider now holds the active plan.
+            // Navigate to Plan Screen (or back if we came from there? Logic usually involves replacing this screen)
             Navigator.of(context).pushReplacementNamed('/nutrition/coach/plan');
           }
         } else {
-          setState(() {
-            _errorMessage = response['message'] ?? 'Upload failed';
-          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(provider.error ?? 'Upload failed'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.toString();
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch provider for loading state
+    final isLoading = context.select<NutritionCoachProvider, bool>(
+      (p) => p.isLoading,
+    );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Carica la tua Dieta')),
       body: Center(
@@ -94,7 +103,7 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
                 style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 32),
-              if (_isLoading)
+              if (isLoading)
                 Column(
                   children: [
                     const CircularProgressIndicator(),
@@ -112,15 +121,6 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
                       horizontal: 32,
                       vertical: 16,
                     ),
-                  ),
-                ),
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
                   ),
                 ),
             ],
