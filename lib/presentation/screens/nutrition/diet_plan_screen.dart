@@ -90,12 +90,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               }
             }
           } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Errore: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Errore: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           } finally {
             setState(() => _isLoading = false);
           }
@@ -259,10 +261,11 @@ class _SubstitutionModalState extends State<_SubstitutionModal> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
         });
+      }
     }
   }
 
