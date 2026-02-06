@@ -102,13 +102,40 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 title: AppLocalizations.of(context)!.musclesInvolved,
               ),
               const SizedBox(height: 12),
-              CleanCard(
-                padding: const EdgeInsets.all(16),
-                child: AnatomicalMuscleView(
-                  muscleGroups: widget.workoutExercise.exercise.muscleGroups,
-                  height: 300,
-                  highlightColor: CleanTheme.primaryColor,
-                ),
+
+              // Compute color map for primary and secondary muscles
+              Builder(
+                builder: (context) {
+                  final Map<String, Color> colorMap = {};
+
+                  // Secondary muscles: Lighter/Faded color
+                  for (final muscle
+                      in widget
+                          .workoutExercise
+                          .exercise
+                          .secondaryMuscleGroups) {
+                    colorMap[muscle] = CleanTheme.primaryColor.withValues(
+                      alpha: 0.4,
+                    );
+                  }
+
+                  // Primary muscles: Strong/Standard color (overrides secondary if overlap)
+                  for (final muscle
+                      in widget.workoutExercise.exercise.muscleGroups) {
+                    colorMap[muscle] = CleanTheme.primaryColor;
+                  }
+
+                  return CleanCard(
+                    padding: const EdgeInsets.all(16),
+                    child: AnatomicalMuscleView(
+                      muscleGroups:
+                          widget.workoutExercise.exercise.muscleGroups,
+                      height: 300,
+                      highlightColor: CleanTheme.primaryColor,
+                      colorMap: colorMap,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
             ],

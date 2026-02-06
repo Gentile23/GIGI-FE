@@ -115,36 +115,8 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       AppLocalizations.of(
                         context,
                       )!.customWorkoutsSectionSubtitle,
-                      action: IconButton(
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CreateCustomWorkoutScreen(),
-                            ),
-                          );
-                          if (result == true) {
-                            _loadCustomWorkouts();
-                          }
-                        },
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.surfaceColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: CleanTheme.borderSecondary,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: CleanTheme.textPrimary,
-                            size: 20,
-                          ),
-                        ),
-                      ),
                     ),
+
                     const SizedBox(height: 12),
                     _buildCustomWorkoutsList(),
 
@@ -202,7 +174,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         : null;
 
     if (plan == null || nextWorkout == null) {
-      return _buildEmptyHeroCard();
+      return const SizedBox.shrink();
     }
 
     return GestureDetector(
@@ -327,56 +299,6 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyHeroCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.fitness_center, size: 48, color: CleanTheme.textTertiary),
-          const SizedBox(height: 12),
-          Text(
-            AppLocalizations.of(context)!.noAiWorkoutsTitle,
-            style: GoogleFonts.outfit(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            AppLocalizations.of(context)!.generateAiPlanSubtitle,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: CleanTheme.textTertiary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          CleanButton(
-            text: 'Genera Scheda AI',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UnifiedQuestionnaireScreen(),
-                ),
-              );
-            },
-            isPrimary: true,
-            width: double.infinity,
-          ),
-        ],
       ),
     );
   }

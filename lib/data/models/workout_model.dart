@@ -4,23 +4,39 @@ import 'voice_coaching_model.dart';
 class Exercise {
   final String id;
   final String name;
+  final String? nameIt;
   final String description;
+  final String? descriptionIt;
   final String? videoUrl;
   final List<String> muscleGroups;
+  final List<String> secondaryMuscleGroups;
   final ExerciseDifficulty difficulty;
   final List<String> equipment;
   final VoiceCoaching? voiceCoaching;
+  final String? displayName;
+  final String? displayDescription;
 
   Exercise({
     required this.id,
     required this.name,
+    this.nameIt,
     required this.description,
+    this.descriptionIt,
     this.videoUrl,
     required this.muscleGroups,
+    this.secondaryMuscleGroups = const [],
     required this.difficulty,
     required this.equipment,
     this.voiceCoaching,
+    this.displayName,
+    this.displayDescription,
   });
+
+  /// Returns the localized name (display_name from API, or falls back to name)
+  String get localizedName => displayName ?? name;
+
+  /// Returns the localized description
+  String get localizedDescription => displayDescription ?? description;
 
   Map<String, dynamic> toJson() {
     return {
@@ -29,6 +45,7 @@ class Exercise {
       'description': description,
       'videoUrl': videoUrl,
       'muscleGroups': muscleGroups,
+      'secondaryMuscleGroups': secondaryMuscleGroups,
       'difficulty': difficulty.toString(),
       'equipment': equipment,
     };
@@ -46,15 +63,20 @@ class Exercise {
     return Exercise(
       id: json['id'].toString(),
       name: json['name'] as String,
+      nameIt: json['name_it'] as String?,
       description: json['description'] as String,
+      descriptionIt: json['description_it'] as String?,
       videoUrl: json['video_url'] as String?,
       muscleGroups: _parseList(json['muscle_groups']),
+      secondaryMuscleGroups: _parseList(json['secondary_muscle_groups']),
       difficulty: ExerciseDifficulty.values.firstWhere(
         (e) => e.toString().split('.').last == json['difficulty'],
         orElse: () => ExerciseDifficulty.beginner,
       ),
       equipment: _parseList(json['equipment']),
       voiceCoaching: voiceCoaching,
+      displayName: json['display_name'] as String?,
+      displayDescription: json['display_description'] as String?,
     );
   }
 

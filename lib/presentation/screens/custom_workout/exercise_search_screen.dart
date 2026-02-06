@@ -535,7 +535,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        exercise.name,
+                        exercise.localizedName,
                         style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,

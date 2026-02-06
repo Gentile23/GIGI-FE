@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:io' show Platform;
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
 import '../models/workout_model.dart';
@@ -8,16 +9,26 @@ class ExerciseService {
 
   ExerciseService(this._apiClient);
 
+  /// Get the current device locale code (e.g., 'it' or 'en')
+  String _getLocale() {
+    final locale = Platform.localeName;
+    if (locale.startsWith('it')) return 'it';
+    return 'en';
+  }
+
   Future<Map<String, dynamic>> getExercises({
     String? difficulty,
     String? muscleGroup,
     String? equipment,
+    String? locale,
   }) async {
     try {
       final queryParams = <String, dynamic>{};
       if (difficulty != null) queryParams['difficulty'] = difficulty;
       if (muscleGroup != null) queryParams['muscle_group'] = muscleGroup;
       if (equipment != null) queryParams['equipment'] = equipment;
+      // Add locale for translations
+      queryParams['locale'] = locale ?? _getLocale();
 
       final response = await _apiClient.dio.get(
         ApiConfig.exercises,
