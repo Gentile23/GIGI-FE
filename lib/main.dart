@@ -12,6 +12,9 @@ import 'presentation/screens/auth/landing_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/progress/progress_dashboard_screen.dart';
+import 'presentation/screens/nutrition/diet_upload_screen.dart';
+import 'presentation/screens/nutrition/diet_plan_screen.dart';
+import 'presentation/screens/nutrition/shopping_list_generator_screen.dart';
 import 'data/services/api_client.dart';
 import 'providers/auth_provider.dart';
 import 'providers/workout_provider.dart';
@@ -94,6 +97,10 @@ class GigiApp extends StatelessWidget {
           '/questionnaire': (context) => const UnifiedQuestionnaireScreen(),
           '/main': (context) => const MainScreen(),
           '/progress': (context) => const ProgressDashboardScreen(),
+          '/nutrition/coach/upload': (context) => const DietUploadScreen(),
+          '/nutrition/coach/plan': (context) => const DietPlanScreen(),
+          '/nutrition/coach/shopping-list': (context) =>
+              const ShoppingListScreen(),
         },
       ),
     );

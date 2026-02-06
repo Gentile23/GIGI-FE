@@ -74,6 +74,30 @@ class ApiClient {
     }
   }
 
+  /// POST Multipart request (File Upload)
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required FormData formData,
+  }) async {
+    try {
+      final response = await _dio.post(
+        path,
+        data: formData,
+        options: Options(
+          headers: {'Content-Type': 'multipart/form-data'},
+          sendTimeout: const Duration(
+            minutes: 5,
+          ), // Long timeout for large files
+        ),
+      );
+      return response.data is Map<String, dynamic>
+          ? response.data
+          : {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   /// PUT request
   Future<Map<String, dynamic>> put(
     String path, {

@@ -97,6 +97,7 @@ dependencies:
   health: ^13.2.1
   google_sign_in: ^6.2.2
   sign_in_with_apple: ^7.0.1
+  file_picker: ^10.3.10
 
 dev_dependencies:
   flutter_test:

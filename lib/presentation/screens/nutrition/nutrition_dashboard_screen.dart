@@ -129,7 +129,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                           const SizedBox(height: 20),
 
                           // Quick Actions
-                          _buildQuickActions(),
+                          _buildQuickActionsRow(),
+                          const SizedBox(height: 12),
+                          _buildCoachAction(),
                           const SizedBox(height: 24),
 
                           // Water Tracker
@@ -437,7 +439,21 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActionsRow() {
+      ],
+    );
+  }
+
+  Widget _buildCoachAction() {
+    return _buildQuickActionCard(
+      icon: Icons.assignment_ind,
+      label: 'Piano Alimentare AI',
+      color: CleanTheme.accentPurple,
+      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/plan'),
+    );
+  }
+
+  Widget _buildQuickActionsRow() {
     return Row(
       children: [
         Expanded(
