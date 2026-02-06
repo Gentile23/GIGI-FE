@@ -283,10 +283,10 @@ class _DietPlanScreenState extends State<DietPlanScreen>
 
   void _showAddExtraMealDialog(int dayIndex) {
     if (_plan == null) return;
-    
+
     final nameController = TextEditingController();
     final qtyController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -324,16 +324,20 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           ElevatedButton(
             onPressed: () async {
-              if (nameController.text.isEmpty || qtyController.text.isEmpty) return;
-              
+              if (nameController.text.isEmpty || qtyController.text.isEmpty) {
+                return;
+              }
+
               final name = nameController.text;
               final qty = double.tryParse(qtyController.text);
-              
-              if (qty == null) return;
-              
+
+              if (qty == null) {
+                return;
+              }
+
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
-              
+
               try {
                 final success = await _service.addExtraMeal(
                   planId: _plan!['id'],
@@ -342,7 +346,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   quantity: qty,
                   unit: 'g', // Default unit
                 );
-                
+
                 if (success) {
                   await _loadPlan();
                   if (mounted) {
@@ -357,7 +361,10 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+                    SnackBar(
+                      content: Text('Errore: $e'),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               } finally {
@@ -370,6 +377,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       ),
     );
   }
+}
 
 class _SubstitutionModal extends StatefulWidget {
   final String foodName;
