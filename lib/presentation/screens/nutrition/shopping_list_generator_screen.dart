@@ -112,7 +112,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
               color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -139,7 +139,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                           thumbColor: Theme.of(context).primaryColor,
                           overlayColor: Theme.of(
                             context,
-                          ).primaryColor.withOpacity(0.2),
+                          ).primaryColor.withValues(alpha: 0.2),
                         ),
                         child: Slider(
                           value: _days.toDouble(),
@@ -158,7 +158,9 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(
+                          context,
+                        ).primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -315,7 +317,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: color, size: 20),

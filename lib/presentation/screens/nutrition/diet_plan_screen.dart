@@ -212,7 +212,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               ),
               if (provider.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   child: const Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -389,7 +389,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     // Add nutrients if available
     // buffer.writeln('\n🔥 ${meal['calories']} kcal');
 
-    Share.share(buffer.toString());
+    SharePlus.instance.share(ShareParams(text: buffer.toString()));
   }
 
   void _shareDay(Map<String, dynamic> day) {
@@ -409,7 +409,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       buffer.writeln('');
     }
 
-    Share.share(buffer.toString());
+    SharePlus.instance.share(ShareParams(text: buffer.toString()));
   }
 
   /// PREMIUM UI: Regenerate Meal Dialog
@@ -462,6 +462,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   child: ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(ctx);
+                      // Capture scaffold messenger before async gap
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
                       // Trigger Provider
                       final provider = Provider.of<NutritionCoachProvider>(
                         context,
@@ -473,7 +475,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       );
 
                       if (!success && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(provider.error ?? 'Errore'),
                             backgroundColor: Colors.red,
@@ -650,7 +652,7 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                 return ListView.separated(
                   controller: widget.scrollController,
                   itemCount: snapshot.data!.length,
-                  separatorBuilder: (_, __) => const Divider(),
+                  separatorBuilder: (context, index) => const Divider(),
                   itemBuilder: (context, index) {
                     final item = snapshot.data![index];
                     return ListTile(
