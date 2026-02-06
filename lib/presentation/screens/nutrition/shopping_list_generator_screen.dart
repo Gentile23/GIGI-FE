@@ -14,35 +14,229 @@ class ShoppingListScreen extends StatefulWidget {
 class _ShoppingListScreenState extends State<ShoppingListScreen> {
   int _days = 3;
 
-  // Simple keyword-based categorization
+  // Comprehensive Italian food categorization
   String _getCategory(String name) {
-    name = name.toLowerCase();
-    if (name.contains('mela') ||
-        name.contains('banana') ||
-        name.contains('verdura') ||
-        name.contains('insalata') ||
-        name.contains('pomodoro')) {
-      return 'Frutta e Verdura';
+    final lower = name.toLowerCase();
+
+    // Frutta e Verdura
+    const fruttaVerdura = [
+      'mela',
+      'banana',
+      'arancia',
+      'pera',
+      'uva',
+      'fragola',
+      'kiwi',
+      'pesca',
+      'albicocca',
+      'ciliegia',
+      'limone',
+      'pompelmo',
+      'mandarino',
+      'anguria',
+      'melone',
+      'ananas',
+      'mango',
+      'frutti di bosco',
+      'mirtilli',
+      'lamponi',
+      'verdura',
+      'insalata',
+      'pomodoro',
+      'carota',
+      'zucchina',
+      'melanzana',
+      'peperone',
+      'cetriolo',
+      'spinaci',
+      'lattuga',
+      'rucola',
+      'broccoli',
+      'cavolfiore',
+      'cavolo',
+      'verza',
+      'finocchio',
+      'sedano',
+      'cipolla',
+      'aglio',
+      'porro',
+      'asparagi',
+      'carciofi',
+      'funghi',
+      'radicchio',
+      'bietola',
+      'cicoria',
+      'piselli',
+      'fagiolini',
+      'zucca',
+    ];
+
+    // Carne e Pesce
+    const carnesPesce = [
+      'pollo',
+      'petto di pollo',
+      'tacchino',
+      'petto di tacchino',
+      'manzo',
+      'macinato',
+      'vitello',
+      'maiale',
+      'agnello',
+      'coniglio',
+      'bresaola',
+      'prosciutto',
+      'speck',
+      'pancetta',
+      'salsiccia',
+      'hamburger',
+      'bistecca',
+      'fettina',
+      'arrosto',
+      'polpette',
+      'salmone',
+      'tonno',
+      'merluzzo',
+      'orata',
+      'branzino',
+      'sogliola',
+      'gamberi',
+      'calamari',
+      'cozze',
+      'vongole',
+      'pesce',
+      'filetto',
+      'coscia',
+      'ali',
+      'petto',
+    ];
+
+    // Latticini e Uova
+    const latticini = [
+      'latte',
+      'yogurt',
+      'formaggio',
+      'mozzarella',
+      'parmigiano',
+      'grana',
+      'ricotta',
+      'stracchino',
+      'gorgonzola',
+      'pecorino',
+      'burrata',
+      'feta',
+      'philadelphia',
+      'mascarpone',
+      'uova',
+      'uovo',
+      'albume',
+      'tuorlo',
+      'panna',
+      'burro',
+      'fiocchi di latte',
+      'skyr',
+      'greco',
+    ];
+
+    // Cereali e Carboidrati
+    const cereali = [
+      'pasta',
+      'riso',
+      'pane',
+      'farro',
+      'orzo',
+      'quinoa',
+      'avena',
+      'fiocchi',
+      'cereali',
+      'muesli',
+      'corn flakes',
+      'crackers',
+      'grissini',
+      'fette biscottate',
+      'gallette',
+      'cous cous',
+      'gnocchi',
+      'polenta',
+      'patate',
+      'patata',
+      'integrale',
+      'pancarrè',
+      'focaccia',
+      'piadina',
+      'tortilla',
+      'biscotti',
+    ];
+
+    // Legumi e Proteine Vegetali
+    const legumi = [
+      'ceci',
+      'fagioli',
+      'lenticchie',
+      'piselli secchi',
+      'fave',
+      'soia',
+      'edamame',
+      'tofu',
+      'tempeh',
+      'seitan',
+      'hummus',
+      'lupini',
+    ];
+
+    // Condimenti e Altro
+    const condimenti = [
+      'olio',
+      'evo',
+      'extra vergine',
+      'aceto',
+      'sale',
+      'pepe',
+      'spezie',
+      'salsa',
+      'ketchup',
+      'maionese',
+      'senape',
+      'pesto',
+      'sugo',
+      'miele',
+      'marmellata',
+      'nutella',
+      'burro di arachidi',
+      'tahina',
+      'semi',
+      'noci',
+      'mandorle',
+      'nocciole',
+      'pistacchi',
+      'anacardi',
+      'arachidi',
+      'pinoli',
+      'frutta secca',
+      'whey',
+      'proteine',
+      'integratore',
+    ];
+
+    for (final keyword in fruttaVerdura) {
+      if (lower.contains(keyword)) return '🥗 Frutta e Verdura';
     }
-    if (name.contains('pollo') ||
-        name.contains('manzo') ||
-        name.contains('pesce') ||
-        name.contains('uova') ||
-        name.contains('tonno')) {
-      return 'Carne e Pesce';
+    for (final keyword in carnesPesce) {
+      if (lower.contains(keyword)) return '🥩 Carne e Pesce';
     }
-    if (name.contains('latte') ||
-        name.contains('yogurt') ||
-        name.contains('formaggio')) {
-      return 'Latticini';
+    for (final keyword in latticini) {
+      if (lower.contains(keyword)) return '🥛 Latticini e Uova';
     }
-    if (name.contains('pasta') ||
-        name.contains('riso') ||
-        name.contains('pane') ||
-        name.contains('cereali')) {
-      return 'Cereali e Dispensa';
+    for (final keyword in cereali) {
+      if (lower.contains(keyword)) return '🍞 Cereali e Carboidrati';
     }
-    return 'Altro';
+    for (final keyword in legumi) {
+      if (lower.contains(keyword)) return '🫘 Legumi e Proteine Vegetali';
+    }
+    for (final keyword in condimenti) {
+      if (lower.contains(keyword)) return '🧂 Condimenti e Altro';
+    }
+
+    return '📦 Altro';
   }
 
   Map<String, List<dynamic>> _groupItems(List<dynamic> items) {

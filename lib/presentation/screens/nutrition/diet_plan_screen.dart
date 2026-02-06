@@ -148,15 +148,11 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         }
 
         final days = weeks[0]['days'] as List;
-
-        // Initialize TabController if needed or if length changed
-        // Note: In a real app, week switching would be handled.
-        // Here we assume 1 week view for simplicity as per original code.
         final todayIndex = DateTime.now().weekday - 1; // 0=Mon, 6=Sun
 
         // Ensure controller is valid
         if (_tabController == null || _tabController!.length != days.length) {
-          _tabController?.dispose(); // Dispose old one if length changed
+          _tabController?.dispose();
           _tabController = TabController(
             length: days.length,
             vsync: this,
@@ -165,29 +161,32 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         }
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF5F5F7), // CleanTheme primaryLight
           appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             title: Text(
-              provider.activePlan!['name'] ?? 'Piano Settimanale',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-            ),
-            bottom: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-              tabs: days.map((day) => Tab(text: day['day_name'])).toList(),
+              provider.activePlan!['name'] ?? 'Il Tuo Piano',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Colors.black,
+              ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.share),
-                tooltip: 'Condividi Giornata',
+                icon: const Icon(Icons.share_outlined, color: Colors.black),
+                tooltip: 'Condividi',
                 onPressed: () {
-                  // Calculate current day index from tab controller
                   final currentDay = days[_tabController!.index];
                   _shareDay(currentDay);
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
+                icon: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: Colors.black,
+                ),
                 onPressed: () => Navigator.of(
                   context,
                 ).pushNamed('/nutrition/coach/shopping-list'),
@@ -197,37 +196,110 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () =>
                 _showAddExtraMealDialog(context, _tabController!.index),
-            label: const Text('Pasto Extra'),
+            label: Text(
+              'Pasto Extra',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+            ),
             icon: const Icon(Icons.add),
-            backgroundColor: Theme.of(context).primaryColor,
+            backgroundColor: Colors.black,
             foregroundColor: Colors.white,
           ),
-          body: Stack(
+          body: Column(
             children: [
-              TabBarView(
-                controller: _tabController,
-                children: days.asMap().entries.map((entry) {
-                  return _buildDayView(context, entry.value, entry.key);
-                }).toList(),
-              ),
-              if (provider.isLoading)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  child: const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(color: Colors.white),
-                        SizedBox(height: 16),
-                        Text(
-                          'L\'IA sta elaborando...',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+              // Day Selector Pills
+              Container(
+                height: 56,
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: days.length,
+                  itemBuilder: (context, index) {
+                    final day = days[index];
+                    final isSelected = _tabController!.index == index;
+                    final dayName = day['day_name'] ?? 'Giorno ${index + 1}';
+                    // Abbreviate for pills
+                    final shortName = dayName.length > 3
+                        ? dayName.substring(0, 3)
+                        : dayName;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _tabController!.animateTo(index);
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.black : Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.black
+                                : const Color(0xFFE5E5EA),
+                            width: 1.5,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            shortName.toUpperCase(),
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
                           ),
                         ),
-                      ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Meals Content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: days.asMap().entries.map((entry) {
+                    return _buildDayView(context, entry.value, entry.key);
+                  }).toList(),
+                ),
+              ),
+              // Loading Overlay
+              if (provider.isLoading)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircularProgressIndicator(color: Colors.white),
+                          const SizedBox(height: 16),
+                          Text(
+                            'L\'IA sta elaborando...',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -244,13 +316,131 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     int dayIndex,
   ) {
     final meals = day['meals'] as List;
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Padding for FAB
-      itemCount: meals.length,
-      itemBuilder: (context, mealIndex) {
-        final meal = meals[mealIndex];
-        return _buildMealCard(context, meal, dayIndex, mealIndex);
-      },
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+      children: [
+        // Daily Macros Summary Card
+        _buildDayMacrosCard(day),
+        const SizedBox(height: 12),
+        // Meals
+        ...meals.asMap().entries.map((entry) {
+          return _buildMealCard(context, entry.value, dayIndex, entry.key);
+        }),
+      ],
+    );
+  }
+
+  Widget _buildDayMacrosCard(Map<String, dynamic> day) {
+    // Calculate totals from all meals
+    int totalKcal = 0;
+    double totalProteins = 0;
+    double totalCarbs = 0;
+    double totalFats = 0;
+
+    final meals = day['meals'] as List? ?? [];
+    for (var meal in meals) {
+      final foods = meal['foods'] as List? ?? [];
+      for (var food in foods) {
+        totalKcal += (food['calories'] as num?)?.toInt() ?? 0;
+        totalProteins += (food['proteins'] as num?)?.toDouble() ?? 0;
+        totalCarbs += (food['carbs'] as num?)?.toDouble() ?? 0;
+        totalFats += (food['fats'] as num?)?.toDouble() ?? 0;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.black, Colors.black.withValues(alpha: 0.85)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.insights_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Macros del Giorno',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildMacroItem(
+                'kcal',
+                totalKcal.toString(),
+                const Color(0xFFFF6B6B),
+              ),
+              _buildMacroItem(
+                'Prot',
+                '${totalProteins.toInt()}g',
+                const Color(0xFF4ECDC4),
+              ),
+              _buildMacroItem(
+                'Carb',
+                '${totalCarbs.toInt()}g',
+                const Color(0xFFFFE66D),
+              ),
+              _buildMacroItem(
+                'Fat',
+                '${totalFats.toInt()}g',
+                const Color(0xFFA78BFA),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            value,
+            style: GoogleFonts.outfit(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -260,77 +450,97 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     int dayIndex,
     int mealIndex,
   ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    final mealType = meal['type'] ?? 'Pasto';
+    final mealIcon = _getMealIcon(mealType);
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE5E5EA), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Meal Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+            child: Row(
               children: [
-                Chip(
-                  label: Text(
-                    meal['type'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F7),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(mealIcon, size: 22, color: Colors.black),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    mealType,
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
-                  backgroundColor: _getMealColor(meal['type']),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.share_outlined,
-                        color: Colors.grey,
-                      ),
-                      tooltip: 'Condividi Pasto',
-                      onPressed: () =>
-                          _shareMeal(meal), // Updated to use helper
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.auto_awesome, color: Colors.amber),
-                      tooltip: 'Rigenera con IA',
-                      onPressed: () => _showPremiumRegenerateDialog(
-                        context,
-                        dayIndex,
-                        mealIndex,
-                      ),
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.share_outlined, size: 20),
+                  color: const Color(0xFF8E8E93),
+                  onPressed: () => _shareMeal(meal),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.auto_awesome, size: 20),
+                  color: Colors.amber,
+                  tooltip: 'Rigenera con IA',
+                  onPressed: () => _showPremiumRegenerateDialog(
+                    context,
+                    dayIndex,
+                    mealIndex,
+                  ),
                 ),
               ],
             ),
-            const Divider(),
-            ..._buildFoodItems(
-              context,
-              meal['foods'] as List,
-              dayIndex,
-              mealIndex,
-            ),
-          ],
-        ),
+          ),
+          // Food Items
+          ..._buildFoodItems(
+            context,
+            meal['foods'] as List,
+            dayIndex,
+            mealIndex,
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
 
-  Color _getMealColor(String type) {
+  IconData _getMealIcon(String type) {
     switch (type.toLowerCase()) {
       case 'colazione':
-        return Colors.orange;
+        return Icons.free_breakfast_outlined;
       case 'pranzo':
-        return Colors.green;
+        return Icons.lunch_dining_outlined;
       case 'cena':
-        return Colors.blue;
+        return Icons.dinner_dining_outlined;
       case 'spuntino':
-        return Colors.purple;
+      case 'spuntino 1':
+      case 'spuntino 2':
+      case 'spuntino pre-allenamento':
+      case 'post-allenamento':
+        return Icons.apple;
       default:
-        return Colors.grey;
+        return Icons.restaurant_outlined;
     }
   }
 
@@ -343,26 +553,90 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     return foods.asMap().entries.map((entry) {
       final foodIndex = entry.key;
       final food = entry.value;
-      return ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(
-          food['name'],
-          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          border: entry.key < foods.length - 1
+              ? const Border(
+                  bottom: BorderSide(color: Color(0xFFF5F5F7), width: 1),
+                )
+              : null,
         ),
-        subtitle: Text(
-          '${food['calories'] ?? 0} kcal',
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Text(
-              '${food['quantity']}${food['unit']}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    food['name'] ?? 'Alimento',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      // Tappable quantity
+                      GestureDetector(
+                        onTap: () => _showEditQuantityDialog(
+                          context,
+                          food,
+                          dayIndex,
+                          mealIndex,
+                          foodIndex,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${food['quantity'] ?? ''}${food['unit'] ?? ''}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: Color(0xFF8E8E93),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (food['calories'] != null) ...[
+                        const SizedBox(width: 12),
+                        Text(
+                          '${food['calories']} kcal',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFFC7C7CC),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 8),
             IconButton(
-              icon: const Icon(Icons.swap_horiz_rounded, color: Colors.blue),
+              icon: const Icon(Icons.swap_horiz_rounded, size: 22),
+              color: Colors.black,
+              tooltip: 'Sostituisci',
               onPressed: () => _showSubstitutionModal(
                 context,
                 food,
@@ -375,6 +649,101 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         ),
       );
     }).toList();
+  }
+
+  void _showEditQuantityDialog(
+    BuildContext context,
+    Map<String, dynamic> food,
+    int dayIndex,
+    int mealIndex,
+    int foodIndex,
+  ) {
+    final currentQty = (food['quantity'] as num?)?.toDouble() ?? 0;
+    final unit = food['unit'] ?? 'g';
+    final controller = TextEditingController(
+      text: currentQty.toStringAsFixed(0),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Modifica Quantità',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              food['name'] ?? 'Alimento',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autofocus: true,
+              decoration: InputDecoration(
+                suffixText: unit,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                labelText: 'Nuova quantità',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () async {
+              final newQty = double.tryParse(controller.text);
+              if (newQty == null || newQty <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Inserisci un valore valido')),
+                );
+                return;
+              }
+              Navigator.pop(ctx);
+
+              final provider = Provider.of<NutritionCoachProvider>(
+                context,
+                listen: false,
+              );
+              final success = await provider.updateFoodQuantity(
+                dayIndex: dayIndex,
+                mealIndex: mealIndex,
+                foodIndex: foodIndex,
+                quantity: newQty,
+              );
+
+              if (!success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Errore nell\'aggiornamento')),
+                );
+              }
+            },
+            child: const Text('Salva'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _shareMeal(Map<String, dynamic> meal) {

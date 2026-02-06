@@ -191,4 +191,39 @@ class NutritionCoachProvider extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+
+  /// Update a food's quantity
+  Future<bool> updateFoodQuantity({
+    required int dayIndex,
+    required int mealIndex,
+    required int foodIndex,
+    required double quantity,
+  }) async {
+    if (_activePlan == null) return false;
+
+    _setLoading(true);
+    try {
+      final response = await _service.updateFoodQuantity(
+        planId: _activePlan!['id'],
+        dayIndex: dayIndex,
+        mealIndex: mealIndex,
+        foodIndex: foodIndex,
+        quantity: quantity,
+      );
+
+      if (response['success'] == true) {
+        // Update with the returned plan
+        _activePlan = response['plan'];
+        notifyListeners();
+        return true;
+      }
+      _error = response['message'];
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
 }

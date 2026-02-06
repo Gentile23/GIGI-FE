@@ -135,4 +135,25 @@ class NutritionCoachService {
     );
     return response['success'] == true;
   }
+
+  /// Update Food Quantity
+  Future<Map<String, dynamic>> updateFoodQuantity({
+    required int planId,
+    required int dayIndex,
+    required int mealIndex,
+    required int foodIndex,
+    required double quantity,
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/update-quantity',
+      body: {
+        'plan_id': planId,
+        'day_index': dayIndex,
+        'meal_index': mealIndex,
+        'food_index': foodIndex,
+        'quantity': quantity,
+      },
+    );
+    return response;
+  }
 }
