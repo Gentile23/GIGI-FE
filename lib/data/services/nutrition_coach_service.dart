@@ -101,4 +101,38 @@ class NutritionCoachService {
     }
     throw Exception(response['message'] ?? 'Failed to generate shopping list');
   }
+
+  /// Regenerate Meal
+  Future<bool> regenerateMeal({
+    required int planId,
+    required int dayIndex,
+    required int mealIndex,
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/regenerate-meal',
+      body: {'plan_id': planId, 'day_index': dayIndex, 'meal_index': mealIndex},
+    );
+    return response['success'] == true;
+  }
+
+  /// Add Extra Meal
+  Future<bool> addExtraMeal({
+    required int planId,
+    required int dayIndex,
+    required String foodName,
+    required double quantity,
+    required String unit,
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/extra-meal',
+      body: {
+        'plan_id': planId,
+        'day_index': dayIndex,
+        'food_name': foodName,
+        'quantity': quantity,
+        'unit': unit,
+      },
+    );
+    return response['success'] == true;
+  }
 }

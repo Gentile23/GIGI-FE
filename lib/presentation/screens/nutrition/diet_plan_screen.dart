@@ -149,6 +149,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddExtraMealDialog(_tabController.index),
+        label: const Text('Pasto Extra'),
+        icon: const Icon(Icons.add),
+        backgroundColor: Colors.orange,
+      ),
       body: TabBarView(
         controller: _tabController,
         children: _days
@@ -178,6 +184,11 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 tileColor: Colors.grey[100],
+                trailing: IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.orange),
+                  tooltip: 'Rigenera Pasto',
+                  onPressed: () => _regenerateMeal(dayIndex, mealIndex),
+                ),
               ),
               ..._buildFoodItems(meal['foods'] as List, dayIndex, mealIndex),
             ],
@@ -216,7 +227,149 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       );
     }).toList();
   }
-}
+
+  Future<void> _regenerateMeal(int dayIndex, int mealIndex) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rigenera Pasto'),
+        content: const Text(
+          'Vuoi sostituire questo pasto con un altro nutrizionalmente equivalente? L\'operazione è irreversibile.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annulla'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Procedi'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final success = await _service.regenerateMeal(
+        planId: _plan!['id'],
+        dayIndex: dayIndex,
+        mealIndex: mealIndex,
+      );
+
+      if (success) {
+        await _loadPlan();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Pasto rigenerato con successo!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showAddExtraMealDialog(int dayIndex) {
+    if (_plan == null) return;
+    
+    final nameController = TextEditingController();
+    final qtyController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Aggiungi Pasto Extra'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Aggiungendo un pasto extra, le calorie dei pasti successivi verranno ricalcolate per mantenere il bilancio.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Cosa vuoi mangiare?',
+                hintText: 'Es. Mela, Barretta proteica',
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: qtyController,
+              decoration: const InputDecoration(
+                labelText: 'Quantità (g)',
+                hintText: 'Es. 150',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Annulla'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty || qtyController.text.isEmpty) return;
+              
+              final name = nameController.text;
+              final qty = double.tryParse(qtyController.text);
+              
+              if (qty == null) return;
+              
+              Navigator.pop(ctx);
+              setState(() => _isLoading = true);
+              
+              try {
+                final success = await _service.addExtraMeal(
+                  planId: _plan!['id'],
+                  dayIndex: dayIndex,
+                  foodName: name,
+                  quantity: qty,
+                  unit: 'g', // Default unit
+                );
+                
+                if (success) {
+                  await _loadPlan();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Pasto extra aggiunto!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              } finally {
+                if (mounted) setState(() => _isLoading = false);
+              }
+            },
+            child: const Text('Aggiungi'),
+          ),
+        ],
+      ),
+    );
+  }
 
 class _SubstitutionModal extends StatefulWidget {
   final String foodName;
