@@ -412,7 +412,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             const Text('✨', style: TextStyle(fontSize: 18)),
             const SizedBox(width: 8),
             Text(
-              'Potenzia la tua nutrizione',
+              'Sblocca il potenziale',
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -429,33 +429,34 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             if (!_hasActiveDiet)
               Expanded(
                 child: _buildPremiumFeatureCard(
-                  icon: Icons.upload_file_rounded,
-                  title: 'Carica PDF',
-                  subtitle: 'Analisi AI',
+                  icon: Icons.document_scanner_rounded,
+                  title: 'Digitalizza',
+                  subtitle: 'La tua dieta PDF',
                   gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
                   onTap: () =>
                       Navigator.pushNamed(context, '/nutrition/coach/upload'),
                 ),
               ),
             if (!_hasActiveDiet) const SizedBox(width: 12),
-            // Piano AI
+            // Piano Personalizzato
             Expanded(
               child: _buildPremiumFeatureCard(
                 icon: Icons.auto_awesome,
-                title: 'Piano AI',
-                subtitle: 'Generazione',
+                title: 'Il Tuo Piano',
+                subtitle: _hasActiveDiet ? 'Visualizza' : 'Crea con AI',
                 gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
-                onTap: () =>
-                    Navigator.pushNamed(context, '/nutrition/coach/plan'),
+                onTap: () => _hasActiveDiet
+                    ? Navigator.pushNamed(context, '/nutrition/coach/plan')
+                    : Navigator.pushNamed(context, '/nutrition/coach/upload'),
               ),
             ),
             const SizedBox(width: 12),
-            // What to Cook
+            // Chef AI
             Expanded(
               child: _buildPremiumFeatureCard(
-                icon: Icons.restaurant_menu,
-                title: 'Cosa cucino?',
-                subtitle: 'Ricette smart',
+                icon: Icons.soup_kitchen_rounded,
+                title: 'Chef AI',
+                subtitle: 'Cosa cucino?',
                 gradientColors: const [Color(0xFFEC4899), Color(0xFFDB2777)],
                 onTap: () => Navigator.push(
                   context,

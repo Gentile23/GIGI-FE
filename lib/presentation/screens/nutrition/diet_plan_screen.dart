@@ -59,26 +59,143 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           );
         }
 
-        // 2. No Plan State
+        // 2. No Plan State - Design Premium
         if (!provider.hasActivePlan) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Il mio Piano')),
+            backgroundColor: const Color(0xFFF5F5F7),
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Text(
+                'Il Tuo Piano Personalizzato',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
+            ),
             body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.no_meals, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text('Nessuna dieta attiva trovata'),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamed('/nutrition/coach/upload'),
-                    icon: const Icon(Icons.upload),
-                    label: const Text('Carica Dieta PDF'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Illustrazione/Emoji prominente
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF8B5CF6,
+                            ).withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Text('📋', style: TextStyle(fontSize: 56)),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Titolo persuasivo
+                    Text(
+                      'Trasforma la tua dieta\nin un piano digitale',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Sottotitolo benefici
+                    Text(
+                      'Carica il PDF della tua dieta e l\'AI lo analizzerà in automatico. Avrai il tuo piano sempre a portata di mano!',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // CTA principale
+                    GestureDetector(
+                      onTap: () => Navigator.of(
+                        context,
+                      ).pushNamed('/nutrition/coach/upload'),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF8B5CF6,
+                              ).withValues(alpha: 0.4),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.upload_file_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Carica la tua Dieta',
+                              style: GoogleFonts.outfit(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Testo di supporto
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.bolt,
+                          color: Color(0xFFF59E0B),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Analisi AI in pochi secondi',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );
