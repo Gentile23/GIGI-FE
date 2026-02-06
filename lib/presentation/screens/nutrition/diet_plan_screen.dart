@@ -16,7 +16,7 @@ class DietPlanScreen extends StatefulWidget {
 
 class _DietPlanScreenState extends State<DietPlanScreen>
     with TickerProviderStateMixin {
-  late TabController _tabController;
+  TabController? _tabController;
 
   @override
   void initState() {
@@ -35,10 +35,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
 
   @override
   void dispose() {
-    if (mounted && _tabController.length > 0) {
-      // Check if initialized
-      _tabController.dispose();
-    }
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -89,9 +86,67 @@ class _DietPlanScreenState extends State<DietPlanScreen>
 
         // 3. Active Plan State
         final planData = provider.activePlan!['content'];
+
+        // Safety check for content structure
+        if (planData == null || planData['weeks'] == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Ops!')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 60,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Errore nel formato della dieta.'),
+                  Text(
+                    'Dati ricevuti incompleti.',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed('/nutrition/coach/upload'),
+                    child: const Text('Riprova Upload'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         final weeks = planData['weeks'] as List;
-        if (weeks.isEmpty)
-          return const SizedBox(); // Should not happen if confirmed valid
+        if (weeks.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Piano Vuoto')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.fastfood_outlined,
+                    size: 60,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Nessun pasto trovato nella dieta analizzata.'),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed('/nutrition/coach/upload'),
+                    child: const Text('Carica un nuovo PDF'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         final days = weeks[0]['days'] as List;
 
         // Initialize TabController if needed or if length changed
@@ -100,7 +155,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         final todayIndex = DateTime.now().weekday - 1; // 0=Mon, 6=Sun
 
         // Ensure controller is valid
-        if (!isset(_tabController) || _tabController.length != days.length) {
+        if (_tabController == null || _tabController!.length != days.length) {
+          _tabController?.dispose(); // Dispose old one if length changed
           _tabController = TabController(
             length: days.length,
             vsync: this,
@@ -126,7 +182,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                 tooltip: 'Condividi Giornata',
                 onPressed: () {
                   // Calculate current day index from tab controller
-                  final currentDay = days[_tabController.index];
+                  final currentDay = days[_tabController!.index];
                   _shareDay(currentDay);
                 },
               ),
@@ -140,7 +196,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () =>
-                _showAddExtraMealDialog(context, _tabController.index),
+                _showAddExtraMealDialog(context, _tabController!.index),
             label: const Text('Pasto Extra'),
             icon: const Icon(Icons.add),
             backgroundColor: Theme.of(context).primaryColor,
@@ -180,19 +236,6 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         );
       },
     );
-  }
-
-  // Helper to check if late var is initialized (dart trick or just try/catch pattern,
-  // but since we can't check 'late' initialization easily provided method)
-  // Actually, standard nullable is safer for re-init logic.
-  // Refactoring controller to be nullable in next edit if needed, but for now assuming logic holds.
-  // Correction: I can't check 'late' assignedness easily. I'll change logic in next tool if this fails.
-  bool isset(dynamic check) {
-    try {
-      return check != null;
-    } catch (e) {
-      return false;
-    }
   }
 
   Widget _buildDayView(

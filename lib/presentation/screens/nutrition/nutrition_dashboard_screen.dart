@@ -166,62 +166,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   }
 
   Widget _buildSetupPrompt() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            CleanTheme.primaryColor.withValues(alpha: 0.1),
-            CleanTheme.accentBlue.withValues(alpha: 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.restaurant_menu,
-              size: 48,
-              color: CleanTheme.primaryColor,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            AppLocalizations.of(context)!.setupGoalsTitle,
-            style: GoogleFonts.outfit(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            AppLocalizations.of(context)!.setupGoalsSubtitle,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          CleanButton(
-            text: AppLocalizations.of(context)!.startSetup,
-            icon: Icons.arrow_forward,
-            onPressed: _navigateToGoalSetup,
-          ),
-        ],
-      ),
+    return _buildPremiumActionCard(
+      title: AppLocalizations.of(context)!.setupGoalsTitle,
+      subtitle: AppLocalizations.of(context)!.setupGoalsSubtitle,
+      icon: Icons.flag_rounded,
+      gradientColors: [
+        CleanTheme.primaryColor,
+        CleanTheme.primaryColor.withValues(alpha: 0.8),
+      ], // Teal/Primary
+      boxShadowColor: CleanTheme.primaryColor.withValues(alpha: 0.3),
+      onTap: _navigateToGoalSetup,
     );
   }
 
@@ -848,27 +802,44 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   }
 
   Widget _buildUploadDietCard() {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      child: _buildPremiumActionCard(
+        title: 'Carica la tua Dieta PDF',
+        subtitle: 'Analisi AI istantanea e piano digitale',
+        icon: Icons.upload_file,
+        gradientColors: [
+          const Color(0xFF6366F1),
+          const Color(0xFF4F46E5),
+        ], // Indigo/Purple premium
+        boxShadowColor: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+        onTap: () => Navigator.pushNamed(context, '/nutrition/coach/upload'),
+      ),
+    );
+  }
+
+  Widget _buildPremiumActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required List<Color> gradientColors,
+    required Color boxShadowColor,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/upload'),
+      onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(top: 20),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              CleanTheme.primaryColor.withValues(alpha: 0.1),
-              CleanTheme.accentBlue.withValues(alpha: 0.05),
-            ],
+            colors: gradientColors,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-          ),
           boxShadow: [
             BoxShadow(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
+              color: boxShadowColor,
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -879,14 +850,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.upload_file,
-                color: CleanTheme.primaryColor,
-                size: 28,
-              ),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -894,29 +861,25 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Carica la tua Dieta PDF',
+                    title,
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: CleanTheme.textPrimary,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Analisi AI istantanea e piano digitale',
+                    subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: CleanTheme.textSecondary,
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: CleanTheme.primaryColor.withValues(alpha: 0.5),
-              size: 16,
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
           ],
         ),
       ),
