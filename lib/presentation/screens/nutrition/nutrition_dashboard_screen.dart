@@ -117,16 +117,22 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // No goals? Show setup prompt
-                        if (_goal == null)
-                          _buildSetupPrompt()
-                        else ...[
+                        if (_goal == null) ...[
+                          _buildSetupPrompt(),
+                          _buildUploadDietCard(), // Prominent CTA when no goal
+                        ] else ...[
                           // Calorie Ring Card
                           _buildCalorieRingCard(),
                           const SizedBox(height: 20),
 
                           // Macro Progress Bars
                           _buildMacroProgressCard(),
-                          const SizedBox(height: 20),
+                          // Macro Progress Bars
+                          _buildMacroProgressCard(),
+
+                          // Upload Diet CTA (Always visible for easy access)
+                          _buildUploadDietCard(),
+                          const SizedBox(height: 24),
 
                           // Quick Actions
                           _buildQuickActionsRow(),
@@ -839,5 +845,74 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       MaterialPageRoute(builder: (context) => const GoalSetupWizardScreen()),
     );
     if (result == true) _loadData();
+  }
+
+  Widget _buildUploadDietCard() {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/upload'),
+      child: Container(
+        margin: const EdgeInsets.only(top: 20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF6366F1),
+              Color(0xFF4F46E5),
+            ], // Indigo/Purple premium
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.upload_file,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Carica la tua Dieta PDF',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Analisi AI istantanea e piano digitale',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+          ],
+        ),
+      ),
+    );
   }
 }
