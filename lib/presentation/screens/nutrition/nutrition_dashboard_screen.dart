@@ -854,18 +854,21 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         margin: const EdgeInsets.only(top: 20),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF6366F1),
-              Color(0xFF4F46E5),
-            ], // Indigo/Purple premium
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
+            colors: [
+              CleanTheme.primaryColor.withValues(alpha: 0.1),
+              CleanTheme.accentBlue.withValues(alpha: 0.05),
+            ],
           ),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -876,12 +879,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.upload_file,
-                color: Colors.white,
+                color: CleanTheme.primaryColor,
                 size: 28,
               ),
             ),
@@ -895,7 +898,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -903,13 +906,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     'Analisi AI istantanea e piano digitale',
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: CleanTheme.primaryColor.withValues(alpha: 0.5),
+              size: 16,
+            ),
           ],
         ),
       ),
