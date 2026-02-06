@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../data/models/nutrition_model.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../providers/nutrition_coach_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
@@ -28,6 +30,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   NutritionGoal? _goal;
   Map<String, dynamic>? _suggestions;
 
+  // Stato per la dieta attiva
+  bool _hasActiveDiet = false;
+  Map<String, dynamic>? _activeDietInfo;
+
   @override
   void initState() {
     super.initState();
@@ -48,10 +54,19 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
+    // Ottieni il provider PRIMA degli await per evitare use_build_context_synchronously
+    final coachProvider = Provider.of<NutritionCoachProvider>(
+      context,
+      listen: false,
+    );
+
     try {
       final summary = await _nutritionService.getDailySummary();
       final goal = await _nutritionService.getGoals();
       final suggestions = await _nutritionService.getSmartSuggestions();
+
+      // Carica info sulla dieta attiva
+      await coachProvider.loadActivePlan();
 
       if (mounted) {
         setState(() {
@@ -61,6 +76,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           }
           _goal = goal;
           _suggestions = suggestions;
+
+          // Aggiorna stato dieta attiva
+          _hasActiveDiet = coachProvider.hasActivePlan;
+          if (_hasActiveDiet && coachProvider.activePlan != null) {
+            _activeDietInfo = {
+              'name': coachProvider.activePlan!['name'] ?? 'La mia dieta',
+              'created_at': coachProvider.activePlan!['created_at'],
+            };
+          }
+
           _isLoading = false;
         });
         _animationController.forward();
@@ -116,52 +141,389 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     padding: const EdgeInsets.all(20),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        // No goals? Show setup prompt
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 1: LA MIA DIETA (Hero Card se esiste)
+                        // ══════════════════════════════════════════════════════
+                        if (_hasActiveDiet) ...[
+                          _buildMyDietCard(),
+                          const SizedBox(height: 20),
+                        ] else ...[
+                          // CTA prominente per chi non ha dieta
+                          _buildGetStartedBanner(),
+                          const SizedBox(height: 20),
+                        ],
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 2: SETUP OBIETTIVI (se mancano)
+                        // ══════════════════════════════════════════════════════
                         if (_goal == null) ...[
                           _buildSetupPrompt(),
-                          _buildUploadDietCard(), // Prominent CTA when no goal
-                        ] else ...[
-                          // Calorie Ring Card
-                          _buildCalorieRingCard(),
                           const SizedBox(height: 20),
-
-                          // Macro Progress Bars
-                          _buildMacroProgressCard(),
-                          // Macro Progress Bars
-                          _buildMacroProgressCard(),
-
-                          // Upload Diet CTA (Always visible for easy access)
-                          _buildUploadDietCard(),
-                          const SizedBox(height: 24),
-
-                          // Quick Actions
-                          _buildQuickActionsRow(),
-                          const SizedBox(height: 12),
-                          _buildCoachAction(),
-                          const SizedBox(height: 24),
-
-                          // Water Tracker
-                          _buildWaterTracker(),
-                          const SizedBox(height: 24),
-
-                          // Smart Suggestions
-                          if (_suggestions != null &&
-                              _suggestions!['suggestions'] != null &&
-                              (_suggestions!['suggestions'] as List).isNotEmpty)
-                            _buildSmartSuggestions(),
-
-                          const SizedBox(height: 24),
-
-                          // Today's Meals
-                          _buildMealsSection(),
-                          const SizedBox(height: 100),
                         ],
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 3: DATI GIORNALIERI (Calorie + Macro)
+                        // ══════════════════════════════════════════════════════
+                        if (_goal != null) ...[
+                          _buildCalorieRingCard(),
+                          const SizedBox(height: 16),
+                          _buildMacroProgressCard(),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 4: AZIONI RAPIDE
+                        // ══════════════════════════════════════════════════════
+                        _buildQuickActionsRow(),
+                        const SizedBox(height: 24),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 5: FEATURE PREMIUM
+                        // ══════════════════════════════════════════════════════
+                        _buildPremiumSection(),
+                        const SizedBox(height: 24),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 6: WATER TRACKER
+                        // ══════════════════════════════════════════════════════
+                        _buildWaterTracker(),
+                        const SizedBox(height: 24),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 7: SUGGERIMENTI SMART
+                        // ══════════════════════════════════════════════════════
+                        if (_suggestions != null &&
+                            _suggestions!['suggestions'] != null &&
+                            (_suggestions!['suggestions'] as List).isNotEmpty)
+                          _buildSmartSuggestions(),
+                        const SizedBox(height: 24),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 8: PASTI DI OGGI
+                        // ══════════════════════════════════════════════════════
+                        _buildMealsSection(),
+                        const SizedBox(height: 100),
                       ]),
                     ),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // NUOVI WIDGET - LA MIA DIETA CARD (HERO)
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Card prominente che mostra la dieta attiva - permette accesso rapido al piano
+  Widget _buildMyDietCard() {
+    final dietName = _activeDietInfo?['name'] ?? 'La mia dieta';
+    final createdAt = _activeDietInfo?['created_at'];
+    String dateText = 'Piano attivo';
+
+    if (createdAt != null) {
+      try {
+        final date = DateTime.parse(createdAt);
+        final now = DateTime.now();
+        final diff = now.difference(date).inDays;
+        if (diff == 0) {
+          dateText = 'Caricato oggi';
+        } else if (diff == 1) {
+          dateText = 'Caricato ieri';
+        } else {
+          dateText = 'Caricato $diff giorni fa';
+        }
+      } catch (_) {}
+    }
+
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/plan'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF059669), // Emerald 600
+              Color(0xFF10B981), // Emerald 500
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10B981).withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icona grande a sinistra
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.restaurant_menu_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Info centrale
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        dateText,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    dietName,
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tocca per vedere il tuo piano →',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // CTA GET STARTED BANNER (per utenti senza dieta)
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Banner prominente per invitare a caricare una dieta PDF
+  Widget _buildGetStartedBanner() {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/upload'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF7C3AED), // Violet 600
+              Color(0xFF8B5CF6), // Violet 500
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Emoji/Icona
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Text('📋', style: TextStyle(fontSize: 28)),
+            ),
+            const SizedBox(width: 16),
+            // Testo
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hai una dieta dal nutrizionista?',
+                    style: GoogleFonts.outfit(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Caricala e trasformala in un piano digitale con AI!',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // SEZIONE PREMIUM FEATURES
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Sezione che raggruppa le feature premium in modo chiaro
+  Widget _buildPremiumSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header sezione
+        Row(
+          children: [
+            const Text('✨', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            Text(
+              'Potenzia la tua nutrizione',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Grid delle feature premium
+        Row(
+          children: [
+            // Upload Dieta (se non ha dieta attiva)
+            if (!_hasActiveDiet)
+              Expanded(
+                child: _buildPremiumFeatureCard(
+                  icon: Icons.upload_file_rounded,
+                  title: 'Carica PDF',
+                  subtitle: 'Analisi AI',
+                  gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/nutrition/coach/upload'),
+                ),
+              ),
+            if (!_hasActiveDiet) const SizedBox(width: 12),
+            // Piano AI
+            Expanded(
+              child: _buildPremiumFeatureCard(
+                icon: Icons.auto_awesome,
+                title: 'Piano AI',
+                subtitle: 'Generazione',
+                gradientColors: const [Color(0xFFF59E0B), Color(0xFFD97706)],
+                onTap: () =>
+                    Navigator.pushNamed(context, '/nutrition/coach/plan'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // What to Cook
+            Expanded(
+              child: _buildPremiumFeatureCard(
+                icon: Icons.restaurant_menu,
+                title: 'Cosa cucino?',
+                subtitle: 'Ricette smart',
+                gradientColors: const [Color(0xFFEC4899), Color(0xFFDB2777)],
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WhatToCookScreen(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Card singola per una feature premium
+  Widget _buildPremiumFeatureCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required List<Color> gradientColors,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors[0].withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -396,15 +758,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCoachAction() {
-    return _buildQuickActionCard(
-      icon: Icons.assignment_ind,
-      label: 'Piano Alimentare AI',
-      color: CleanTheme.accentPurple,
-      onTap: () => Navigator.pushNamed(context, '/nutrition/coach/plan'),
     );
   }
 
@@ -799,23 +1152,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       MaterialPageRoute(builder: (context) => const GoalSetupWizardScreen()),
     );
     if (result == true) _loadData();
-  }
-
-  Widget _buildUploadDietCard() {
-    return Container(
-      margin: const EdgeInsets.only(top: 20),
-      child: _buildPremiumActionCard(
-        title: 'Carica la tua Dieta PDF',
-        subtitle: 'Analisi AI istantanea e piano digitale',
-        icon: Icons.upload_file,
-        gradientColors: [
-          const Color(0xFF6366F1),
-          const Color(0xFF4F46E5),
-        ], // Indigo/Purple premium
-        boxShadowColor: const Color(0xFF4F46E5).withValues(alpha: 0.3),
-        onTap: () => Navigator.pushNamed(context, '/nutrition/coach/upload'),
-      ),
-    );
   }
 
   Widget _buildPremiumActionCard({
