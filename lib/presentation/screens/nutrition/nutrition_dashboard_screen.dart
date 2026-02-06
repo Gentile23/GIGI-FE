@@ -142,19 +142,19 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 1: LA MIA DIETA (Hero Card se esiste)
+                        // SEZIONE 1: DUE CARD PRINCIPALI (Entry Points)
                         // ══════════════════════════════════════════════════════
-                        if (_hasActiveDiet) ...[
-                          _buildMyDietCard(),
-                          const SizedBox(height: 20),
-                        ] else ...[
-                          // CTA prominente per chi non ha dieta
-                          _buildGetStartedBanner(),
-                          const SizedBox(height: 20),
-                        ],
+                        _buildTwoMainCards(),
+                        const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 2: SETUP OBIETTIVI (se mancano)
+                        // SEZIONE 2: CHEF AI (sempre visibile)
+                        // ══════════════════════════════════════════════════════
+                        _buildChefAiCard(),
+                        const SizedBox(height: 24),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 3: SETUP OBIETTIVI (se mancano)
                         // ══════════════════════════════════════════════════════
                         if (_goal == null) ...[
                           _buildSetupPrompt(),
@@ -162,7 +162,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         ],
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 3: DATI GIORNALIERI (Calorie + Macro)
+                        // SEZIONE 4: DATI GIORNALIERI (Calorie + Macro)
                         // ══════════════════════════════════════════════════════
                         if (_goal != null) ...[
                           _buildCalorieRingCard(),
@@ -172,25 +172,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         ],
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 4: AZIONI RAPIDE
-                        // ══════════════════════════════════════════════════════
-                        _buildQuickActionsRow(),
-                        const SizedBox(height: 24),
-
-                        // ══════════════════════════════════════════════════════
-                        // SEZIONE 5: FEATURE PREMIUM
-                        // ══════════════════════════════════════════════════════
-                        _buildPremiumSection(),
-                        const SizedBox(height: 24),
-
-                        // ══════════════════════════════════════════════════════
-                        // SEZIONE 6: WATER TRACKER
+                        // SEZIONE 5: WATER TRACKER
                         // ══════════════════════════════════════════════════════
                         _buildWaterTracker(),
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 7: SUGGERIMENTI SMART
+                        // SEZIONE 6: SUGGERIMENTI SMART
                         // ══════════════════════════════════════════════════════
                         if (_suggestions != null &&
                             _suggestions!['suggestions'] != null &&
@@ -199,7 +187,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 8: PASTI DI OGGI
+                        // SEZIONE 7: PASTI DI OGGI
                         // ══════════════════════════════════════════════════════
                         _buildMealsSection(),
                         const SizedBox(height: 100),
@@ -211,9 +199,215 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             ),
     );
   }
+  // ════════════════════════════════════════════════════════════════════════════
+  // DUE CARD PRINCIPALI - Entry Points
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Due card principali per separare i due use case: Piano vs Tracking
+  Widget _buildTwoMainCards() {
+    return Column(
+      children: [
+        // Card 1: Il Tuo Piano
+        _buildMainEntryCard(
+          emoji: '📋',
+          title: 'Il Tuo Piano',
+          subtitle: _hasActiveDiet
+              ? 'Visualizza la tua dieta'
+              : 'Carica la dieta dal nutrizionista',
+          gradientColors: const [Color(0xFF059669), Color(0xFF10B981)],
+          onTap: () => _hasActiveDiet
+              ? Navigator.pushNamed(context, '/nutrition/coach/plan')
+              : Navigator.pushNamed(context, '/nutrition/coach/upload'),
+          badge: _hasActiveDiet ? '✓ Attivo' : null,
+        ),
+        const SizedBox(height: 12),
+        // Card 2: Traccia Calorie
+        _buildMainEntryCard(
+          emoji: '🔥',
+          title: 'Traccia Calorie',
+          subtitle: 'Scansiona pasto e conta le kcal',
+          gradientColors: const [Color(0xFFDC2626), Color(0xFFF97316)],
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MealLoggingScreen(),
+              ),
+            );
+            if (result == true) _loadData();
+          },
+          badge: null,
+        ),
+      ],
+    );
+  }
+
+  /// Card singola per entry point principale
+  Widget _buildMainEntryCard({
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required List<Color> gradientColors,
+    required VoidCallback onTap,
+    String? badge,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors[0].withValues(alpha: 0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Emoji grande a sinistra
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 32)),
+            ),
+            const SizedBox(width: 16),
+            // Info centrale
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (badge != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badge,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  Text(
+                    title,
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // NUOVI WIDGET - LA MIA DIETA CARD (HERO)
+  // CHEF AI CARD
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Card per Chef AI - accessibile sempre
+  Widget _buildChefAiCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const WhatToCookScreen()),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFEC4899), Color(0xFFDB2777)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEC4899).withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.soup_kitchen_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '👨‍🍳 Chef AI',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Cosa cucino oggi?',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // NUOVI WIDGET - LA MIA DIETA CARD (HERO) - LEGACY
   // ════════════════════════════════════════════════════════════════════════════
 
   /// Card prominente che mostra la dieta attiva - permette accesso rapido al piano

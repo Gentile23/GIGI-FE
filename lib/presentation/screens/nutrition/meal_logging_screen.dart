@@ -89,9 +89,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 75,
       );
 
       if (pickedFile != null) {
@@ -542,11 +542,28 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         color: CleanTheme.primaryColor,
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Gigi sta analizzando il pasto...',
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textSecondary,
-                        ),
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(seconds: 8),
+                        builder: (context, value, child) {
+                          final messages = [
+                            '📸 Analizzando il piatto...',
+                            '🔍 Identificando ingredienti...',
+                            '🧮 Calcolando calorie...',
+                            '✨ Quasi fatto...',
+                          ];
+                          final index = (value * messages.length).floor().clamp(
+                            0,
+                            messages.length - 1,
+                          );
+                          return Text(
+                            messages[index],
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.textSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
