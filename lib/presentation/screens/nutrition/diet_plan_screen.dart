@@ -5,6 +5,7 @@ import '../../../providers/nutrition_coach_provider.dart';
 // If CleanWidgets doesn't exist, I'll stick to standard material/google fonts
 // Re-adding imports based on previous file context
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
@@ -121,6 +122,15 @@ class _DietPlanScreenState extends State<DietPlanScreen>
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.share),
+                tooltip: 'Condividi Giornata',
+                onPressed: () {
+                  // Calculate current day index from tab controller
+                  final currentDay = days[_tabController.index];
+                  _shareDay(currentDay);
+                },
+              ),
+              IconButton(
                 icon: const Icon(Icons.shopping_cart_outlined),
                 onPressed: () => Navigator.of(
                   context,
@@ -229,14 +239,27 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   ),
                   backgroundColor: _getMealColor(meal['type']),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.auto_awesome, color: Colors.amber),
-                  tooltip: 'Rigenera con IA',
-                  onPressed: () => _showPremiumRegenerateDialog(
-                    context,
-                    dayIndex,
-                    mealIndex,
-                  ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.share_outlined,
+                        color: Colors.grey,
+                      ),
+                      tooltip: 'Condividi Pasto',
+                      onPressed: () =>
+                          _shareMeal(meal), // Updated to use helper
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.auto_awesome, color: Colors.amber),
+                      tooltip: 'Rigenera con IA',
+                      onPressed: () => _showPremiumRegenerateDialog(
+                        context,
+                        dayIndex,
+                        mealIndex,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -309,6 +332,41 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         ),
       );
     }).toList();
+  }
+
+  void _shareMeal(Map<String, dynamic> meal) {
+    final buffer = StringBuffer();
+    buffer.writeln('🍽️ *${meal['type']}*');
+
+    final foods = meal['foods'] as List;
+    for (var food in foods) {
+      buffer.writeln('• ${food['name']} (${food['quantity']}${food['unit']})');
+    }
+
+    // Add nutrients if available
+    // buffer.writeln('\n🔥 ${meal['calories']} kcal');
+
+    Share.share(buffer.toString());
+  }
+
+  void _shareDay(Map<String, dynamic> day) {
+    final buffer = StringBuffer();
+    buffer.writeln('📅 *Piano per ${day['day_name']}*');
+    buffer.writeln('');
+
+    final meals = day['meals'] as List;
+    for (var meal in meals) {
+      buffer.writeln('🍽️ *${meal['type']}*');
+      final foods = meal['foods'] as List;
+      for (var food in foods) {
+        buffer.writeln(
+          '• ${food['name']} (${food['quantity']}${food['unit']})',
+        );
+      }
+      buffer.writeln('');
+    }
+
+    Share.share(buffer.toString());
   }
 
   /// PREMIUM UI: Regenerate Meal Dialog
