@@ -143,12 +143,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 2: IMPOSTA OBIETTIVI (solo se mancano E non c'è dieta)
+                        // SEZIONE 2: TRACCIA CALORIE (compatta, sotto le main cards)
                         // ══════════════════════════════════════════════════════
-                        if (_goal == null && !_hasActiveDiet) ...[
-                          _buildSetupPromptCompact(),
-                          const SizedBox(height: 16),
-                        ],
+                        _buildTrackCaloriesCompact(),
+                        const SizedBox(height: 16),
 
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 3: CHEF AI (sempre visibile)
@@ -216,21 +214,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           badge: _hasActiveDiet ? '✓ Attivo' : null,
         ),
         const SizedBox(height: 12),
-        // Card 2: Traccia Calorie
+        // Card 2: Imposta i Tuoi Obiettivi (versione grande)
         _buildMainEntryCard(
-          emoji: '🔥',
-          title: 'Traccia Calorie',
-          subtitle: 'Scansiona pasto e conta le kcal',
-          gradientColors: const [Color(0xFFDC2626), Color(0xFFF97316)],
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MealLoggingScreen(),
-              ),
-            );
-            if (result == true) _loadData();
-          },
+          emoji: '🎯',
+          title: AppLocalizations.of(context)!.setupGoalsTitle,
+          subtitle: AppLocalizations.of(context)!.setupGoalsSubtitle,
+          gradientColors: [
+            CleanTheme.primaryColor,
+            CleanTheme.primaryColor.withValues(alpha: 0.85),
+          ],
+          onTap: _navigateToGoalSetup,
           badge: null,
         ),
       ],
@@ -717,25 +710,28 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  /// Compact version of setup prompt - same style as Chef AI card
-  Widget _buildSetupPromptCompact() {
+  /// Compact version of Traccia Calorie - same style as Chef AI card
+  Widget _buildTrackCaloriesCompact() {
     return GestureDetector(
-      onTap: _navigateToGoalSetup,
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MealLoggingScreen()),
+        );
+        if (result == true) _loadData();
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              CleanTheme.primaryColor,
-              CleanTheme.primaryColor.withValues(alpha: 0.85),
-            ],
+            colors: [Color(0xFFDC2626), Color(0xFFF97316)],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+              color: const Color(0xFFDC2626).withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -750,7 +746,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
-                Icons.flag_rounded,
+                Icons.camera_alt_rounded,
                 color: Colors.white,
                 size: 24,
               ),
@@ -761,7 +757,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🎯 ${AppLocalizations.of(context)!.setupGoalsTitle}',
+                    '🔥 Traccia Calorie',
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -769,7 +765,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     ),
                   ),
                   Text(
-                    AppLocalizations.of(context)!.setupGoalsSubtitle,
+                    'Scansiona pasto e conta le kcal',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.9),
