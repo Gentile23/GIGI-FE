@@ -128,12 +128,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                       centerTitle: true,
                     ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.settings_outlined),
-                        onPressed: () => _navigateToGoalSetup(),
-                      ),
-                    ],
+                    actions: const [], // Settings removed
                   ),
 
                   // Content
@@ -148,18 +143,18 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 2: CHEF AI (sempre visibile)
+                        // SEZIONE 2: IMPOSTA OBIETTIVI (solo se mancano E non c'è dieta)
+                        // ══════════════════════════════════════════════════════
+                        if (_goal == null && !_hasActiveDiet) ...[
+                          _buildSetupPromptCompact(),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 3: CHEF AI (sempre visibile)
                         // ══════════════════════════════════════════════════════
                         _buildChefAiCard(),
                         const SizedBox(height: 24),
-
-                        // ══════════════════════════════════════════════════════
-                        // SEZIONE 3: SETUP OBIETTIVI (se mancano)
-                        // ══════════════════════════════════════════════════════
-                        if (_goal == null) ...[
-                          _buildSetupPrompt(),
-                          const SizedBox(height: 20),
-                        ],
 
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 4: DATI GIORNALIERI (Calorie + Macro)
@@ -722,17 +717,71 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  Widget _buildSetupPrompt() {
-    return _buildPremiumActionCard(
-      title: AppLocalizations.of(context)!.setupGoalsTitle,
-      subtitle: AppLocalizations.of(context)!.setupGoalsSubtitle,
-      icon: Icons.flag_rounded,
-      gradientColors: [
-        CleanTheme.primaryColor,
-        CleanTheme.primaryColor.withValues(alpha: 0.8),
-      ], // Teal/Primary
-      boxShadowColor: CleanTheme.primaryColor.withValues(alpha: 0.3),
+  /// Compact version of setup prompt - same style as Chef AI card
+  Widget _buildSetupPromptCompact() {
+    return GestureDetector(
       onTap: _navigateToGoalSetup,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              CleanTheme.primaryColor,
+              CleanTheme.primaryColor.withValues(alpha: 0.85),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.flag_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '🎯 ${AppLocalizations.of(context)!.setupGoalsTitle}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    AppLocalizations.of(context)!.setupGoalsSubtitle,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
+          ],
+        ),
+      ),
     );
   }
 
