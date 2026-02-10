@@ -6,6 +6,8 @@ import '../../../providers/nutrition_coach_provider.dart';
 // Re-adding imports based on previous file context
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+import '../paywall/paywall_screen.dart';
+import '../../../providers/auth_provider.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
@@ -304,9 +306,26 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   Icons.shopping_cart_outlined,
                   color: Colors.black,
                 ),
-                onPressed: () => Navigator.of(
-                  context,
-                ).pushNamed('/nutrition/coach/shopping-list'),
+                onPressed: () {
+                  final authProvider = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final user = authProvider.user;
+                  final isPremium = user?.subscription?.isActive ?? false;
+
+                  if (!isPremium) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PaywallScreen(),
+                      ),
+                    );
+                  } else {
+                    Navigator.of(
+                      context,
+                    ).pushNamed('/nutrition/coach/shopping-list');
+                  }
+                },
               ),
             ],
           ),
@@ -620,11 +639,28 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   icon: const Icon(Icons.auto_awesome, size: 20),
                   color: Colors.amber,
                   tooltip: 'Rigenera con IA',
-                  onPressed: () => _showPremiumRegenerateDialog(
-                    context,
-                    dayIndex,
-                    mealIndex,
-                  ),
+                  onPressed: () {
+                    final authProvider = Provider.of<AuthProvider>(
+                      context,
+                      listen: false,
+                    );
+                    final user = authProvider.user;
+                    final isPremium = user?.subscription?.isActive ?? false;
+
+                    if (!isPremium) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const PaywallScreen(),
+                        ),
+                      );
+                    } else {
+                      _showPremiumRegenerateDialog(
+                        context,
+                        dayIndex,
+                        mealIndex,
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -754,13 +790,30 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               icon: const Icon(Icons.swap_horiz_rounded, size: 22),
               color: Colors.black,
               tooltip: 'Sostituisci',
-              onPressed: () => _showSubstitutionModal(
-                context,
-                food,
-                dayIndex,
-                mealIndex,
-                foodIndex,
-              ),
+              onPressed: () {
+                final authProvider = Provider.of<AuthProvider>(
+                  context,
+                  listen: false,
+                );
+                final user = authProvider.user;
+                final isPremium = user?.subscription?.isActive ?? false;
+
+                if (!isPremium) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const PaywallScreen(),
+                    ),
+                  );
+                } else {
+                  _showSubstitutionModal(
+                    context,
+                    food,
+                    dayIndex,
+                    mealIndex,
+                    foodIndex,
+                  );
+                }
+              },
             ),
           ],
         ),

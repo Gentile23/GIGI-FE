@@ -88,6 +88,9 @@ class ApiClient {
           sendTimeout: const Duration(
             minutes: 5,
           ), // Long timeout for large files
+          receiveTimeout: const Duration(
+            minutes: 5,
+          ), // Wait for backend processing
         ),
       );
       return response.data is Map<String, dynamic>

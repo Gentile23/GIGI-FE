@@ -7,6 +7,7 @@ import '../../../data/services/custom_workout_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../widgets/clean_widgets.dart';
 import 'create_custom_workout_screen.dart';
+import 'workout_pdf_upload_screen.dart';
 
 /// Screen showing the list of user's custom workout plans
 class CustomWorkoutListScreen extends StatefulWidget {
@@ -127,6 +128,25 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              // Navigate to PDF Upload
+              // We need to import WorkoutPdfUploadScreen
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WorkoutPdfUploadScreen(),
+                ),
+              );
+              if (result == true) {
+                _loadWorkouts();
+              }
+            },
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Carica PDF',
+          ),
+        ],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(

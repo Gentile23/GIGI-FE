@@ -13,6 +13,7 @@ class ShoppingListScreen extends StatefulWidget {
 
 class _ShoppingListScreenState extends State<ShoppingListScreen> {
   int _days = 3;
+  final Set<String> _checkedItems = {};
 
   // Comprehensive Italian food categorization
   String _getCategory(String name) {
@@ -449,9 +450,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             ),
                             child: Column(
                               children: items.map((item) {
+                                final itemKey =
+                                    '${item['name']}_${item['unit']}';
+                                final isChecked = _checkedItems.contains(
+                                  itemKey,
+                                );
+
                                 return CheckboxListTile(
-                                  value: false,
-                                  onChanged: (val) {},
+                                  value: isChecked,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      if (val == true) {
+                                        _checkedItems.add(itemKey);
+                                      } else {
+                                        _checkedItems.remove(itemKey);
+                                      }
+                                    });
+                                  },
                                   activeColor: Theme.of(context).primaryColor,
                                   title: Text(
                                     item['name'],

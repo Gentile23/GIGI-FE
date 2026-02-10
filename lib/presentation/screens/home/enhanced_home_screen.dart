@@ -15,7 +15,7 @@ import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 import '../workout/workout_session_screen.dart';
-import '../workout/unified_workout_list_screen.dart';
+
 import '../../../data/models/user_model.dart';
 
 import '../../widgets/skeleton_box.dart';
@@ -24,10 +24,7 @@ import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
-import '../../../data/services/custom_workout_service.dart';
-import '../../../data/services/api_client.dart';
-import '../../../data/models/custom_workout_model.dart';
-import '../custom_workout/create_custom_workout_screen.dart';
+import '../custom_workout/custom_workout_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -1227,35 +1224,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   Future<void> _handleMyPlansNavigation() async {
-    // Show a loading indicator if needed, but the service is usually fast
-    final customWorkoutService = CustomWorkoutService(ApiClient());
-    final result = await customWorkoutService.getCustomWorkouts();
-
+    // Navigate directly to the list screen to allow management and PDF upload
     if (!mounted) return;
 
-    if (result['success'] == true) {
-      final List<CustomWorkoutPlan> plans = result['plans'];
-      if (plans.isNotEmpty) {
-        // Se esiste una scheda, apri l'esecuzione della prima
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CustomWorkoutExecutionScreen(plan: plans.first),
-          ),
-        );
-      } else {
-        // Altrimenti porta direttamente alla creazione
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CreateCustomWorkoutScreen()),
-        ).then((_) => _loadData());
-      }
-    } else {
-      // Fallback in case of error: go to creation
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const CreateCustomWorkoutScreen()),
-      ).then((_) => _loadData());
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CustomWorkoutListScreen()),
+    ).then((_) => _loadData());
   }
 }
