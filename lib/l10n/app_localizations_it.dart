@@ -1687,7 +1687,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get actionCommunityDesc => 'Entra nel gruppo';
 
   @override
-  String get actionMyPlans => 'Le Mie Schede';
+  String get actionMyPlans => 'I Miei Workout';
 
   @override
   String get actionFormCheck => 'Form Check';

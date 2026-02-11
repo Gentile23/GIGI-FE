@@ -17,6 +17,7 @@ import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import '../custom_workout/workout_pdf_upload_screen.dart';
 
 /// Unified screen showing both AI-generated and custom workouts
 class UnifiedWorkoutListScreen extends StatefulWidget {
@@ -126,6 +127,148 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateCustomCard() {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CreateCustomWorkoutScreen(),
+          ),
+        );
+        if (result == true) {
+          _loadCustomWorkouts();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: CleanTheme.primaryColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Crea Nuova Scheda',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Costruisci il tuo allenamento personalizzato',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPdfUploadCard() {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const WorkoutPdfUploadScreen(),
+          ),
+        );
+        if (result == true) {
+          _loadCustomWorkouts();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF9100), // Orange Accent for distinction
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFF9100).withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.picture_as_pdf,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Carica Scheda PDF',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Digitalizza la tua scheda cartacea con l\'AI',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward, color: Colors.white),
+          ],
         ),
       ),
     );
@@ -427,41 +570,50 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       );
     }
 
-    if (_customPlans.isEmpty) {
-      return _buildActionableEmptyState(
-        icon: Icons.edit_note,
-        title: AppLocalizations.of(context)!.noCustomWorkouts,
-        subtitle: 'Crea la tua scheda personalizzata',
-        buttonText: 'Crea Scheda Custom',
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateCustomWorkoutScreen(),
-            ),
-          );
-          if (result == true) {
-            _loadCustomWorkouts();
-          }
-        },
-      );
-    }
-
+    // Always show action cards first
     return Column(
-      children: _customPlans.map((plan) {
-        return _buildWorkoutCard(
-          title: plan.name,
-          subtitle: '${plan.exercises.length} esercizi',
-          duration: '${plan.exercises.length * 5} min',
-          isAI: false,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CustomWorkoutExecutionScreen(plan: plan),
-            ),
+      children: [
+        _buildCreateCustomCard(),
+        const SizedBox(height: 12),
+        _buildPdfUploadCard(),
+        const SizedBox(height: 24),
+        if (_customPlans.isEmpty)
+          _buildActionableEmptyState(
+            icon: Icons.edit_note,
+            title: AppLocalizations.of(context)!.noCustomWorkouts,
+            subtitle: 'Le tue schede appariranno qui',
+            buttonText: 'Crea Scheda Custom',
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateCustomWorkoutScreen(),
+                ),
+              );
+              if (result == true) {
+                _loadCustomWorkouts();
+              }
+            },
+          )
+        else
+          Column(
+            children: _customPlans.map((plan) {
+              return _buildWorkoutCard(
+                title: plan.name,
+                subtitle: '${plan.exercises.length} esercizi',
+                duration: '${plan.exercises.length * 5} min',
+                isAI: false,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        CustomWorkoutExecutionScreen(plan: plan),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
-        );
-      }).toList(),
+      ],
     );
   }
 

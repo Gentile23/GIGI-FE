@@ -15,7 +15,6 @@ import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 import '../workout/workout_session_screen.dart';
-
 import '../../../data/models/user_model.dart';
 
 import '../../widgets/skeleton_box.dart';
@@ -24,7 +23,6 @@ import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
-import '../custom_workout/custom_workout_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -93,36 +91,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       // Widget already disposed, ignore
     }
     super.dispose();
-  }
-
-  Future<void> _loadData() async {
-    final workoutProvider = Provider.of<WorkoutProvider>(
-      context,
-      listen: false,
-    );
-    final gamificationProvider = Provider.of<GamificationProvider>(
-      context,
-      listen: false,
-    );
-    workoutProvider.fetchCurrentPlan();
-    workoutProvider.fetchWorkoutTemplates(); // Fetch static templates from DB
-    gamificationProvider.refresh();
-
-    // Load saved workout index
-    final prefs = await SharedPreferences.getInstance();
-    final savedIndex = prefs.getInt('next_workout_index') ?? 0;
-
-    // Refresh user data (crucial for post-assessment state)
-    // ignore: use_build_context_synchronously
-    if (mounted) {
-      await Provider.of<AuthProvider>(context, listen: false).fetchUser();
-    }
-
-    if (mounted) {
-      setState(() {
-        _currentWorkoutIndex = savedIndex;
-      });
-    }
   }
 
   @override
@@ -306,37 +274,138 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         ),
                         const SizedBox(height: 12),
                         // Custom & History
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionCard(
-                                Icons.edit_note_rounded,
-                                AppLocalizations.of(context)!.actionMyPlans,
-                                const Color(0xFF9B59B6),
-                                () {
-                                  HapticService.lightTap();
-                                  _handleMyPlansNavigation();
-                                },
+                        // Custom & History (Modified)
+                        // Premium Form Check Card
+                        GestureDetector(
+                          onTap: () {
+                            HapticService.lightTap();
+                            final user = Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            ).user;
+                            final isPremium =
+                                user?.subscription?.isActive ?? false;
+
+                            if (isPremium) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => FormAnalysisScreen(),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Funzionalità riservata agli utenti Premium',
+                                  ),
+                                  backgroundColor: const Color(0xFFFFD700),
+                                  action: SnackBarAction(
+                                    label: 'UPGRADE',
+                                    textColor: Colors.white,
+                                    onPressed: () {
+                                      // Navigation to upgrade screen if available
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFDAA520),
+                                  const Color(0xFFFFD700),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFDAA520,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionCard(
-                                Icons.camera_alt_outlined,
-                                AppLocalizations.of(context)!.actionFormCheck,
-                                CleanTheme.accentPurple,
-                                () {
-                                  HapticService.lightTap();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => FormAnalysisScreen(),
-                                    ),
-                                  );
-                                },
-                              ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.camera_alt_outlined,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.actionFormCheck,
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: const Icon(
+                                              Icons.lock,
+                                              color: Colors.white,
+                                              size: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Analizza la tua esecuzione con l\'AI',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
@@ -1024,96 +1093,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  Future<void> _generatePlanDirectly() async {
-    final workoutProvider = Provider.of<WorkoutProvider>(
-      context,
-      listen: false,
-    );
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
-
-    // Debug logging
-    debugPrint('=== GENERATE PLAN DEBUG ===');
-    debugPrint('User: ${user?.name} (${user?.email})');
-    debugPrint('isQuestionnaireComplete: ${user?.isQuestionnaireComplete}');
-    debugPrint('Goal: ${user?.goal}');
-    debugPrint('Experience Level: ${user?.experienceLevel}');
-    debugPrint('Weekly Frequency: ${user?.weeklyFrequency}');
-    debugPrint('Training Location: ${user?.trainingLocation}');
-    debugPrint('Available Equipment: ${user?.availableEquipment}');
-    debugPrint('Training Split: ${user?.trainingSplit}');
-    debugPrint('Session Duration: ${user?.sessionDuration}');
-    debugPrint('===========================');
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
-      ),
-    );
-
-    final success = await workoutProvider.generatePlan();
-
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? '✅ Scheda generata con successo!'
-                : '❌ Errore: ${workoutProvider.error ?? "Riprova"}',
-          ),
-          backgroundColor: success ? const Color(0xFF00D26A) : Colors.red,
-        ),
-      );
-      if (success) _loadData();
-    }
-  }
-
-  Widget _buildActionCard(
-    IconData icon,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: CleanTheme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CleanTheme.borderPrimary),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-            ),
-            Icon(Icons.chevron_right, color: CleanTheme.textTertiary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildSkeletonLoading() {
     return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
@@ -1223,13 +1202,65 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  Future<void> _handleMyPlansNavigation() async {
-    // Navigate directly to the list screen to allow management and PDF upload
+  Future<void> _generatePlanDirectly() async {
+    final workoutProvider = Provider.of<WorkoutProvider>(
+      context,
+      listen: false,
+    );
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    final success = await workoutProvider.generatePlan();
+
+    if (mounted) {
+      Navigator.pop(context); // Close loading
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Scheda generata con successo!'),
+            backgroundColor: CleanTheme.accentGreen,
+          ),
+        );
+        _loadData();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Errore: ${workoutProvider.error ?? "Riprova"}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadData() async {
     if (!mounted) return;
 
-    Navigator.push(
+    // Refresh User Data
+    await Provider.of<AuthProvider>(context, listen: false).fetchUser();
+
+    // Refresh Workout Data
+    final workoutProvider = Provider.of<WorkoutProvider>(
       context,
-      MaterialPageRoute(builder: (_) => const CustomWorkoutListScreen()),
-    ).then((_) => _loadData());
+      listen: false,
+    );
+    await workoutProvider.fetchCurrentPlan();
+
+    // Refresh Gamification
+    final gamificationProvider = Provider.of<GamificationProvider>(
+      context,
+      listen: false,
+    );
+    gamificationProvider.refresh();
+
+    if (mounted) setState(() {});
   }
 }

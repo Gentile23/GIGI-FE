@@ -71,13 +71,89 @@ class _WorkoutPdfUploadScreenState extends State<WorkoutPdfUploadScreen> {
               ),
             );
 
-            // Navigate to the new plan (execution or list)
-            // Replace this screen with the execution screen of the new plan
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => CustomWorkoutExecutionScreen(plan: plan),
-              ),
+            final skippedExercises = List<String>.from(
+              response['skipped_exercises'] ?? [],
             );
+
+            if (skippedExercises.isNotEmpty) {
+              await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('⚠️ Alcuni esercizi mancanti'),
+                  content: SizedBox(
+                    width: double.maxFinite,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'I seguenti esercizi non sono stati trovati nel database e sono stati saltati:',
+                        ),
+                        const SizedBox(height: 12),
+                        Flexible(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: skippedExercises.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        skippedExercises[index],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Potrai aggiungere esercizi alternativi modificando la scheda.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Close dialog
+                        // Navigate after closing dialog
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                CustomWorkoutExecutionScreen(plan: plan),
+                          ),
+                        );
+                      },
+                      child: const Text('Ho capito'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              // No skipped exercises, navigate directly
+              if (mounted) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => CustomWorkoutExecutionScreen(plan: plan),
+                  ),
+                );
+              }
+            }
           }
         } else {
           if (mounted) {

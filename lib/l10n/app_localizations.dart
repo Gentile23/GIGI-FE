@@ -3283,7 +3283,7 @@ abstract class AppLocalizations {
   /// No description provided for @actionMyPlans.
   ///
   /// In it, this message translates to:
-  /// **'Le Mie Schede'**
+  /// **'I Miei Workout'**
   String get actionMyPlans;
 
   /// No description provided for @actionFormCheck.
