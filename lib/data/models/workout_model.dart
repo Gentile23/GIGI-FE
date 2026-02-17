@@ -121,7 +121,6 @@ class WorkoutExercise {
   final String? notes;
   final String exerciseType; // 'strength', 'mobility', 'cardio', 'warmup'
   final String position; // 'warmup', 'pre_workout', 'main', 'post_workout'
-  final double? suggestedWeightKg; // AI suggested weight for first-time users
 
   WorkoutExercise({
     required this.exercise,
@@ -131,7 +130,6 @@ class WorkoutExercise {
     this.notes,
     this.exerciseType = 'strength', // Default to strength
     this.position = 'main', // Default to main
-    this.suggestedWeightKg,
   });
 
   Map<String, dynamic> toJson() {
@@ -143,7 +141,6 @@ class WorkoutExercise {
       'notes': notes,
       'exerciseType': exerciseType,
       'position': position,
-      'suggestedWeightKg': suggestedWeightKg,
     };
   }
 
@@ -169,7 +166,6 @@ class WorkoutExercise {
       notes: json['notes'] as String?,
       exerciseType: json['exercise_type'] as String? ?? 'strength',
       position: json['position'] as String? ?? 'main',
-      suggestedWeightKg: _parseDouble(json['suggested_weight_kg']),
     );
   }
 
@@ -183,14 +179,6 @@ class WorkoutExercise {
         return int.parse(match.group(1)!);
       }
     }
-    return null;
-  }
-
-  static double? _parseDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value);
     return null;
   }
 }

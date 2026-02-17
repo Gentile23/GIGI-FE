@@ -38,7 +38,7 @@ class EnhancedHomeScreen extends StatefulWidget {
 
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
-  int _currentWorkoutIndex = 0; // Track which workout to show
+  final int _currentWorkoutIndex = 0; // Track which workout to show
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
 
   @override
@@ -226,7 +226,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                   if (workoutProvider.currentPlan == null) {
                                     if (isQuestionnaireComplete) {
                                       // Questionnaire complete -> generate plan directly
-                                      // AI calibration happens automatically in first workout
                                       _generatePlanDirectly();
                                     } else {
                                       // Questionnaire not done, go to questionnaire
@@ -1155,7 +1154,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       // User has NO plan yet
       if (isQuestionnaireComplete) {
         // Questionnaire complete -> can generate plan directly
-        // AI calibration happens automatically during first workout
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: GigiCoachMessage(
@@ -1248,6 +1246,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     await Provider.of<AuthProvider>(context, listen: false).fetchUser();
 
     // Refresh Workout Data
+    if (!mounted) return;
     final workoutProvider = Provider.of<WorkoutProvider>(
       context,
       listen: false,
@@ -1255,6 +1254,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     await workoutProvider.fetchCurrentPlan();
 
     // Refresh Gamification
+    if (!mounted) return;
     final gamificationProvider = Provider.of<GamificationProvider>(
       context,
       listen: false,

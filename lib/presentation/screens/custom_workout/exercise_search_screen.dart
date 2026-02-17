@@ -206,11 +206,6 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilters =
-        _selectedMuscleGroup != null ||
-        _selectedEquipment != null ||
-        _selectedDifficulty != null;
-
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
@@ -279,8 +274,54 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                // Muscle group selection bar
+                SizedBox(
+                  height: 40,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: MuscleGroups.all.length,
+                    itemBuilder: (context, index) {
+                      final mg = MuscleGroups.all[index];
+                      final isSelected = _selectedMuscleGroup == mg;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(mg),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedMuscleGroup = selected ? mg : null;
+                            });
+                            _loadExercises();
+                          },
+                          backgroundColor: CleanTheme.cardColor,
+                          selectedColor: CleanTheme.primaryColor,
+                          labelStyle: GoogleFonts.outfit(
+                            fontSize: 13,
+                            color: isSelected
+                                ? Colors.white
+                                : CleanTheme.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? CleanTheme.primaryColor
+                                  : Colors.grey[700]!,
+                            ),
+                          ),
+                          showCheckmark: false,
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 const SizedBox(height: 12),
-                // Filter button
+                // Filter button and active chips
                 Row(
                   children: [
                     GestureDetector(
@@ -291,12 +332,16 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: hasActiveFilters
+                          color:
+                              (_selectedEquipment != null ||
+                                  _selectedDifficulty != null)
                               ? CleanTheme.primaryColor.withValues(alpha: 0.2)
                               : CleanTheme.cardColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: hasActiveFilters
+                            color:
+                                (_selectedEquipment != null ||
+                                    _selectedDifficulty != null)
                                 ? CleanTheme.primaryColor
                                 : Colors.grey[700]!,
                           ),
@@ -307,7 +352,9 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                             Icon(
                               Icons.filter_list,
                               size: 18,
-                              color: hasActiveFilters
+                              color:
+                                  (_selectedEquipment != null ||
+                                      _selectedDifficulty != null)
                                   ? CleanTheme.primaryColor
                                   : CleanTheme.textSecondary,
                             ),
@@ -316,46 +363,26 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                               AppLocalizations.of(context)!.filters,
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
-                                color: hasActiveFilters
+                                color:
+                                    (_selectedEquipment != null ||
+                                        _selectedDifficulty != null)
                                     ? CleanTheme.primaryColor
                                     : CleanTheme.textSecondary,
                               ),
                             ),
-                            if (hasActiveFilters) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: CleanTheme.primaryColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  _countActiveFilters().toString(),
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Active filter chips
-                    if (_selectedMuscleGroup != null)
-                      _buildFilterChip(_selectedMuscleGroup!, () {
-                        setState(() => _selectedMuscleGroup = null);
-                        _loadExercises();
-                      }),
                     if (_selectedEquipment != null)
                       _buildFilterChip(_selectedEquipment!, () {
                         setState(() => _selectedEquipment = null);
+                        _loadExercises();
+                      }),
+                    if (_selectedDifficulty != null)
+                      _buildFilterChip(_selectedDifficulty!, () {
+                        setState(() => _selectedDifficulty = null);
                         _loadExercises();
                       }),
                   ],
@@ -368,14 +395,6 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         ],
       ),
     );
-  }
-
-  int _countActiveFilters() {
-    int count = 0;
-    if (_selectedMuscleGroup != null) count++;
-    if (_selectedEquipment != null) count++;
-    if (_selectedDifficulty != null) count++;
-    return count;
   }
 
   Widget _buildFilterChip(String label, VoidCallback onRemove) {

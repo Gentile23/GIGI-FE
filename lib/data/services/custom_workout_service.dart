@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
 import '../models/custom_workout_model.dart';
@@ -128,47 +127,6 @@ class CustomWorkoutService {
         'success': false,
         'message':
             e.response?.data['message'] ?? 'Failed to delete custom workout',
-      };
-    }
-  }
-
-  /// Upload Workout PDF
-  Future<Map<String, dynamic>> uploadWorkoutPdf(PlatformFile file) async {
-    try {
-      String fileName = file.name;
-      MultipartFile multipartFile;
-
-      if (file.bytes != null) {
-        multipartFile = MultipartFile.fromBytes(
-          file.bytes!,
-          filename: fileName,
-        );
-      } else {
-        multipartFile = await MultipartFile.fromFile(
-          file.path!,
-          filename: fileName,
-        );
-      }
-
-      FormData formData = FormData.fromMap({'pdf_file': multipartFile});
-
-      final response = await _apiClient.dio.post(
-        '${ApiConfig.customWorkouts}/upload-pdf',
-        data: formData,
-      );
-
-      if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'plan': CustomWorkoutPlan.fromJson(response.data['plan']),
-        };
-      }
-
-      return {'success': false, 'message': 'Upload failed'};
-    } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Upload failed',
       };
     }
   }

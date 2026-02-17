@@ -4,6 +4,7 @@ import '../data/models/user_model.dart';
 import '../data/models/workout_template_model.dart';
 import '../data/services/api_client.dart';
 import '../data/services/workout_service.dart';
+import '../core/constants/subscription_tiers.dart';
 
 class WorkoutProvider with ChangeNotifier {
   final ApiClient _apiClient;
@@ -110,11 +111,19 @@ class WorkoutProvider with ChangeNotifier {
           );
         }
 
-        // If plan is processing, start polling (but only if not already polling)
+        // If plan is processing, check if data is already populated
         if (_currentPlan?.status == 'processing' && !_isGenerating) {
-          debugPrint('DEBUG: Plan is processing, starting poll');
-          _isGenerating = true;
-          _pollPlanStatus(_currentPlan!.id);
+          if (_currentPlan!.workouts.isNotEmpty &&
+              _currentPlan!.workouts.any((w) => w.exercises.isNotEmpty)) {
+            // Data already populated but status stuck — treat as completed
+            debugPrint(
+              'DEBUG: Plan processing but data populated. Treating as completed.',
+            );
+          } else {
+            debugPrint('DEBUG: Plan is processing, starting poll');
+            _isGenerating = true;
+            _pollPlanStatus(_currentPlan!.id);
+          }
         }
       } else {
         // No plan found is not an error - it's expected for new users
@@ -274,8 +283,22 @@ class WorkoutProvider with ChangeNotifier {
               _isLoading = false;
               notifyListeners();
               return;
+            } else if (plan.status == 'processing' &&
+                plan.workouts.isNotEmpty &&
+                plan.workouts.any((w) => w.exercises.isNotEmpty)) {
+              // Data is populated but status stuck at processing — treat as completed
+              debugPrint(
+                'Plan data fully populated but status still processing. Treating as completed.',
+              );
+              _currentPlan = plan;
+              _isGenerating = false;
+              _isLoading = false;
+              await fetchWorkoutPlans();
+              notifyListeners();
+              onGenerationComplete?.call();
+              return;
             }
-            // If still processing, continue polling
+            // If still processing with no data, continue polling
           }
         }
       } catch (e) {
@@ -311,8 +334,15 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Check if user can generate a new workout plan (7-day cooldown)
+  /// Check if user can generate a new workout plan
   bool canGenerateNewPlan(UserModel user) {
+    // Elite users always can
+    // Using SubscriptionTierConfig logic which handles "0" as unlimited
+    final config = SubscriptionTierConfig.fromTier(user.subscriptionTier);
+
+    // If interval is 0, it's unlimited
+    if (config.quotas.workoutPlanIntervalWeeks == 0) return true;
+
     if (user.lastPlanGeneration == null) {
       return true; // First time generating
     }
@@ -320,7 +350,9 @@ class WorkoutProvider with ChangeNotifier {
     final daysSinceLastGeneration = DateTime.now()
         .difference(user.lastPlanGeneration!)
         .inDays;
-    return daysSinceLastGeneration >= 7;
+
+    final requiredDays = config.quotas.workoutPlanIntervalWeeks * 7;
+    return daysSinceLastGeneration >= requiredDays;
   }
 
   /// Get days remaining until next plan generation is allowed
@@ -329,10 +361,16 @@ class WorkoutProvider with ChangeNotifier {
       return 0; // Can generate immediately
     }
 
+    final config = SubscriptionTierConfig.fromTier(user.subscriptionTier);
+    if (config.quotas.workoutPlanIntervalWeeks == 0) return 0;
+
     final daysSinceLastGeneration = DateTime.now()
         .difference(user.lastPlanGeneration!)
         .inDays;
-    final daysRemaining = 7 - daysSinceLastGeneration;
-    return daysRemaining > 0 ? daysRemaining : 0;
+
+    final requiredDays = config.quotas.workoutPlanIntervalWeeks * 7;
+    final remaining = requiredDays - daysSinceLastGeneration;
+
+    return remaining > 0 ? remaining : 0;
   }
 }

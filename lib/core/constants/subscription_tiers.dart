@@ -17,8 +17,8 @@ class SubscriptionQuotas {
   final int formAnalysisPerWeek;
 
   // ─── NUTRITION ───────────────────────────────────────────────────────────
-  /// Numero di analisi pasto per giorno (-1 = illimitato)
-  final int mealAnalysisPerDay;
+  /// Numero di analisi pasto per settimana (-1 = illimitato)
+  final int mealAnalysisLimit;
 
   /// Numero di ricette AI per settimana (-1 = illimitato)
   final int recipesPerWeek;
@@ -34,47 +34,76 @@ class SubscriptionQuotas {
   /// Periodo in settimane per i workout custom (0 = no limit)
   final int customWorkoutsPeriodWeeks;
 
+  // ─── NEW FEATURES ────────────────────────────────────────────────────────
+  /// Numero di sessioni "Execute with GiGi" a settimana
+  final int executeWithGigiPerWeek;
+
+  /// Limite creazione lista spesa (1 = una tantum, -1 = illimitato)
+  final int shoppingListLimit;
+
+  /// Cambio pasto a settimana
+  final int changeMealPerWeek;
+
+  /// Cambio singolo alimento a settimana
+  final int changeFoodItemPerWeek;
+
   const SubscriptionQuotas({
     required this.workoutPlanIntervalWeeks,
     required this.formAnalysisPerWeek,
-    required this.mealAnalysisPerDay,
+    required this.mealAnalysisLimit,
     required this.recipesPerWeek,
     required this.voiceCoachingEnabled,
     required this.customWorkoutsPerPeriod,
     required this.customWorkoutsPeriodWeeks,
+    required this.executeWithGigiPerWeek,
+    required this.shoppingListLimit,
+    required this.changeMealPerWeek,
+    required this.changeFoodItemPerWeek,
   });
 
   /// FREE: Quota generose per hook, ma con limiti che creano desiderio di upgrade
   static const SubscriptionQuotas free = SubscriptionQuotas(
     workoutPlanIntervalWeeks: 8, // 1 piano ogni 8 settimane
     formAnalysisPerWeek: 2, // 2 form check a settimana
-    mealAnalysisPerDay: 1, // 1 analisi pasto al giorno
-    recipesPerWeek: 1, // 1 ricetta a settimana
+    mealAnalysisLimit: 1, // 1 analisi pasto a settimana
+    recipesPerWeek: 2, // 2 ricette a settimana
     voiceCoachingEnabled: false, // Solo nel trial
     customWorkoutsPerPeriod: 3, // 3 workout custom
     customWorkoutsPeriodWeeks: 8, // ogni 8 settimane
+    executeWithGigiPerWeek: 2,
+    shoppingListLimit: 1, // Una tantum
+    changeMealPerWeek: 1,
+    changeFoodItemPerWeek: 1,
   );
 
   /// PRO: Limiti generosi che soddisfano la maggior parte degli utenti
   static const SubscriptionQuotas pro = SubscriptionQuotas(
     workoutPlanIntervalWeeks: 2, // Piano ogni 2 settimane
-    formAnalysisPerWeek: 10, // 10 form check a settimana
-    mealAnalysisPerDay: 5, // 5 analisi pasto al giorno
-    recipesPerWeek: 5, // 5 ricette a settimana
+    formAnalysisPerWeek: 20, // 20 form check a settimana
+    mealAnalysisLimit: 20, // 20 analisi pasto a settimana
+    recipesPerWeek: 20, // 20 ricette a settimana
     voiceCoachingEnabled: true, // Voice coaching attivo
     customWorkoutsPerPeriod: 5, // 5 workout custom
     customWorkoutsPeriodWeeks: 1, // a settimana
+    executeWithGigiPerWeek: -1, // Illimitato
+    shoppingListLimit: -1, // Illimitato
+    changeMealPerWeek: -1, // Illimitato
+    changeFoodItemPerWeek: -1, // Illimitato
   );
 
   /// ELITE: Tutto illimitato per power users
   static const SubscriptionQuotas elite = SubscriptionQuotas(
     workoutPlanIntervalWeeks: 0, // Illimitato (0 = no wait)
     formAnalysisPerWeek: -1, // Illimitato
-    mealAnalysisPerDay: -1, // Illimitato
+    mealAnalysisLimit: -1, // Illimitato
     recipesPerWeek: -1, // Illimitato
     voiceCoachingEnabled: true, // Voice coaching attivo
     customWorkoutsPerPeriod: -1, // Illimitato
     customWorkoutsPeriodWeeks: 0, // N/A
+    executeWithGigiPerWeek: -1, // Illimitato
+    shoppingListLimit: -1, // Illimitato
+    changeMealPerWeek: -1, // Illimitato
+    changeFoodItemPerWeek: -1, // Illimitato
   );
 }
 
@@ -120,7 +149,7 @@ class SubscriptionTierConfig {
     features: [
       'Piano AI ogni 8 settimane',
       '2 Form Analysis AI/settimana',
-      '1 Analisi pasto/giorno',
+      '1 Analisi pasto/settimana',
       '1 Ricetta AI/settimana',
       'Libreria 500+ esercizi',
       'Tracking workouts',
@@ -215,9 +244,9 @@ class SubscriptionTierConfig {
       case 'unlimited_form_analysis':
         return quotas.formAnalysisPerWeek == -1;
       case 'nutrition':
-        return quotas.mealAnalysisPerDay != 0;
+        return quotas.mealAnalysisLimit != 0;
       case 'unlimited_nutrition':
-        return quotas.mealAnalysisPerDay == -1;
+        return quotas.mealAnalysisLimit == -1;
       case 'recipes':
         return quotas.recipesPerWeek != 0;
       case 'unlimited_recipes':
@@ -277,11 +306,11 @@ class SubscriptionTierConfig {
     return usedThisWeek < quotas.formAnalysisPerWeek;
   }
 
-  /// Verifica se l'utente può analizzare un pasto oggi
-  bool canAnalyzeMeal(int usedToday) {
-    if (quotas.mealAnalysisPerDay == -1) return true;
-    if (quotas.mealAnalysisPerDay == 0) return false;
-    return usedToday < quotas.mealAnalysisPerDay;
+  /// Verifica se l'utente può analizzare un pasto questa settimana
+  bool canAnalyzeMeal(int usedThisWeek) {
+    if (quotas.mealAnalysisLimit == -1) return true;
+    if (quotas.mealAnalysisLimit == 0) return false;
+    return usedThisWeek < quotas.mealAnalysisLimit;
   }
 
   /// Verifica se l'utente può ottenere una ricetta questa settimana
@@ -322,7 +351,7 @@ class SubscriptionTierConfig {
 
   /// Ottiene la stringa per analisi pasto
   String get mealAnalysisQuotaDisplay {
-    return formatQuota(quotas.mealAnalysisPerDay, '/giorno');
+    return formatQuota(quotas.mealAnalysisLimit, '/settimana');
   }
 
   /// Ottiene la stringa per ricette

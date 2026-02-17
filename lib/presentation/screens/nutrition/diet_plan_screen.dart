@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../paywall/paywall_screen.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../data/services/quota_service.dart'; // Import QuotaService
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
@@ -639,21 +640,19 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   icon: const Icon(Icons.auto_awesome, size: 20),
                   color: Colors.amber,
                   tooltip: 'Rigenera con IA',
-                  onPressed: () {
-                    final authProvider = Provider.of<AuthProvider>(
-                      context,
-                      listen: false,
+                  onPressed: () async {
+                    final quotaService = QuotaService();
+                    final checkResult = await quotaService.checkAndRecord(
+                      QuotaAction.changeMeal,
                     );
-                    final user = authProvider.user;
-                    final isPremium = user?.subscription?.isActive ?? false;
 
-                    if (!isPremium) {
+                    if (!checkResult.canPerform && context.mounted) {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const PaywallScreen(),
                         ),
                       );
-                    } else {
+                    } else if (checkResult.canPerform && context.mounted) {
                       _showPremiumRegenerateDialog(
                         context,
                         dayIndex,
@@ -790,21 +789,19 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               icon: const Icon(Icons.swap_horiz_rounded, size: 22),
               color: Colors.black,
               tooltip: 'Sostituisci',
-              onPressed: () {
-                final authProvider = Provider.of<AuthProvider>(
-                  context,
-                  listen: false,
+              onPressed: () async {
+                final quotaService = QuotaService();
+                final checkResult = await quotaService.checkAndRecord(
+                  QuotaAction.changeFood,
                 );
-                final user = authProvider.user;
-                final isPremium = user?.subscription?.isActive ?? false;
 
-                if (!isPremium) {
+                if (!checkResult.canPerform && context.mounted) {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const PaywallScreen(),
                     ),
                   );
-                } else {
+                } else if (checkResult.canPerform && context.mounted) {
                   _showSubstitutionModal(
                     context,
                     food,
@@ -1001,6 +998,25 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   child: ElevatedButton(
                     onPressed: () async {
                       Navigator.pop(ctx);
+
+                      // Check Quota
+                      final quotaService = QuotaService();
+                      final checkResult = await quotaService.checkAndRecord(
+                        QuotaAction.changeMeal,
+                      );
+
+                      if (!checkResult.canPerform) {
+                        if (context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PaywallScreen(),
+                            ),
+                          );
+                        }
+                        return;
+                      }
+
                       // Capture scaffold messenger before async gap
                       final scaffoldMessenger = ScaffoldMessenger.of(context);
                       // Trigger Provider
@@ -1074,6 +1090,23 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           ElevatedButton(
             onPressed: () async {
+              // Check Quota
+              final quotaService = QuotaService();
+              final checkResult = await quotaService.checkAndRecord(
+                QuotaAction.changeMeal,
+              );
+
+              if (!checkResult.canPerform) {
+                Navigator.pop(ctx);
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                  );
+                }
+                return;
+              }
+
               Navigator.pop(ctx);
               final provider = Provider.of<NutritionCoachProvider>(
                 context,
@@ -1212,7 +1245,26 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                           foregroundColor: Colors.white,
                           shape: const StadiumBorder(),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          // Check Quota
+                          final quotaService = QuotaService();
+                          final checkResult = await quotaService.checkAndRecord(
+                            QuotaAction.changeFoodItem,
+                          );
+
+                          if (!checkResult.canPerform) {
+                            Navigator.pop(context);
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const PaywallScreen(),
+                                ),
+                              );
+                            }
+                            return;
+                          }
+
                           Navigator.pop(context);
                           Provider.of<NutritionCoachProvider>(
                             context,

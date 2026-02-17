@@ -122,6 +122,7 @@ class CleanCard extends StatelessWidget {
   final double borderRadius;
   final bool isSelected;
   final bool enableGlass;
+  final double? width;
 
   const CleanCard({
     super.key,
@@ -136,6 +137,7 @@ class CleanCard extends StatelessWidget {
     this.borderRadius = 24, // Increased default radius for Gigi ID
     this.isSelected = false,
     this.enableGlass = true,
+    this.width,
   });
 
   @override
@@ -179,6 +181,7 @@ class CleanCard extends StatelessWidget {
 
                 // Background & Kinetic Overlay
                 Container(
+                  width: width,
                   padding: padding ?? const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color:

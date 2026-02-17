@@ -5,8 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
+import '../../../data/services/quota_service.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../paywall/paywall_screen.dart';
 
 class MealLoggingScreen extends StatefulWidget {
   const MealLoggingScreen({super.key});
@@ -16,7 +18,12 @@ class MealLoggingScreen extends StatefulWidget {
 }
 
 class _MealLoggingScreenState extends State<MealLoggingScreen> {
+  final _fatController = TextEditingController();
+
+  // Services
   late final NutritionService _nutritionService;
+  late final QuotaService _quotaService;
+
   final _formKey = GlobalKey<FormState>();
 
   String _selectedMealType = 'breakfast';
@@ -25,7 +32,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
-  final _fatController = TextEditingController();
+  // _fatController is already defined at top
 
   // Valori base per 100g (usati per ricalcolo)
   double _baseCaloriesPer100g = 0;
@@ -55,6 +62,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   void initState() {
     super.initState();
     _nutritionService = NutritionService(ApiClient());
+    _quotaService = QuotaService(); // Initialize QuotaService
     _gramsController.addListener(_recalculateMacros);
   }
 
@@ -86,6 +94,38 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    // 1. Check Quota
+    final check = await _quotaService.canPerformAction(
+      QuotaAction.mealAnalysis,
+    );
+    if (!check.canPerform) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              check.reason.isNotEmpty
+                  ? check.reason
+                  : 'Limite scansioni raggiunto. Passa a Premium!',
+            ),
+            backgroundColor: CleanTheme.accentOrange,
+            action: SnackBarAction(
+              label: 'UPGRADE',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PaywallScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
@@ -106,6 +146,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         // Chiedi i grammi PRIMA di inviare all'AI
         final grams = await _showGramsInputDialog();
         if (grams == null) return; // Utente ha annullato
+
+        // 2. Record Usage (only if user confirms action)
+        await _quotaService.recordUsage(QuotaAction.mealAnalysis);
 
         setState(() => _isSubmitting = true);
 

@@ -66,6 +66,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
     final color = _getScoreColor(score);
 
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
@@ -125,6 +126,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
 
   Widget _buildSummaryCard() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,6 +177,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
     if (strengths.isEmpty) return const SizedBox.shrink();
 
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,6 +221,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
     if (weaknesses.isEmpty) return const SizedBox.shrink();
 
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,6 +264,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
     if (bodyAreas.isEmpty) return const SizedBox.shrink();
 
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,6 +478,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
 
   Widget _buildErrorsCard() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,6 +563,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
 
   Widget _buildSuggestionsCard() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

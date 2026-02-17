@@ -223,8 +223,7 @@ class ProfileCompletionBanner extends StatelessWidget {
     int total = 5;
     List<_MissingItem> missing = [];
 
-    // Check if first workout completed (calibration)
-    // This is now automatic, so we count it as done if questionnaire is complete
+    // Check if questionnaire is complete
     if (user.isQuestionnaireComplete == true) {
       completed++;
     } else {

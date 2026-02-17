@@ -5,6 +5,8 @@ import '../../../data/models/exercise_intro_model.dart';
 import '../../../data/services/voice_coaching_service.dart';
 import '../../widgets/voice_coaching/mode_selection_sheet.dart';
 import '../../widgets/voice_coaching/immersive_coaching_overlay.dart';
+import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
+import '../../../data/services/quota_service.dart'; // Import QuotaService
 
 /// Mixin that provides voice coaching integration for workout screens
 ///
@@ -78,6 +80,21 @@ mixin VoiceCoachingIntegrationMixin<T extends StatefulWidget> on State<T> {
     required String exerciseId,
     required VoidCallback onStart,
   }) async {
+    // Check quota for Execute with GiGi
+    final quotaService = QuotaService();
+    final checkResult = await quotaService.checkAndRecord(
+      QuotaAction.executeWithGigi,
+    );
+
+    if (!checkResult.canPerform) {
+      if (context.mounted) {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const PaywallScreen()));
+      }
+      return;
+    }
+
     // Fetch personalized intro first
     await _fetchIntro(exerciseId);
 

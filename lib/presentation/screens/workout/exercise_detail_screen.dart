@@ -108,21 +108,21 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 builder: (context) {
                   final Map<String, Color> colorMap = {};
 
-                  // Secondary muscles: Lighter/Faded color
+                  // Secondary muscles: Very light faded red
                   for (final muscle
                       in widget
                           .workoutExercise
                           .exercise
                           .secondaryMuscleGroups) {
-                    colorMap[muscle] = CleanTheme.primaryColor.withValues(
-                      alpha: 0.4,
-                    );
+                    colorMap[muscle] = const Color(
+                      0xFFFF0000,
+                    ).withValues(alpha: 0.15);
                   }
 
-                  // Primary muscles: Strong/Standard color (overrides secondary if overlap)
+                  // Primary muscles: Bright red
                   for (final muscle
                       in widget.workoutExercise.exercise.muscleGroups) {
-                    colorMap[muscle] = CleanTheme.primaryColor;
+                    colorMap[muscle] = const Color(0xFFFF0000);
                   }
 
                   return CleanCard(
@@ -131,7 +131,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       muscleGroups:
                           widget.workoutExercise.exercise.muscleGroups,
                       height: 300,
-                      highlightColor: CleanTheme.primaryColor,
+                      highlightColor: const Color(0xFFFF0000),
                       colorMap: colorMap,
                     ),
                   );

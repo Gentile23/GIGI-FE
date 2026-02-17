@@ -76,9 +76,13 @@ class QuotaService {
 enum QuotaAction {
   formAnalysis('form_analysis'),
   mealAnalysis('meal_analysis'),
-  recipes('recipes'),
+  recipes('recipes'), // Maps to Chef AI
   customWorkout('custom_workout'),
-  workoutPlan('workout_plan');
+  workoutPlan('workout_plan'),
+  executeWithGigi('execute_with_gigi'),
+  shoppingList('shopping_list'),
+  changeMeal('change_meal'),
+  changeFood('change_food');
 
   final String value;
   const QuotaAction(this.value);

@@ -34,6 +34,11 @@ class QuotaUsageDetails {
   final QuotaUsage recipes;
   final QuotaUsage customWorkouts;
   final WorkoutPlanQuota workoutPlan;
+  // New quotas
+  final QuotaUsage executeWithGigi;
+  final QuotaUsage shoppingList;
+  final QuotaUsage changeMeal;
+  final QuotaUsage changeFood;
 
   QuotaUsageDetails({
     required this.formAnalysis,
@@ -41,15 +46,26 @@ class QuotaUsageDetails {
     required this.recipes,
     required this.customWorkouts,
     required this.workoutPlan,
+    required this.executeWithGigi,
+    required this.shoppingList,
+    required this.changeMeal,
+    required this.changeFood,
   });
 
   factory QuotaUsageDetails.fromJson(Map<String, dynamic> json) {
+    // Check extended_status first, fallback to empty or direct keys if structure varies
+    final extended = json['extended_status'] as Map<String, dynamic>? ?? json;
+
     return QuotaUsageDetails(
       formAnalysis: QuotaUsage.fromJson(json['form_analysis'] ?? {}),
       mealAnalysis: QuotaUsage.fromJson(json['meal_analysis'] ?? {}),
       recipes: QuotaUsage.fromJson(json['recipes'] ?? {}),
       customWorkouts: QuotaUsage.fromJson(json['custom_workouts'] ?? {}),
       workoutPlan: WorkoutPlanQuota.fromJson(json['workout_plan'] ?? {}),
+      executeWithGigi: QuotaUsage.fromJson(extended['execute_with_gigi'] ?? {}),
+      shoppingList: QuotaUsage.fromJson(extended['shopping_list'] ?? {}),
+      changeMeal: QuotaUsage.fromJson(extended['change_meal'] ?? {}),
+      changeFood: QuotaUsage.fromJson(extended['change_food'] ?? {}),
     );
   }
 }

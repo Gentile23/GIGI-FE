@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/nutrition_coach_provider.dart';
+import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
+import '../../../data/services/quota_service.dart'; // Import QuotaService
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -373,7 +375,22 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   child: ElevatedButton(
                     onPressed: provider.isLoading
                         ? null
-                        : () => provider.generateShoppingList(_days),
+                        : () async {
+                            final quotaService = QuotaService();
+                            final checkResult = await quotaService
+                                .checkAndRecord(QuotaAction.shoppingList);
+
+                            if (!checkResult.canPerform && context.mounted) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const PaywallScreen(),
+                                ),
+                              );
+                            } else if (checkResult.canPerform &&
+                                context.mounted) {
+                              provider.generateShoppingList(_days);
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(

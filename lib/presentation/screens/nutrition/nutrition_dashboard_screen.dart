@@ -434,7 +434,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🔥 Traccia Calorie',
+                    '📸 Scan AI',
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -442,7 +442,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     ),
                   ),
                   Text(
-                    'Scansiona pasto e conta le kcal',
+                    'Scansiona pasto con Intelligenza Artificiale',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.9),

@@ -7,9 +7,6 @@ import '../../../data/services/custom_workout_service.dart';
 import '../../../data/services/api_client.dart';
 
 import 'create_custom_workout_screen.dart';
-import 'workout_pdf_upload_screen.dart';
-import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
 
 /// Screen showing the list of user's custom workout plans
 class CustomWorkoutListScreen extends StatefulWidget {
@@ -130,25 +127,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              // Navigate to PDF Upload
-              // We need to import WorkoutPdfUploadScreen
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WorkoutPdfUploadScreen(),
-                ),
-              );
-              if (result == true) {
-                _loadWorkouts();
-              }
-            },
-            icon: const Icon(Icons.upload_file),
-            tooltip: 'Carica PDF',
-          ),
-        ],
+        actions: [],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
@@ -233,10 +212,6 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             _buildCreateCustomCard(),
             const SizedBox(height: 16),
 
-            // Prominent PDF Upload Card (Premium)
-            _buildPdfUploadCard(),
-            const SizedBox(height: 24),
-
             // Existing List or Empty State
             if (_plans.isEmpty)
               _buildEmptyStateContent()
@@ -290,7 +265,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Crea manualmente la tua scheda o carica un PDF.',
+              'Crea manualmente la tua scheda.',
               style: GoogleFonts.outfit(
                 fontSize: 14,
                 color: CleanTheme.textSecondary,
@@ -300,129 +275,6 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPdfUploadCard() {
-    // We need AuthProvider to check subscription
-    // Since we aren't sure if Provider is imported, we should probably wrap this or hope it is available.
-    // Checking file imports... It does NOT have provider.
-    // I will add the imports in a separate step or try to use what I have.
-    // Actually, I should probably do a multi-replace to add imports AND this method.
-
-    // For now, I'll write the widget assuming context access to Provider.
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        final isPremium = authProvider.user?.subscription?.isActive ?? false;
-
-        return GestureDetector(
-          onTap: () async {
-            if (isPremium) {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WorkoutPdfUploadScreen(),
-                ),
-              );
-              if (result == true) {
-                _loadWorkouts();
-              }
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Funzionalità PDF riservata agli utenti Premium',
-                  ),
-                  backgroundColor: const Color(0xFFFFD700),
-                ),
-              );
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFDAA520),
-                  const Color(0xFFFFD700),
-                ], // Gold Gradient
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFDAA520).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.picture_as_pdf,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Carica Scheda PDF',
-                            style: GoogleFonts.outfit(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (!isPremium)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Icon(
-                                Icons.lock,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Digitalizza la tua scheda cartacea con l\'AI',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.arrow_forward, color: Colors.white),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 

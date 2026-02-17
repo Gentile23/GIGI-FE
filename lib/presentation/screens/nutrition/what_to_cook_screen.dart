@@ -4,6 +4,8 @@ import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
+import '../../../data/services/quota_service.dart'; // Import QuotaService
 
 class WhatToCookScreen extends StatefulWidget {
   const WhatToCookScreen({super.key});
@@ -885,6 +887,19 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
 
   Future<void> _searchRecipes() async {
     if (_ingredients.isEmpty) return;
+
+    // Check Quota
+    final quotaService = QuotaService();
+    final checkResult = await quotaService.checkAndRecord(QuotaAction.recipes);
+
+    if (!checkResult.canPerform) {
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (context) => const PaywallScreen()));
+      }
+      return;
+    }
 
     setState(() => _isLoading = true);
 

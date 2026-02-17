@@ -1,5 +1,6 @@
 import 'subscription_model.dart';
 import 'user_profile_model.dart';
+import '../../core/constants/subscription_tiers.dart';
 
 /// User data model
 class UserModel {
@@ -17,8 +18,6 @@ class UserModel {
   final int? sessionDuration;
   final String? cardioPreference;
   final String? mobilityPreference;
-  final bool trialWorkoutCompleted;
-  final DateTime? trialWorkoutCompletedAt;
   final bool voiceCoachingTrialUsed;
   final String? gender;
   final DateTime? dateOfBirth;
@@ -55,8 +54,6 @@ class UserModel {
     this.sessionDuration,
     this.cardioPreference,
     this.mobilityPreference,
-    this.trialWorkoutCompleted = false,
-    this.trialWorkoutCompletedAt,
     this.voiceCoachingTrialUsed = false,
     this.gender,
     this.dateOfBirth,
@@ -120,15 +117,6 @@ class UserModel {
       mobilityPreference:
           profile?['mobility_preference'] as String? ??
           json['mobility_preference'] as String?,
-      trialWorkoutCompleted:
-          profile?['trial_workout_completed'] as bool? ??
-          json['trial_workout_completed'] as bool? ??
-          false,
-      trialWorkoutCompletedAt: profile?['trial_workout_completed_at'] != null
-          ? DateTime.parse(profile!['trial_workout_completed_at'] as String)
-          : (json['trial_workout_completed_at'] != null
-                ? DateTime.parse(json['trial_workout_completed_at'] as String)
-                : null),
       voiceCoachingTrialUsed:
           profile?['voice_coaching_trial_used'] as bool? ??
           json['voice_coaching_trial_used'] as bool? ??
@@ -248,6 +236,10 @@ class UserModel {
     return null;
   }
 
+  /// Convenience getter for subscription tier
+  SubscriptionTier get subscriptionTier =>
+      subscription?.tier ?? SubscriptionTier.free;
+
   /// Check if user has completed the full questionnaire
   /// Required fields for workout plan generation:
   /// - goal (obiettivo)
@@ -314,8 +306,6 @@ class UserModel {
       'session_duration': sessionDuration,
       'cardio_preference': cardioPreference,
       'mobility_preference': mobilityPreference,
-      'trial_workout_completed': trialWorkoutCompleted,
-      'trial_workout_completed_at': trialWorkoutCompletedAt?.toIso8601String(),
       'voice_coaching_trial_used': voiceCoachingTrialUsed,
       'gender': gender,
       'date_of_birth': dateOfBirth?.toIso8601String(),
@@ -352,8 +342,6 @@ class UserModel {
     int? sessionDuration,
     String? cardioPreference,
     String? mobilityPreference,
-    bool? trialWorkoutCompleted,
-    DateTime? trialWorkoutCompletedAt,
     bool? voiceCoachingTrialUsed,
     String? gender,
     DateTime? dateOfBirth,
@@ -388,10 +376,6 @@ class UserModel {
       sessionDuration: sessionDuration ?? this.sessionDuration,
       cardioPreference: cardioPreference ?? this.cardioPreference,
       mobilityPreference: mobilityPreference ?? this.mobilityPreference,
-      trialWorkoutCompleted:
-          trialWorkoutCompleted ?? this.trialWorkoutCompleted,
-      trialWorkoutCompletedAt:
-          trialWorkoutCompletedAt ?? this.trialWorkoutCompletedAt,
       voiceCoachingTrialUsed:
           voiceCoachingTrialUsed ?? this.voiceCoachingTrialUsed,
       gender: gender ?? this.gender,

@@ -249,6 +249,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     final isPremium = _quota!.isPremium;
 
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -344,6 +345,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     return Column(
       children: [
         CleanCard(
+          width: double.infinity,
           onTap: () => _pickVideo(ImageSource.camera),
           padding: const EdgeInsets.all(32),
           child: Column(
@@ -382,6 +384,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         ),
         const SizedBox(height: 16),
         CleanCard(
+          width: double.infinity,
           onTap: () => _pickVideo(ImageSource.gallery),
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -408,6 +411,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Widget _buildVideoPreview() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -467,6 +471,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Widget _buildAnalyzingWidget() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
@@ -510,6 +515,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Widget _buildInfoCard() {
     return CleanCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

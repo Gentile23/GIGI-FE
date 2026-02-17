@@ -54,24 +54,21 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       // Map muscle groups to data-elem values
       // If colorMap is present, we use it directly. Otherwise we use muscleGroups + highlightColor
 
-      final Map<String, String> elementColors = {};
+      final Map<String, Color> elementColors = {};
 
       if (widget.colorMap != null) {
         // Map based on the provided color map
         widget.colorMap!.forEach((group, color) {
           final elements = _mapMuscleGroupToElements(group);
-          final hex = '#${color.toARGB32().toRadixString(16).substring(2, 8)}';
           for (var elem in elements) {
-            elementColors[elem] = hex;
+            elementColors[elem] = color;
           }
         });
       } else {
         // Legacy mode: use muscleGroups and single highlightColor
         final elements = _mapMuscleGroupsToElements(widget.muscleGroups);
-        final highlightHex =
-            '#${widget.highlightColor.toARGB32().toRadixString(16).substring(2, 8)}';
         for (var elem in elements) {
-          elementColors[elem] = highlightHex;
+          elementColors[elem] = widget.highlightColor;
         }
       }
 
@@ -200,7 +197,7 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   /// Modifies XML document to highlight specific muscle groups with specific colors
   void _highlightMusclesInXml(
     xml.XmlDocument document,
-    Map<String, String> elementColors,
+    Map<String, Color> elementColors,
   ) {
     // Find all elements with data-elem attribute
     final allElements = document.findAllElements('*');
@@ -217,8 +214,11 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
 
         // Then, if this muscle should be highlighted, apply the highlight color
         if (elementColors.containsKey(dataElem)) {
-          element.setAttribute('fill', elementColors[dataElem]!);
-          element.setAttribute('opacity', '0.8');
+          final color = elementColors[dataElem]!;
+          final hex = '#${color.toARGB32().toRadixString(16).substring(2, 8)}';
+          element.setAttribute('fill', hex);
+          // Use the actual color opacity instead of a hardcoded value
+          element.setAttribute('opacity', color.a.toString());
         }
       }
     }
