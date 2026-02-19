@@ -108,7 +108,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 final user = authProvider.user;
 
                 // SKELETON LOADING STATE
-                if (workoutProvider.isLoading) {
+                if (workoutProvider.isLoading ||
+                    !workoutProvider.isInitialized) {
                   return _buildSkeletonLoading();
                 }
 

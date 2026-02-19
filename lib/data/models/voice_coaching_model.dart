@@ -63,18 +63,35 @@ class VoiceCoaching {
     }
 
     return VoiceCoaching(
-      exerciseId: json['exercise_id']
-          .toString(), // Convert to String to handle both int and String
-      audioUrl: json['audio_url'] as String?,
+      exerciseId: json['exercise_id']?.toString() ?? '0',
+      audioUrl: json['audio_url']?.toString(),
       scriptText: simpleText,
       structuredScript: structured,
       enhancedScript: enhanced,
       multiPhase: multiPhaseData,
-      generatedAt: json['generated_at'] != null
-          ? DateTime.parse(json['generated_at'] as String)
-          : null,
-      cached: json['cached'] as bool? ?? false,
+      generatedAt: _parseDate(json['generated_at']),
+      cached: _parseBool(json['cached']),
     );
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    try {
+      return DateTime.parse(value.toString());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool _parseBool(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value != 0;
+    if (value is String) {
+      final s = value.toLowerCase();
+      return s == 'true' || s == '1' || s == 'yes';
+    }
+    return false;
   }
 
   Map<String, dynamic> toJson() {

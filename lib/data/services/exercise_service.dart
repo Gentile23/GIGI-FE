@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
@@ -11,6 +12,10 @@ class ExerciseService {
 
   /// Get the current device locale code (e.g., 'it' or 'en')
   String _getLocale() {
+    if (kIsWeb) {
+      // On web we can't use Platform.localeName
+      return 'it'; // Default to 'it' for this app, or could use Locale logic if passed
+    }
     final locale = Platform.localeName;
     if (locale.startsWith('it')) return 'it';
     return 'en';
@@ -42,19 +47,24 @@ class ExerciseService {
       }
 
       return {'success': false, 'message': 'Failed to fetch exercises'};
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Error in getExercises: $e');
+      debugPrint('StackTrace: $stackTrace');
       return {
         'success': false,
         'message': e is DioException
             ? (e.response?.data['message'] ?? 'Failed to fetch exercises')
-            : 'Error parsing exercises data',
+            : 'Error parsing exercises data: $e',
       };
     }
   }
 
   Future<Map<String, dynamic>> getExercise(String id) async {
     try {
-      final response = await _apiClient.dio.get('${ApiConfig.exercises}/$id');
+      final response = await _apiClient.dio.get(
+        '${ApiConfig.exercises}/$id',
+        queryParameters: {'locale': _getLocale()},
+      );
 
       if (response.statusCode == 200) {
         return {'success': true, 'exercise': Exercise.fromJson(response.data)};
@@ -76,6 +86,7 @@ class ExerciseService {
     try {
       final response = await _apiClient.dio.get(
         '${ApiConfig.exercises}/$exerciseId/similar',
+        queryParameters: {'locale': _getLocale()},
       );
 
       if (response.statusCode == 200) {
@@ -103,6 +114,7 @@ class ExerciseService {
     try {
       final response = await _apiClient.dio.get(
         '${ApiConfig.exercises}/$exerciseId/alternatives',
+        queryParameters: {'locale': _getLocale()},
       );
 
       if (response.statusCode == 200) {

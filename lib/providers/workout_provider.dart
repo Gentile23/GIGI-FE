@@ -13,6 +13,7 @@ class WorkoutProvider with ChangeNotifier {
   List<WorkoutPlan> _workoutPlans = [];
   WorkoutPlan? _currentPlan;
   bool _isLoading = false;
+  bool _isInitialized = false;
   String? _error;
 
   // Workout Templates (static from DB)
@@ -26,6 +27,7 @@ class WorkoutProvider with ChangeNotifier {
   List<WorkoutPlan> get workoutPlans => _workoutPlans;
   WorkoutPlan? get currentPlan => _currentPlan;
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
   String? get error => _error;
 
   // Templates getters
@@ -138,6 +140,7 @@ class WorkoutProvider with ChangeNotifier {
       _error = null; // Don't show error for new users without plans
     }
 
+    _isInitialized = true;
     notifyListeners();
   }
 

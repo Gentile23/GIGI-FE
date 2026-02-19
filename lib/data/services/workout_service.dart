@@ -15,7 +15,10 @@ class WorkoutService {
 
   Future<Map<String, dynamic>> getWorkoutPlans() async {
     try {
-      final response = await _apiClient.dio.get(ApiConfig.workoutPlans);
+      final response = await _apiClient.dio.get(
+        ApiConfig.workoutPlans,
+        queryParameters: {'language': 'it'},
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
@@ -36,7 +39,10 @@ class WorkoutService {
   Future<Map<String, dynamic>> getCurrentPlan() async {
     try {
       debugPrint('DEBUG: Calling API: ${ApiConfig.workoutPlansCurrent}');
-      final response = await _apiClient.dio.get(ApiConfig.workoutPlansCurrent);
+      final response = await _apiClient.dio.get(
+        ApiConfig.workoutPlansCurrent,
+        queryParameters: {'language': 'it'},
+      );
       debugPrint('DEBUG: API Response status: ${response.statusCode}');
       debugPrint('DEBUG: API Response data type: ${response.data.runtimeType}');
 
@@ -114,6 +120,7 @@ class WorkoutService {
     try {
       final response = await _apiClient.dio.get(
         '${ApiConfig.workoutPlans}/$planId',
+        queryParameters: {'language': 'it'},
       );
 
       if (response.statusCode == 200 && response.data != null) {

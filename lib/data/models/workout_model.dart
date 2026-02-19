@@ -75,8 +75,8 @@ class Exercise {
       ),
       equipment: _parseList(json['equipment']),
       voiceCoaching: voiceCoaching,
-      displayName: json['display_name'] as String?,
-      displayDescription: json['display_description'] as String?,
+      displayName: json['display_name']?.toString(),
+      displayDescription: json['display_description']?.toString(),
     );
   }
 
