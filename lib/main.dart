@@ -136,7 +136,8 @@ class _AppNavigatorState extends State<AppNavigator> {
       builder: (context, authProvider, _) {
         Widget child;
 
-        if (authProvider.isInitializing) {
+        if (authProvider.isInitializing ||
+            (authProvider.isLoading && !authProvider.isAuthenticated)) {
           child = Scaffold(
             key: const ValueKey('splash'),
             backgroundColor: CleanTheme.backgroundColor,

@@ -61,12 +61,12 @@ class Exercise {
     }
 
     return Exercise(
-      id: json['id'].toString(),
-      name: json['name'] as String,
-      nameIt: json['name_it'] as String?,
-      description: json['description'] as String,
-      descriptionIt: json['description_it'] as String?,
-      videoUrl: json['video_url'] as String?,
+      id: json['id']?.toString() ?? 'unknown',
+      name: json['name']?.toString() ?? 'Unnamed Exercise',
+      nameIt: json['name_it']?.toString(),
+      description: json['description']?.toString() ?? '',
+      descriptionIt: json['description_it']?.toString(),
+      videoUrl: json['video_url']?.toString(),
       muscleGroups: _parseList(json['muscle_groups']),
       secondaryMuscleGroups: _parseList(json['secondary_muscle_groups']),
       difficulty: ExerciseDifficulty.values.firstWhere(

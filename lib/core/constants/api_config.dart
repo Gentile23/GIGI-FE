@@ -4,17 +4,17 @@ class ApiConfig {
   // static const String baseUrl = 'http://gest_one.test/api/'; // Android Emulator Localhost
 
   // API endpoints - Non modificare questi, usano automaticamente baseUrl
-  static const String register = '/register';
-  static const String login = '/login';
-  static const String socialLogin = '/social-login';
-  static const String logout = '/logout';
-  static const String user = '/user';
-  static const String userProfile = '/user/profile';
-  static const String exercises = '/exercises';
-  static const String workoutPlans = '/workout-plans';
-  static const String workoutPlansCurrent = '/workout-plans/current';
-  static const String workoutPlansGenerate = '/workout-plans/generate';
-  static const String customWorkouts = '/custom-workouts';
+  static const String register = 'register';
+  static const String login = 'login';
+  static const String socialLogin = 'social-login';
+  static const String logout = 'logout';
+  static const String user = 'user';
+  static const String userProfile = 'user/profile';
+  static const String exercises = 'exercises';
+  static const String workoutPlans = 'workout-plans';
+  static const String workoutPlansCurrent = 'workout-plans/current';
+  static const String workoutPlansGenerate = 'workout-plans/generate';
+  static const String customWorkouts = 'custom-workouts';
 
   // OpenAI Configuration
   // IMPORTANT: Do not commit API keys to version control!

@@ -43,13 +43,18 @@ class AuthProvider with ChangeNotifier {
     try {
       if (kIsWeb) {
         // This triggers initialization of the web plugin
-        _googleSignIn.signInSilently();
+        // Awaiting it allows us to handle the silent sign-in before finishing initialization
+        final account = await _googleSignIn.signInSilently();
+        if (account != null) {
+          await _handleGoogleAuth(account);
+        }
       }
 
       _googleSignIn.onCurrentUserChanged.listen((
         GoogleSignInAccount? account,
       ) async {
         if (account != null) {
+          // If we haven't already handled this account or if it's a new one
           await _handleGoogleAuth(account);
         }
       });
@@ -62,6 +67,7 @@ class AuthProvider with ChangeNotifier {
       await fetchUser();
     }
     _isInitializing = false;
+    _isLoading = false; // Ensure loading is also reset
     notifyListeners();
   }
 
@@ -164,6 +170,9 @@ class AuthProvider with ChangeNotifier {
   Future<void> _handleGoogleAuth(GoogleSignInAccount googleUser) async {
     try {
       debugPrint('_handleGoogleAuth called with user: ${googleUser.email}');
+
+      _isLoading = true;
+      notifyListeners();
 
       // Note: Removed the early return check that blocked existing users
       // This was causing issues on Web where users couldn't re-login

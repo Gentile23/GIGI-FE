@@ -42,10 +42,12 @@ class ExerciseService {
       }
 
       return {'success': false, 'message': 'Failed to fetch exercises'};
-    } on DioException catch (e) {
+    } catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Failed to fetch exercises',
+        'message': e is DioException
+            ? (e.response?.data['message'] ?? 'Failed to fetch exercises')
+            : 'Error parsing exercises data',
       };
     }
   }
@@ -59,10 +61,12 @@ class ExerciseService {
       }
 
       return {'success': false, 'message': 'Failed to fetch exercise'};
-    } on DioException catch (e) {
+    } catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Failed to fetch exercise',
+        'message': e is DioException
+            ? (e.response?.data['message'] ?? 'Failed to fetch exercise')
+            : 'Error parsing exercise data',
       };
     }
   }
@@ -81,11 +85,13 @@ class ExerciseService {
       }
 
       return {'success': false, 'message': 'Failed to fetch similar exercises'};
-    } on DioException catch (e) {
+    } catch (e) {
       return {
         'success': false,
-        'message':
-            e.response?.data['message'] ?? 'Failed to fetch similar exercises',
+        'message': e is DioException
+            ? (e.response?.data['message'] ??
+                  'Failed to fetch similar exercises')
+            : 'Error parsing similar exercises',
       };
     }
   }
@@ -118,12 +124,13 @@ class ExerciseService {
         'success': false,
         'message': 'Failed to fetch alternative exercises',
       };
-    } on DioException catch (e) {
+    } catch (e) {
       return {
         'success': false,
-        'message':
-            e.response?.data['message'] ??
-            'Failed to fetch alternative exercises',
+        'message': e is DioException
+            ? (e.response?.data['message'] ??
+                  'Failed to fetch alternative exercises')
+            : 'Error parsing alternative exercises',
       };
     }
   }

@@ -70,22 +70,35 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
       _error = null;
     });
 
-    final result = await _exerciseService.getExercises(
-      muscleGroup: _selectedMuscleGroup,
-      equipment: _selectedEquipment,
-      difficulty: _selectedDifficulty,
-    );
+    try {
+      final result = await _exerciseService.getExercises(
+        muscleGroup: _selectedMuscleGroup,
+        equipment: _selectedEquipment,
+        difficulty: _selectedDifficulty,
+      );
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        if (result['success'] == true) {
-          _allExercises = result['exercises'] as List<Exercise>;
-          _applySearch();
-        } else {
-          _error = result['message'] as String?;
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (result['success'] == true) {
+            _allExercises = result['exercises'] as List<Exercise>;
+            _applySearch();
+          } else {
+            _error = result['message'] as String?;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Errore inatteso: $e';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
