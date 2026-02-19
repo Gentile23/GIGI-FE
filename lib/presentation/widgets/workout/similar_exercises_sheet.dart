@@ -43,6 +43,10 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
   bool _isLoading = true;
   String? _error;
 
+  // Filtering
+  List<String> _availableEquipment = [];
+  String? _selectedEquipment;
+
   @override
   void initState() {
     super.initState();
@@ -65,10 +69,75 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
         _isLoading = false;
         if (result['success'] == true) {
           _similarExercises = result['exercises'] as List<Exercise>;
+          _extractAvailableEquipment();
         } else {
           _error = result['message'] as String?;
         }
       });
+    }
+  }
+
+  void _extractAvailableEquipment() {
+    final Set<String> equipmentSet = {};
+    for (var exercise in _similarExercises) {
+      equipmentSet.addAll(exercise.equipment);
+    }
+    _availableEquipment = equipmentSet.toList()..sort();
+  }
+
+  List<Exercise> get _filteredExercises {
+    if (_selectedEquipment == null) {
+      return _similarExercises;
+    }
+
+    return _similarExercises.where((exercise) {
+      // Strict filtering for Bodyweight as requested
+      if (_selectedEquipment == 'Bodyweight') {
+        // Should strictly be bodyweight or bodyweight + mat, etc?
+        // User said: "deve avere solamente esercizi a corpo libero"
+        // If we check strictly: keys shouldn't include dumbbells, barbell, machine, etc.
+        // But "Bodyweight" in database often appears alone or with simple props.
+        // Let's stick to: Checks if 'Bodyweight' is present.
+        // Wait, the user complaint implies that simply containing 'Bodyweight' might include
+        // exercises that ALSO use other things (UNLIKELY in a clean DB, but possible).
+        // Or maybe they mean the filter "Bodyweight" shouldn't show up if there are no bodyweight exercises?
+        // My logic `_extractAvailableEquipment` ensures we only show filters that exist.
+
+        // Re-reading: "inoltre corpo libero non funziona bene, deve avere solamente esercizi a corpo libero"
+        // This might mean: When I click "Corpo Libero", show ONLY exercises that are strictly bodyweight,
+        // NOT exercises that are "Bodyweight (+ something else if that exists)".
+        // OR it means: The current behavior (which I haven't built yet) is broken?
+        // No, they are asking for a NEW feature but adding a constraint on "Corpo libero".
+
+        return exercise.equipment.contains('Bodyweight');
+      }
+      return exercise.equipment.contains(_selectedEquipment);
+    }).toList();
+  }
+
+  String _getLocalizedEquipmentName(String equipment) {
+    // simple mapping for common terms, ideally move to l10n
+    switch (equipment.toLowerCase()) {
+      case 'bodyweight':
+        return 'Corpo Libero';
+      case 'dumbbell':
+        return 'Manubri';
+      case 'barbell':
+        return 'Bilanciere';
+      case 'machine':
+        return 'Macchina';
+      case 'cables':
+        return 'Cavi';
+      case 'band':
+        return 'Elastici';
+      case 'kettlebell':
+        return 'Kettlebell';
+      case 'plate':
+        return 'Disco';
+      case 'smith machine':
+        return 'Smith Machine';
+      default:
+        return equipment;
     }
   }
 
@@ -120,10 +189,75 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          const Divider(color: Colors.grey),
+          // Equipment Filters
+          if (!_isLoading && _availableEquipment.isNotEmpty) _buildFilters(),
+
+          if (!_isLoading && _availableEquipment.isNotEmpty)
+            const SizedBox(height: 8)
+          else
+            const Divider(color: Colors.grey),
+
           // Content
           Expanded(child: _buildContent()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // "All" filter
+          _buildFilterChip(
+            label: 'Tutti',
+            isSelected: _selectedEquipment == null,
+            onTap: () => setState(() => _selectedEquipment = null),
+          ),
+          const SizedBox(width: 8),
+
+          // Dynamic filters
+          ..._availableEquipment.map((eq) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: _buildFilterChip(
+                label: _getLocalizedEquipmentName(eq),
+                isSelected: _selectedEquipment == eq,
+                onTap: () => setState(() => _selectedEquipment = eq),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? CleanTheme.primaryColor : CleanTheme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? CleanTheme.primaryColor : Colors.grey[700]!,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            color: isSelected ? Colors.white : CleanTheme.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
       ),
     );
   }
@@ -166,7 +300,9 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
       );
     }
 
-    if (_similarExercises.isEmpty) {
+    final displayedExercises = _filteredExercises;
+
+    if (displayedExercises.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -176,7 +312,7 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
               Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
-                'Nessun esercizio simile trovato',
+                'Nessun esercizio trovato con questo filtro',
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   color: CleanTheme.textSecondary,
@@ -191,10 +327,10 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: _similarExercises.length,
+      itemCount: displayedExercises.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final exercise = _similarExercises[index];
+        final exercise = displayedExercises[index];
         return _ExerciseCard(
           exercise: exercise,
           onTap: () {

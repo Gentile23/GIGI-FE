@@ -122,12 +122,17 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       );
 
       if (mounted && analysis != null) {
-        Navigator.pushReplacement(
+        // Use push instead of pushReplacement so we can go back to this screen
+        // and perform another analysis
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => FormAnalysisResultScreen(analysis: analysis),
           ),
         );
+
+        // Optional: Clear video after returning if desired, but for now just keeping state
+        // setState(() => _videoFile = null);
       } else {
         if (!mounted) return;
         throw Exception(AppLocalizations.of(context)!.analysisFailed);
@@ -412,57 +417,192 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   Widget _buildVideoPreview() {
     return CleanCard(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(0), // Removed padding for full bleed effect
       child: Column(
         children: [
           Container(
-            height: 180,
+            height: 200,
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: CleanTheme.borderSecondary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.play_circle_outline,
-                size: 64,
-                color: CleanTheme.textTertiary,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [const Color(0xFF2C3E50), const Color(0xFF000000)],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: CleanTheme.accentGreen,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    AppLocalizations.of(context)!.videoSelected,
-                    style: GoogleFonts.inter(
-                      color: CleanTheme.accentGreen,
-                      fontWeight: FontWeight.w500,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Abstract pattern or overlay
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.6),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
-              TextButton.icon(
-                onPressed: () => setState(() => _videoFile = null),
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: CleanTheme.accentRed,
-                  size: 20,
                 ),
-                label: Text(
-                  AppLocalizations.of(context)!.remove,
-                  style: GoogleFonts.inter(color: CleanTheme.accentRed),
+
+                // Play Button with Glassmorphism
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 48,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+
+                // File Info Badge
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.movie_creation_outlined,
+                              color: Colors.white70,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                _videoFile?.name ?? 'VIDEO',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Bottom Actions
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle,
+                            color: CleanTheme.accentGreen,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppLocalizations.of(context)!.videoSelected,
+                            style: GoogleFonts.outfit(
+                              color: CleanTheme.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Pronto per l\'analisi',
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Remove Button
+                InkWell(
+                  onTap: () => setState(() => _videoFile = null),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.delete_outline,
+                          color: CleanTheme.accentRed,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          AppLocalizations.of(context)!.remove,
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.accentRed,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

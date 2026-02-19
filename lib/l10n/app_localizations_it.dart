@@ -3587,16 +3587,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get howItWorksStep4 => 'Migliora con suggerimenti personalizzati';
 
   @override
-  String get dailyAnalyses => 'Analisi Giornaliere';
+  String get dailyAnalyses => 'Analisi Settimanali';
 
   @override
   String remainingToday(int count, int total) {
-    return '$count/$total rimaste oggi';
+    return '$count/$total rimaste questa settimana';
   }
 
   @override
   String limitReachedDesc(int limit) {
-    return 'Hai raggiunto il limite giornaliero di $limit analisi.\n\nUpgrade a Premium per analisi illimitate!';
+    return 'Hai raggiunto il limite settimanale di $limit analisi.\n\nUpgrade a Premium per analisi illimitate!';
   }
 
   @override

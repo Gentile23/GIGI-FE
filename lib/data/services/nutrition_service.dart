@@ -398,6 +398,7 @@ class NutritionService {
     required List<String> ingredients,
     int? maxTimeMinutes,
     String? dietType,
+    String? mode, // Add mode
   }) async {
     try {
       final response = await _apiClient.dio.post(
@@ -406,6 +407,7 @@ class NutritionService {
           'ingredients': ingredients,
           if (maxTimeMinutes != null) 'max_time_minutes': maxTimeMinutes,
           if (dietType != null) 'diet_type': dietType,
+          if (mode != null) 'mode': mode, // Pass mode
         },
       );
       return response.data;

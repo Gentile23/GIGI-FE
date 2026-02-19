@@ -88,12 +88,22 @@ class QuotaUsage {
 
   factory QuotaUsage.fromJson(Map<String, dynamic> json) {
     return QuotaUsage(
-      used: json['used'] ?? 0,
-      limit: json['limit'] ?? 0,
-      remaining: json['remaining'] ?? 0,
+      used: _toInt(json['used']),
+      limit: _toInt(json['limit']),
+      remaining: _toInt(json['remaining']),
       canUse: json['can_use'] ?? false,
       period: json['period'] ?? '',
     );
+  }
+
+  static int _toInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    // Handle edge case where boolean might be passed
+    if (value is bool) return value ? 1 : 0;
+    return 0;
   }
 
   bool get isUnlimited => limit == -1;

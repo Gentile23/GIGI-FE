@@ -1389,9 +1389,9 @@
   "howItWorksStep2": "Gigi analizza la tua esecuzione",
   "howItWorksStep3": "Ricevi feedback su postura ed errori",
   "howItWorksStep4": "Migliora con suggerimenti personalizzati",
-  "dailyAnalyses": "Analisi Giornaliere",
+  "dailyAnalyses": "Analisi Settimanali",
   "unlimitedAnalyses": "Analisi illimitate",
-  "remainingToday": "{count}/{total} rimaste oggi",
+  "remainingToday": "{count}/{total} rimaste questa settimana",
   "@remainingToday": {
     "placeholders": {
       "count": { "type": "int" },
@@ -1399,7 +1399,7 @@
     }
   },
   "limitReached": "Limite Raggiunto",
-  "limitReachedDesc": "Hai raggiunto il limite giornaliero di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!",
+  "limitReachedDesc": "Hai raggiunto il limite settimanale di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!",
   "@limitReachedDesc": {
     "placeholders": {
       "limit": { "type": "int" }

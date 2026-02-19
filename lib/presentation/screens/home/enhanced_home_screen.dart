@@ -278,37 +278,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         GestureDetector(
                           onTap: () {
                             HapticService.lightTap();
-                            final user = Provider.of<AuthProvider>(
+                            Navigator.push(
                               context,
-                              listen: false,
-                            ).user;
-                            final isPremium =
-                                user?.subscription?.isActive ?? false;
-
-                            if (isPremium) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => FormAnalysisScreen(),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Funzionalità riservata agli utenti Premium',
-                                  ),
-                                  backgroundColor: const Color(0xFFFFD700),
-                                  action: SnackBarAction(
-                                    label: 'UPGRADE',
-                                    textColor: Colors.white,
-                                    onPressed: () {
-                                      // Navigation to upgrade screen if available
-                                    },
-                                  ),
-                                ),
-                              );
-                            }
+                              MaterialPageRoute(
+                                builder: (_) => const FormAnalysisScreen(),
+                              ),
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(20),
@@ -365,6 +340,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
+                                          /* Lock removed as per user request
                                           Container(
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 6,
@@ -383,6 +359,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                               size: 12,
                                             ),
                                           ),
+                                          */
                                         ],
                                       ),
                                       const SizedBox(height: 4),

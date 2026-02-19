@@ -3564,16 +3564,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get howItWorksStep4 => 'Improve with personalized tips';
 
   @override
-  String get dailyAnalyses => 'Daily Analyses';
+  String get dailyAnalyses => 'Weekly Analyses';
 
   @override
   String remainingToday(int count, int total) {
-    return '$count/$total remaining today';
+    return '$count/$total remaining this week';
   }
 
   @override
   String limitReachedDesc(int limit) {
-    return 'You have reached your daily limit of $limit analyses.\n\nUpgrade to Premium for unlimited analyses!';
+    return 'You have reached your weekly limit of $limit analyses.\n\nUpgrade to Premium for unlimited analyses!';
   }
 
   @override

@@ -134,8 +134,11 @@ class _AppNavigatorState extends State<AppNavigator> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
+        Widget child;
+
         if (authProvider.isInitializing) {
-          return Scaffold(
+          child = Scaffold(
+            key: const ValueKey('splash'),
             backgroundColor: CleanTheme.backgroundColor,
             body: Center(
               child: Column(
@@ -170,26 +173,29 @@ class _AppNavigatorState extends State<AppNavigator> {
               ),
             ),
           );
+        } else if (!authProvider.isAuthenticated) {
+          child = const LandingScreen(key: ValueKey('landing'));
+        } else {
+          final user = authProvider.user;
+
+          // Check if user has completed questionnaire
+          if (user != null && !user.isQuestionnaireComplete) {
+            // Show the unified questionnaire (which now starts with Gigi welcome)
+            child = const UnifiedQuestionnaireScreen(
+              key: ValueKey('questionnaire'),
+            );
+          } else {
+            // User is authenticated and has completed questionnaire
+            child = const MainScreen(key: ValueKey('main'));
+          }
         }
 
-        if (!authProvider.isAuthenticated) {
-          return const LandingScreen();
-        }
-
-        // SIMPLIFIED ONBOARDING FLOW:
-        // 1. UnifiedQuestionnaireScreen - Gigi welcome + full profile (integrated)
-        // 2. MainScreen - Full app access
-
-        final user = authProvider.user;
-
-        // Check if user has completed questionnaire
-        if (!user!.isQuestionnaireComplete) {
-          // Show the unified questionnaire (which now starts with Gigi welcome)
-          return const UnifiedQuestionnaireScreen();
-        }
-
-        // User is authenticated and has completed questionnaire
-        return const MainScreen();
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 500),
+          switchInCurve: Curves.easeIn,
+          switchOutCurve: Curves.easeOut,
+          child: child,
+        );
       },
     );
   }

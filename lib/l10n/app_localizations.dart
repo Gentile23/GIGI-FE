@@ -6877,19 +6877,19 @@ abstract class AppLocalizations {
   /// No description provided for @dailyAnalyses.
   ///
   /// In it, this message translates to:
-  /// **'Analisi Giornaliere'**
+  /// **'Analisi Settimanali'**
   String get dailyAnalyses;
 
   /// No description provided for @remainingToday.
   ///
   /// In it, this message translates to:
-  /// **'{count}/{total} rimaste oggi'**
+  /// **'{count}/{total} rimaste questa settimana'**
   String remainingToday(int count, int total);
 
   /// No description provided for @limitReachedDesc.
   ///
   /// In it, this message translates to:
-  /// **'Hai raggiunto il limite giornaliero di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!'**
+  /// **'Hai raggiunto il limite settimanale di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!'**
   String limitReachedDesc(int limit);
 
   /// No description provided for @upgrade.

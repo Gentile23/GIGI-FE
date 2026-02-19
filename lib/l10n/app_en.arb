@@ -1277,9 +1277,9 @@
   "howItWorksStep2": "Gigi analyzes your execution",
   "howItWorksStep3": "Receive feedback on posture and errors",
   "howItWorksStep4": "Improve with personalized tips",
-  "dailyAnalyses": "Daily Analyses",
+  "dailyAnalyses": "Weekly Analyses",
   "unlimitedAnalyses": "Unlimited analyses",
-  "remainingToday": "{count}/{total} remaining today",
+  "remainingToday": "{count}/{total} remaining this week",
   "@remainingToday": {
     "placeholders": {
       "count": { "type": "int" },
@@ -1287,7 +1287,7 @@
     }
   },
   "limitReached": "Limit Reached",
-  "limitReachedDesc": "You have reached your daily limit of {limit} analyses.\n\nUpgrade to Premium for unlimited analyses!",
+  "limitReachedDesc": "You have reached your weekly limit of {limit} analyses.\n\nUpgrade to Premium for unlimited analyses!",
   "@limitReachedDesc": {
     "placeholders": {
       "limit": { "type": "int" }

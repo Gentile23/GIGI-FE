@@ -997,6 +997,13 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
+                      // Capture objects before async gap
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
+                      final provider = Provider.of<NutritionCoachProvider>(
+                        context,
+                        listen: false,
+                      );
+
                       Navigator.pop(ctx);
 
                       // Check Quota
@@ -1017,13 +1024,6 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                         return;
                       }
 
-                      // Capture scaffold messenger before async gap
-                      final scaffoldMessenger = ScaffoldMessenger.of(context);
-                      // Trigger Provider
-                      final provider = Provider.of<NutritionCoachProvider>(
-                        context,
-                        listen: false,
-                      );
                       final success = await provider.regenerateMeal(
                         dayIndex: dayIndex,
                         mealIndex: mealIndex,
@@ -1090,6 +1090,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           ElevatedButton(
             onPressed: () async {
+              // Capture provider before async gap
+              final provider = Provider.of<NutritionCoachProvider>(
+                context,
+                listen: false,
+              );
+
               // Check Quota
               final quotaService = QuotaService();
               final checkResult = await quotaService.checkAndRecord(
@@ -1097,7 +1103,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               );
 
               if (!checkResult.canPerform) {
-                Navigator.pop(ctx);
+                if (ctx.mounted) Navigator.pop(ctx);
                 if (context.mounted) {
                   Navigator.push(
                     context,
@@ -1107,11 +1113,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                 return;
               }
 
-              Navigator.pop(ctx);
-              final provider = Provider.of<NutritionCoachProvider>(
-                context,
-                listen: false,
-              );
+              if (ctx.mounted) Navigator.pop(ctx);
               await provider.addExtraMeal(
                 dayIndex: dayIndex,
                 foodName: nameController.text,
@@ -1246,15 +1248,21 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                           shape: const StadiumBorder(),
                         ),
                         onPressed: () async {
+                          // Capture provider before async gap
+                          final provider = Provider.of<NutritionCoachProvider>(
+                            context,
+                            listen: false,
+                          );
+
                           // Check Quota
                           final quotaService = QuotaService();
                           final checkResult = await quotaService.checkAndRecord(
-                            QuotaAction.changeFoodItem,
+                            QuotaAction.changeFood, // Fixed typo
                           );
 
                           if (!checkResult.canPerform) {
-                            Navigator.pop(context);
                             if (context.mounted) {
+                              Navigator.pop(context);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -1265,11 +1273,11 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                             return;
                           }
 
-                          Navigator.pop(context);
-                          Provider.of<NutritionCoachProvider>(
-                            context,
-                            listen: false,
-                          ).applySubstitution(
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+
+                          provider.applySubstitution(
                             dayIndex: widget.dayIndex,
                             mealIndex: widget.mealIndex,
                             foodIndex: widget.foodIndex,
