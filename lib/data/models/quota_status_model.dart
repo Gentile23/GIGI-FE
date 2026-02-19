@@ -53,19 +53,16 @@ class QuotaUsageDetails {
   });
 
   factory QuotaUsageDetails.fromJson(Map<String, dynamic> json) {
-    // Check extended_status first, fallback to empty or direct keys if structure varies
-    final extended = json['extended_status'] as Map<String, dynamic>? ?? json;
-
     return QuotaUsageDetails(
       formAnalysis: QuotaUsage.fromJson(json['form_analysis'] ?? {}),
       mealAnalysis: QuotaUsage.fromJson(json['meal_analysis'] ?? {}),
       recipes: QuotaUsage.fromJson(json['recipes'] ?? {}),
       customWorkouts: QuotaUsage.fromJson(json['custom_workouts'] ?? {}),
       workoutPlan: WorkoutPlanQuota.fromJson(json['workout_plan'] ?? {}),
-      executeWithGigi: QuotaUsage.fromJson(extended['execute_with_gigi'] ?? {}),
-      shoppingList: QuotaUsage.fromJson(extended['shopping_list'] ?? {}),
-      changeMeal: QuotaUsage.fromJson(extended['change_meal'] ?? {}),
-      changeFood: QuotaUsage.fromJson(extended['change_food'] ?? {}),
+      executeWithGigi: QuotaUsage.fromJson(json['execute_with_gigi'] ?? {}),
+      shoppingList: QuotaUsage.fromJson(json['shopping_list'] ?? {}),
+      changeMeal: QuotaUsage.fromJson(json['change_meal'] ?? {}),
+      changeFood: QuotaUsage.fromJson(json['change_food'] ?? {}),
     );
   }
 }
