@@ -3,9 +3,9 @@ import 'voice_coaching_model.dart';
 /// Exercise model
 class Exercise {
   final String id;
-  final String name;
+  final String _name;
   final String? nameIt;
-  final String description;
+  final String _description;
   final String? descriptionIt;
   final String? videoUrl;
   final List<String> muscleGroups;
@@ -18,9 +18,9 @@ class Exercise {
 
   Exercise({
     required this.id,
-    required this.name,
+    required String name,
     this.nameIt,
-    required this.description,
+    required String description,
     this.descriptionIt,
     this.videoUrl,
     required this.muscleGroups,
@@ -30,13 +30,20 @@ class Exercise {
     this.voiceCoaching,
     this.displayName,
     this.displayDescription,
-  });
+  }) : _name = name,
+       _description = description;
 
-  /// Returns the localized name (display_name from API, or falls back to name)
-  String get localizedName => displayName ?? name;
+  /// Returns the name, prioritizing localized version from API
+  String get name => displayName ?? _name;
 
-  /// Returns the localized description
-  String get localizedDescription => displayDescription ?? description;
+  /// Returns the description, prioritizing localized version from API
+  String get description => displayDescription ?? _description;
+
+  /// Returns the localized name (Alias for backward compatibility if needed)
+  String get localizedName => name;
+
+  /// Returns the localized description (Alias for backward compatibility if needed)
+  String get localizedDescription => description;
 
   Map<String, dynamic> toJson() {
     return {
