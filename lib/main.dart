@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'core/theme/clean_theme.dart';
-import 'presentation/screens/onboarding/onboarding_screen.dart';
+import 'presentation/screens/onboarding/enhanced_onboarding_screen.dart';
 import 'presentation/screens/auth/auth_screen.dart';
 import 'presentation/screens/auth/landing_screen.dart';
 import 'presentation/screens/questionnaire/unified_questionnaire_screen.dart';
@@ -96,7 +96,7 @@ class GigiApp extends StatelessWidget {
         // Start with onboarding, then: auth -> questionnaire -> main app
         home: const AppNavigator(),
         routes: {
-          '/onboarding': (context) => const OnboardingScreen(),
+          '/onboarding': (context) => const EnhancedOnboardingScreen(),
           '/auth': (context) => const AuthScreen(),
           '/questionnaire': (context) => const UnifiedQuestionnaireScreen(),
           '/main': (context) => const MainScreen(),
