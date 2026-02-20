@@ -49,6 +49,8 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
               sets: e.sets,
               reps: e.reps,
               restSeconds: e.restSeconds,
+              exerciseType: e.exerciseType ?? 'strength',
+              position: e.position ?? 'main',
               notes: e.notes,
             ),
           )
@@ -104,6 +106,8 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
               sets: e.sets,
               reps: e.reps,
               restSeconds: e.restSeconds,
+              exerciseType: e.exerciseType,
+              position: e.position,
               notes: e.notes,
             ),
           )
@@ -505,12 +509,39 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             color: CleanTheme.textPrimary,
           ),
         ),
-        subtitle: Text(
-          '${exercise.sets} x ${exercise.reps} • ${exercise.restSeconds}s rest',
-          style: GoogleFonts.outfit(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
-          ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${exercise.sets} x ${exercise.reps} • ${exercise.restSeconds}s rest',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                _buildSmallBadge(
+                  exercise.exerciseType == 'strength'
+                      ? 'Forza'
+                      : exercise.exerciseType == 'cardio'
+                      ? 'Cardio'
+                      : 'Mobilità',
+                  CleanTheme.primaryColor,
+                ),
+                const SizedBox(width: 4),
+                _buildSmallBadge(
+                  exercise.position == 'warmup'
+                      ? 'Riscaldamento'
+                      : exercise.position == 'main'
+                      ? 'Allenamento'
+                      : 'Defaticamento',
+                  CleanTheme.accentOrange,
+                ),
+              ],
+            ),
+          ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -531,6 +562,25 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
       ),
     );
   }
+
+  Widget _buildSmallBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: GoogleFonts.outfit(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
+      ),
+    );
+  }
 }
 
 /// Local class to track exercise with its parameters
@@ -539,6 +589,8 @@ class _LocalExercise {
   int sets;
   String reps;
   int restSeconds;
+  String exerciseType;
+  String position;
   String? notes;
 
   _LocalExercise({
@@ -546,6 +598,8 @@ class _LocalExercise {
     this.sets = 3,
     this.reps = '10',
     this.restSeconds = 60,
+    this.exerciseType = 'strength',
+    this.position = 'main',
     this.notes,
   });
 }
@@ -566,6 +620,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
   late TextEditingController _repsController;
   late TextEditingController _restController;
   late TextEditingController _notesController;
+  late String _exerciseType;
+  late String _position;
 
   @override
   void initState() {
@@ -578,6 +634,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
       text: widget.exercise.restSeconds.toString(),
     );
     _notesController = TextEditingController(text: widget.exercise.notes ?? '');
+    _exerciseType = widget.exercise.exerciseType;
+    _position = widget.exercise.position;
   }
 
   @override
@@ -656,6 +714,112 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               ],
             ),
             const SizedBox(height: 16),
+            // Category and Position row
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Categoria',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.cardColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _exerciseType,
+                            dropdownColor: CleanTheme.cardColor,
+                            isExpanded: true,
+                            style: GoogleFonts.outfit(
+                              color: CleanTheme.textPrimary,
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'strength',
+                                child: Text('Forza'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'cardio',
+                                child: Text('Cardio'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'mobility',
+                                child: Text('Mobilità'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null)
+                                setState(() => _exerciseType = val);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Posizione',
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.cardColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _position,
+                            dropdownColor: CleanTheme.cardColor,
+                            isExpanded: true,
+                            style: GoogleFonts.outfit(
+                              color: CleanTheme.textPrimary,
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'warmup',
+                                child: Text('Riscaldamento'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'main',
+                                child: Text('Allenamento'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'post_workout',
+                                child: Text('Defaticamento'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _position = val);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             // Notes
             _buildField(
               AppLocalizations.of(context)!.notesOptional,
@@ -675,6 +839,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                         ? _repsController.text
                         : '10',
                     restSeconds: int.tryParse(_restController.text) ?? 60,
+                    exerciseType: _exerciseType,
+                    position: _position,
                     notes: _notesController.text.isNotEmpty
                         ? _notesController.text
                         : null,
@@ -737,7 +903,10 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               borderSide: BorderSide.none,
             ),
           ),
-          keyboardType: label.contains('Note')
+          keyboardType:
+              (label.contains('Note') ||
+                  label.toLowerCase().contains('rep') ||
+                  label.toLowerCase().contains('rip'))
               ? TextInputType.text
               : TextInputType.number,
         ),

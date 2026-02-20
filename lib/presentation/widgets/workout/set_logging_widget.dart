@@ -147,8 +147,24 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   }
 
   void _initializeData() {
+    final repsList = widget.exercise.reps
+        .split(',')
+        .map((s) => s.trim())
+        .toList();
+
     for (int i = 1; i <= widget.exercise.sets; i++) {
-      _reps[i] = int.tryParse(widget.exercise.reps) ?? 0;
+      int defaultReps = 0;
+      if (repsList.isNotEmpty) {
+        final repString = i <= repsList.length
+            ? repsList[i - 1]
+            : repsList.last;
+        final match = RegExp(r'(\d+)').firstMatch(repString);
+        if (match != null) {
+          defaultReps = int.parse(match.group(1)!);
+        }
+      }
+
+      _reps[i] = defaultReps;
       _rpe[i] = 7; // Default RPE
 
       if (widget.exerciseLog != null) {
@@ -204,6 +220,21 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         if (mounted) {
           setState(() {
             _previousData = previousMap;
+            // Auto-populate weight controllers with previous data if current is empty
+            for (var entry in previousMap.entries) {
+              final setNum = entry.key;
+              final prevWeight = entry.value['weight_kg'];
+              if (_weightControllers.containsKey(setNum) &&
+                  (_weightControllers[setNum]!.text.isEmpty ||
+                      _weightControllers[setNum]!.text == '0')) {
+                if (prevWeight != null && prevWeight > 0) {
+                  _weights[setNum] = prevWeight.toDouble();
+                  _weightControllers[setNum]!.text = prevWeight % 1 == 0
+                      ? prevWeight.toInt().toString()
+                      : prevWeight.toStringAsFixed(1);
+                }
+              }
+            }
           });
         }
       } else {
@@ -286,17 +317,6 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   void skipRestTimer() {
     _stopRestTimer();
     widget.onRestTimerSkipped?.call();
-  }
-
-  /// Safely format weight value that may come as String, double, int, or null from API
-  String _formatWeight(dynamic value) {
-    if (value == null) return '-';
-    if (value is num) return value.toStringAsFixed(0);
-    if (value is String) {
-      final parsed = double.tryParse(value);
-      return parsed?.toStringAsFixed(0) ?? '-';
-    }
-    return '-';
   }
 
   // Get color based on exercise type
@@ -385,55 +405,47 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
-                  child: Text(
-                    'PREC.',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      color: CleanTheme.textTertiary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: Text(
                     'KG',
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: CleanTheme.textSecondary,
+                      letterSpacing: 1,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: Text(
                     'REPS',
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: CleanTheme.textSecondary,
+                      letterSpacing: 1,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   flex: 2,
                   child: Text(
                     'RPE',
                     style: GoogleFonts.inter(
                       fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: CleanTheme.textSecondary,
+                      letterSpacing: 1,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 32), // Space for checkbox
+                const SizedBox(width: 40), // Space for checkbox
               ],
             ),
           ),
@@ -449,11 +461,6 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
   Widget _buildSetRow(int setNumber) {
     final isCompleted = _completedSets[setNumber] ?? false;
-    final previousSet = _previousData?[setNumber];
-    final prevWeight = previousSet != null
-        ? _formatWeight(previousSet['weight_kg'])
-        : null;
-    final prevReps = previousSet?['reps']?.toString();
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
@@ -518,127 +525,115 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
             ),
           ),
 
-          // Weight Input — Premium with previous data subtitle
+          // Weight Input — Rounded Oval
           Expanded(
             flex: 3,
-            child: Column(
-              children: [
-                Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? CleanTheme.accentGreen.withValues(alpha: 0.06)
-                        : CleanTheme.primaryColor.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isCompleted
-                          ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                          : CleanTheme.borderPrimary,
-                      width: 1.5,
-                    ),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? CleanTheme.accentGreen.withValues(alpha: 0.06)
+                    : CleanTheme.primaryColor.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(22), // Oval
+                border: Border.all(
+                  color: isCompleted
+                      ? CleanTheme.accentGreen.withValues(alpha: 0.3)
+                      : CleanTheme.borderPrimary,
+                  width: 1.5,
+                ),
+              ),
+              child: TextField(
+                textAlign: TextAlign.center,
+                controller: _weightControllers[setNumber],
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                scrollPadding: const EdgeInsets.only(bottom: 120),
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: isCompleted
+                      ? CleanTheme.accentGreen
+                      : (_weightControllers[setNumber]!.text.isNotEmpty &&
+                                _previousData != null &&
+                                _previousData![setNumber] != null &&
+                                _weightControllers[setNumber]!.text ==
+                                    (_previousData![setNumber]!['weight_kg'] %
+                                                1 ==
+                                            0
+                                        ? _previousData![setNumber]!['weight_kg']
+                                              .toInt()
+                                              .toString()
+                                        : _previousData![setNumber]!['weight_kg']
+                                              .toStringAsFixed(1))
+                            ? CleanTheme
+                                  .textSecondary // Lighter black for previous
+                            : CleanTheme.textPrimary),
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
                   ),
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    controller: _weightControllers[setNumber],
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isCompleted
-                          ? CleanTheme.accentGreen
-                          : CleanTheme.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 8,
-                      ),
-                      hintText: 'kg',
-                      hintStyle: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textTertiary,
-                      ),
-                    ),
-                    enabled: !isCompleted,
+                  hintText: '0',
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textTertiary,
                   ),
                 ),
-                // Previous data subtitle
-                if (prevWeight != null && prevWeight != '-') ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'prev: ${prevWeight}kg',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      color: CleanTheme.textTertiary,
-                    ),
-                  ),
-                ],
-              ],
+                enabled: !isCompleted,
+              ),
             ),
           ),
 
           const SizedBox(width: 8),
 
-          // Reps Input — Premium with previous data subtitle
+          // Reps Input — Rounded Oval
           Expanded(
             flex: 3,
-            child: Column(
-              children: [
-                Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? CleanTheme.accentGreen.withValues(alpha: 0.06)
-                        : CleanTheme.primaryColor.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isCompleted
-                          ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                          : CleanTheme.borderPrimary,
-                      width: 1.5,
-                    ),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? CleanTheme.accentGreen.withValues(alpha: 0.06)
+                    : CleanTheme.primaryColor.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(22), // Oval
+                border: Border.all(
+                  color: isCompleted
+                      ? CleanTheme.accentGreen.withValues(alpha: 0.3)
+                      : CleanTheme.borderPrimary,
+                  width: 1.5,
+                ),
+              ),
+              child: TextField(
+                textAlign: TextAlign.center,
+                controller: _repsControllers[setNumber],
+                keyboardType: TextInputType.number,
+                scrollPadding: const EdgeInsets.only(bottom: 120),
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: isCompleted
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
                   ),
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    controller: _repsControllers[setNumber],
-                    keyboardType: TextInputType.number,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: isCompleted
-                          ? CleanTheme.accentGreen
-                          : CleanTheme.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 8,
-                      ),
-                      hintText: widget.exercise.reps,
-                      hintStyle: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textTertiary,
-                      ),
-                    ),
-                    enabled: !isCompleted,
+                  hintText: widget.exercise.reps,
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textTertiary,
                   ),
                 ),
-                // Previous data subtitle
-                if (prevReps != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'prev: $prevReps',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      color: CleanTheme.textTertiary,
-                    ),
-                  ),
-                ],
-              ],
+                enabled: !isCompleted,
+              ),
             ),
           ),
 

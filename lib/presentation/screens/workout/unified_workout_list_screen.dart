@@ -874,39 +874,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       children: [
         Column(
           children: _customPlans.map((plan) {
-            return _buildWorkoutCard(
-              title: plan.name,
-              subtitle: '${plan.exercises.length} esercizi',
-              duration: '${plan.exercises.length * 5} min',
-              isAI: false,
-              onTap: () {
-                final workoutDay = WorkoutDay(
-                  id: 'custom_${plan.id}',
-                  name: plan.name,
-                  focus: plan.description ?? 'Personalizzata',
-                  estimatedDuration: plan.estimatedDuration,
-                  exercises: plan.exercises.map((e) {
-                    return WorkoutExercise(
-                      exercise: e.exercise,
-                      sets: e.sets,
-                      reps: e.reps,
-                      restSeconds: e.restSeconds,
-                      notes: e.notes,
-                      position: 'main',
-                      exerciseType: 'strength',
-                    );
-                  }).toList(),
-                );
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        WorkoutSessionScreen(workoutDay: workoutDay),
-                  ),
-                );
-              },
-            );
+            return _buildCustomWorkoutCard(plan);
           }).toList(),
         ),
         const SizedBox(height: 12),
@@ -1283,8 +1251,8 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               reps: e.reps,
               restSeconds: e.restSeconds,
               notes: e.notes,
-              position: 'main',
-              exerciseType: 'strength',
+              position: e.position ?? 'main',
+              exerciseType: e.exerciseType ?? 'strength',
             );
           }).toList(),
         );

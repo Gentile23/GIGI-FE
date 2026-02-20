@@ -92,6 +92,8 @@ class CustomWorkoutExercise {
   final String reps;
   final int restSeconds;
   final int orderIndex;
+  final String? exerciseType;
+  final String? position;
   final String? notes;
 
   CustomWorkoutExercise({
@@ -101,6 +103,8 @@ class CustomWorkoutExercise {
     required this.reps,
     required this.restSeconds,
     required this.orderIndex,
+    this.exerciseType = 'strength',
+    this.position = 'main',
     this.notes,
   });
 
@@ -112,6 +116,8 @@ class CustomWorkoutExercise {
       reps: json['reps'] as String,
       restSeconds: json['rest_seconds'] as int,
       orderIndex: json['order_index'] as int? ?? 0,
+      exerciseType: json['exercise_type'] as String? ?? 'strength',
+      position: json['position'] as String? ?? 'main',
       notes: json['notes'] as String?,
     );
   }
@@ -124,6 +130,8 @@ class CustomWorkoutExercise {
       'reps': reps,
       'rest_seconds': restSeconds,
       'order_index': orderIndex,
+      'exercise_type': exerciseType,
+      'position': position,
       'notes': notes,
     };
   }
@@ -135,6 +143,8 @@ class CustomWorkoutExercise {
     String? reps,
     int? restSeconds,
     int? orderIndex,
+    String? exerciseType,
+    String? position,
     String? notes,
   }) {
     return CustomWorkoutExercise(
@@ -144,6 +154,8 @@ class CustomWorkoutExercise {
       reps: reps ?? this.reps,
       restSeconds: restSeconds ?? this.restSeconds,
       orderIndex: orderIndex ?? this.orderIndex,
+      exerciseType: exerciseType ?? this.exerciseType,
+      position: position ?? this.position,
       notes: notes ?? this.notes,
     );
   }
@@ -176,6 +188,8 @@ class CustomWorkoutExerciseRequest {
   final int sets;
   final String reps;
   final int restSeconds;
+  final String? exerciseType;
+  final String? position;
   final String? notes;
 
   CustomWorkoutExerciseRequest({
@@ -183,6 +197,8 @@ class CustomWorkoutExerciseRequest {
     this.sets = 3,
     this.reps = '10',
     this.restSeconds = 60,
+    this.exerciseType = 'strength',
+    this.position = 'main',
     this.notes,
   });
 
@@ -192,6 +208,8 @@ class CustomWorkoutExerciseRequest {
       'sets': sets,
       'reps': reps,
       'rest_seconds': restSeconds,
+      'exercise_type': exerciseType,
+      'position': position,
       'notes': notes,
     };
   }

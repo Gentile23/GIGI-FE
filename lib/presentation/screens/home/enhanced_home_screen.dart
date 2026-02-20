@@ -25,7 +25,6 @@ import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
-import '../workout/unified_workout_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -215,7 +214,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 // 6. Quick Actions
-                                // Row 1: Community & Custom
+                                // Row 1: Community
                                 Row(
                                   children: [
                                     Expanded(
@@ -235,25 +234,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                             MaterialPageRoute(
                                               builder: (_) =>
                                                   const ActivityFeedScreen(),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildActionCardWide(
-                                        Icons.tune_rounded,
-                                        'Custom',
-                                        'Crea la tua scheda',
-                                        CleanTheme.primaryColor,
-                                        () {
-                                          HapticService.lightTap();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const UnifiedWorkoutListScreen(),
                                             ),
                                           );
                                         },
