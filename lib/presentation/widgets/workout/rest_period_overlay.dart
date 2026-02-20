@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../data/models/workout_model.dart';
@@ -38,6 +39,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
 
   Timer? _timer;
   int _secondsRemaining = 0;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   // Motivational quotes for rest periods
   final List<String> _quotes = [
@@ -85,18 +87,20 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
         _secondsRemaining--;
       });
 
-      // Haptic feedback at key moments
-      if (_secondsRemaining == 10 ||
-          _secondsRemaining == 5 ||
-          _secondsRemaining == 3 ||
-          _secondsRemaining == 2 ||
-          _secondsRemaining == 1) {
+      // Sound and haptic feedback at key moments
+      if (_secondsRemaining <= 3 && _secondsRemaining > 0) {
         HapticService.lightTap();
+        _audioPlayer.stop().then(
+          (_) => _audioPlayer.play(AssetSource('sounds/secondi.mp3')),
+        );
       }
 
       if (_secondsRemaining <= 0) {
         _timer?.cancel();
         HapticService.heavyTap();
+        _audioPlayer.stop().then(
+          (_) => _audioPlayer.play(AssetSource('sounds/tempo-finito.mp3')),
+        );
         widget.onComplete();
       }
     });
@@ -105,6 +109,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
   @override
   void dispose() {
     _timer?.cancel();
+    _audioPlayer.dispose();
     _countdownController.dispose();
     _pulseController.dispose();
     super.dispose();

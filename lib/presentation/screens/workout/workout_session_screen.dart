@@ -56,6 +56,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   int _restTimerTotal = 0;
   String? _nextExerciseName;
   String? _nextExerciseInfo;
+  String? _restingExerciseId;
+
+  // Keys to communicate with SetLoggingWidgets
+  final Map<String, GlobalKey<SetLoggingWidgetState>> _setLoggingKeys = {};
 
   // Session registration tracking
   bool _sessionRegistered = false;
@@ -223,8 +227,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   ) {
     if (isActive) {
       final nextExercise = _getNextExercise(exerciseId);
+      final uniqueKey = exerciseId; // We already use the ID passed by the child
       setState(() {
         _isRestTimerOverlayVisible = true;
+        _restingExerciseId = uniqueKey;
         _restTimerSeconds = secondsRemaining;
         _restTimerTotal = totalSeconds;
         _nextExerciseName = nextExercise?.exercise.name;
@@ -264,10 +270,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   /// Skip the rest timer — closes the overlay and notifies the child widget
   void _skipRestTimerOverlay() {
+    if (_restingExerciseId != null) {
+      _setLoggingKeys[_restingExerciseId]?.currentState?.skipRestTimer();
+    }
     setState(() {
       _isRestTimerOverlayVisible = false;
+      _restingExerciseId = null;
     });
-    // The SetLoggingWidget will handle its own timer stop via internal logic
   }
 
   Future<void> _startWorkoutSession() async {
@@ -1768,6 +1777,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
               // ALWAYS VISIBLE: Set Logging Widget
               SetLoggingWidget(
+                key: _setLoggingKeys.putIfAbsent(
+                  exercise.id ?? exercise.exercise.id,
+                  () => GlobalKey<SetLoggingWidgetState>(),
+                ),
                 exercise: exercise,
                 exerciseLog: exerciseLog?.id.isNotEmpty == true
                     ? exerciseLog
@@ -1794,7 +1807,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 onRestTimerStateChanged:
                     (isActive, secondsRemaining, totalSeconds) {
                       _onRestTimerStateChanged(
-                        exercise.exercise.id,
+                        exercise.id ?? exercise.exercise.id,
                         isActive,
                         secondsRemaining,
                         totalSeconds,

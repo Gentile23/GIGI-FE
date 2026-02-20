@@ -121,6 +121,7 @@ enum ExerciseDifficulty { beginner, intermediate, advanced }
 
 /// Workout exercise with sets and reps
 class WorkoutExercise {
+  final String? id; // Unique ID for this specific entry in the workout plan
   final Exercise exercise;
   final int sets;
   final String reps;
@@ -130,6 +131,7 @@ class WorkoutExercise {
   final String position; // 'warmup', 'pre_workout', 'main', 'post_workout'
 
   WorkoutExercise({
+    this.id,
     required this.exercise,
     required this.sets,
     required this.reps,
@@ -141,6 +143,7 @@ class WorkoutExercise {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'exercise': exercise.toJson(),
       'sets': sets,
       'reps': reps,
@@ -166,6 +169,7 @@ class WorkoutExercise {
           );
 
     return WorkoutExercise(
+      id: json['id']?.toString(),
       exercise: exercise,
       sets: _parseInt(json['sets']) ?? 3,
       reps: json['reps']?.toString() ?? '10',

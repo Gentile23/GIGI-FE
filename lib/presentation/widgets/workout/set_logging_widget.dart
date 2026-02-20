@@ -8,6 +8,7 @@ import '../../../data/models/workout_model.dart';
 import '../../../data/models/workout_log_model.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../core/services/audio/voice_coaching_player.dart';
+import '../../../core/services/haptic_service.dart';
 
 /// Data passed when a single set is completed
 class SetCompletionData {
@@ -60,10 +61,10 @@ class SetLoggingWidget extends StatefulWidget {
   });
 
   @override
-  State<SetLoggingWidget> createState() => _SetLoggingWidgetState();
+  State<SetLoggingWidget> createState() => SetLoggingWidgetState();
 }
 
-class _SetLoggingWidgetState extends State<SetLoggingWidget> {
+class SetLoggingWidgetState extends State<SetLoggingWidget> {
   final Map<int, double> _weights = {};
   final Map<int, int> _reps = {};
   final Map<int, int> _rpe = {};
@@ -83,6 +84,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   int _restSecondsRemaining = 0;
   bool _isRestTimerActive = false;
   final AudioPlayer _timerAudioPlayer = AudioPlayer();
+  final AudioPlayer _successAudioPlayer = AudioPlayer();
+  final Source _successSource = AssetSource('sounds/success.wav');
 
   // Default rest time from exercise or 60 seconds
   int get _defaultRestSeconds =>
@@ -95,6 +98,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     _initializeControllers();
     _initializeCoaching();
     _loadPreviousData();
+    // Pre-set success source for zero-latency playback
+    _successAudioPlayer.setSource(_successSource);
   }
 
   /// Create persistent TextEditingControllers for each set — called once in initState
@@ -221,6 +226,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     _coachingPlayer.dispose();
     _restTimer?.cancel();
     _timerAudioPlayer.dispose();
+    _successAudioPlayer.dispose();
     super.dispose();
   }
 
@@ -250,13 +256,17 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           _defaultRestSeconds,
         );
 
-        // Play countdown tick every second during last 5 seconds
-        if (_restSecondsRemaining <= 5 && _restSecondsRemaining > 0) {
-          _timerAudioPlayer.play(AssetSource('sounds/secondi.mp3'));
+        // Play countdown tick every second during last 3 seconds
+        if (_restSecondsRemaining <= 3 && _restSecondsRemaining > 0) {
+          _timerAudioPlayer.stop().then(
+            (_) => _timerAudioPlayer.play(AssetSource('sounds/secondi.mp3')),
+          );
         }
       } else {
         _stopRestTimer();
-        _timerAudioPlayer.play(AssetSource('sounds/tempo-finito.mp3'));
+        _timerAudioPlayer.stop().then(
+          (_) => _timerAudioPlayer.play(AssetSource('sounds/tempo-finito.mp3')),
+        );
       }
     });
   }
@@ -671,7 +681,17 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
           // Premium Checkbox Button
           GestureDetector(
-            onTap: () => _toggleSet(setNumber, !isCompleted),
+            onTap: () {
+              if (!isCompleted) {
+                // Haptic and sound IMMEDIATELY on tap for zero perceived latency
+                HapticService.mediumTap();
+                _successAudioPlayer
+                    .resume(); // Resume is faster than play if source is set
+                // Also reset for next time
+                _successAudioPlayer.setSource(_successSource);
+              }
+              _toggleSet(setNumber, !isCompleted);
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
@@ -841,8 +861,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
     // Start rest timer IMMEDIATELY after checking the set for instant feedback
     if (value && setNumber <= widget.exercise.sets && !_isRestTimerActive) {
-      // Play success sound on set completion
-      _timerAudioPlayer.play(AssetSource('sounds/success.wav'));
+      // Sound is now handled in onTap for faster response
       _startRestTimer();
     }
 
