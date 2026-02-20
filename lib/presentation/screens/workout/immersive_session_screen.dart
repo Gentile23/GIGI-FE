@@ -236,18 +236,18 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Uscire dalla sessione?',
           style: GoogleFonts.outfit(
-            color: Colors.white,
+            color: CleanTheme.textPrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
         content: Text(
           'Il progresso di questa sessione verrà perso.',
-          style: GoogleFonts.inter(color: Colors.white70),
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
           TextButton(
@@ -264,7 +264,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
             },
             child: Text(
               'Esci',
-              style: GoogleFonts.inter(color: Colors.white60),
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
             ),
           ),
         ],
@@ -291,7 +291,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   Widget _buildSessionScreen() {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: CleanTheme.primaryColor,
       body: Stack(
         children: [
           // Background gradient
@@ -300,7 +300,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [const Color(0xFF0D0D1A), const Color(0xFF1A1A2E)],
+                colors: [CleanTheme.primaryColor, CleanTheme.steelDark],
               ),
             ),
           ),
@@ -345,7 +345,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: CleanTheme.textSecondary,
                         letterSpacing: 1,
                       ),
                     ),
@@ -475,7 +475,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
     final duration = DateTime.now().difference(_sessionStartTime);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: CleanTheme.primaryColor,
       body: Stack(
         children: [
           SafeArea(
@@ -518,7 +518,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
                     widget.workoutDay.name,
                     style: GoogleFonts.inter(
                       fontSize: 16,
-                      color: Colors.white60,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
 
@@ -632,7 +632,10 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
         ),
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 14, color: Colors.white60),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: CleanTheme.textSecondary,
+          ),
         ),
       ],
     );
@@ -640,7 +643,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   Widget _buildEmptyState() {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: CleanTheme.primaryColor,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: Center(
         child: Column(

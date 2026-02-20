@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/advanced_theme.dart';
+import '../../../core/theme/clean_theme.dart';
 
 /// Widget per visualizzare silhouette corporea con muscoli lavorati
 class BodyProgressVisualization extends StatefulWidget {
@@ -42,14 +42,25 @@ class _BodyProgressVisualizationState extends State<BodyProgressVisualization>
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AdvancedTheme.glassCardDark(),
+      decoration: BoxDecoration(
+        color: CleanTheme.steelDark.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Column(
         children: [
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Mappa Muscolare', style: AdvancedTheme.titleLarge),
+              Text(
+                'Mappa Muscolare',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
               _buildLegend(),
             ],
           ),
@@ -86,7 +97,7 @@ class _BodyProgressVisualizationState extends State<BodyProgressVisualization>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildLegendItem('Attivo', AdvancedTheme.accentGreen),
+        _buildLegendItem('Attivo', CleanTheme.accentGreen),
         const SizedBox(width: 8),
         _buildLegendItem('Recupero', Colors.amber),
         const SizedBox(width: 8),
@@ -239,7 +250,7 @@ class _BodyProgressVisualizationState extends State<BodyProgressVisualization>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildRecoveryCounter('Pronti', rested, AdvancedTheme.accentGreen),
+        _buildRecoveryCounter('Pronti', rested, CleanTheme.accentGreen),
         _buildRecoveryCounter('Recupero', recovering, Colors.amber),
         _buildRecoveryCounter('Riposo', fatigued, Colors.red),
       ],
@@ -271,7 +282,7 @@ class _BodyProgressVisualizationState extends State<BodyProgressVisualization>
   Color _getRecoveryColor(MuscleRecoveryState state) {
     switch (state) {
       case MuscleRecoveryState.rested:
-        return AdvancedTheme.accentGreen;
+        return CleanTheme.accentGreen;
       case MuscleRecoveryState.recovering:
         return Colors.amber;
       case MuscleRecoveryState.fatigued:
@@ -447,7 +458,7 @@ class _BodyPainter extends CustomPainter {
     Color baseColor;
     switch (recovery) {
       case MuscleRecoveryState.rested:
-        baseColor = AdvancedTheme.accentGreen;
+        baseColor = CleanTheme.accentGreen;
         break;
       case MuscleRecoveryState.recovering:
         baseColor = Colors.amber;
@@ -493,11 +504,22 @@ class MuscleHeatmapCompact extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AdvancedTheme.glassCardDark(),
+      decoration: BoxDecoration(
+        color: CleanTheme.steelDark.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Muscoli Più Allenati', style: AdvancedTheme.titleLarge),
+          Text(
+            'Muscoli Più Allenati',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 16),
           ...sortedMuscles
               .take(5)

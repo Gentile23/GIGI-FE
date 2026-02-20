@@ -313,7 +313,7 @@ class _TransformationTrackerScreenState
                     ),
                   ),
                 ),
-                Container(width: 2, color: Colors.white),
+                Container(width: 2, color: CleanTheme.borderPrimary),
                 Expanded(
                   child: Container(
                     color: CleanTheme.accentGreen.withValues(alpha: 0.1),
@@ -361,7 +361,7 @@ class _TransformationTrackerScreenState
                   'Powered by GIGI',
                   style: GoogleFonts.inter(
                     fontSize: 10,
-                    color: Colors.white,
+                    color: CleanTheme.textOnDark,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

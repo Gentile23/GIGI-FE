@@ -87,12 +87,14 @@ class WorkoutService {
   Future<Map<String, dynamic>> generatePlan({
     Map<String, dynamic>? filters,
     String? language,
+    bool includeHistory = false,
   }) async {
     try {
       final Map<String, dynamic> data = filters ?? {};
       if (language != null) {
         data['language'] = language;
       }
+      data['include_history'] = includeHistory;
 
       final response = await _apiClient.dio.post(
         ApiConfig.workoutPlansGenerate,

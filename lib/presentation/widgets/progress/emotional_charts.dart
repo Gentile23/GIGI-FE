@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../../../core/theme/advanced_theme.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
 /// Grafico emotivo dei progressi con narrativa
@@ -52,7 +52,7 @@ class _EmotionalProgressChartState extends State<EmotionalProgressChart>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? AdvancedTheme.primaryColor;
+    final color = widget.color ?? CleanTheme.accentGold;
     final maxValue = widget.dataPoints.map((p) => p.value).reduce(math.max);
     final minValue = widget.dataPoints.map((p) => p.value).reduce(math.min);
     final personalBestIndex = widget.dataPoints.indexWhere(
@@ -61,7 +61,11 @@ class _EmotionalProgressChartState extends State<EmotionalProgressChart>
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AdvancedTheme.glassCardDark(),
+      decoration: BoxDecoration(
+        color: CleanTheme.steelDark.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -69,7 +73,14 @@ class _EmotionalProgressChartState extends State<EmotionalProgressChart>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.title, style: AdvancedTheme.titleLarge),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
               if (personalBestIndex >= 0)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -77,10 +88,10 @@ class _EmotionalProgressChartState extends State<EmotionalProgressChart>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AdvancedTheme.accentGold.withValues(alpha: 0.2),
+                    color: CleanTheme.accentGold.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AdvancedTheme.accentGold.withValues(alpha: 0.5),
+                      color: CleanTheme.accentGold.withValues(alpha: 0.5),
                     ),
                   ),
                   child: const Row(
@@ -203,7 +214,7 @@ class _EmotionalProgressChartState extends State<EmotionalProgressChart>
     if (widget.dataPoints.length < 2) return Colors.grey;
     final first = widget.dataPoints.first.value;
     final last = widget.dataPoints.last.value;
-    return last >= first ? AdvancedTheme.accentGreen : Colors.red;
+    return last >= first ? CleanTheme.accentGreen : Colors.red;
   }
 }
 
@@ -397,10 +408,21 @@ class _StrengthRadarChartState extends State<StrengthRadarChart>
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AdvancedTheme.glassCardDark(),
+      decoration: BoxDecoration(
+        color: CleanTheme.steelDark.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Column(
         children: [
-          Text('Bilancio Muscolare', style: AdvancedTheme.titleLarge),
+          Text(
+            'Bilancio Muscolare',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 20),
           AnimatedBuilder(
             animation: _controller,
@@ -428,7 +450,7 @@ class _StrengthRadarChartState extends State<StrengthRadarChart>
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: AdvancedTheme.primaryColor,
+                      color: CleanTheme.accentGold,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -509,15 +531,15 @@ class _RadarChartPainter extends CustomPainter {
       final fillPaint = Paint()
         ..shader = RadialGradient(
           colors: [
-            AdvancedTheme.primaryColor.withValues(alpha: 0.4),
-            AdvancedTheme.primaryColor.withValues(alpha: 0.1),
+            CleanTheme.accentGold.withValues(alpha: 0.4),
+            CleanTheme.accentGold.withValues(alpha: 0.1),
           ],
         ).createShader(Rect.fromCircle(center: center, radius: radius));
       canvas.drawPath(gradientPath, fillPaint);
 
       // Stroke
       final strokePaint = Paint()
-        ..color = AdvancedTheme.primaryColor
+        ..color = CleanTheme.accentGold
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2;
       canvas.drawPath(dataPath, strokePaint);
@@ -530,7 +552,7 @@ class _RadarChartPainter extends CustomPainter {
         final y = center.dy + radius * value * math.sin(angle);
 
         final pointPaint = Paint()
-          ..color = AdvancedTheme.primaryColor
+          ..color = CleanTheme.accentGold
           ..style = PaintingStyle.fill;
         canvas.drawCircle(Offset(x, y), 4, pointPaint);
       }
@@ -602,14 +624,25 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AdvancedTheme.glassCardDark(),
+      decoration: BoxDecoration(
+        color: CleanTheme.steelDark.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
       child: Column(
         children: [
           // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Prima vs Dopo', style: AdvancedTheme.titleLarge),
+              Text(
+                'Prima vs Dopo',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -617,14 +650,14 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
                 ),
                 decoration: BoxDecoration(
                   color: isPositive
-                      ? AdvancedTheme.accentGreen.withValues(alpha: 0.2)
+                      ? CleanTheme.accentGreen.withValues(alpha: 0.2)
                       : Colors.red.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${isPositive ? '+' : ''}${percentChange.toStringAsFixed(1)}%',
                   style: TextStyle(
-                    color: isPositive ? AdvancedTheme.accentGreen : Colors.red,
+                    color: isPositive ? CleanTheme.accentGreen : Colors.red,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -677,10 +710,10 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
-              activeTrackColor: AdvancedTheme.primaryColor,
+              activeTrackColor: CleanTheme.accentGold,
               inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-              thumbColor: AdvancedTheme.primaryColor,
-              overlayColor: AdvancedTheme.primaryColor.withValues(alpha: 0.2),
+              thumbColor: CleanTheme.accentGold,
+              overlayColor: CleanTheme.accentGold.withValues(alpha: 0.2),
             ),
             child: Slider(
               value: _sliderValue,
@@ -731,7 +764,7 @@ class _BeforeAfterSliderState extends State<BeforeAfterSlider> {
             style: TextStyle(
               fontSize: highlight ? 32 : 28,
               fontWeight: FontWeight.bold,
-              color: highlight ? AdvancedTheme.accentGreen : Colors.white,
+              color: highlight ? CleanTheme.accentGreen : Colors.white,
             ),
           ),
           const SizedBox(height: 4),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/advanced_theme.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
 /// Widget per visualizzare level e XP progress in modo premium
@@ -58,7 +58,11 @@ class _LevelProgressWidgetState extends State<LevelProgressWidget>
         builder: (context, child) {
           return Container(
             padding: const EdgeInsets.all(20),
-            decoration: AdvancedTheme.glassCardDark(),
+            decoration: BoxDecoration(
+              color: CleanTheme.steelDark.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
             child: Row(
               children: [
                 // Level badge
@@ -98,9 +102,7 @@ class _LevelProgressWidgetState extends State<LevelProgressWidget>
                         '${widget.xpForNextLevel - widget.currentXP} XP al prossimo livello',
                         style: TextStyle(
                           fontSize: 11,
-                          color: AdvancedTheme.primaryLight.withValues(
-                            alpha: 0.8,
-                          ),
+                          color: CleanTheme.accentGold.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -121,11 +123,13 @@ class _LevelProgressWidgetState extends State<LevelProgressWidget>
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        gradient: AdvancedTheme.primaryGradient,
+        gradient: LinearGradient(
+          colors: [CleanTheme.accentGold, CleanTheme.accentOrange],
+        ),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AdvancedTheme.primaryColor.withValues(alpha: glowIntensity),
+            color: CleanTheme.accentGold.withValues(alpha: glowIntensity),
             blurRadius: 15 + (_glowController.value * 10),
             spreadRadius: 2,
           ),
@@ -162,10 +166,12 @@ class _LevelProgressWidgetState extends State<LevelProgressWidget>
             child: Container(
               height: 10,
               decoration: BoxDecoration(
-                gradient: AdvancedTheme.primaryGradient,
+                gradient: LinearGradient(
+                  colors: [CleanTheme.accentGold, CleanTheme.accentOrange],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: AdvancedTheme.primaryColor.withValues(alpha: 0.5),
+                    color: CleanTheme.accentGold.withValues(alpha: 0.5),
                     blurRadius: 8,
                   ),
                 ],
@@ -247,13 +253,13 @@ class _StoryAchievementCardState extends State<StoryAchievementCard>
   Color get rarityColor {
     switch (widget.rarity) {
       case 'legendary':
-        return AdvancedTheme.accentGold;
+        return CleanTheme.accentGold;
       case 'epic':
-        return AdvancedTheme.accentPurple;
+        return CleanTheme.accentOrange;
       case 'rare':
-        return AdvancedTheme.accentCyan;
+        return CleanTheme.accentBlue;
       case 'unique':
-        return AdvancedTheme.accentPink;
+        return CleanTheme.accentRed;
       default:
         return Colors.grey;
     }
@@ -274,7 +280,26 @@ class _StoryAchievementCardState extends State<StoryAchievementCard>
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: widget.unlocked
-                ? AdvancedTheme.achievementCard(widget.rarity)
+                ? BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        rarityColor.withValues(alpha: 0.15),
+                        CleanTheme.steelDark,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: rarityColor.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: rarityColor.withValues(alpha: 0.6),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  )
                 : BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
@@ -468,11 +493,11 @@ class _LootBoxRewardWidgetState extends State<LootBoxRewardWidget>
   Color get rarityColor {
     switch (widget.rarity) {
       case 'legendary':
-        return AdvancedTheme.accentGold;
+        return CleanTheme.accentGold;
       case 'epic':
-        return AdvancedTheme.accentPurple;
+        return CleanTheme.accentOrange;
       case 'rare':
-        return AdvancedTheme.accentCyan;
+        return CleanTheme.accentBlue;
       default:
         return Colors.grey[400]!;
     }
@@ -506,7 +531,7 @@ class _LootBoxRewardWidgetState extends State<LootBoxRewardWidget>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AdvancedTheme.cardColor,
+                  CleanTheme.steelDark,
                   rarityColor.withValues(alpha: 0.2),
                 ],
               ),
@@ -517,10 +542,13 @@ class _LootBoxRewardWidgetState extends State<LootBoxRewardWidget>
                 ),
                 width: 2,
               ),
-              boxShadow: AdvancedTheme.neonGlow(
-                rarityColor,
-                intensity: 0.5 + _glowController.value * 0.5,
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: rarityColor.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

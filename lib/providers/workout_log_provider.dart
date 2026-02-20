@@ -77,6 +77,7 @@ class WorkoutLogProvider with ChangeNotifier {
 
       // Refresh stats
       await fetchOverviewStats();
+      await fetchWorkoutHistory(refresh: true);
 
       notifyListeners();
     } catch (e) {

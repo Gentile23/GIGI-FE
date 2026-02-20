@@ -1,7 +1,7 @@
 /// Model per lo stato completo delle quote utente
 class QuotaStatus {
   final String subscriptionTier;
-  final Map<String, int> limits;
+  final Map<String, dynamic> limits;
   final QuotaUsageDetails usage;
   final QuotaFeatures features;
 
@@ -15,7 +15,7 @@ class QuotaStatus {
   factory QuotaStatus.fromJson(Map<String, dynamic> json) {
     return QuotaStatus(
       subscriptionTier: json['subscription_tier'] ?? 'free',
-      limits: Map<String, int>.from(json['limits'] ?? {}),
+      limits: Map<String, dynamic>.from(json['limits'] ?? {}),
       usage: QuotaUsageDetails.fromJson(json['usage'] ?? {}),
       features: QuotaFeatures.fromJson(json['features'] ?? {}),
     );

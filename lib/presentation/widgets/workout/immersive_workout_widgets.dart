@@ -57,12 +57,14 @@ class ImmersiveWorkoutScaffold extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
                           Icons.arrow_back_ios_new,
-                          color: Colors.white,
+                          color: CleanTheme.textOnPrimary,
                           size: 20,
                         ),
                       ),
@@ -74,9 +76,8 @@ class ImmersiveWorkoutScaffold extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
                             value: progressValue,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.1,
-                            ),
+                            backgroundColor: CleanTheme.textOnPrimary
+                                .withValues(alpha: 0.1),
                             valueColor: const AlwaysStoppedAnimation<Color>(
                               CleanTheme.immersiveAccent,
                             ),
@@ -123,7 +124,9 @@ class ImmersiveTimer extends StatelessWidget {
           style: GoogleFonts.outfit(
             fontSize: 72,
             fontWeight: FontWeight.w700,
-            color: isActive ? CleanTheme.immersiveAccent : Colors.white60,
+            color: isActive
+                ? CleanTheme.immersiveAccent
+                : CleanTheme.textOnPrimary.withValues(alpha: 0.6),
             height: 1,
           ),
         ),
@@ -134,7 +137,7 @@ class ImmersiveTimer extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.white60,
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -166,9 +169,11 @@ class ImmersiveExerciseCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: CleanTheme.textOnPrimary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,7 +183,7 @@ class ImmersiveExerciseCard extends StatelessWidget {
             style: GoogleFonts.outfit(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: CleanTheme.textOnPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -214,7 +219,7 @@ class ImmersiveExerciseCard extends StatelessWidget {
                       notes!,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: Colors.white70,
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -239,7 +244,10 @@ class ImmersiveExerciseCard extends StatelessWidget {
         children: [
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 12, color: Colors.white60),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(width: 8),
           Text(
@@ -285,7 +293,7 @@ class ImmersiveActionButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isPrimary
               ? CleanTheme.immersiveAccent
-              : Colors.white.withValues(alpha: 0.1),
+              : CleanTheme.textOnPrimary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
           boxShadow: isPrimary
               ? [
@@ -300,14 +308,14 @@ class ImmersiveActionButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            Icon(icon, color: CleanTheme.textOnPrimary, size: 24),
             const SizedBox(width: 12),
             Text(
               text,
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: CleanTheme.textOnPrimary,
                 letterSpacing: 0.5,
               ),
             ),
@@ -342,7 +350,7 @@ class ImmersiveRestTimer extends StatelessWidget {
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Colors.white60,
+            color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
             letterSpacing: 2,
           ),
         ),
@@ -359,7 +367,7 @@ class ImmersiveRestTimer extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: 1,
                   strokeWidth: 8,
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                 ),
               ),
               SizedBox(
@@ -380,14 +388,14 @@ class ImmersiveRestTimer extends StatelessWidget {
                     style: GoogleFonts.outfit(
                       fontSize: 56,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: CleanTheme.textOnPrimary,
                     ),
                   ),
                   Text(
                     'secondi',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.white60,
+                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -402,7 +410,7 @@ class ImmersiveRestTimer extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Text(
@@ -410,7 +418,7 @@ class ImmersiveRestTimer extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70,
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                 ),
               ),
             ),
@@ -449,7 +457,7 @@ class ImmersiveWorkoutSummary extends StatelessWidget {
           style: GoogleFonts.outfit(
             fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: CleanTheme.textOnPrimary,
           ),
         ),
         const SizedBox(height: 32),
@@ -457,7 +465,7 @@ class ImmersiveWorkoutSummary extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 20),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: CleanTheme.textOnPrimary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -495,7 +503,7 @@ class ImmersiveWorkoutSummary extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: CleanTheme.textOnPrimary,
                 ),
               ),
             ],
@@ -520,12 +528,15 @@ class ImmersiveWorkoutSummary extends StatelessWidget {
         style: GoogleFonts.outfit(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          color: Colors.white,
+          color: CleanTheme.textOnPrimary,
         ),
       ),
       Text(
         label,
-        style: GoogleFonts.inter(fontSize: 12, color: Colors.white60),
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
+        ),
       ),
     ],
   );
@@ -594,12 +605,12 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
         decoration: BoxDecoration(
           color: widget.isActive
               ? CleanTheme.primaryColor.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.08),
+              : CleanTheme.textOnPrimary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: widget.isActive
                 ? CleanTheme.primaryColor.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.1),
+                : CleanTheme.textOnPrimary.withValues(alpha: 0.1),
             width: widget.isActive ? 2 : 1,
           ),
         ),
@@ -615,7 +626,7 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
                   decoration: BoxDecoration(
                     color: widget.isActive
                         ? CleanTheme.primaryColor
-                        : Colors.white.withValues(alpha: 0.1),
+                        : CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                     boxShadow: widget.isActive
                         ? [
@@ -631,7 +642,7 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
                   ),
                   child: Icon(
                     widget.isActive ? Icons.mic : Icons.mic_none,
-                    color: Colors.white,
+                    color: CleanTheme.textOnPrimary,
                     size: 22,
                   ),
                 );
@@ -676,7 +687,7 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
                       fontWeight: FontWeight.w600,
                       color: widget.isActive
                           ? CleanTheme.primaryColor
-                          : Colors.white60,
+                          : CleanTheme.textOnPrimary.withValues(alpha: 0.6),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -686,7 +697,7 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
                       widget.currentMessage!,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: Colors.white70,
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -701,8 +712,8 @@ class _VoiceCoachingIndicatorState extends State<VoiceCoachingIndicator>
               height: 8,
               decoration: BoxDecoration(
                 color: widget.isActive
-                    ? CleanTheme.accentGreen
-                    : Colors.white.withValues(alpha: 0.3),
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.textOnPrimary.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
             ),

@@ -451,7 +451,11 @@ class _WelcomeFlowScreenState extends State<WelcomeFlowScreen> {
                   color: CleanTheme.primaryColor,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 18),
+                child: const Icon(
+                  Icons.check,
+                  color: CleanTheme.textOnDark,
+                  size: 18,
+                ),
               ),
           ],
         ),

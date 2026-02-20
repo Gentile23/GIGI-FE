@@ -374,10 +374,7 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  CleanTheme.primaryColor,
-                  CleanTheme.primaryColor.withValues(alpha: 0.8),
-                ],
+                colors: [CleanTheme.primaryColor, CleanTheme.steelDark],
               ),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -390,12 +387,15 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: CleanTheme.textOnDark,
                   ),
                 ),
                 Text(
                   l10n.caloriesPerDay,
-                  style: GoogleFonts.inter(fontSize: 16, color: Colors.white70),
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),
@@ -545,14 +545,14 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                             strokeWidth: 2,
                           ),
                         )
                       : Text(
                           buttonLabel,
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

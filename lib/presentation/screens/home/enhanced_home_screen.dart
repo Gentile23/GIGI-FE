@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../core/utils/responsive_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +14,7 @@ import '../questionnaire/unified_questionnaire_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 
 import '../workout/workout_session_screen.dart';
 import '../../../data/models/user_model.dart';
@@ -23,6 +25,7 @@ import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
+import '../workout/unified_workout_list_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -66,8 +69,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.snackPlanReady),
-            backgroundColor: CleanTheme.accentGreen,
+            backgroundColor: CleanTheme.surfaceColor,
             duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: CleanTheme.borderPrimary),
+            ),
           ),
         );
       }
@@ -106,17 +114,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             child: Consumer2<AuthProvider, WorkoutProvider>(
               builder: (context, authProvider, workoutProvider, _) {
                 final user = authProvider.user;
-
-                // SKELETON LOADING STATE
-                if (workoutProvider.isLoading ||
-                    !workoutProvider.isInitialized) {
-                  return _buildSkeletonLoading();
-                }
+                final isLoading =
+                    workoutProvider.isLoading || !workoutProvider.isInitialized;
 
                 return RefreshIndicator(
+                  key: const ValueKey('home_root_refresh'),
                   onRefresh: _loadData,
                   color: CleanTheme.primaryColor,
                   child: SingleChildScrollView(
+                    key: const ValueKey('home_root_scroll'),
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.fromLTRB(
                       24,
@@ -126,265 +132,225 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                         context,
                         baseHeight: 80,
                       ),
-                    ), // Dynamic bottom padding for navbar
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 1. Header (Hello, Name + Avatar)
-                        _buildCompactHeader(user),
-
-                        const SizedBox(height: 32),
-
-                        _buildGigiGuidance(workoutProvider),
-
-                        // 4. Hero Section
-                        Text(
-                          AppLocalizations.of(context)!.homeNextWorkoutTitle,
-                          style: GoogleFonts.outfit(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: CleanTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        _buildHeroWorkoutCard(workoutProvider),
-
-                        const SizedBox(height: 32),
-
-                        // 5. Weekly Stats (Upcoming tours/stats)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.homeProgressTitle,
-                              style: GoogleFonts.outfit(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: CleanTheme.textPrimary,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                AppLocalizations.of(context)!.viewAll,
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: CleanTheme.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        _buildQuickStatsRow(),
-
-                        const SizedBox(height: 24),
-                        _buildStreakMotivator(),
-
-                        // Health Insights Section
-                        const SizedBox(height: 32),
-                        HealthTrendsCarousel(
-                          onViewAllTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const WeeklyReportScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        // 6. Quick Actions
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionCardWide(
-                                Icons.auto_awesome,
-                                AppLocalizations.of(
-                                  context,
-                                )!.actionGeneratePlan,
-                                AppLocalizations.of(
-                                  context,
-                                )!.actionGeneratePlanDesc,
-                                const Color(0xFF00D26A),
-                                () {
-                                  HapticService.lightTap();
-                                  final workoutProvider =
-                                      Provider.of<WorkoutProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  final authProvider =
-                                      Provider.of<AuthProvider>(
-                                        context,
-                                        listen: false,
-                                      );
-                                  final user = authProvider.user;
-                                  final isQuestionnaireComplete =
-                                      user?.isQuestionnaireComplete ?? false;
-
-                                  if (workoutProvider.currentPlan == null) {
-                                    if (isQuestionnaireComplete) {
-                                      // Questionnaire complete -> generate plan directly
-                                      _generatePlanDirectly();
-                                    } else {
-                                      // Questionnaire not done, go to questionnaire
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const UnifiedQuestionnaireScreen(),
-                                        ),
-                                      ).then((_) => _loadData());
-                                    }
-                                  } else {
-                                    _showGeneratePlanDialog();
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Community & Form Check
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionCardWide(
-                                Icons.people_alt_rounded,
-                                AppLocalizations.of(context)!.actionCommunity,
-                                AppLocalizations.of(
-                                  context,
-                                )!.actionCommunityDesc,
-                                CleanTheme.accentOrange,
-                                () {
-                                  HapticService.lightTap();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const ActivityFeedScreen(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Custom & History
-                        // Custom & History (Modified)
-                        // Premium Form Check Card
-                        GestureDetector(
-                          onTap: () {
-                            HapticService.lightTap();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const FormAnalysisScreen(),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xFFDAA520),
-                                  const Color(0xFFFFD700),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(
-                                    0xFFDAA520,
-                                  ).withValues(alpha: 0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: isLoading
+                          ? _buildSkeletonLoading(
+                              key: const ValueKey('home_skeleton'),
+                            )
+                          : Column(
+                              key: const ValueKey('home_content_column'),
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt_outlined,
-                                    color: Colors.white,
-                                    size: 28,
+                                // 1. Header (Hello, Name + Avatar)
+                                _buildCompactHeader(user),
+
+                                const SizedBox(height: 32),
+
+                                _buildGigiGuidance(workoutProvider),
+
+                                // 4. Hero Section
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.homeNextWorkoutTitle,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: CleanTheme.textPrimary,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                const SizedBox(height: 16),
+                                _buildHeroWorkoutCard(workoutProvider),
+
+                                const SizedBox(height: 32),
+
+                                // 5. Weekly Stats (Upcoming tours/stats)
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.homeProgressTitle,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: CleanTheme.textPrimary,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {},
+                                      child: Text(
+                                        AppLocalizations.of(context)!.viewAll,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: CleanTheme.textSecondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildQuickStatsRow(),
+
+                                const SizedBox(height: 24),
+                                _buildStreakMotivator(),
+
+                                // Health Insights Section
+                                const SizedBox(height: 32),
+                                HealthTrendsCarousel(
+                                  onViewAllTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const WeeklyReportScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                // 6. Quick Actions
+                                // Row 1: Community & Custom
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildActionCardWide(
+                                        Icons.people_alt_rounded,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.actionCommunity,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.actionCommunityDesc,
+                                        CleanTheme.accentOrange,
+                                        () {
+                                          HapticService.lightTap();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const ActivityFeedScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildActionCardWide(
+                                        Icons.tune_rounded,
+                                        'Custom',
+                                        'Crea la tua scheda',
+                                        CleanTheme.primaryColor,
+                                        () {
+                                          HapticService.lightTap();
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const UnifiedWorkoutListScreen(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                // Row 2: Form Check AI (Full Width)
+                                GestureDetector(
+                                  onTap: () {
+                                    HapticService.lightTap();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const FormAnalysisScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: LiquidSteelContainer(
+                                    borderRadius: 16,
+                                    enableShine: true,
+                                    border: Border.all(
+                                      color: CleanTheme.textOnPrimary
+                                          .withValues(alpha: 0.3),
+                                      width: 1,
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.actionFormCheck,
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          /* Lock removed as per user request
                                           Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
+                                            padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
                                               color: Colors.black.withValues(
-                                                alpha: 0.3,
+                                                alpha: 0.2,
                                               ),
                                               borderRadius:
-                                                  BorderRadius.circular(4),
+                                                  BorderRadius.circular(
+                                                    14,
+                                                  ), // Unified with standard
+                                              border: Border.all(
+                                                color: CleanTheme.textOnPrimary
+                                                    .withValues(alpha: 0.1),
+                                              ),
                                             ),
                                             child: const Icon(
-                                              Icons.lock,
-                                              color: Colors.white,
-                                              size: 12,
+                                              Icons.camera_alt_outlined,
+                                              color: CleanTheme.textOnPrimary,
+                                              size: 26,
                                             ),
                                           ),
-                                          */
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.actionFormCheck,
+                                                  style: GoogleFonts.inter(
+                                                    // Unified font
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: CleanTheme
+                                                        .textOnPrimary,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Analizza con AI',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 12,
+                                                    color: CleanTheme
+                                                        .textOnPrimary
+                                                        .withValues(
+                                                          alpha: 0.85,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: CleanTheme.textOnPrimary,
+                                            size: 18,
+                                          ),
                                         ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Analizza la tua esecuzione con l\'AI',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 13,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                                const Icon(
-                                  Icons.arrow_forward,
-                                  color: Colors.white,
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 );
@@ -441,15 +407,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: CleanTheme.borderPrimary, width: 2),
+              gradient: LinearGradient(
+                colors: [CleanTheme.chromeSilver, CleanTheme.textSecondary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: CircleAvatar(
               radius: 24,
-              backgroundColor: CleanTheme.primaryColor,
+              backgroundColor: CleanTheme.surfaceColor,
               child: Text(
                 name.isNotEmpty ? name[0].toUpperCase() : 'A',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: CleanTheme.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -479,53 +449,86 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         final streak = provider.stats?.currentStreak ?? 0;
         final isActive = streak > 0;
 
-        // Color Psychology
-        List<Color> gradientColors;
-        if (streak < 3) {
-          gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
-        } else if (streak < 7) {
-          gradientColors = [const Color(0xFFFF9800), const Color(0xFFFF6D00)];
-        } else {
-          gradientColors = [const Color(0xFFFF3D00), const Color(0xFFD500F9)];
+        if (isActive) {
+          return LiquidSteelContainer(
+            borderRadius: 20,
+            enableShine: true,
+            border: Border.all(
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+                      ),
+                    ),
+                    child: Text('🔥', style: TextStyle(fontSize: 24)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.streakDays(streak),
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.textOnPrimary,
+                            letterSpacing: 1.0,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.5),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          AppLocalizations.of(context)!.streakKeepGoing,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.9,
+                            ),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            gradient: isActive
-                ? LinearGradient(
-                    colors: gradientColors,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: isActive ? null : CleanTheme.cardColor,
+            color: CleanTheme.cardColor,
             borderRadius: BorderRadius.circular(20),
-            border: isActive
-                ? null
-                : Border.all(color: CleanTheme.borderSecondary),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: gradientColors[0].withValues(alpha: 0.4),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ]
-                : null,
+            border: Border.all(color: CleanTheme.borderSecondary),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Text(
-                  '🔥',
-                  style: TextStyle(fontSize: isActive ? 24 : 20),
-                ),
+                child: const Text('🔥', style: TextStyle(fontSize: 20)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -533,26 +536,20 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isActive
-                          ? AppLocalizations.of(context)!.streakDays(streak)
-                          : AppLocalizations.of(context)!.streakStart,
+                      AppLocalizations.of(context)!.streakStart,
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: isActive ? Colors.white : CleanTheme.textPrimary,
+                        color: CleanTheme.textPrimary,
                         letterSpacing: 1.0,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isActive
-                          ? AppLocalizations.of(context)!.streakKeepGoing
-                          : AppLocalizations.of(context)!.streakStartToday,
+                      AppLocalizations.of(context)!.streakStartToday,
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: isActive
-                            ? Colors.white.withValues(alpha: 0.9)
-                            : CleanTheme.textSecondary,
+                        color: CleanTheme.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -573,7 +570,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     // Determine what to show
     String title = '';
     String subtitle = '';
-    List<Color> gradientColors = [CleanTheme.primaryColor, Colors.black87];
+    // List<Color> gradientColors = [CleanTheme.primaryColor, Colors.black87]; // Removed
     VoidCallback? onActionTap;
     String actionLabel = AppLocalizations.of(context)!.start;
     bool showHeart = false;
@@ -592,7 +589,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       title = currentWorkout.name;
       subtitle =
           '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min';
-      gradientColors = [const Color(0xFF1A1A2E), const Color(0xFF16213E)];
+      // gradientColors = [const Color(0xFF1C1C1E), const Color(0xFF000000)]; // Removed
       showHeart = true;
 
       onActionTap = () async {
@@ -621,10 +618,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
       if (isQuestionnaireComplete) {
         // Questionario completo -> Genera scheda direttamente
-        // Il primo workout farà la calibrazione automatica in background
         title = AppLocalizations.of(context)!.generatePlanCardTitle;
         subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
-        gradientColors = [const Color(0xFF00D26A), const Color(0xFF00BFA5)];
+        // gradientColors = [const Color(0xFF3A3A3C), const Color(0xFF1C1C1E)]; // Removed
         showHeart = false;
 
         onActionTap = () {
@@ -634,7 +630,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         // Questionario non completo - Mostra prompt per completare profilo
         title = AppLocalizations.of(context)!.welcomeBack;
         subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
-        gradientColors = [CleanTheme.primaryColor, Colors.black87];
+        // gradientColors = [const Color(0xFF2C2C2E), const Color(0xFF000000)]; // Removed
 
         onActionTap = () {
           Navigator.push(
@@ -647,157 +643,183 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       }
     }
 
-    return GestureDetector(
-      onTap: onActionTap,
-      child: Container(
-        height: 380,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return SizedBox(
+      height: 380,
+      width: double.infinity,
+      child: GestureDetector(
+        onTap: onActionTap,
+        child: LiquidSteelContainer(
+          borderRadius: 32,
+          enableShine: true,
+          border: Border.all(
+            color: CleanTheme.textOnPrimary.withValues(alpha: 0.3),
+            width: 1,
           ),
-          boxShadow: CleanTheme.cardShadow,
-        ),
-        child: Stack(
-          children: [
-            // Background Pattern (removed - asset doesn't exist)
-            // Could be replaced with a gradient or other decoration
-
-            // Gradient Overlay
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.8),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.4, 1.0],
-                  ),
-                ),
-              ),
-            ),
-
-            // Heart Icon
-            if (showHeart)
-              Positioned(
-                top: 24,
-                right: 24,
+          child: Stack(
+            fit: StackFit.loose,
+            children: [
+              // Internal Gradient Overlay for depth over the steel
+              Positioned.fill(
                 child: Container(
-                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.favorite_border,
-                    color: Colors.white,
-                    size: 20,
+                    borderRadius: BorderRadius.circular(32),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.4),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
               ),
 
-            // Content
-            Positioned(
-              left: 24,
-              right: 24,
-              bottom: 24,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
+              // Heart Icon
+              if (showHeart)
+                Positioned(
+                  top: 24,
+                  right: 24,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.aiPlanBadge,
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
+                      color: Colors.black.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.2),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      height: 1.1,
+                    child: const Icon(
+                      Icons.favorite_border,
+                      color: CleanTheme.textOnPrimary,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                ),
 
-                  // Action Button
-                  Container(
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(100),
+              // Content
+              Positioned(
+                left: 24,
+                right: 24,
+                bottom: 24,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.3,
+                          ),
+                          width: 0.5,
+                        ),
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.aiPlanBadge,
+                        style: GoogleFonts.inter(
+                          color: CleanTheme.textOnPrimary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
+                        ),
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 24),
-                          child: Text(
-                            actionLabel,
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: CleanTheme.textPrimary,
+                    const SizedBox(height: 12),
+                    Text(
+                      title,
+                      style: GoogleFonts.outfit(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textOnPrimary,
+                        height: 1.1,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w500,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Button – White High Contrast
+                    Container(
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: CleanTheme.textOnPrimary,
+                        borderRadius: BorderRadius.circular(100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 24),
+                            child: Text(
+                              actionLabel,
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Container(
-                            height: 40,
-                            width: 40,
-                            decoration: const BoxDecoration(
-                              color: CleanTheme.primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_forward,
-                              color: Colors.white,
-                              size: 20,
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Container(
+                              height: 40,
+                              width: 40,
+                              decoration: const BoxDecoration(
+                                color: Colors.black,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward,
+                                color: CleanTheme.textOnPrimary,
+                                size: 20,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+            ],
+          ), // Stack
+        ), // LiquidSteelContainer
+      ), // GestureDetector
+    ); // SizedBox
   }
 
   Widget _buildGeneratingCard() {
@@ -845,7 +867,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 '🎯',
                 AppLocalizations.of(context)!.goal,
                 '${stats?.totalWorkouts ?? 0}/5',
-                const Color(0xFF00D26A),
+                const Color(0xFF000000),
               ),
             ),
             const SizedBox(width: 12),
@@ -854,7 +876,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 '🏆',
                 AppLocalizations.of(context)!.level,
                 '${stats?.level ?? 1}',
-                const Color(0xFF9B59B6),
+                const Color(0xFF3A3A3C),
               ),
             ),
             const SizedBox(width: 12),
@@ -863,7 +885,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 '⚡',
                 'XP',
                 '${stats?.totalXp ?? 0}',
-                const Color(0xFFFF6B35),
+                const Color(0xFF636366),
               ),
             ),
           ],
@@ -878,7 +900,14 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       decoration: BoxDecoration(
         color: CleanTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
+        border: Border.all(color: CleanTheme.borderSecondary),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -913,29 +942,44 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     Color color,
     VoidCallback onTap,
   ) {
+    // Usa sempre toni neutri chrome indipendentemente dal colore passato
+    const chromeIcon = Color(0xFF3A3A3C);
+    const chromeBorder = Color(0xFFD1D1D6);
+    const chromeBg = Color(0xFFF5F5F7);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color.withValues(alpha: 0.1),
-              color.withValues(alpha: 0.05),
-            ],
-          ),
+          color: chromeBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          border: Border.all(color: chromeBorder, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: chromeBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 26),
+              child: Icon(icon, color: chromeIcon, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -960,166 +1004,62 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: color, size: 18),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF8E8E93),
+              size: 18,
+            ),
           ],
         ),
       ),
     );
   }
 
-  void _showGeneratePlanDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: CleanTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
+  Widget _buildSkeletonLoading({Key? key}) {
+    return Column(
+      key: key,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        // Header Skeleton
+        Row(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey.shade100,
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/gigi_new_logo.png',
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Genera Scheda AI',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'L\'AI creerà una scheda personalizzata basata sul tuo profilo.',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: CleanTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.lightbulb_outline,
-                    color: Color(0xFFFF9800),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'La calibrazione AI avviene automaticamente durante il primo allenamento',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: const Color(0xFFE65100),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Annulla',
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00D26A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              _generatePlanDirectly();
-            },
-            child: Text(
-              'Genera Ora',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSkeletonLoading() {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            // Header Skeleton
-            Row(
-              children: [
-                const SkeletonBox(width: 48, height: 48, radius: 24),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    SkeletonBox(width: 100, height: 14),
-                    SizedBox(height: 8),
-                    SkeletonBox(width: 160, height: 20),
-                  ],
-                ),
+            const SkeletonBox(width: 48, height: 48, radius: 24),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                SkeletonBox(width: 100, height: 14),
+                SizedBox(height: 8),
+                SkeletonBox(width: 160, height: 20),
               ],
             ),
-            const SizedBox(height: 32),
-            // Streak Skeleton
-            const SkeletonBox(width: double.infinity, height: 80, radius: 20),
-            const SizedBox(height: 24),
-            // Hero Card Skeleton
-            const SkeletonBox(width: double.infinity, height: 280, radius: 24),
-            const SizedBox(height: 24),
-            // Stats Row Skeleton
-            Row(
-              children: List.generate(
-                3,
-                (index) => Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: index < 2 ? 12.0 : 0),
-                    child: const SkeletonBox(
-                      width: double.infinity,
-                      height: 80,
-                      radius: 16,
-                    ),
-                  ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        // Streak Skeleton
+        const SkeletonBox(width: double.infinity, height: 80, radius: 20),
+        const SizedBox(height: 24),
+        // Hero Card Skeleton
+        const SkeletonBox(width: double.infinity, height: 280, radius: 24),
+        const SizedBox(height: 24),
+        // Stats Row Skeleton
+        Row(
+          children: List.generate(
+            3,
+            (index) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: index < 2 ? 12.0 : 0),
+                child: const SkeletonBox(
+                  width: double.infinity,
+                  height: 80,
+                  radius: 16,
                 ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -1202,7 +1142,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Scheda generata con successo!'),
-            backgroundColor: CleanTheme.accentGreen,
+            backgroundColor: const Color(0xFF1C1C1E),
           ),
         );
         _loadData();
@@ -1210,7 +1150,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Errore: ${workoutProvider.error ?? "Riprova"}'),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFF3A3A3C),
           ),
         );
       }

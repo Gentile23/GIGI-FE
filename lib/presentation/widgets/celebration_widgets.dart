@@ -133,14 +133,14 @@ class _XpGainAnimationState extends State<XpGainAnimation>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            CleanTheme.accentGreen,
-            CleanTheme.accentGreen.withValues(alpha: 0.8),
+            CleanTheme.accentGold,
+            CleanTheme.accentGold.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: CleanTheme.accentGreen.withValues(alpha: 0.4),
+            color: CleanTheme.accentGold.withValues(alpha: 0.4),
             blurRadius: 16,
             spreadRadius: 2,
           ),
@@ -280,12 +280,12 @@ class _XpGainOverlayState extends State<XpGainOverlay>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [CleanTheme.accentGreen, const Color(0xFF22C55E)],
+          colors: [CleanTheme.accentGold, Color(0xFFFFD700)],
         ),
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: CleanTheme.accentGreen.withValues(alpha: 0.5),
+            color: CleanTheme.accentGold.withValues(alpha: 0.5),
             blurRadius: 20,
             spreadRadius: 4,
           ),

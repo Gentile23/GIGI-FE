@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/background_motion.dart';
+import '../../widgets/animations/animated_logo.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'auth_screen.dart';
 
@@ -14,22 +17,8 @@ class LandingScreen extends StatelessWidget {
       backgroundColor: CleanTheme.backgroundColor,
       body: Stack(
         children: [
-          // Background Aesthetic - Subtle gradient or image
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white,
-                    CleanTheme.primaryColor.withValues(alpha: 0.05),
-                    CleanTheme.accentPurple.withValues(alpha: 0.1),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // 1. Animated Background
+          const Positioned.fill(child: BackgroundMotion()),
 
           // Main Content
           SafeArea(
@@ -40,106 +29,90 @@ class LandingScreen extends StatelessWidget {
                 children: [
                   const Spacer(flex: 3),
 
-                  // Logo and Branding
-                  Hero(
-                    tag: 'gigi_logo',
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: CleanTheme.primaryColor.withValues(
-                              alpha: 0.2,
-                            ),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Image.asset(
-                            'assets/images/gigi_new_logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.fitness_center,
-                                  size: 60,
-                                  color: CleanTheme.primaryColor,
-                                ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  // 2. Animated Logo
+                  const AnimatedLogo(
+                    size: 240,
+                    heroTag: 'gigi_logo',
+                    enableBreathing: true,
+                    enableShimmer: true,
                   ),
 
                   const SizedBox(height: 48),
 
-                  // App Title
+                  // 3. App Title (Animate In)
                   Text(
-                    'GIGI',
-                    style: GoogleFonts.outfit(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 8,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
+                        'GIGI',
+                        style: GoogleFonts.outfit(
+                          fontSize: 48,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 8,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 200.ms)
+                      .slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 16),
 
-                  // Slogan
+                  // 4. Slogan (Animate In)
                   Text(
-                    AppLocalizations.of(context)!.slogan,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: CleanTheme.textSecondary,
-                      height: 1.5,
-                    ),
-                  ),
+                        AppLocalizations.of(context)!.slogan,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: CleanTheme.textSecondary,
+                          height: 1.5,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms, delay: 400.ms)
+                      .slideY(begin: 0.2, end: 0),
 
                   const Spacer(flex: 2),
 
-                  // Action Buttons
+                  // 5. Action Buttons (Animate In Staggered)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       CleanButton(
-                        text: AppLocalizations.of(context)!.startNow,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const AuthScreen(initialIsLogin: false),
-                            ),
-                          );
-                        },
-                        isPrimary: true,
-                        width: double.infinity,
-                      ),
+                            text: AppLocalizations.of(context)!.startNow,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const AuthScreen(initialIsLogin: false),
+                                ),
+                              );
+                            },
+                            isPrimary: true,
+                            width: double.infinity,
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms, delay: 600.ms)
+                          .slideY(begin: 0.2, end: 0),
+
                       const SizedBox(height: 16),
                       CleanButton(
-                        text: AppLocalizations.of(context)!.login,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const AuthScreen(initialIsLogin: true),
-                            ),
-                          );
-                        },
-                        isPrimary: false,
-                        isOutlined: true,
-                        width: double.infinity,
-                      ),
+                            text: AppLocalizations.of(context)!.login,
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const AuthScreen(initialIsLogin: true),
+                                ),
+                              );
+                            },
+                            isPrimary: false,
+                            isOutlined: true,
+                            width: double.infinity,
+                          )
+                          .animate()
+                          .fadeIn(duration: 600.ms, delay: 800.ms)
+                          .slideY(begin: 0.2, end: 0),
                     ],
                   ),
 
@@ -153,7 +126,7 @@ class LandingScreen extends StatelessWidget {
                       color: CleanTheme.textTertiary,
                       fontWeight: FontWeight.w400,
                     ),
-                  ),
+                  ).animate().fadeIn(duration: 600.ms, delay: 1000.ms),
 
                   const SizedBox(height: 24),
                 ],

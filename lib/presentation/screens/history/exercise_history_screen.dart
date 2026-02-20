@@ -183,7 +183,7 @@ class _ExerciseHistoryScreenState extends State<ExerciseHistoryScreen> {
                           radius: 4,
                           color: color,
                           strokeWidth: 2,
-                          strokeColor: Colors.white,
+                          strokeColor: CleanTheme.textOnDark,
                         );
                       },
                     ),

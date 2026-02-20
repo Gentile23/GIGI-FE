@@ -110,7 +110,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
             backgroundColor: CleanTheme.accentOrange,
             action: SnackBarAction(
               label: 'UPGRADE',
-              textColor: Colors.white,
+              textColor: CleanTheme.textOnDark,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -336,7 +336,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
                 child: const Icon(
                   Icons.camera_alt,
-                  color: CleanTheme.accentBlue,
+                  color: CleanTheme
+                      .accentBlue, // Legacy alias mapped to chromeSilver
                 ),
               ),
               title: Text(
@@ -357,7 +358,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
                 child: const Icon(
                   Icons.photo_library,
-                  color: CleanTheme.accentPurple,
+                  color: CleanTheme
+                      .accentPurple, // Legacy alias mapped to steelLight
                 ),
               ),
               title: Text(
@@ -466,7 +468,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               'Analizza',
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: CleanTheme.textOnPrimary,
               ),
             ),
           ),
@@ -543,15 +545,15 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                       horizontal: 24,
                     ),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                        colors: [CleanTheme.steelLight, CleanTheme.steelDark],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -568,7 +570,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                           child: const Icon(
                             Icons.camera_alt_rounded,
                             size: 48,
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -577,7 +579,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -586,7 +588,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                           'Scatta una foto e conta le calorie in 3 secondi!',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: CleanTheme.textOnDark.withValues(alpha: 0.9),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -597,7 +599,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: CleanTheme.backgroundColor,
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Row(
@@ -605,7 +607,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                             children: [
                               const Icon(
                                 Icons.flash_on,
-                                color: Color(0xFF6366F1),
+                                color: CleanTheme.steelLight,
                                 size: 18,
                               ),
                               const SizedBox(width: 8),
@@ -614,7 +616,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF6366F1),
+                                  color: CleanTheme.steelDark,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -766,7 +768,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
               },
               selectedColor: CleanTheme.primaryColor,
               labelStyle: GoogleFonts.inter(
-                color: isSelected ? Colors.white : CleanTheme.textSecondary,
+                color: isSelected
+                    ? CleanTheme.textOnPrimary
+                    : CleanTheme.textSecondary,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
               backgroundColor: CleanTheme.surfaceColor,

@@ -216,14 +216,12 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            CleanTheme.accentPurple.withValues(alpha: 0.1),
+            CleanTheme.accentBlue.withValues(alpha: 0.1),
             CleanTheme.primaryColor.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: CleanTheme.accentPurple.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: CleanTheme.accentBlue.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

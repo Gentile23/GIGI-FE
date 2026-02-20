@@ -650,7 +650,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
   Color _getScoreColor(int score) {
     if (score >= 8) return CleanTheme.accentGreen;
     if (score >= 6) return CleanTheme.accentOrange;
-    if (score >= 4) return const Color(0xFFFF6B00);
+    if (score >= 4) return CleanTheme.accentOrange.withValues(alpha: 0.9);
     return CleanTheme.accentRed;
   }
 
@@ -661,7 +661,7 @@ class FormAnalysisResultScreen extends StatelessWidget {
       case 'medium':
         return CleanTheme.accentOrange;
       case 'low':
-        return const Color(0xFFFFC107);
+        return CleanTheme.accentOrange.withValues(alpha: 0.7);
       default:
         return CleanTheme.textTertiary;
     }

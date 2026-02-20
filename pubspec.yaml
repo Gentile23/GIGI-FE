@@ -98,6 +98,8 @@ dependencies:
   google_sign_in: ^6.2.2
   sign_in_with_apple: ^7.0.1
   file_picker: ^10.3.10
+  rive: ^0.14.3
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:

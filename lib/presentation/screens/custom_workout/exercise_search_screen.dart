@@ -313,7 +313,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                           labelStyle: GoogleFonts.outfit(
                             fontSize: 13,
                             color: isSelected
-                                ? Colors.white
+                                ? CleanTheme.textOnDark
                                 : CleanTheme.textPrimary,
                             fontWeight: isSelected
                                 ? FontWeight.w600
@@ -324,7 +324,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                             side: BorderSide(
                               color: isSelected
                                   ? CleanTheme.primaryColor
-                                  : Colors.grey[700]!,
+                                  : CleanTheme.borderSecondary,
                             ),
                           ),
                           showCheckmark: false,
@@ -356,7 +356,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                                 (_selectedEquipment != null ||
                                     _selectedDifficulty != null)
                                 ? CleanTheme.primaryColor
-                                : Colors.grey[700]!,
+                                : CleanTheme.borderSecondary,
                           ),
                         ),
                         child: Row(
@@ -450,7 +450,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+            Icon(Icons.error_outline, size: 48, color: CleanTheme.accentRed),
             const SizedBox(height: 16),
             Text(
               _error!,
@@ -474,7 +474,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 48, color: Colors.grey[500]),
+            Icon(Icons.search_off, size: 48, color: CleanTheme.textTertiary),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.noExercisesFound,
@@ -532,7 +532,9 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                   : CleanTheme.cardColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? CleanTheme.primaryColor : Colors.grey[700]!,
+                color: isSelected
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.borderSecondary,
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -551,12 +553,16 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                       border: Border.all(
                         color: isSelected
                             ? CleanTheme.primaryColor
-                            : Colors.grey[600]!,
+                            : CleanTheme.borderSecondary,
                         width: 2,
                       ),
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        ? const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: CleanTheme.textOnDark,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 12),
@@ -592,7 +598,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[800],
+                              color: CleanTheme.surfaceColor,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -675,7 +681,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[600],
+              color: CleanTheme.textTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -700,7 +706,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   },
                   child: Text(
                     AppLocalizations.of(context)!.clearFilters,
-                    style: GoogleFonts.outfit(color: Colors.red),
+                    style: GoogleFonts.outfit(color: CleanTheme.accentRed),
                   ),
                 ),
               ],

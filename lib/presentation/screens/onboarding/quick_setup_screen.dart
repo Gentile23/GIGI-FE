@@ -141,7 +141,10 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
         );
       }
     } finally {
@@ -416,7 +419,11 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
                   color: CleanTheme.primaryColor,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.check,
+                  color: CleanTheme.textOnDark,
+                  size: 16,
+                ),
               ),
           ],
         ),

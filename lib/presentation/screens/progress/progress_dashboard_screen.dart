@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../widgets/progress/interactive_body_silhouette.dart';
 import '../../../data/services/api_client.dart';
 import 'body_measurements_screen.dart';
@@ -204,7 +206,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
                       '⏱️',
                       hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
                       AppLocalizations.of(context)!.progressTotalTime,
-                      CleanTheme.accentPurple,
+                      CleanTheme.accentBlue,
                     ),
                   ),
                 ],
@@ -334,103 +336,101 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   }
 
   Widget _buildStreakCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            CleanTheme.primaryColor,
-            CleanTheme.primaryColor.withValues(alpha: 0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => HapticService.mediumTap(),
+      child: LiquidSteelContainer(
+        borderRadius: 20,
+        enableShine: true,
+        border: Border.all(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.5),
+          width: 1.5,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Streak info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              // Streak info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('🔥', style: TextStyle(fontSize: 32)),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text(
-                          '$_streak ${AppLocalizations.of(context)!.weeks}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        const Text('🔥', style: TextStyle(fontSize: 32)),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '$_streak ${AppLocalizations.of(context)!.weeks}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: CleanTheme
+                                    .primaryColor, // Accent color on dark steel
+                              ),
+                            ),
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.consecutiveMeasurements,
+                              style: GoogleFonts.inter(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          AppLocalizations.of(context)!.consecutiveMeasurements,
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 13,
-                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _buildMiniStat(
+                          '📏',
+                          '${_measurementsHistory.length}',
+                          AppLocalizations.of(context)!.measurements,
+                        ),
+                        const SizedBox(width: 24),
+                        _buildMiniStat(
+                          '📅',
+                          _latestMeasurements != null ? 'Oggi' : '-',
+                          AppLocalizations.of(context)!.lastMeasurement,
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Row(
+              ),
+              // Circular progress
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Stack(
                   children: [
-                    _buildMiniStat(
-                      '📏',
-                      '${_measurementsHistory.length}',
-                      AppLocalizations.of(context)!.measurements,
+                    CircularProgressIndicator(
+                      value: (_streak / 12).clamp(0, 1),
+                      strokeWidth: 8,
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      valueColor: const AlwaysStoppedAnimation(
+                        CleanTheme.primaryColor,
+                      ),
                     ),
-                    const SizedBox(width: 24),
-                    _buildMiniStat(
-                      '📅',
-                      _latestMeasurements != null ? 'Oggi' : '-',
-                      AppLocalizations.of(context)!.lastMeasurement,
+                    Center(
+                      child: Text(
+                        '${((_streak / 12) * 100).round()}%',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          // Circular progress
-          SizedBox(
-            width: 80,
-            height: 80,
-            child: Stack(
-              children: [
-                CircularProgressIndicator(
-                  value: (_streak / 12).clamp(0, 1),
-                  strokeWidth: 8,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  valueColor: const AlwaysStoppedAnimation(Colors.white),
-                ),
-                Center(
-                  child: Text(
-                    '${((_streak / 12) * 100).round()}%',
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

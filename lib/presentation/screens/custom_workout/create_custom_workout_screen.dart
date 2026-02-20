@@ -70,7 +70,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.addAtLeastOneExercise),
-          backgroundColor: Colors.orange,
+          backgroundColor: CleanTheme.accentOrange,
         ),
       );
       return;
@@ -143,7 +143,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Errore nel salvataggio'),
-            backgroundColor: Colors.red,
+            backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
@@ -444,7 +444,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           Icon(
             Icons.fitness_center_outlined,
             size: 64,
-            color: Colors.grey[600],
+            color: CleanTheme.textTertiary,
           ),
           const SizedBox(height: 16),
           Text(
@@ -476,7 +476,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
       decoration: BoxDecoration(
         color: CleanTheme.cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[700]!),
+        border: Border.all(color: CleanTheme.borderSecondary),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -522,10 +522,10 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),
-              color: Colors.red[400],
+              color: CleanTheme.accentRed,
               onPressed: () => _removeExercise(index),
             ),
-            const Icon(Icons.drag_handle, color: Colors.grey),
+            const Icon(Icons.drag_handle, color: CleanTheme.textTertiary),
           ],
         ),
       ),
@@ -611,7 +611,7 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[600],
+                  color: CleanTheme.textTertiary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

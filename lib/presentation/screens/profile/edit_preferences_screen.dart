@@ -596,12 +596,14 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                 label: Text(
                   _getGoalLabel(goal),
                   style: GoogleFonts.inter(
-                    color: isSelected ? Colors.white : CleanTheme.textPrimary,
+                    color: isSelected
+                        ? CleanTheme.textOnDark
+                        : CleanTheme.textPrimary,
                   ),
                 ),
                 selected: isSelected,
                 selectedColor: CleanTheme.primaryColor,
-                checkmarkColor: Colors.white,
+                checkmarkColor: CleanTheme.textOnDark,
                 backgroundColor: CleanTheme.surfaceColor,
                 side: BorderSide(
                   color: isSelected
@@ -657,12 +659,14 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                 label: Text(
                   _getEquipmentLabel(eq),
                   style: GoogleFonts.inter(
-                    color: isSelected ? Colors.white : CleanTheme.textPrimary,
+                    color: isSelected
+                        ? CleanTheme.textOnDark
+                        : CleanTheme.textPrimary,
                   ),
                 ),
                 selected: isSelected,
                 selectedColor: CleanTheme.primaryColor,
-                checkmarkColor: Colors.white,
+                checkmarkColor: CleanTheme.textOnDark,
                 backgroundColor: CleanTheme.surfaceColor,
                 side: BorderSide(
                   color: isSelected

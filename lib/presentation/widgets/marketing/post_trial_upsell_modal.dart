@@ -114,10 +114,7 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          CleanTheme.primaryColor,
-                          CleanTheme.accentPurple,
-                        ],
+                        colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -164,13 +161,13 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: CleanTheme.accentGreen.withValues(
-                              alpha: 0.1,
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.05,
                             ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: CleanTheme.accentGreen.withValues(
-                                alpha: 0.3,
+                              color: CleanTheme.primaryColor.withValues(
+                                alpha: 0.1,
                               ),
                             ),
                           ),
@@ -179,7 +176,7 @@ class _PostTrialUpsellModalState extends State<PostTrialUpsellModal>
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: CleanTheme.accentGreen,
+                                  color: CleanTheme.primaryColor,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(

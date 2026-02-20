@@ -12,7 +12,10 @@ import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
+import '../../../data/services/quota_service.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import '../paywall/paywall_screen.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 
 /// Unified screen showing both AI-generated and custom workouts
 class UnifiedWorkoutListScreen extends StatefulWidget {
@@ -25,6 +28,7 @@ class UnifiedWorkoutListScreen extends StatefulWidget {
 
 class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   late CustomWorkoutService _customWorkoutService;
+  late QuotaService _quotaService;
   List<CustomWorkoutPlan> _customPlans = [];
   bool _isLoadingCustom = true;
 
@@ -32,6 +36,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   void initState() {
     super.initState();
     _customWorkoutService = CustomWorkoutService(ApiClient());
+    _quotaService = QuotaService(apiClient: ApiClient());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<WorkoutProvider>(context, listen: false).fetchCurrentPlan();
       _loadCustomWorkouts();
@@ -99,6 +104,41 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                     _buildSectionTitle(
                       AppLocalizations.of(context)!.aiWorkoutsSectionTitle,
                       AppLocalizations.of(context)!.aiWorkoutsSectionSubtitle,
+                      action: GestureDetector(
+                        onTap: () => _handleCreateNewPlan(),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: CleanTheme.primaryColor.withValues(
+                                alpha: 0.2,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.add,
+                                size: 16,
+                                color: CleanTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Nuova",
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: CleanTheme.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     _buildAIWorkoutsList(workoutProvider),
@@ -198,6 +238,329 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
+  Future<void> _handleCreateNewPlan() async {
+    // Mostra loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    try {
+      final result = await _quotaService.canPerformAction(
+        QuotaAction.workoutPlan,
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Chiudi loading dialog
+
+        if (result.canPerform) {
+          // Mostra dialog scelta preferenze
+          // Mostra dialog scelta preferenze
+          final Map<String, dynamic>?
+          choice = await showDialog<Map<String, dynamic>>(
+            context: context,
+            builder: (ctx) {
+              bool includeHistory = false;
+              // Check tier: Pro or Elite are premium
+              final bool isPremium = [
+                'pro',
+                'elite',
+              ].contains(result.subscriptionTier.toLowerCase());
+
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  return AlertDialog(
+                    backgroundColor: CleanTheme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: Text(
+                      'Genera Nuova Scheda',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Vuoi aggiornare le tue preferenze (peso, obiettivi, disponibilità) prima di generare la scheda, o usare quelle attuali?',
+                          style: GoogleFonts.inter(),
+                        ),
+                        const SizedBox(height: 16),
+                        // Premium Option Box (Marketing Style)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: LiquidSteelContainer(
+                            borderRadius: 16,
+                            enableShine: true,
+                            border: isPremium
+                                ? Border.all(
+                                    color: CleanTheme.primaryColor.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    width: 1.5,
+                                  )
+                                : Border.all(
+                                    color: Colors.white.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                            child: Theme(
+                              data: Theme.of(
+                                context,
+                              ).copyWith(unselectedWidgetColor: Colors.white54),
+                              child: CheckboxListTile(
+                                value: includeHistory,
+                                onChanged: isPremium
+                                    ? (val) => setState(
+                                        () => includeHistory = val ?? false,
+                                      )
+                                    : null,
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        if (isPremium)
+                                          Icon(
+                                            Icons.auto_graph,
+                                            size: 18,
+                                            color: CleanTheme.primaryColor,
+                                          )
+                                        else
+                                          const Icon(
+                                            Icons.lock_outline,
+                                            size: 18,
+                                            color: Colors.white70,
+                                          ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          isPremium
+                                              ? "Progressive Overload AI"
+                                              : "Memoria Storica AI",
+                                          style: GoogleFonts.outfit(
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        if (!isPremium || isPremium) ...[
+                                          // Always show PRO badge for consistent "Premium Feature" look
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  CleanTheme.accentGold,
+                                                  CleanTheme.accentOrange,
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: CleanTheme.accentGold
+                                                      .withValues(alpha: 0.3),
+                                                  blurRadius: 4,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              "PRO",
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.white,
+                                                letterSpacing: 1,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                  ],
+                                ),
+                                subtitle: Text(
+                                  isPremium
+                                      ? "L'AI analizzerà ogni serie del tuo storico per calcolare l'incremento di carico scientificamente perfetto."
+                                      : "Sblocca Premium per attivare l'analisi neurale dei carichi e garantire una crescita costante.",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    height: 1.3,
+                                  ),
+                                ),
+                                activeColor: CleanTheme.primaryColor,
+                                checkColor: Colors.black,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                isThreeLine: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, {
+                          'action': 'current',
+                          'includeHistory': includeHistory,
+                        }),
+                        child: Text(
+                          'Usa Attuali',
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, {
+                          'action': 'update',
+                          'includeHistory': includeHistory,
+                        }),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CleanTheme.primaryColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Aggiorna',
+                          style: GoogleFonts.inter(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
+
+          if (choice == null || !mounted) return;
+
+          final String action = choice['action'];
+          final bool includeHistory = choice['includeHistory'] ?? false;
+          bool shouldGenerate = false;
+
+          if (action == 'update') {
+            // Naviga al questionario per aggiornare preferenze
+            final questionnaireResult = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const UnifiedQuestionnaireScreen(isOnboarding: false),
+              ),
+            );
+
+            if (questionnaireResult == true) {
+              shouldGenerate = true;
+            }
+          } else {
+            // Usa preferenze attuali
+            shouldGenerate = true;
+          }
+
+          if (shouldGenerate && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Creazione del tuo piano in corso..."),
+                backgroundColor: CleanTheme.primaryColor,
+              ),
+            );
+
+            await Provider.of<WorkoutProvider>(
+              context,
+              listen: false,
+            ).generatePlan(includeHistory: includeHistory);
+          }
+
+          if (shouldGenerate && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Creazione del tuo piano in corso..."),
+                backgroundColor: CleanTheme.primaryColor,
+              ),
+            );
+
+            await Provider.of<WorkoutProvider>(
+              context,
+              listen: false,
+            ).generatePlan();
+          }
+        } else {
+          // Mostra avviso limite raggiunto
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: CleanTheme.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                'Limite Raggiunto',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+              ),
+              content: Text(
+                result.reason.isNotEmpty
+                    ? result.reason
+                    : 'Non puoi generare una nuova scheda al momento.',
+                style: GoogleFonts.inter(),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'OK',
+                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
+                  ),
+                ),
+                if (result.upgradeNeeded)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PaywallScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Upgrade',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Chiudi loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore controllo quote: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildSectionTitle(String title, String subtitle, {Widget? action}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -262,10 +625,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              CleanTheme.primaryColor,
-              CleanTheme.primaryColor.withValues(alpha: 0.7),
-            ],
+            colors: [CleanTheme.primaryColor, CleanTheme.steelDark],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -285,7 +645,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               child: Icon(
                 Icons.fitness_center,
                 size: 150,
-                color: Colors.white.withValues(alpha: 0.1),
+                color: CleanTheme.textOnDark.withValues(alpha: 0.1),
               ),
             ),
             // Content
@@ -304,7 +664,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -312,7 +672,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                           ),
                         ),
                       ),
@@ -322,14 +682,14 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                         ),
                       ),
                       Text(
                         '${AppLocalizations.of(context)!.exercisesCount(nextWorkout.exercises.length)} • ${AppLocalizations.of(context)!.durationMinutes(nextWorkout.estimatedDuration)}',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.8),
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -342,7 +702,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Row(
@@ -394,7 +754,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const CircularProgressIndicator(
-              color: Colors.white,
+              color: CleanTheme.textOnDark,
               strokeWidth: 3,
             ),
             const SizedBox(height: 20),
@@ -403,7 +763,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: CleanTheme.textOnDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -411,7 +771,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               AppLocalizations.of(context)!.completingCardioMobility,
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.8),
+                color: CleanTheme.textOnDark.withValues(alpha: 0.8),
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/clean_theme.dart';
 
@@ -66,13 +67,20 @@ class FloatingNavBar extends StatelessWidget {
                                 : Colors.transparent,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            isActive ? item.activeIcon : item.icon,
-                            color: isActive
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.8),
-                            size: 20, // Slightly smaller icon
-                          ),
+                          child:
+                              Icon(
+                                    isActive ? item.activeIcon : item.icon,
+                                    color: isActive
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.8),
+                                    size: 20, // Slightly smaller icon
+                                  )
+                                  .animate(target: isActive ? 1 : 0)
+                                  .scale(
+                                    begin: const Offset(1, 1),
+                                    end: const Offset(1.2, 1.2),
+                                    duration: 200.ms,
+                                  ),
                         ),
                         if (isActive) ...[
                           const SizedBox(width: 8),

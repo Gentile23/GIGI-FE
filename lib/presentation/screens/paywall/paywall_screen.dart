@@ -264,7 +264,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: !_isYearly ? Colors.white : CleanTheme.textSecondary,
+                    color: !_isYearly
+                        ? CleanTheme.textOnDark
+                        : CleanTheme.textSecondary,
                   ),
                 ),
               ),
@@ -290,7 +292,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: _isYearly
-                            ? Colors.white
+                            ? CleanTheme.textOnDark
                             : CleanTheme.textSecondary,
                       ),
                     ),
@@ -302,7 +304,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: _isYearly
-                            ? Colors.white.withValues(alpha: 0.2)
+                            ? CleanTheme.textOnDark.withValues(alpha: 0.2)
                             : CleanTheme.accentGreen.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -312,7 +314,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: _isYearly
-                              ? Colors.white
+                              ? CleanTheme.textOnDark
                               : CleanTheme.accentGreen,
                         ),
                       ),
@@ -400,7 +402,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           ),
                           child: const Icon(
                             Icons.check,
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                             size: 16,
                           ),
                         ),
@@ -581,7 +583,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             paymentService.errorMessage ??
                 'Errore durante l\'acquisto. Riprova.',
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: CleanTheme.accentRed,
         ),
       );
     }
@@ -653,12 +655,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       shape: BoxShape.circle,
                       color: [
                         CleanTheme.primaryColor,
-                        CleanTheme.accentPurple,
+                        CleanTheme.primaryLight,
                         CleanTheme.accentGreen,
                       ][i],
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(
+                        color: CleanTheme.surfaceColor,
+                        width: 2,
+                      ),
                     ),
-                    child: Icon(Icons.person, color: Colors.white, size: 14),
+                    child: Icon(
+                      Icons.person,
+                      color: CleanTheme.textOnDark,
+                      size: 14,
+                    ),
                   ),
                 ),
             ],

@@ -38,12 +38,12 @@ class NutritionService {
         if (grams != null) 'grams': grams,
       });
 
-      final response = await _apiClient.dio.post(
+      final response = await _apiClient.postMultipart(
         '/nutrition/quick-log',
-        data: formData,
+        formData: formData,
       );
 
-      return response.data;
+      return response;
     } catch (e) {
       debugPrint('Error quick logging: $e');
       return null;
@@ -53,9 +53,9 @@ class NutritionService {
   /// Get nutrition goals
   Future<NutritionGoal?> getGoals() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/goals');
-      if (response.data['goal'] != null) {
-        return NutritionGoal.fromJson(response.data['goal']);
+      final response = await _apiClient.get('/nutrition/goals');
+      if (response['goal'] != null) {
+        return NutritionGoal.fromJson(response['goal']);
       }
       return null;
     } catch (e) {
@@ -70,11 +70,14 @@ class NutritionService {
     required String activityLevel,
   }) async {
     try {
-      final response = await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/goals',
-        data: {'goal_type': goalType, 'activity_level': activityLevel},
+        body: {'goal_type': goalType, 'activity_level': activityLevel},
       );
-      return NutritionGoal.fromJson(response.data['goal']);
+      if (response['success'] == true && response['goal'] != null) {
+        return NutritionGoal.fromJson(response['goal']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error setting nutrition goals: $e');
       return null;
@@ -96,9 +99,9 @@ class NutritionService {
     List<Map<String, dynamic>>? foodItems,
   }) async {
     try {
-      final response = await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/meals',
-        data: {
+        body: {
           'meal_type': mealType,
           if (mealDate != null) 'meal_date': mealDate,
           if (mealTime != null) 'meal_time': mealTime,
@@ -112,7 +115,10 @@ class NutritionService {
           if (foodItems != null) 'food_items': foodItems,
         },
       );
-      return Meal.fromJson(response.data['meal']);
+      if (response['success'] == true && response['meal'] != null) {
+        return Meal.fromJson(response['meal']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error logging meal: $e');
       return null;
@@ -122,13 +128,16 @@ class NutritionService {
   /// Get meals for a date
   Future<List<Meal>?> getMeals({String? date}) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _apiClient.get(
         '/nutrition/meals',
-        queryParameters: {if (date != null) 'date': date},
+        queryParams: {if (date != null) 'date': date},
       );
-      return (response.data['meals'] as List)
-          .map((json) => Meal.fromJson(json))
-          .toList();
+      if (response['success'] == true && response['meals'] != null) {
+        return (response['meals'] as List)
+            .map((json) => Meal.fromJson(json))
+            .toList();
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching meals: $e');
       return null;
@@ -138,8 +147,11 @@ class NutritionService {
   /// Get meal details
   Future<Meal?> getMeal(int mealId) async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/meals/$mealId');
-      return Meal.fromJson(response.data['meal']);
+      final response = await _apiClient.get('/nutrition/meals/$mealId');
+      if (response['success'] == true && response['meal'] != null) {
+        return Meal.fromJson(response['meal']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching meal: $e');
       return null;
@@ -159,9 +171,9 @@ class NutritionService {
     List<Map<String, dynamic>>? foodItems,
   }) async {
     try {
-      await _apiClient.dio.put(
+      final response = await _apiClient.put(
         '/nutrition/meals/$mealId',
-        data: {
+        body: {
           if (mealType != null) 'meal_type': mealType,
           if (notes != null) 'notes': notes,
           if (totalCalories != null) 'total_calories': totalCalories,
@@ -172,7 +184,7 @@ class NutritionService {
           if (foodItems != null) 'food_items': foodItems,
         },
       );
-      return true;
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error updating meal: $e');
       return false;
@@ -182,8 +194,8 @@ class NutritionService {
   /// Delete meal
   Future<bool> deleteMeal(int mealId) async {
     try {
-      await _apiClient.dio.delete('/nutrition/meals/$mealId');
-      return true;
+      final response = await _apiClient.delete('/nutrition/meals/$mealId');
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error deleting meal: $e');
       return false;
@@ -193,20 +205,22 @@ class NutritionService {
   /// Get daily summary
   Future<Map<String, dynamic>?> getDailySummary({String? date}) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _apiClient.get(
         '/nutrition/daily-summary',
-        queryParameters: {if (date != null) 'date': date},
+        queryParams: {if (date != null) 'date': date},
       );
-      return {
-        'date': response.data['summary']['date'],
-        'summary': DailyNutritionLog.fromJson(
-          response.data['summary']['summary'],
-        ),
-        'meals': (response.data['summary']['meals'] as List)
-            .map((json) => Meal.fromJson(json))
-            .toList(),
-        'progress': response.data['summary']['progress'],
-      };
+      if (response['success'] == true && response['summary'] != null) {
+        final summary = response['summary'];
+        return {
+          'date': summary['date'],
+          'summary': DailyNutritionLog.fromJson(summary['summary']),
+          'meals': (summary['meals'] as List)
+              .map((json) => Meal.fromJson(json))
+              .toList(),
+          'progress': summary['progress'],
+        };
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching daily summary: $e');
       return null;
@@ -216,8 +230,8 @@ class NutritionService {
   /// Get weekly summary
   Future<Map<String, dynamic>?> getWeeklySummary() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/weekly-summary');
-      return response.data['summary'];
+      final response = await _apiClient.get('/nutrition/weekly-summary');
+      return response['success'] == true ? response['summary'] : null;
     } catch (e) {
       debugPrint('Error fetching weekly summary: $e');
       return null;
@@ -227,10 +241,13 @@ class NutritionService {
   /// Get insights
   Future<List<NutritionInsight>?> getInsights() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/insights');
-      return (response.data['insights'] as List)
-          .map((json) => NutritionInsight.fromJson(json))
-          .toList();
+      final response = await _apiClient.get('/nutrition/insights');
+      if (response['success'] == true && response['insights'] != null) {
+        return (response['insights'] as List)
+            .map((json) => NutritionInsight.fromJson(json))
+            .toList();
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching insights: $e');
       return null;
@@ -244,17 +261,22 @@ class NutritionService {
     String? difficulty,
   }) async {
     try {
-      final response = await _apiClient.dio.get(
+      final queryParams = {
+        if (search != null) 'search': search,
+        if (difficulty != null) 'difficulty': difficulty,
+      };
+      // Note: ApiClient.get currently only supports Map<String, String> for queryParams.
+      // If tags are needed as a list, we might need to adjust ApiClient or manual stringify here.
+      final response = await _apiClient.get(
         '/nutrition/recipes',
-        queryParameters: {
-          if (search != null) 'search': search,
-          if (tags != null) 'tags': tags,
-          if (difficulty != null) 'difficulty': difficulty,
-        },
+        queryParams: queryParams,
       );
-      return (response.data['recipes']['data'] as List)
-          .map((json) => Recipe.fromJson(json))
-          .toList();
+      if (response['success'] == true && response['recipes'] != null) {
+        return (response['recipes']['data'] as List)
+            .map((json) => Recipe.fromJson(json))
+            .toList();
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching recipes: $e');
       return null;
@@ -264,8 +286,11 @@ class NutritionService {
   /// Get recipe details
   Future<Recipe?> getRecipe(int recipeId) async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/recipes/$recipeId');
-      return Recipe.fromJson(response.data['recipe']);
+      final response = await _apiClient.get('/nutrition/recipes/$recipeId');
+      if (response['success'] == true && response['recipe'] != null) {
+        return Recipe.fromJson(response['recipe']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching recipe: $e');
       return null;
@@ -275,8 +300,10 @@ class NutritionService {
   /// Save recipe
   Future<bool> saveRecipe(int recipeId) async {
     try {
-      await _apiClient.dio.post('/nutrition/recipes/$recipeId/save');
-      return true;
+      final response = await _apiClient.post(
+        '/nutrition/recipes/$recipeId/save',
+      );
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error saving recipe: $e');
       return false;
@@ -286,10 +313,13 @@ class NutritionService {
   /// Get saved recipes
   Future<List<Recipe>?> getSavedRecipes() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/saved-recipes');
-      return (response.data['recipes']['data'] as List)
-          .map((json) => Recipe.fromJson(json))
-          .toList();
+      final response = await _apiClient.get('/nutrition/saved-recipes');
+      if (response['success'] == true && response['recipes'] != null) {
+        return (response['recipes']['data'] as List)
+            .map((json) => Recipe.fromJson(json))
+            .toList();
+      }
+      return null;
     } catch (e) {
       debugPrint('Error fetching saved recipes: $e');
       return null;
@@ -299,18 +329,18 @@ class NutritionService {
   /// Update water intake
   Future<bool> updateWater({required int waterMl, String? date}) async {
     try {
-      await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/water',
-        data: {'water_ml': waterMl, if (date != null) 'date': date},
+        body: {'water_ml': waterMl, if (date != null) 'date': date},
       );
-      return true;
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error updating water: $e');
       return false;
     }
   }
 
-  /// Calculate TDEE based on user data (activity level is auto-calculated from workout history)
+  /// Calculate TDEE based on user data
   Future<Map<String, dynamic>?> calculateTDEE({
     required double weightKg,
     required double heightCm,
@@ -319,9 +349,9 @@ class NutritionService {
     required String goalType,
   }) async {
     try {
-      final response = await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/tdee/calculate',
-        data: {
+        body: {
           'weight_kg': weightKg,
           'height_cm': heightCm,
           'age': age,
@@ -329,16 +359,7 @@ class NutritionService {
           'goal_type': goalType,
         },
       );
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 422) {
-        final message = e.response?.data['message'] ?? 'Validation error';
-        final errors = e.response?.data['errors'];
-        debugPrint('TDEE Validation Error: $message $errors');
-        throw Exception(message);
-      }
-      debugPrint('Error calculating TDEE: $e');
-      return null;
+      return response['success'] == true ? response : null;
     } catch (e) {
       debugPrint('Error calculating TDEE: $e');
       return null;
@@ -356,9 +377,9 @@ class NutritionService {
     int? waterGoalMl,
   }) async {
     try {
-      await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/goals/comprehensive',
-        data: {
+        body: {
           'daily_calories': dailyCalories,
           'protein_grams': proteinGrams,
           'carbs_grams': carbsGrams,
@@ -368,7 +389,7 @@ class NutritionService {
           if (waterGoalMl != null) 'water_goal_ml': waterGoalMl,
         },
       );
-      return true;
+      return response['success'] == true;
     } catch (e) {
       debugPrint('Error setting comprehensive goals: $e');
       return false;
@@ -378,15 +399,8 @@ class NutritionService {
   /// Get smart meal suggestions based on remaining macros
   Future<Map<String, dynamic>?> getSmartSuggestions() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/suggestions');
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 400) {
-        debugPrint('DEBUG: Smart suggestions not available (400)');
-        return null;
-      }
-      debugPrint('Error getting smart suggestions: $e');
-      return null;
+      final response = await _apiClient.get('/nutrition/suggestions');
+      return response['success'] == true ? response : null;
     } catch (e) {
       debugPrint('Error getting smart suggestions: $e');
       return null;
@@ -398,19 +412,19 @@ class NutritionService {
     required List<String> ingredients,
     int? maxTimeMinutes,
     String? dietType,
-    String? mode, // Add mode
+    String? mode,
   }) async {
     try {
-      final response = await _apiClient.dio.post(
+      final response = await _apiClient.post(
         '/nutrition/what-to-cook',
-        data: {
+        body: {
           'ingredients': ingredients,
           if (maxTimeMinutes != null) 'max_time_minutes': maxTimeMinutes,
           if (dietType != null) 'diet_type': dietType,
-          if (mode != null) 'mode': mode, // Pass mode
+          if (mode != null) 'mode': mode,
         },
       );
-      return response.data;
+      return response;
     } catch (e) {
       debugPrint('Error getting what to cook: $e');
       return null;
@@ -420,11 +434,14 @@ class NutritionService {
   /// Search foods database
   Future<List<Map<String, dynamic>>?> searchFoods(String query) async {
     try {
-      final response = await _apiClient.dio.get(
+      final response = await _apiClient.get(
         '/nutrition/foods/search',
-        queryParameters: {'query': query},
+        queryParams: {'query': query},
       );
-      return List<Map<String, dynamic>>.from(response.data['results'] ?? []);
+      if (response['success'] == true && response['results'] != null) {
+        return List<Map<String, dynamic>>.from(response['results']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error searching foods: $e');
       return null;
@@ -434,10 +451,11 @@ class NutritionService {
   /// Get recent foods logged by user
   Future<List<Map<String, dynamic>>?> getRecentFoods() async {
     try {
-      final response = await _apiClient.dio.get('/nutrition/foods/recent');
-      return List<Map<String, dynamic>>.from(
-        response.data['recent_foods'] ?? [],
-      );
+      final response = await _apiClient.get('/nutrition/foods/recent');
+      if (response['success'] == true && response['recent_foods'] != null) {
+        return List<Map<String, dynamic>>.from(response['recent_foods']);
+      }
+      return null;
     } catch (e) {
       debugPrint('Error getting recent foods: $e');
       return null;

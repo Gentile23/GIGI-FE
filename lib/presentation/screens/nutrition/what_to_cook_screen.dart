@@ -3,10 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../widgets/clean_widgets.dart';
-import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
-import '../../../data/services/quota_service.dart'; // Import QuotaService
-import '../../../data/models/quota_status_model.dart'; // Import QuotaStatus
+import '../../screens/paywall/paywall_screen.dart';
+import '../../../data/services/quota_service.dart';
+import '../../../data/models/quota_status_model.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 
 class WhatToCookScreen extends StatefulWidget {
   const WhatToCookScreen({super.key});
@@ -17,17 +18,18 @@ class WhatToCookScreen extends StatefulWidget {
 
 class _WhatToCookScreenState extends State<WhatToCookScreen> {
   late final NutritionService _nutritionService;
-  late final QuotaService _quotaService; // Add QuotaService
+  late final QuotaService _quotaService;
 
   final TextEditingController _ingredientController = TextEditingController();
   final List<String> _ingredients = [];
+  final FocusNode _ingredientFocusNode = FocusNode();
 
   // New state for complete meal
   Map<String, dynamic>? _generatedMeal;
   List<dynamic> _portate = [];
   String _generationMode = 'complete'; // 'single' or 'complete'
 
-  QuotaStatus? _quotaStatus; // Add QuotaStatus
+  QuotaStatus? _quotaStatus;
 
   bool _isLoading = false;
   bool _hasSearched = false;
@@ -36,7 +38,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   final Map<int, bool> _expandedIngredients = {};
   final Map<int, bool> _expandedSteps = {};
 
-  // Suggested ingredients with emojis
   final List<String> _suggestedIngredients = [
     '🍗 Pollo',
     '🍚 Riso',
@@ -57,8 +58,8 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
     super.initState();
     final apiClient = ApiClient();
     _nutritionService = NutritionService(apiClient);
-    _quotaService = QuotaService(apiClient: apiClient); // Init QuotaService
-    _loadQuota(); // Load quota on init
+    _quotaService = QuotaService(apiClient: apiClient);
+    _loadQuota();
   }
 
   Future<void> _loadQuota() async {
@@ -75,6 +76,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   @override
   void dispose() {
     _ingredientController.dispose();
+    _ingredientFocusNode.dispose();
     super.dispose();
   }
 
@@ -85,11 +87,15 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         _ingredients.add(text);
         _ingredientController.clear();
       });
+      HapticService.lightTap();
+      _ingredientFocusNode.requestFocus();
     }
   }
 
   Future<void> _searchRecipes() async {
     if (_ingredients.isEmpty) return;
+
+    HapticService.mediumTap();
 
     if (_quotaStatus != null) {
       final recipesQuota = _quotaStatus!.usage.recipes;
@@ -99,10 +105,10 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
             content: Text(
               'Hai raggiunto il limite settimanale di ricette. Passa a Premium!',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: CleanTheme.accentRed,
             action: SnackBarAction(
               label: 'Upgrade',
-              textColor: Colors.white,
+              textColor: CleanTheme.textOnDark,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -126,30 +132,51 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
     try {
       final result = await _nutritionService.whatToCook(
         ingredients: _ingredients,
-        maxTimeMinutes: 30, // Could be dynamic
-        mode: _generationMode, // Pass mode
+        maxTimeMinutes: 30,
+        mode: _generationMode,
       );
 
       if (mounted) {
         setState(() {
           _isLoading = false;
-          if (result != null && result['meal'] != null) {
+          if (result != null &&
+              result['success'] == true &&
+              result['meal'] != null) {
             _generatedMeal = result['meal'];
             _portate = _generatedMeal!['portate'] ?? [];
-            _loadQuota(); // Refresh quota after generation
+            _loadQuota();
+            HapticService.notificationPattern();
           } else if (result != null && result['quota_exceeded'] == true) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Limite quota raggiunto!')),
+              SnackBar(
+                content: Text(result['message'] ?? 'Limite quota raggiunto!'),
+                backgroundColor: CleanTheme.accentRed,
+              ),
             );
+            HapticService.errorPattern();
+          } else if (result != null && result['success'] == false) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  result['message'] ?? 'Errore durante la generazione',
+                ),
+                backgroundColor: CleanTheme.accentRed,
+              ),
+            );
+            HapticService.errorPattern();
           }
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+        HapticService.errorPattern();
       }
     }
   }
@@ -166,257 +193,174 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
             color: CleanTheme.textPrimary,
           ),
         ),
-        backgroundColor: CleanTheme.surfaceColor,
+        backgroundColor: CleanTheme.backgroundColor,
         centerTitle: true,
+        elevation: 0,
         iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Quota Banner
-            if (_quotaStatus != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 20),
+            if (_quotaStatus != null) _buildQuotaBanner(),
+
+            const SizedBox(height: 12),
+
+            LiquidSteelContainer(
+              borderRadius: 32,
+              enableShine: true,
+              border: Border.all(
+                color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+                width: 1,
+              ),
+              child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+                  vertical: 32,
+                  horizontal: 24,
                 ),
-                decoration: BoxDecoration(
-                  color: CleanTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: CleanTheme.borderPrimary),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
+                child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                        color: CleanTheme.steelDark.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.restaurant_menu,
-                        size: 20,
-                        color: CleanTheme.primaryColor,
-                      ),
+                      child: const Text('🍳', style: TextStyle(fontSize: 40)),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Generazioni Rimanenti',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: CleanTheme.textSecondary,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Cosa cucino oggi?',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textOnDark,
+                        shadows: [
+                          Shadow(
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.5,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value:
-                                        _quotaStatus!.usage.recipes.remaining /
-                                        (_quotaStatus!.usage.recipes.limit > 0
-                                            ? _quotaStatus!.usage.recipes.limit
-                                            : 1),
-                                    backgroundColor: CleanTheme.backgroundColor,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      _quotaStatus!.usage.recipes.remaining <= 1
-                                          ? CleanTheme.accentRed
-                                          : CleanTheme.primaryColor,
-                                    ),
-                                    minHeight: 6,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${_quotaStatus!.usage.recipes.remaining}/${_quotaStatus!.usage.recipes.limit == -1 ? "∞" : _quotaStatus!.usage.recipes.limit}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: CleanTheme.textPrimary,
-                                ),
-                              ),
-                            ],
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    CleanTheme.accentOrange.withValues(alpha: 0.1),
-                    CleanTheme.accentOrange.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: CleanTheme.accentOrange.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Text('🍳', style: TextStyle(fontSize: 40)),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cosa cucino oggi?',
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: CleanTheme.textPrimary,
-                          ),
-                        ),
-                        Text(
-                          'Inserisci gli ingredienti e lascia fare a Chef AI',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: CleanTheme.textSecondary,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Inserisci gli ingredienti e lascia fare a Chef AI',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.85),
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // Mode Toggle
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(100),
                 border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _generationMode = 'complete'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _generationMode == 'complete'
-                              ? CleanTheme.primaryColor
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Menu Completo',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: _generationMode == 'complete'
-                                ? Colors.white
-                                : CleanTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
+                  _buildToggleOption(
+                    'Menu Completo',
+                    'complete',
+                    Icons.restaurant_menu,
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _generationMode = 'single'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _generationMode == 'single'
-                              ? CleanTheme.primaryColor
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Piatto Unico',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: _generationMode == 'single'
-                                ? Colors.white
-                                : CleanTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ),
+                  _buildToggleOption(
+                    'Piatto Unico',
+                    'single',
+                    Icons.restaurant,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // Ingredient input
+            Text(
+              'Cosa hai in frigo?',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _ingredientController,
-                    decoration: InputDecoration(
-                      hintText: 'Es: pollo, riso, broccoli...',
-                      hintStyle: GoogleFonts.inter(
-                        color: CleanTheme.textTertiary,
-                      ),
-                      filled: true,
-                      fillColor: CleanTheme.surfaceColor,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                    ),
-                    style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-                    onSubmitted: (_) => _addIngredient(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: _addIngredient,
                   child: Container(
-                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: CleanTheme.accentOrange,
-                      borderRadius: BorderRadius.circular(12),
+                      color: CleanTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _ingredientFocusNode.hasFocus
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.borderPrimary,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CleanTheme.primaryColor.withValues(
+                            alpha: 0.05,
+                          ),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.add, color: Colors.white),
+                    child: TextField(
+                      controller: _ingredientController,
+                      focusNode: _ingredientFocusNode,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: 'Es: pollo, riso, broccoli...',
+                        hintStyle: GoogleFonts.inter(
+                          color: CleanTheme.textTertiary,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.add_circle),
+                          color: CleanTheme.primaryColor,
+                          onPressed: _addIngredient,
+                        ),
+                      ),
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: CleanTheme.textPrimary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onSubmitted: (_) => _addIngredient(),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
 
-            // Ingredient chips
+            const SizedBox(height: 24),
+
             if (_ingredients.isNotEmpty) ...[
               Wrap(
+                alignment: WrapAlignment.center,
                 spacing: 8,
                 runSpacing: 8,
                 children: _ingredients
@@ -426,44 +370,84 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           ing,
                           style: GoogleFonts.inter(
                             color: CleanTheme.textPrimary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        backgroundColor: CleanTheme.primaryColor.withValues(
+                        backgroundColor: CleanTheme.surfaceColor,
+                        deleteIconColor: CleanTheme.accentRed,
+                        onDeleted: () {
+                          setState(() => _ingredients.remove(ing));
+                          HapticService.lightTap();
+                        },
+                        elevation: 2,
+                        shadowColor: CleanTheme.primaryColor.withValues(
                           alpha: 0.1,
                         ),
-                        deleteIconColor: CleanTheme.primaryColor,
-                        onDeleted: () =>
-                            setState(() => _ingredients.remove(ing)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: CleanTheme.primaryColor.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: CleanTheme.borderPrimary),
                         ),
                       ),
                     )
                     .toList(),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
 
-              // Search button
-              CleanButton(
-                text: _isLoading
-                    ? 'Chef AI sta cucinando... 👨‍🍳'
-                    : 'Genera 🍽️',
-                onPressed: _isLoading ? null : _searchRecipes,
-                icon: Icons.auto_awesome,
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _searchRecipes,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: CleanTheme.textOnPrimary,
+                    elevation: 8,
+                    shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isLoading)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: CleanTheme.textOnPrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else ...[
+                        const Icon(Icons.auto_awesome, size: 20),
+                        const SizedBox(width: 8),
+                      ],
+                      Text(
+                        _isLoading
+                            ? 'Chef AI sta creando...'
+                            : 'Genera Menu da Chef',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
 
-            // Recipes (Meal View)
             if (_hasSearched) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 48),
               if (_generatedMeal != null) ...[
                 _buildMealHeader(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 ..._portate.asMap().entries.map(
                   (entry) =>
                       _buildCourseCard(entry.value, entry.key, _portate.length),
@@ -471,21 +455,26 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                 if (_generatedMeal?['consiglio_chef'] != null)
                   _buildChefTip(_generatedMeal!['consiglio_chef']),
 
-                const SizedBox(height: 20),
-                Center(
-                  child: TextButton.icon(
-                    onPressed: _searchRecipes,
-                    icon: Icon(
-                      Icons.refresh,
-                      size: 18,
-                      color: CleanTheme.primaryColor,
+                const SizedBox(height: 32),
+                TextButton.icon(
+                  onPressed: _searchRecipes,
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    size: 20,
+                    color: CleanTheme.textSecondary,
+                  ),
+                  label: Text(
+                    'Non ti piace? Rigenera',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                      fontWeight: FontWeight.w600,
                     ),
-                    label: Text(
-                      'Rigenera Menu',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.primaryColor,
-                      ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
                     ),
                   ),
                 ),
@@ -495,19 +484,23 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        const Text('🤔', style: TextStyle(fontSize: 48)),
-                        const SizedBox(height: 12),
+                        const Text('🤔', style: TextStyle(fontSize: 64)),
+                        const SizedBox(height: 16),
                         Text(
                           'Nessun menu trovato',
-                          style: GoogleFonts.inter(
-                            color: CleanTheme.textSecondary,
+                          style: GoogleFonts.outfit(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.textPrimary,
                           ),
                         ),
+                        const SizedBox(height: 8),
                         Text(
-                          'Prova con ingredienti diversi',
+                          'Prova con ingredienti diversi o aggiungine altri',
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: CleanTheme.textTertiary,
+                            fontSize: 15,
+                            color: CleanTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -516,83 +509,165 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                 ),
             ],
 
-            // Always show suggested ingredients
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
             Text(
               '✨ Ingredienti suggeriti',
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
+                color: CleanTheme.textSecondary,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
+              alignment: WrapAlignment.center,
               spacing: 8,
-              runSpacing: 8,
+              runSpacing: 12,
               children: _suggestedIngredients.map((item) {
                 final name = item.split(' ').last;
                 final isSelected = _ingredients.contains(name);
                 return GestureDetector(
                   onTap: () {
+                    HapticService.lightTap();
                     if (!isSelected) {
                       setState(() => _ingredients.add(name));
                     }
                   },
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
+                      horizontal: 16,
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? CleanTheme.primaryColor.withValues(alpha: 0.15)
+                          ? CleanTheme.primaryColor
                           : CleanTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(100),
                       border: Border.all(
                         color: isSelected
                             ? CleanTheme.primaryColor
                             : CleanTheme.borderPrimary,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item,
-                          style: GoogleFonts.inter(
-                            color: isSelected
-                                ? CleanTheme.primaryColor
-                                : CleanTheme.textPrimary,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                      boxShadow: [
+                        if (!isSelected)
+                          BoxShadow(
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.03,
+                            ),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        if (isSelected) ...[
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.check_circle,
-                            size: 16,
-                            color: CleanTheme.primaryColor,
-                          ),
-                        ],
                       ],
+                    ),
+                    child: Text(
+                      item,
+                      style: GoogleFonts.inter(
+                        color: isSelected
+                            ? CleanTheme.textOnPrimary
+                            : CleanTheme.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildToggleOption(String label, String value, IconData icon) {
+    final isSelected = _generationMode == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _generationMode = value);
+        HapticService.selectionClick();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected ? CleanTheme.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? CleanTheme.textOnPrimary
+                  : CleanTheme.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? CleanTheme.textOnPrimary
+                    : CleanTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuotaBanner() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.bolt_rounded, size: 18, color: CleanTheme.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            'Generazioni Rimanenti: ',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          Text(
+            '${_quotaStatus!.usage.recipes.remaining}',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          if (_quotaStatus!.usage.recipes.limit != -1)
+            Text(
+              '/${_quotaStatus!.usage.recipes.limit}',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: CleanTheme.textTertiary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMealHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           'Ecco il tuo Menu! 🎉',
@@ -605,8 +680,9 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         const SizedBox(height: 8),
         Text(
           _generatedMeal?['nome_pasto'] ?? 'Menu Chef AI',
+          textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
             color: CleanTheme.textPrimary,
           ),
@@ -616,6 +692,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               _generatedMeal!['descrizione'],
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 15,
                 color: CleanTheme.textSecondary,
@@ -623,8 +700,8 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
               ),
             ),
           ),
-        const SizedBox(height: 8),
-        Divider(color: CleanTheme.borderPrimary),
+        const SizedBox(height: 16),
+        Divider(color: CleanTheme.borderPrimary, endIndent: 40, indent: 40),
       ],
     );
   }
@@ -632,40 +709,35 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   Widget _buildChefTip(String tip) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: CleanTheme.accentOrange.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: CleanTheme.accentOrange.withValues(alpha: 0.2),
+          color: CleanTheme.accentOrange.withValues(alpha: 0.3),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
-          const Text('👨‍🍳', style: TextStyle(fontSize: 24)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Consiglio dello Chef',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.bold,
-                    color: CleanTheme.accentOrange,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tip,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textPrimary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
+          const Text('👨‍🍳', style: TextStyle(fontSize: 32)),
+          const SizedBox(height: 12),
+          Text(
+            'Consiglio dello Chef',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: CleanTheme.accentOrange,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tip,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textPrimary,
+              fontStyle: FontStyle.italic,
+              height: 1.5,
             ),
           ),
         ],
@@ -674,94 +746,74 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   }
 
   Widget _buildCourseCard(Map<String, dynamic> course, int index, int total) {
-    // Map backend keys to frontend expectations
     final type = course['tipo'] ?? 'Piatto';
     final ingredients = course['ingredienti'] as List? ?? [];
     final instructions = course['instructions'] as List? ?? [];
 
-    // Check expanded state
     final isIngredientsExpanded = _expandedIngredients[index] ?? false;
     final isStepsExpanded = _expandedSteps[index] ?? true;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(color: CleanTheme.borderPrimary),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.05),
             blurRadius: 16,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Course Header (Primo, Secondo, etc)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
+                top: Radius.circular(24),
               ),
             ),
-            child: Row(
-              children: [
-                Text(
-                  type.toUpperCase(),
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                    color: CleanTheme.primaryColor,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.restaurant,
-                  size: 16,
-                  color: CleanTheme.primaryColor,
-                ),
-              ],
+            alignment: Alignment.center,
+            child: Text(
+              type.toUpperCase(),
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2.0,
+                color: CleanTheme.primaryColor,
+              ),
             ),
           ),
 
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name and emoji
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      course['emoji'] ?? '🍽️',
-                      style: const TextStyle(fontSize: 40),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        course['nome'] ?? 'Ricetta',
-                        style: GoogleFonts.outfit(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: CleanTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  course['emoji'] ?? '🍽️',
+                  style: const TextStyle(fontSize: 48),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  course['nome'] ?? 'Ricetta',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.outfit(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: CleanTheme.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                // Info Chips
                 Wrap(
                   spacing: 12,
                   runSpacing: 8,
+                  alignment: WrapAlignment.center,
                   children: [
                     _buildInfoChip(
                       Icons.timer_outlined,
@@ -774,26 +826,41 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                   ],
                 ),
 
-                // Macros
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: CleanTheme.backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildMiniMacro('🥩', '${course['proteine_g']}g'),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        color: CleanTheme.borderPrimary,
+                      ),
                       _buildMiniMacro('🍞', '${course['carboidrati_g']}g'),
+                      Container(
+                        width: 1,
+                        height: 20,
+                        color: CleanTheme.borderPrimary,
+                      ),
                       _buildMiniMacro('🥑', '${course['grassi_g']}g'),
                     ],
                   ),
                 ),
 
-                // Ingredients
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
+                Divider(color: CleanTheme.borderPrimary),
+                const SizedBox(height: 8),
+
                 if (ingredients.isNotEmpty)
                   _buildExpandableSection(
                     title: '🧺 Ingredienti',
@@ -805,29 +872,25 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
+                      alignment: WrapAlignment.center,
                       children: ingredients
                           .map(
-                            (ing) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: CleanTheme.accentGreen.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: CleanTheme.accentGreen.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
+                            (ing) => Chip(
+                              label: Text(
                                 ing.toString(),
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: CleanTheme.textPrimary,
+                                ),
+                              ),
+                              backgroundColor: CleanTheme.accentGreen
+                                  .withValues(alpha: 0.1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: CleanTheme.accentGreen.withValues(
+                                    alpha: 0.3,
+                                  ),
                                 ),
                               ),
                             ),
@@ -836,8 +899,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                     ),
                   ),
 
-                // Preparation
-                const SizedBox(height: 16),
                 if (instructions.isNotEmpty)
                   _buildExpandableSection(
                     title: '👨‍🍳 Preparazione',
@@ -851,16 +912,25 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                         final stepNum = step['step'] ?? entry.key + 1;
                         final action = step['action'] ?? step.toString();
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                width: 24,
-                                height: 24,
+                                width: 28,
+                                height: 28,
                                 decoration: BoxDecoration(
                                   color: CleanTheme.primaryColor,
                                   shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: CleanTheme.primaryColor.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
@@ -868,17 +938,18 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   action,
                                   style: GoogleFonts.inter(
                                     color: CleanTheme.textPrimary,
-                                    height: 1.4,
+                                    height: 1.5,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
@@ -897,13 +968,17 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   }
 
   Widget _buildMiniMacro(String emoji, String val) {
-    return Row(
+    return Column(
       children: [
         Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 4),
+        const SizedBox(height: 4),
         Text(
           val,
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: CleanTheme.textPrimary,
+          ),
         ),
       ],
     );
@@ -919,24 +994,27 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
       children: [
         InkWell(
           onTap: onToggle,
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   title,
                   style: GoogleFonts.outfit(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: CleanTheme.textPrimary,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Icon(
                   isExpanded
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
                   color: CleanTheme.textSecondary,
+                  size: 20,
                 ),
               ],
             ),
@@ -944,7 +1022,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         ),
         if (isExpanded)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
             child: child,
           ),
       ],
@@ -953,22 +1031,23 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
 
   Widget _buildInfoChip(IconData icon, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
+        color: CleanTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(100),
         border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: CleanTheme.textSecondary),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
           Text(
             text,
             style: GoogleFonts.inter(
-              fontSize: 12,
+              fontSize: 13,
               color: CleanTheme.textPrimary,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

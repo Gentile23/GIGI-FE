@@ -138,10 +138,10 @@ class FABBottomNavBar extends StatelessWidget {
         width: 64,
         height: 64,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
-              Color(0xFF00D26A), // Success green
-              Color(0xFF00B85C), // Darker green
+              CleanTheme.accentGreen,
+              CleanTheme.accentGreen.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -149,7 +149,7 @@ class FABBottomNavBar extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF00D26A).withValues(alpha: 0.4),
+              color: CleanTheme.accentGreen.withValues(alpha: 0.4),
               blurRadius: 16,
               offset: const Offset(0, 6),
             ),
@@ -236,7 +236,7 @@ class _PulsatingFABState extends State<PulsatingFAB>
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = widget.color ?? const Color(0xFF00D26A);
+    final primaryColor = widget.color ?? CleanTheme.accentGreen;
 
     return AnimatedBuilder(
       animation: _scaleAnimation,

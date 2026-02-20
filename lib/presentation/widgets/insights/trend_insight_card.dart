@@ -50,7 +50,7 @@ class TrendInsightCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -58,7 +58,7 @@ class TrendInsightCard extends StatelessWidget {
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: CleanTheme.textOnPrimary,
                       ),
                     ),
                   ),
@@ -73,7 +73,7 @@ class TrendInsightCard extends StatelessWidget {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: CleanTheme.textOnPrimary,
               ),
             ),
 
@@ -85,7 +85,7 @@ class TrendInsightCard extends StatelessWidget {
                 insight.description,
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.9),
                   height: 1.4,
                 ),
                 maxLines: 3,
@@ -99,7 +99,7 @@ class TrendInsightCard extends StatelessWidget {
                 Icon(
                   _getTypeIcon(),
                   size: 16,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -107,7 +107,7 @@ class TrendInsightCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -122,26 +122,31 @@ class TrendInsightCard extends StatelessWidget {
   List<Color> _getGradientColors() {
     switch (insight.type) {
       case InsightType.positive:
-        return [const Color(0xFF00C853), const Color(0xFF00E676)];
+        return [
+          CleanTheme.accentGreen,
+          CleanTheme.accentGreen.withValues(alpha: 0.8),
+        ];
       case InsightType.warning:
-        return [const Color(0xFFFF6D00), const Color(0xFFFFAB00)];
+        return [CleanTheme.accentOrange, CleanTheme.accentGold];
       case InsightType.suggestion:
-        return [CleanTheme.primaryColor, const Color(0xFF7C4DFF)];
+        // Steel / Chrome for suggestions
+        return [CleanTheme.steelDark, CleanTheme.steelLight];
       case InsightType.neutral:
-        return [const Color(0xFF455A64), const Color(0xFF78909C)];
+        // Subtle Grey
+        return [CleanTheme.steelLight, CleanTheme.chromeGray];
     }
   }
 
   Color _getAccentColor() {
     switch (insight.type) {
       case InsightType.positive:
-        return const Color(0xFF00C853);
+        return CleanTheme.accentGreen;
       case InsightType.warning:
-        return const Color(0xFFFF6D00);
+        return CleanTheme.accentOrange;
       case InsightType.suggestion:
-        return CleanTheme.primaryColor;
+        return CleanTheme.chromeSilver;
       case InsightType.neutral:
-        return const Color(0xFF455A64);
+        return CleanTheme.textSecondary;
     }
   }
 

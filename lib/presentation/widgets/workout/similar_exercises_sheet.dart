@@ -159,7 +159,7 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[600],
+              color: CleanTheme.steelMid,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -195,7 +195,7 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
           if (!_isLoading && _availableEquipment.isNotEmpty)
             const SizedBox(height: 8)
           else
-            const Divider(color: Colors.grey),
+            const Divider(color: CleanTheme.borderPrimary),
 
           // Content
           Expanded(child: _buildContent()),
@@ -247,13 +247,17 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
           color: isSelected ? CleanTheme.primaryColor : CleanTheme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? CleanTheme.primaryColor : Colors.grey[700]!,
+            color: isSelected
+                ? CleanTheme.primaryColor
+                : CleanTheme.borderSecondary,
           ),
         ),
         child: Text(
           label,
           style: GoogleFonts.inter(
-            color: isSelected ? Colors.white : CleanTheme.textSecondary,
+            color: isSelected
+                ? CleanTheme.textOnPrimary
+                : CleanTheme.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             fontSize: 13,
           ),
@@ -276,7 +280,7 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+              Icon(Icons.error_outline, size: 48, color: CleanTheme.accentRed),
               const SizedBox(height: 16),
               Text(
                 _error!,
@@ -309,7 +313,7 @@ class _SimilarExercisesSheetState extends State<SimilarExercisesSheet> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+              Icon(Icons.search_off, size: 48, color: CleanTheme.steelMid),
               const SizedBox(height: 16),
               Text(
                 'Nessun esercizio trovato con questo filtro',
@@ -375,7 +379,7 @@ class _ExerciseCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: CleanTheme.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[800]!, width: 1),
+          border: Border.all(color: CleanTheme.borderPrimary, width: 1),
         ),
         child: Row(
           children: [
@@ -426,7 +430,7 @@ class _ExerciseCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.grey[800],
+                          color: CleanTheme.surfaceColor,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -443,7 +447,11 @@ class _ExerciseCard extends StatelessWidget {
               ),
             ),
             // Arrow
-            Icon(Icons.arrow_forward_ios, color: Colors.grey[600], size: 16),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: CleanTheme.textTertiary,
+              size: 16,
+            ),
           ],
         ),
       ),

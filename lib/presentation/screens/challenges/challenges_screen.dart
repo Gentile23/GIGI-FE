@@ -146,15 +146,12 @@ class _ChallengesScreenState extends State<ChallengesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            CleanTheme.accentPurple,
-            CleanTheme.accentPurple.withValues(alpha: 0.8),
-          ],
+          colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: CleanTheme.accentPurple.withValues(alpha: 0.3),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -171,7 +168,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -179,7 +176,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                   style: GoogleFonts.outfit(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: CleanTheme.textOnDark,
                     letterSpacing: 1,
                   ),
                 ),
@@ -189,7 +186,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                 '12,847 partecipanti',
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: CleanTheme.textOnDark.withValues(alpha: 0.8),
                 ),
               ),
             ],
@@ -208,7 +205,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
             'Insieme alla community, raggiungiamo 1M squat!',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: CleanTheme.textOnDark.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 16),
@@ -224,7 +221,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: CleanTheme.textOnDark,
                     ),
                   ),
                   Text(
@@ -232,7 +229,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: CleanTheme.textOnDark,
                     ),
                   ),
                 ],
@@ -242,8 +239,8 @@ class _ChallengesScreenState extends State<ChallengesScreen>
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: 0.74,
-                  backgroundColor: Colors.white.withValues(alpha: 0.3),
-                  color: Colors.white,
+                  backgroundColor: CleanTheme.textOnDark.withValues(alpha: 0.3),
+                  color: CleanTheme.textOnDark,
                   minHeight: 8,
                 ),
               ),

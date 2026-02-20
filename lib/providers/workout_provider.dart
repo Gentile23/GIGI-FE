@@ -144,12 +144,18 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> generatePlan({String? language}) async {
+  Future<bool> generatePlan({
+    String? language,
+    bool includeHistory = false,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    final result = await _workoutService.generatePlan(language: language);
+    final result = await _workoutService.generatePlan(
+      language: language,
+      includeHistory: includeHistory,
+    );
 
     if (result['success']) {
       final plan = result['plan'];

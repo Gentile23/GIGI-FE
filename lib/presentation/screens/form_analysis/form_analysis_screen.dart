@@ -5,6 +5,8 @@ import '../../../data/models/form_analysis_model.dart';
 import '../../../data/services/form_analysis_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
 import '../../../l10n/app_localizations.dart';
@@ -133,6 +135,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
         // Optional: Clear video after returning if desired, but for now just keeping state
         // setState(() => _videoFile = null);
+
+        // Refresh quota after returning from result screen
+        await _loadQuota();
       } else {
         if (!mounted) return;
         throw Exception(AppLocalizations.of(context)!.analysisFailed);
@@ -217,6 +222,11 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  GigiCoachMessage(
+                    message: AppLocalizations.of(context)!.gigiFormMessage,
+                    emotion: GigiEmotion.expert,
+                  ),
+                  const SizedBox(height: 24),
                   _buildQuotaCard(),
                   const SizedBox(height: 24),
                   _buildExerciseNameField(),
@@ -234,12 +244,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                       onPressed: _analyzeVideo,
                     ),
                   if (_isAnalyzing) _buildAnalyzingWidget(),
-                  const SizedBox(height: 24),
-                  GigiCoachMessage(
-                    message: AppLocalizations.of(context)!.gigiFormMessage,
-                    emotion: GigiEmotion.expert,
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   _buildInfoCard(),
                 ],
               ),
@@ -253,62 +258,156 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     final remaining = _quota!.remaining;
     final isPremium = _quota!.isPremium;
 
-    return CleanCard(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isPremium
-                  ? CleanTheme.accentOrange.withValues(alpha: 0.1)
-                  : CleanTheme.accentBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              isPremium ? Icons.workspace_premium : Icons.analytics_outlined,
-              color: isPremium
-                  ? CleanTheme.accentOrange
-                  : CleanTheme.accentBlue,
-              size: 28,
-            ),
+    return Column(
+      children: [
+        CleanCard(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isPremium
+                      ? CleanTheme.accentOrange.withValues(alpha: 0.1)
+                      : CleanTheme.accentBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isPremium
+                      ? Icons.workspace_premium
+                      : Icons.analytics_outlined,
+                  color: isPremium
+                      ? CleanTheme.accentOrange
+                      : CleanTheme.accentBlue,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isPremium
+                          ? '✨ Premium User'
+                          : AppLocalizations.of(context)!.dailyAnalyses,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isPremium
+                          ? AppLocalizations.of(context)!.unlimitedAnalyses
+                          : AppLocalizations.of(
+                              context,
+                            )!.remainingToday(remaining, _quota!.dailyLimit),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: remaining > 0 || isPremium
+                            ? CleanTheme.accentGreen
+                            : CleanTheme.accentRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isPremium
-                      ? '✨ Premium User'
-                      : AppLocalizations.of(context)!.dailyAnalyses,
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
+        ),
+        if (!isPremium) ...[
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              HapticService.lightTap();
+              _showUpgradeDialog();
+            },
+            child: LiquidSteelContainer(
+              borderRadius: 16,
+              enableShine: true,
+              border: Border.all(
+                color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+                width: 1,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium,
+                        color: CleanTheme.textOnDark,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sblocca Analisi Illimitate ✨',
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: CleanTheme.textOnDark,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Domina la tua tecnica',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: CleanTheme.textOnDark.withValues(
+                                alpha: 0.85,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            CleanTheme.accentOrange,
+                            CleanTheme.accentOrange.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'PRO',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: CleanTheme.textOnDark,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  isPremium
-                      ? AppLocalizations.of(context)!.unlimitedAnalyses
-                      : AppLocalizations.of(
-                          context,
-                        )!.remainingToday(remaining, _quota!.dailyLimit),
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: remaining > 0 || isPremium
-                        ? CleanTheme.accentGreen
-                        : CleanTheme.accentRed,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 
@@ -430,7 +529,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [const Color(0xFF2C3E50), const Color(0xFF000000)],
+                colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
               ),
             ),
             child: Stack(
@@ -445,7 +544,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.6),
+                          CleanTheme.primaryColor.withValues(alpha: 0.6),
                         ],
                       ),
                     ),
@@ -456,10 +555,10 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: CleanTheme.textOnDark.withValues(alpha: 0.5),
                       width: 1,
                     ),
                     boxShadow: [
@@ -491,18 +590,20 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.movie_creation_outlined,
-                              color: Colors.white70,
+                              color: CleanTheme.textOnDark.withValues(
+                                alpha: 0.7,
+                              ),
                               size: 14,
                             ),
                             const SizedBox(width: 6),
@@ -512,7 +613,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.inter(
-                                  color: Colors.white,
+                                  color: CleanTheme.textOnDark,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),

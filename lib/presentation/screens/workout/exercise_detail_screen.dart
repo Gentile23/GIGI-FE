@@ -114,15 +114,15 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                           .workoutExercise
                           .exercise
                           .secondaryMuscleGroups) {
-                    colorMap[muscle] = const Color(
-                      0xFFFF0000,
-                    ).withValues(alpha: 0.15);
+                    colorMap[muscle] = CleanTheme.accentRed.withValues(
+                      alpha: 0.15,
+                    );
                   }
 
                   // Primary muscles: Bright red
                   for (final muscle
                       in widget.workoutExercise.exercise.muscleGroups) {
-                    colorMap[muscle] = const Color(0xFFFF0000);
+                    colorMap[muscle] = CleanTheme.accentRed;
                   }
 
                   return CleanCard(
@@ -131,7 +131,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       muscleGroups:
                           widget.workoutExercise.exercise.muscleGroups,
                       height: 300,
-                      highlightColor: const Color(0xFFFF0000),
+                      highlightColor: CleanTheme.accentRed,
                       colorMap: colorMap,
                     ),
                   );
@@ -280,9 +280,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 color: CleanTheme.cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: (isBodyweight ? Colors.blue : Colors.green).withValues(
-                    alpha: 0.3,
-                  ),
+                  color:
+                      (isBodyweight
+                              ? CleanTheme.accentBlue
+                              : CleanTheme.accentGreen)
+                          .withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -293,7 +295,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     isBodyweight
                         ? Icons.fitness_center
                         : Icons.accessibility_new,
-                    color: isBodyweight ? Colors.blue : Colors.green,
+                    color: isBodyweight
+                        ? CleanTheme.accentBlue
+                        : CleanTheme.accentGreen,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -480,7 +484,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               color: CleanTheme.primaryColor,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+            child: const Icon(
+              Icons.play_arrow,
+              color: CleanTheme.textOnDark,
+              size: 40,
+            ),
           ),
         ),
       ),

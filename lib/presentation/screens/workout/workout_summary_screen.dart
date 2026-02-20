@@ -109,10 +109,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     height: 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          CleanTheme.primaryColor,
-                          CleanTheme.accentPurple,
-                        ],
+                        colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -126,7 +123,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     child: const Icon(
                       Icons.emoji_events_rounded,
                       size: 50,
-                      color: Colors.white,
+                      color: CleanTheme.textOnDark,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -320,7 +317,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          CleanTheme.accentPurple.withValues(alpha: 0.15),
+                          CleanTheme.steelMid.withValues(alpha: 0.5),
                           CleanTheme.primaryColor.withValues(alpha: 0.1),
                         ],
                       ),
@@ -364,7 +361,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: CleanTheme.textOnPrimary,
                         ),
                       ),
                     ),
@@ -423,7 +420,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 24),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/social_provider.dart';
@@ -408,7 +409,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
       case 'personalRecord':
         return CleanTheme.accentBlue;
       case 'challenge':
-        return Colors.purple;
+        return CleanTheme.primaryColor;
       default:
         return CleanTheme.textSecondary;
     }
@@ -418,7 +419,7 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
     final color = activity.achievementRarity == 'legendary'
         ? CleanTheme.accentYellow
         : activity.achievementRarity == 'epic'
-        ? Colors.purple
+        ? CleanTheme.primaryColor
         : CleanTheme.accentBlue;
 
     return Container(
@@ -566,159 +567,183 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
   Widget _buildChallengeCard(ChallengeData challenge) {
     final daysRemaining = challenge.endsAt.difference(DateTime.now()).inDays;
 
-    return CleanCard(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  challenge.title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-              ),
-              if (challenge.isPrivate)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.purple.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.lock, size: 12, color: Colors.purple),
-                      const SizedBox(width: 4),
-                      Text(
-                        '1v1',
-                        style: GoogleFonts.inter(
-                          color: Colors.purple,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () {
+        HapticService.lightTap();
+        // Navigate or expand details if needed
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: LiquidSteelContainer(
+          borderRadius: 16,
+          enableShine: true,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3),
+            width: 1,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        challenge.title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            challenge.description,
-            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-          ),
-          const SizedBox(height: 16),
-
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: challenge.progress,
-              backgroundColor: CleanTheme.borderSecondary,
-              valueColor: const AlwaysStoppedAnimation(CleanTheme.primaryColor),
-              minHeight: 8,
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Stats
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(
-                  context,
-                )!.percentCompleted((challenge.progress * 100).toInt()),
-                style: GoogleFonts.inter(
-                  color: CleanTheme.textTertiary,
-                  fontSize: 12,
-                ),
-              ),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.timer_outlined,
-                    size: 14,
-                    color: CleanTheme.textTertiary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    AppLocalizations.of(context)!.daysRemaining(daysRemaining),
-                    style: GoogleFonts.inter(
-                      color: daysRemaining <= 1
-                          ? CleanTheme.accentRed
-                          : CleanTheme.textTertiary,
-                      fontSize: 12,
                     ),
+                    if (challenge.isPrivate)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.lock,
+                              size: 12,
+                              color: Colors.white70,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '1v1',
+                              style: GoogleFonts.inter(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  challenge.description,
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                ),
+                const SizedBox(height: 16),
 
-          // Footer
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.people_outline,
-                    size: 16,
-                    color: CleanTheme.textTertiary,
+                // Progress bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: challenge.progress,
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    valueColor: const AlwaysStoppedAnimation(Colors.white),
+                    minHeight: 8,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    AppLocalizations.of(
-                      context,
-                    )!.participantsCount(challenge.participants),
-                    style: GoogleFonts.inter(
-                      color: CleanTheme.textTertiary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
                 ),
-                decoration: BoxDecoration(
-                  color: CleanTheme.accentYellow.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                const SizedBox(height: 8),
+
+                // Stats
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('⚡', style: TextStyle(fontSize: 12)),
-                    const SizedBox(width: 4),
                     Text(
-                      '${challenge.reward} XP',
+                      AppLocalizations.of(
+                        context,
+                      )!.percentCompleted((challenge.progress * 100).toInt()),
                       style: GoogleFonts.inter(
-                        color: CleanTheme.accentYellow,
-                        fontWeight: FontWeight.bold,
+                        color: Colors.white.withValues(alpha: 0.6),
                         fontSize: 12,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.timer_outlined,
+                          size: 14,
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.daysRemaining(daysRemaining),
+                          style: GoogleFonts.inter(
+                            color: daysRemaining <= 1
+                                ? CleanTheme.accentRed
+                                : Colors.white.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Footer
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 16,
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.participantsCount(challenge.participants),
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('⚡', style: TextStyle(fontSize: 12)),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${challenge.reward} XP',
+                            style: GoogleFonts.inter(
+                              color: CleanTheme.accentYellow,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

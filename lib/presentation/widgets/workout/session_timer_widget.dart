@@ -95,8 +95,8 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.black.withValues(alpha: 0.7),
-            Colors.black.withValues(alpha: 0.5),
+            CleanTheme.surfaceColor.withValues(alpha: 0.9),
+            CleanTheme.surfaceColor.withValues(alpha: 0.7),
           ],
         ),
       ),
@@ -143,7 +143,7 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
                         style: GoogleFonts.jetBrainsMono(
                           fontSize: 28,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: CleanTheme.textOnPrimary,
                           letterSpacing: 2,
                         ),
                       ),
@@ -174,12 +174,12 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         widget.isPaused ? Icons.play_arrow : Icons.pause,
-                        color: Colors.white,
+                        color: CleanTheme.textOnPrimary,
                         size: 20,
                       ),
                     ),
@@ -195,7 +195,9 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: progress,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                backgroundColor: CleanTheme.textOnPrimary.withValues(
+                  alpha: 0.2,
+                ),
                 valueColor: AlwaysStoppedAnimation<Color>(
                   CleanTheme.accentGreen,
                 ),
@@ -231,7 +233,7 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: CleanTheme.textOnPrimary,
             ),
           ),
           Text(
@@ -239,7 +241,7 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.white70,
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
             ),
           ),
         ],

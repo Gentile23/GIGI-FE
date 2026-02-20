@@ -39,7 +39,7 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
           'Ti guido a voce durante ogni esercizio. Ti dico cosa fare, quando farlo, come farlo.',
       highlightText: 'Nessun\'altra app al mondo fa questo.',
       icon: Icons.record_voice_over,
-      accentColor: CleanTheme.accentBlue,
+      accentColor: CleanTheme.primaryColor,
     ),
     OnboardingPageData(
       title: 'Inizia Ora',
@@ -284,7 +284,7 @@ class _EnhancedOnboardingScreenState extends State<EnhancedOnboardingScreen> {
                 ? Icons.play_arrow_rounded
                 : Icons.arrow_forward,
             backgroundColor: page.accentColor,
-            textColor: Colors.white,
+            textColor: CleanTheme.textOnDark,
             width: double.infinity,
             onPressed: isLast ? _getStarted : _nextPage,
           ),

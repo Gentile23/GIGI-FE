@@ -79,7 +79,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text(
               AppLocalizations.of(context)!.delete,
-              style: GoogleFonts.outfit(color: Colors.white),
+              style: GoogleFonts.outfit(color: CleanTheme.textOnDark),
             ),
           ),
         ],
@@ -103,7 +103,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Errore nell\'eliminazione'),
-              backgroundColor: Colors.red,
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -166,7 +166,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+              Icon(Icons.error_outline, size: 64, color: CleanTheme.accentRed),
               const SizedBox(height: 16),
               Text(
                 _error!,
@@ -300,7 +300,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
           border: Border.all(
             color: plan.isActive
                 ? CleanTheme.primaryColor.withValues(alpha: 0.3)
-                : Colors.grey[700]!,
+                : CleanTheme.borderSecondary,
             width: 1,
           ),
         ),
@@ -351,7 +351,10 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                 ),
                 // Delete button
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: CleanTheme.accentRed,
+                  ),
                   onPressed: () => _deleteWorkout(plan),
                 ),
               ],
@@ -374,7 +377,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             // Exercise preview
             if (plan.exercises.isNotEmpty) ...[
               const SizedBox(height: 12),
-              const Divider(color: Colors.grey),
+              const Divider(color: CleanTheme.borderSecondary),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 6,
@@ -386,7 +389,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[800],
+                      color: CleanTheme.surfaceColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -472,12 +475,12 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.add_rounded,
-                color: Colors.white,
+                color: CleanTheme.textOnDark,
                 size: 28,
               ),
             ),
@@ -491,7 +494,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: CleanTheme.textOnDark,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -499,13 +502,13 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                     'Costruisci il tuo allenamento personalizzato',
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: CleanTheme.textOnDark.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, color: Colors.white),
+            const Icon(Icons.arrow_forward, color: CleanTheme.textOnDark),
           ],
         ),
       ),

@@ -136,7 +136,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [const Color(0xFF0D0D1A), const Color(0xFF1A1A2E)],
+          colors: [CleanTheme.backgroundColor, CleanTheme.surfaceColor],
         ),
       ),
       child: SafeArea(
@@ -148,7 +148,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -165,7 +165,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white70,
+                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                       letterSpacing: 2,
                     ),
                   ),
@@ -197,11 +197,10 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                           child: CircularProgressIndicator(
                             value: 1.0,
                             strokeWidth: 12,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.1,
-                            ),
+                            backgroundColor: CleanTheme.textOnPrimary
+                                .withValues(alpha: 0.1),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white.withValues(alpha: 0.1),
+                              CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                             ),
                           ),
                         ),
@@ -235,7 +234,9 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                               'secondi',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: Colors.white60,
+                                color: CleanTheme.textOnPrimary.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ],
@@ -256,7 +257,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                 _currentQuote,
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: Colors.white60,
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,
                   height: 1.5,
                 ),
@@ -272,10 +273,10 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                   ),
                 ),
                 child: Row(
@@ -302,7 +303,9 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.4),
+                              color: CleanTheme.textOnPrimary.withValues(
+                                alpha: 0.4,
+                              ),
                               letterSpacing: 1,
                             ),
                           ),
@@ -312,7 +315,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                             style: GoogleFonts.outfit(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              color: CleanTheme.textOnPrimary,
                             ),
                           ),
                         ],
@@ -339,18 +342,20 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.skip_next_rounded,
-                          color: Colors.white70,
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.7,
+                          ),
                           size: 24,
                         ),
                         const SizedBox(width: 8),
@@ -359,7 +364,9 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white70,
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.7,
+                            ),
                             letterSpacing: 1,
                           ),
                         ),

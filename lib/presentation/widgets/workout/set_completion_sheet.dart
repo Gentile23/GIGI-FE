@@ -120,7 +120,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: CleanTheme.surfaceColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
@@ -142,7 +142,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: CleanTheme.textSecondary.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -174,14 +174,14 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                           style: GoogleFonts.outfit(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: CleanTheme.textPrimary,
                           ),
                         ),
                         Text(
                           'Registra il tuo risultato',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: Colors.white60,
+                            color: CleanTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -231,7 +231,10 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                     gradient: LinearGradient(
                       colors: _showSuccess
                           ? [CleanTheme.accentGreen, CleanTheme.accentGreen]
-                          : [CleanTheme.primaryColor, const Color(0xFF2A2A5A)],
+                          : [
+                              CleanTheme.primaryColor,
+                              CleanTheme.primaryColor.withValues(alpha: 0.7),
+                            ],
                     ),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
@@ -251,7 +254,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                     children: [
                       Icon(
                         _showSuccess ? Icons.check : Icons.arrow_forward,
-                        color: Colors.white,
+                        color: CleanTheme.textOnPrimary,
                         size: 24,
                       ),
                       const SizedBox(width: 12),
@@ -262,7 +265,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: CleanTheme.textOnPrimary,
                           letterSpacing: 1,
                         ),
                       ),
@@ -288,7 +291,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: CleanTheme.surfaceColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
@@ -301,7 +304,7 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white60,
+                  color: CleanTheme.textSecondary,
                   letterSpacing: 1,
                 ),
               ),

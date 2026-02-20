@@ -61,7 +61,7 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(provider.error ?? 'Upload failed'),
-                backgroundColor: Colors.red,
+                backgroundColor: CleanTheme.accentRed,
               ),
             );
           }
@@ -70,7 +70,10 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: CleanTheme.accentRed,
+          ),
         );
       }
     }

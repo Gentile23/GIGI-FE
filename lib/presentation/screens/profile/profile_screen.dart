@@ -10,6 +10,8 @@ import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 import '../paywall/paywall_screen.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../providers/engagement_provider.dart';
@@ -143,14 +145,14 @@ class ProfileScreen extends StatelessWidget {
                               color: CleanTheme.primaryColor,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: CleanTheme.surfaceColor,
+                                color: CleanTheme.backgroundColor,
                                 width: 3,
                               ),
                             ),
                             child: const Icon(
                               Icons.camera_alt,
                               size: 16,
-                              color: Colors.white,
+                              color: CleanTheme.textOnPrimary,
                             ),
                           ),
                         ),
@@ -259,15 +261,15 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      CleanTheme.accentPurple.withValues(alpha: 0.15),
-                      CleanTheme.primaryColor.withValues(alpha: 0.1),
+                      CleanTheme.primaryColor.withValues(alpha: 0.15),
+                      CleanTheme.primaryLight,
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: CleanTheme.accentPurple.withValues(alpha: 0.3),
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -281,14 +283,14 @@ class ProfileScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                CleanTheme.accentPurple,
                                 CleanTheme.primaryColor,
+                                CleanTheme.primaryLight,
                               ],
                             ),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: CleanTheme.accentPurple.withValues(
+                                color: CleanTheme.primaryColor.withValues(
                                   alpha: 0.4,
                                 ),
                                 blurRadius: 12,
@@ -302,7 +304,7 @@ class ProfileScreen extends StatelessWidget {
                               style: GoogleFonts.outfit(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: CleanTheme.textOnDark,
                               ),
                             ),
                           ),
@@ -369,7 +371,7 @@ class ProfileScreen extends StatelessWidget {
                         value: ((xp % 1000) / 1000).clamp(0.0, 1.0),
                         backgroundColor: CleanTheme.borderSecondary,
                         valueColor: AlwaysStoppedAnimation(
-                          CleanTheme.accentPurple,
+                          CleanTheme.primaryColor,
                         ),
                         minHeight: 10,
                       ),
@@ -444,7 +446,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.public_outlined,
                   title: AppLocalizations.of(context)!.community,
                   subtitle: AppLocalizations.of(context)!.communitySubtitle,
-                  color: CleanTheme.accentPurple,
+                  color: CleanTheme.accentOrange,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -459,7 +461,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.card_giftcard_outlined,
                   title: AppLocalizations.of(context)!.inviteFriends,
                   subtitle: AppLocalizations.of(context)!.inviteFriendsSubtitle,
-                  color: const Color(0xFFE91E63),
+                  color: CleanTheme.accentOrange,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -544,7 +546,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: Icons.monitor_heart_outlined,
                   title: AppLocalizations.of(context)!.healthFitness,
                   subtitle: AppLocalizations.of(context)!.healthFitnessSubtitle,
-                  color: const Color(0xFFE91E63),
+                  color: CleanTheme.accentRed,
                   onTap: () {
                     Navigator.push(
                       context,
@@ -609,86 +611,85 @@ class ProfileScreen extends StatelessWidget {
     AuthProvider authProvider,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: () => HapticService.mediumTap(),
+      child: LiquidSteelContainer(
+        borderRadius: 24,
+        enableShine: true,
+        border: Border.all(
+          color: CleanTheme.accentGold.withValues(alpha: 0.5), // Gold border
+          width: 1.5,
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.workspace_premium_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.textOnDark.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_outlined,
+                      color: CleanTheme.accentGold, // Gold icon
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    l10n.currentPlan,
+                    style: GoogleFonts.inter(
+                      color: CleanTheme.textOnDark.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
+              const SizedBox(height: 16),
               Text(
-                l10n.currentPlan,
-                style: GoogleFonts.inter(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontWeight: FontWeight.w600,
+                l10n.premium,
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textOnDark,
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.premiumAccessText,
+                style: GoogleFonts.inter(
+                  color: CleanTheme.textOnDark.withValues(alpha: 0.9),
+                  height: 1.4,
+                ),
+              ),
+              if (authProvider.user?.subscription?.endDate != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Scade il: ${DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!)}',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: CleanTheme.accentGold, // Gold text
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            l10n.premium,
-            style: GoogleFonts.outfit(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.premiumAccessText,
-            style: GoogleFonts.inter(
-              color: Colors.white.withValues(alpha: 0.9),
-              height: 1.4,
-            ),
-          ),
-          if (authProvider.user?.subscription?.endDate != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Scade il: ${DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!)}',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -850,74 +851,96 @@ class ProfileScreen extends StatelessWidget {
     required String productId,
     required bool isHighlighted,
   }) {
-    return GestureDetector(
-      onTap: () => _handleDirectPurchase(context, paymentService, productId),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isHighlighted ? CleanTheme.primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
+    // Content of the card
+    final content = Column(
+      children: [
+        if (badge != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isHighlighted ? Colors.white : CleanTheme.accentOrange,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              badge,
+              style: GoogleFonts.inter(
+                fontSize: 8,
+                fontWeight: FontWeight.w900,
+                color: isHighlighted
+                    ? CleanTheme.primaryColor
+                    : CleanTheme.textOnDark,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
             color: isHighlighted
-                ? CleanTheme.primaryColor
-                : CleanTheme.borderSecondary,
-            width: 1.5,
+                ? Colors.white.withValues(alpha: 0.9) // Lighter for Steel
+                : CleanTheme.textSecondary,
           ),
         ),
-        child: Column(
-          children: [
-            if (badge != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isHighlighted ? Colors.white : CleanTheme.accentOrange,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  badge,
-                  style: GoogleFonts.inter(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                    color: isHighlighted
-                        ? CleanTheme.primaryColor
-                        : Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: isHighlighted
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : CleanTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              price,
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isHighlighted ? Colors.white : CleanTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subPrice,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                color: isHighlighted
-                    ? Colors.white.withValues(alpha: 0.6)
-                    : CleanTheme.textTertiary,
-              ),
-            ),
-          ],
+        const SizedBox(height: 4),
+        Text(
+          price,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isHighlighted
+                ? CleanTheme.textOnDark
+                : CleanTheme.textPrimary,
+          ),
         ),
-      ),
+        const SizedBox(height: 2),
+        Text(
+          subPrice,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            color: isHighlighted
+                ? CleanTheme.textOnDark.withValues(alpha: 0.7)
+                : CleanTheme.textTertiary,
+          ),
+        ),
+      ],
+    );
+
+    return GestureDetector(
+      onTap: () {
+        HapticService.selectionClick();
+        _handleDirectPurchase(context, paymentService, productId);
+      },
+      child: isHighlighted
+          ? LiquidSteelContainer(
+              borderRadius: 20,
+              enableShine: true,
+              border: Border.all(
+                color: CleanTheme.primaryColor.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20,
+                  horizontal: 12,
+                ),
+                child: content,
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: CleanTheme.borderSecondary,
+                  width: 1.5,
+                ),
+              ),
+              child: content,
+            ),
     );
   }
 
@@ -1321,7 +1344,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         decoration: BoxDecoration(
                           color: CleanTheme.primaryColor,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(
+                            color: CleanTheme.surfaceColor,
+                            width: 2,
+                          ),
                         ),
                         child: _isUploadingAvatar
                             ? const SizedBox(
@@ -1329,12 +1355,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: CleanTheme.textOnDark,
                                 ),
                               )
                             : const Icon(
                                 Icons.camera_alt,
-                                color: Colors.white,
+                                color: CleanTheme.textOnDark,
                                 size: 20,
                               ),
                       ),

@@ -35,7 +35,7 @@ class VoiceControlsBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E2C).withValues(alpha: 0.95),
+                color: CleanTheme.steelDark.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(

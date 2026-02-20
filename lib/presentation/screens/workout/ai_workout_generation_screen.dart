@@ -6,6 +6,7 @@ import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
 import '../../../data/models/workout_model.dart';
+import '../../../core/theme/clean_theme.dart';
 
 /// Screen for generating AI-powered workout plan
 class AIWorkoutGenerationScreen extends StatefulWidget {
@@ -84,15 +85,20 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade400, Colors.blue.shade600],
+                colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: CleanTheme.borderPrimary),
             ),
             child: Column(
               children: [
-                const Icon(Icons.auto_awesome, size: 60, color: Colors.white),
+                const Icon(
+                  Icons.auto_awesome,
+                  size: 60,
+                  color: CleanTheme.accentGold,
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'Scheda Personalizzata AI',
@@ -156,18 +162,20 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
+                color: CleanTheme.accentRed.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade200),
+                border: Border.all(
+                  color: CleanTheme.accentRed.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade700),
+                  Icon(Icons.error_outline, color: CleanTheme.accentRed),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(color: Colors.red.shade900),
+                      style: TextStyle(color: CleanTheme.accentRed),
                     ),
                   ),
                 ],
@@ -193,15 +201,17 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
+                        color: CleanTheme.accentOrange.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.orange.shade200),
+                        border: Border.all(
+                          color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.schedule,
-                            color: Colors.orange.shade700,
+                            color: CleanTheme.accentOrange,
                             size: 32,
                           ),
                           const SizedBox(width: 12),
@@ -213,7 +223,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                                   'Prossima generazione disponibile tra',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.orange.shade900,
+                                    color: CleanTheme.accentOrange,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -222,7 +232,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                                   '$daysRemaining ${daysRemaining == 1 ? "giorno" : "giorni"}',
                                   style: TextStyle(
                                     fontSize: 20,
-                                    color: Colors.orange.shade700,
+                                    color: CleanTheme.accentOrange,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -254,6 +264,8 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                       ? null
                       : _generatePlan,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.all(20),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -304,19 +316,20 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: CleanTheme.primaryLight,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: CleanTheme.borderPrimary),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  Icon(Icons.info_outline, color: CleanTheme.primaryColor),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Gigi sta creando la tua scheda personalizzata. Questo potrebbe richiedere alcuni secondi...',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue.shade900,
+                        color: CleanTheme.textPrimary,
                       ),
                     ),
                   ),
@@ -342,7 +355,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.green.shade400, Colors.green.shade600],
+                colors: [CleanTheme.steelDark, CleanTheme.accentGreen],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -470,6 +483,8 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                     ).pushNamedAndRemoveUntil('/main', (route) => false);
                   },
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.all(16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -501,7 +516,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
           children: [
             Row(
               children: [
-                Icon(icon, color: Colors.blue),
+                Icon(icon, color: CleanTheme.primaryColor),
                 const SizedBox(width: 8),
                 Text(
                   title,
@@ -521,7 +536,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                     const Icon(
                       Icons.check_circle,
                       size: 16,
-                      color: Colors.green,
+                      color: CleanTheme.accentGreen,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -540,7 +555,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
   Widget _buildInjuriesCard() {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.orange.shade50,
+      color: CleanTheme.accentOrange.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -548,7 +563,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber, color: Colors.orange.shade700),
+                Icon(Icons.warning_amber, color: CleanTheme.accentOrange),
                 const SizedBox(width: 8),
                 const Text(
                   'Infortuni da Considerare',
@@ -579,7 +594,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                             '${injury.severity.displayName} - ${injury.status.displayName}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade700,
+                              color: CleanTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -602,7 +617,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           leading: CircleAvatar(
-            backgroundColor: Colors.blue,
+            backgroundColor: CleanTheme.primaryColor,
             child: Text(
               '$dayNumber',
               style: const TextStyle(
@@ -617,7 +632,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
           ),
           subtitle: Text(
             '${day.exercises.length} esercizi • ${day.estimatedDuration} min',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 13, color: CleanTheme.textSecondary),
           ),
           children: [
             Padding(
@@ -629,14 +644,14 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
+                        color: CleanTheme.primaryLight,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.track_changes,
-                            color: Colors.blue.shade700,
+                            color: CleanTheme.primaryColor,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -646,7 +661,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade900,
+                                color: CleanTheme.textPrimary,
                               ),
                             ),
                           ),
@@ -661,8 +676,9 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                        color: CleanTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: CleanTheme.borderSecondary),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,7 +689,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                                 width: 24,
                                 height: 24,
                                 decoration: BoxDecoration(
-                                  color: Colors.blue,
+                                  color: CleanTheme.primaryColor,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Center(
@@ -723,7 +739,9 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: CleanTheme.accentOrange.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
@@ -732,13 +750,16 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                                   Icon(
                                     Icons.lightbulb_outline,
                                     size: 16,
-                                    color: Colors.orange.shade700,
+                                    color: CleanTheme.accentOrange,
                                   ),
                                   const SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       exercise.notes!,
-                                      style: const TextStyle(fontSize: 12),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: CleanTheme.textPrimary,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -762,9 +783,12 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: Colors.grey.shade600),
+        Icon(icon, size: 14, color: CleanTheme.textSecondary),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+        Text(
+          text,
+          style: TextStyle(fontSize: 12, color: CleanTheme.textSecondary),
+        ),
       ],
     );
   }

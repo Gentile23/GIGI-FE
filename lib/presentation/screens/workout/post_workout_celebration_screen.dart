@@ -149,8 +149,11 @@ class _PostWorkoutCelebrationScreenState
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [CleanTheme.accentGreen, Color(0xFF22C55E)],
+              gradient: LinearGradient(
+                colors: [
+                  CleanTheme.accentGreen,
+                  CleanTheme.accentGreen.withValues(alpha: 0.8),
+                ],
               ),
               shape: BoxShape.circle,
               boxShadow: [
@@ -418,7 +421,7 @@ class _PostWorkoutCelebrationScreenState
                       final isMedal = reward.type == RewardType.badge;
                       final isRare = reward.isRare || isMedal;
                       final glowColor = isMedal
-                          ? const Color(0xFFFFD700)
+                          ? CleanTheme.accentGold
                           : (isRare
                                 ? CleanTheme.accentPurple
                                 : CleanTheme.borderPrimary);
@@ -432,9 +435,7 @@ class _PostWorkoutCelebrationScreenState
                           ),
                           decoration: BoxDecoration(
                             color: isMedal
-                                ? const Color(
-                                    0xFFFFD700,
-                                  ).withValues(alpha: 0.15)
+                                ? CleanTheme.accentGold.withValues(alpha: 0.15)
                                 : (isRare
                                       ? CleanTheme.accentPurple.withValues(
                                           alpha: 0.1,
@@ -469,9 +470,8 @@ class _PostWorkoutCelebrationScreenState
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
                                   color: isMedal
-                                      ? const Color(
-                                          0xFFC5A000,
-                                        ) // Darker gold for text
+                                      ? CleanTheme
+                                            .accentGold // Gold for text
                                       : (isRare
                                             ? CleanTheme.accentPurple
                                             : CleanTheme.textPrimary),
@@ -486,7 +486,7 @@ class _PostWorkoutCelebrationScreenState
                                   ),
                                   decoration: BoxDecoration(
                                     color: isMedal
-                                        ? const Color(0xFFFFD700)
+                                        ? CleanTheme.accentGold
                                         : CleanTheme.accentPurple,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -600,11 +600,11 @@ class _PostWorkoutCelebrationScreenState
   Color _getChestColor() {
     switch (_chest.rarity) {
       case ChestRarity.bronze:
-        return const Color(0xFFCD7F32);
+        return CleanTheme.accentOrange;
       case ChestRarity.silver:
-        return const Color(0xFFC0C0C0);
+        return CleanTheme.chromeSilver;
       case ChestRarity.gold:
-        return const Color(0xFFFFD700);
+        return CleanTheme.accentGold;
       case ChestRarity.legendary:
         return CleanTheme.accentPurple;
     }

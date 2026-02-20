@@ -8,7 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../paywall/paywall_screen.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../data/services/quota_service.dart'; // Import QuotaService
+import '../../../data/services/quota_service.dart';
+import '../../../core/theme/clean_theme.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
@@ -65,7 +66,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         // 2. No Plan State - Design Premium
         if (!provider.hasActivePlan) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF5F5F7),
+            backgroundColor: CleanTheme.chromeSubtle,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
@@ -74,7 +75,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                 style: GoogleFonts.outfit(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
-                  color: Colors.black,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
             ),
@@ -89,14 +90,17 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+                          colors: [
+                            CleanTheme.steelDark,
+                            CleanTheme.primaryColor,
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(
-                              0xFF8B5CF6,
-                            ).withValues(alpha: 0.3),
+                            color: CleanTheme.primaryColor.withValues(
+                              alpha: 0.3,
+                            ),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -113,7 +117,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: CleanTheme.textPrimary,
                         height: 1.2,
                       ),
                     ),
@@ -125,7 +129,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        color: Colors.grey[600],
+                        color: CleanTheme.textSecondary,
                         height: 1.5,
                       ),
                     ),
@@ -140,15 +144,15 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)],
+                          gradient: LinearGradient(
+                            colors: [CleanTheme.steelMid, CleanTheme.steelDark],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(
-                                0xFF8B5CF6,
-                              ).withValues(alpha: 0.4),
+                              color: CleanTheme.primaryColor.withValues(
+                                alpha: 0.4,
+                              ),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -168,7 +172,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                               style: GoogleFonts.outfit(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                                color: CleanTheme.textOnDark,
                               ),
                             ),
                           ],
@@ -183,7 +187,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       children: [
                         const Icon(
                           Icons.bolt,
-                          color: Color(0xFFF59E0B),
+                          color: CleanTheme.accentGold,
                           size: 18,
                         ),
                         const SizedBox(width: 6),
@@ -192,7 +196,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFFF59E0B),
+                            color: CleanTheme.accentGold,
                           ),
                         ),
                       ],
@@ -218,7 +222,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   const Icon(
                     Icons.error_outline,
                     size: 60,
-                    color: Colors.orange,
+                    color: CleanTheme.accentOrange,
                   ),
                   const SizedBox(height: 16),
                   const Text('Errore nel formato della dieta.'),
@@ -250,7 +254,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   const Icon(
                     Icons.fastfood_outlined,
                     size: 60,
-                    color: Colors.grey,
+                    color: CleanTheme.primaryColor,
                   ),
                   const SizedBox(height: 16),
                   const Text('Nessun pasto trovato nella dieta analizzata.'),
@@ -281,7 +285,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F5F7), // CleanTheme primaryLight
+          backgroundColor: CleanTheme.backgroundColor,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -290,12 +294,15 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
-                color: Colors.black,
+                color: CleanTheme.textPrimary,
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.share_outlined, color: Colors.black),
+                icon: const Icon(
+                  Icons.share_outlined,
+                  color: CleanTheme.textPrimary,
+                ),
                 tooltip: 'Condividi',
                 onPressed: () {
                   final currentDay = days[_tabController!.index];
@@ -305,7 +312,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               IconButton(
                 icon: const Icon(
                   Icons.shopping_cart_outlined,
-                  color: Colors.black,
+                  color: CleanTheme.textPrimary,
                 ),
                 onPressed: () {
                   final authProvider = Provider.of<AuthProvider>(
@@ -338,8 +345,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
             icon: const Icon(Icons.add),
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
+            backgroundColor: CleanTheme.primaryColor,
+            foregroundColor: CleanTheme.textOnPrimary,
           ),
           body: Column(
             children: [
@@ -374,18 +381,22 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.black : Colors.white,
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.surfaceColor,
                           borderRadius: BorderRadius.circular(28),
                           border: Border.all(
                             color: isSelected
-                                ? Colors.black
-                                : const Color(0xFFE5E5EA),
+                                ? CleanTheme.primaryColor
+                                : CleanTheme.borderPrimary,
                             width: 1.5,
                           ),
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
+                                    color: CleanTheme.primaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -398,7 +409,9 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                             style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
-                              color: isSelected ? Colors.white : Colors.black,
+                              color: isSelected
+                                  ? CleanTheme.textOnPrimary
+                                  : CleanTheme.textPrimary,
                             ),
                           ),
                         ),
@@ -420,17 +433,19 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               if (provider.isLoading)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.5),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const CircularProgressIndicator(color: Colors.white),
+                          const CircularProgressIndicator(
+                            color: CleanTheme.textOnPrimary,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'L\'IA sta elaborando...',
                             style: GoogleFonts.outfit(
-                              color: Colors.white,
+                              color: CleanTheme.textOnDark,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -491,12 +506,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.black, Colors.black.withValues(alpha: 0.85)],
+          colors: [CleanTheme.primaryColor, CleanTheme.steelDark],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -507,12 +522,16 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         children: [
           Row(
             children: [
-              const Icon(Icons.insights_rounded, color: Colors.white, size: 20),
+              const Icon(
+                Icons.insights_rounded,
+                color: CleanTheme.textOnDark,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Macros del Giorno',
                 style: GoogleFonts.outfit(
-                  color: Colors.white,
+                  color: CleanTheme.textOnDark,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -526,22 +545,22 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               _buildMacroItem(
                 'kcal',
                 totalKcal.toString(),
-                const Color(0xFFFF6B6B),
+                CleanTheme.accentRed,
               ),
               _buildMacroItem(
                 'Prot',
                 '${totalProteins.toInt()}g',
-                const Color(0xFF4ECDC4),
+                CleanTheme.accentGreen,
               ),
               _buildMacroItem(
                 'Carb',
                 '${totalCarbs.toInt()}g',
-                const Color(0xFFFFE66D),
+                CleanTheme.accentGold,
               ),
               _buildMacroItem(
                 'Fat',
                 '${totalFats.toInt()}g',
-                const Color(0xFFA78BFA),
+                CleanTheme.chromeSilver,
               ),
             ],
           ),
@@ -572,7 +591,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         Text(
           label,
           style: GoogleFonts.inter(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: CleanTheme.textOnDark.withValues(alpha: 0.7),
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),
@@ -593,12 +612,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE5E5EA), width: 1),
+        border: Border.all(color: CleanTheme.borderPrimary, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -615,10 +634,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F7),
+                    color: CleanTheme.chromeSubtle,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(mealIcon, size: 22, color: Colors.black),
+                  child: Icon(
+                    mealIcon,
+                    size: 22,
+                    color: CleanTheme.primaryColor,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -627,18 +650,18 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.share_outlined, size: 20),
-                  color: const Color(0xFF8E8E93),
+                  color: CleanTheme.textSecondary,
                   onPressed: () => _shareMeal(meal),
                 ),
                 IconButton(
                   icon: const Icon(Icons.auto_awesome, size: 20),
-                  color: Colors.amber,
+                  color: CleanTheme.accentGold,
                   tooltip: 'Rigenera con IA',
                   onPressed: () async {
                     final quotaService = QuotaService();
@@ -709,8 +732,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           border: entry.key < foods.length - 1
-              ? const Border(
-                  bottom: BorderSide(color: Color(0xFFF5F5F7), width: 1),
+              ? Border(
+                  bottom: BorderSide(color: CleanTheme.borderPrimary, width: 1),
                 )
               : null,
         ),
@@ -725,7 +748,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                     style: GoogleFonts.inter(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
-                      color: Colors.black,
+                      color: CleanTheme.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -746,7 +769,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F7),
+                            color: CleanTheme.borderSecondary,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -757,14 +780,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  color: CleanTheme.textPrimary,
                                 ),
                               ),
                               const SizedBox(width: 4),
                               const Icon(
                                 Icons.edit_outlined,
                                 size: 14,
-                                color: Color(0xFF8E8E93),
+                                color: CleanTheme.textSecondary,
                               ),
                             ],
                           ),
@@ -776,7 +799,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                           '${food['calories']} kcal',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: const Color(0xFFC7C7CC),
+                            color: CleanTheme.textTertiary,
                           ),
                         ),
                       ],
@@ -787,7 +810,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
             ),
             IconButton(
               icon: const Icon(Icons.swap_horiz_rounded, size: 22),
-              color: Colors.black,
+              color: CleanTheme.textPrimary,
               tooltip: 'Sostituisci',
               onPressed: () async {
                 final quotaService = QuotaService();
@@ -873,8 +896,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
+              backgroundColor: CleanTheme.primaryColor,
+              foregroundColor: CleanTheme.textOnPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -958,15 +981,19 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: CleanTheme.surfaceColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.auto_awesome, size: 48, color: Colors.amber),
+            const Icon(
+              Icons.auto_awesome,
+              size: 48,
+              color: CleanTheme.accentGold,
+            ),
             const SizedBox(height: 16),
             Text(
               'Vuoi cambiare menu?',
@@ -979,7 +1006,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
             const Text(
               'L\'IA analizzerà i tuoi macro e creerà una nuova opzione nutrizionalmente bilanciata per questo pasto.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(color: CleanTheme.textSecondary, fontSize: 16),
             ),
             const SizedBox(height: 24),
             Row(
@@ -1039,13 +1066,13 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                      backgroundColor: CleanTheme.accentGold,
                       padding: const EdgeInsets.all(16),
                       elevation: 0,
                     ),
                     child: const Text(
                       'Sorprendimi ✨',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(color: CleanTheme.primaryColor),
                     ),
                   ),
                 ),
@@ -1070,7 +1097,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           children: [
             const Text(
               'Le calorie dei pasti successivi verranno ricalcolate.',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(fontSize: 12, color: CleanTheme.textSecondary),
             ),
             TextField(
               controller: nameController,
@@ -1194,8 +1221,8 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: CleanTheme.cardColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.all(20),
@@ -1231,8 +1258,8 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                     final item = snapshot.data![index];
                     return ListTile(
                       leading: const CircleAvatar(
-                        backgroundColor: Colors.greenAccent,
-                        child: Icon(Icons.check, color: Colors.white),
+                        backgroundColor: CleanTheme.accentGreen,
+                        child: Icon(Icons.check, color: CleanTheme.textOnDark),
                       ),
                       title: Text(
                         item['food_name'],
@@ -1243,8 +1270,8 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                       ),
                       trailing: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
+                          backgroundColor: CleanTheme.primaryColor,
+                          foregroundColor: CleanTheme.textOnPrimary,
                           shape: const StadiumBorder(),
                         ),
                         onPressed: () async {

@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/nutrition_coach_provider.dart';
 import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
-import '../../../data/services/quota_service.dart'; // Import QuotaService
+import '../../../data/services/quota_service.dart';
+import '../../../core/theme/clean_theme.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -274,9 +275,13 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Lista copiata negli appunti!'),
+      SnackBar(
+        content: Text(
+          'Lista copiata negli appunti!',
+          style: GoogleFonts.inter(color: CleanTheme.textOnDark),
+        ),
         behavior: SnackBarBehavior.floating,
+        backgroundColor: CleanTheme.steelDark,
       ),
     );
   }
@@ -290,8 +295,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       appBar: AppBar(
         title: Text(
           'Lista della Spesa',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: CleanTheme.textPrimary,
+          ),
         ),
+        backgroundColor: CleanTheme.backgroundColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
         actions: [
           IconButton(
             icon: const Icon(Icons.share),
@@ -306,10 +317,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+              color: CleanTheme.surfaceColor,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 5),
                 ),
@@ -322,7 +333,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   'Genera lista per:',
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
+                    color: CleanTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -331,12 +342,12 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                     Expanded(
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Theme.of(context).primaryColor,
-                          inactiveTrackColor: Colors.grey[200],
-                          thumbColor: Theme.of(context).primaryColor,
-                          overlayColor: Theme.of(
-                            context,
-                          ).primaryColor.withValues(alpha: 0.2),
+                          activeTrackColor: CleanTheme.primaryColor,
+                          inactiveTrackColor: CleanTheme.chromeSubtle,
+                          thumbColor: CleanTheme.primaryColor,
+                          overlayColor: CleanTheme.primaryColor.withValues(
+                            alpha: 0.2,
+                          ),
                         ),
                         child: Slider(
                           value: _days.toDouble(),
@@ -355,16 +366,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).primaryColor.withValues(alpha: 0.1),
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '$_days Giorni',
-                        style: TextStyle(
+                        style: GoogleFonts.inter(
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
+                          color: CleanTheme.primaryColor,
                         ),
                       ),
                     ),
@@ -392,17 +401,20 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: CleanTheme.primaryColor,
+                      foregroundColor: CleanTheme.textOnPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
                     child: provider.isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: CleanTheme.textOnPrimary,
                               strokeWidth: 2,
                             ),
                           )
@@ -421,14 +433,14 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                         Icon(
                           Icons.shopping_basket_outlined,
                           size: 64,
-                          color: Colors.grey[300],
+                          color: CleanTheme.chromeSilver,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Genera la lista per iniziare',
                           style: GoogleFonts.inter(
                             fontSize: 16,
-                            color: Colors.grey[500],
+                            color: CleanTheme.textTertiary,
                           ),
                         ),
                       ],
@@ -454,7 +466,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
+                                color: CleanTheme.primaryColor,
                                 letterSpacing: 1.2,
                               ),
                             ),
@@ -463,7 +475,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.grey.shade200),
+                              side: BorderSide(color: CleanTheme.dividerColor),
                             ),
                             child: Column(
                               children: items.map((item) {
@@ -484,7 +496,8 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                       }
                                     });
                                   },
-                                  activeColor: Theme.of(context).primaryColor,
+                                  activeColor: CleanTheme.primaryColor,
+                                  checkColor: CleanTheme.textOnPrimary,
                                   title: Text(
                                     item['name'],
                                     style: GoogleFonts.inter(
@@ -495,7 +508,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                                     '${item['quantity']} ${item['unit']}',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      color: CleanTheme.textSecondary,
                                     ),
                                   ),
                                   secondary: _getCategoryIcon(category),
@@ -521,23 +534,23 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
     switch (category) {
       case 'Frutta e Verdura':
         icon = Icons.eco;
-        color = Colors.green;
+        color = CleanTheme.accentGreen;
         break;
       case 'Carne e Pesce':
         icon = Icons.restaurant;
-        color = Colors.redAccent;
+        color = CleanTheme.steelLight;
         break;
       case 'Latticini':
         icon = Icons.egg;
-        color = Colors.orangeAccent;
+        color = CleanTheme.chromeGray;
         break;
       case 'Cereali e Dispensa':
         icon = Icons.breakfast_dining;
-        color = Colors.brown;
+        color = CleanTheme.chromeSilver;
         break;
       default:
         icon = Icons.local_grocery_store;
-        color = Colors.blueGrey;
+        color = CleanTheme.steelMid;
     }
 
     return Container(

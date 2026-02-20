@@ -7,6 +7,8 @@ import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/nutrition_coach_provider.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
 import 'what_to_cook_screen.dart';
@@ -100,7 +102,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             )
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: CleanTheme.primaryColor,
+              color: CleanTheme.chromeGray,
               backgroundColor: CleanTheme.surfaceColor,
               child: CustomScrollView(
                 slivers: [
@@ -200,7 +202,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           subtitle: _hasActiveDiet
               ? 'Visualizza la tua dieta'
               : 'Carica la dieta dal nutrizionista',
-          gradientColors: const [Color(0xFF059669), Color(0xFF10B981)],
+          gradientColors: const [CleanTheme.steelMid, CleanTheme.steelDark],
           onTap: () => _hasActiveDiet
               ? Navigator.pushNamed(context, '/nutrition/coach/plan')
               : Navigator.pushNamed(context, '/nutrition/coach/upload'),
@@ -212,10 +214,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           emoji: '🎯',
           title: AppLocalizations.of(context)!.setupGoalsTitle,
           subtitle: AppLocalizations.of(context)!.setupGoalsSubtitle,
-          gradientColors: [
-            CleanTheme.primaryColor,
-            CleanTheme.primaryColor.withValues(alpha: 0.85),
-          ],
+          gradientColors: const [CleanTheme.steelLight, CleanTheme.steelMid],
           onTap: _navigateToGoalSetup,
           badge: null,
         ),
@@ -243,10 +242,11 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             colors: gradientColors,
           ),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: CleanTheme.steelSilver, width: 1),
           boxShadow: [
             BoxShadow(
-              color: gradientColors[0].withValues(alpha: 0.4),
-              blurRadius: 16,
+              color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+              blurRadius: 12,
               offset: const Offset(0, 6),
             ),
           ],
@@ -257,7 +257,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(emoji, style: const TextStyle(fontSize: 32)),
@@ -283,7 +283,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                         ),
                       ),
                     ),
@@ -294,7 +294,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: CleanTheme.textOnDark,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -302,13 +302,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: CleanTheme.textOnDark.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: CleanTheme.textOnDark,
+              size: 18,
+            ),
           ],
         ),
       ),
@@ -322,66 +326,69 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   /// Card per Chef AI - accessibile sempre
   Widget _buildChefAiCard() {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const WhatToCookScreen()),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFEC4899), Color(0xFFDB2777)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFEC4899).withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      onTap: () {
+        HapticService.lightTap();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const WhatToCookScreen()),
+        );
+      },
+      child: LiquidSteelContainer(
+        borderRadius: 16,
+        enableShine: true,
+        border: Border.all(
+          color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+          width: 1,
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.soup_kitchen_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '👨‍🍳 Chef AI',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                   ),
-                  Text(
-                    'Cosa cucino oggi?',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
+                ),
+                child: const Icon(
+                  Icons.soup_kitchen_rounded,
+                  color: CleanTheme.textOnDark,
+                  size: 24,
+                ),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '👨‍🍳 Chef AI',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textOnDark,
+                      ),
+                    ),
+                    Text(
+                      'Cosa cucino oggi?',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                size: 14,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -391,68 +398,69 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   Widget _buildTrackCaloriesCompact() {
     return GestureDetector(
       onTap: () async {
+        HapticService.lightTap();
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const MealLoggingScreen()),
         );
         if (result == true) _loadData();
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFDC2626), Color(0xFFF97316)],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFDC2626).withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      child: LiquidSteelContainer(
+        borderRadius: 16,
+        enableShine: true,
+        border: Border.all(
+          color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+          width: 1,
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.camera_alt_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '📸 Scan AI',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                   ),
-                  Text(
-                    'Scansiona pasto con Intelligenza Artificiale',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
+                ),
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  color: CleanTheme.textOnDark,
+                  size: 24,
+                ),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 14),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '📸 Scan AI',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textOnDark,
+                      ),
+                    ),
+                    Text(
+                      'Scansiona pasto con Intelligenza Artificiale',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                size: 14,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -504,7 +512,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                             backgroundColor: Colors.transparent,
                             valueColor: AlwaysStoppedAnimation(
                               progress > 1.0
-                                  ? CleanTheme.accentRed
+                                  ? CleanTheme.steelDark
                                   : CleanTheme.primaryColor,
                             ),
                             strokeCap: StrokeCap.round,
@@ -564,9 +572,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: remaining > 0
-                            ? CleanTheme.accentGreen.withValues(alpha: 0.1)
-                            : CleanTheme.accentRed.withValues(alpha: 0.1),
+                        color: CleanTheme.chromeSubtle,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -580,9 +586,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: remaining > 0
-                              ? CleanTheme.accentGreen
-                              : CleanTheme.accentRed,
+                          color: CleanTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -604,7 +608,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             AppLocalizations.of(context)!.protein,
             _dailyLog?.totalProtein ?? 0,
             (_goal?.proteinGrams ?? 150).toDouble(),
-            CleanTheme.accentBlue,
+            CleanTheme.steelDark,
             '🥩',
           ),
         ),
@@ -614,7 +618,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             AppLocalizations.of(context)!.carbs,
             _dailyLog?.totalCarbs ?? 0,
             (_goal?.carbsGrams ?? 200).toDouble(),
-            CleanTheme.accentOrange,
+            CleanTheme.steelDark,
             '🍞',
           ),
         ),
@@ -624,7 +628,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             AppLocalizations.of(context)!.fats,
             _dailyLog?.totalFat ?? 0,
             (_goal?.fatGrams ?? 70).toDouble(),
-            CleanTheme.accentPurple,
+            CleanTheme.steelDark,
             '🥑',
           ),
         ),
@@ -660,7 +664,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: CleanTheme.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -668,8 +672,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: color.withValues(alpha: 0.15),
-              valueColor: AlwaysStoppedAnimation(color),
+              backgroundColor: CleanTheme.chromeSubtle,
+              valueColor: const AlwaysStoppedAnimation(CleanTheme.steelDark),
               minHeight: 6,
             ),
           ),
@@ -680,7 +684,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
   Widget _buildWaterTracker() {
     final waterMl = _dailyLog?.waterMl ?? 0;
-    final waterGoal = 2500;
+    const waterGoal = 2500;
     final progress = (waterMl / waterGoal).clamp(0.0, 1.0);
     final glasses = (waterMl / 250).floor();
 
@@ -694,8 +698,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: CleanTheme.chromeSubtle,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: CleanTheme.borderPrimary),
                 ),
                 child: const Text('💧', style: TextStyle(fontSize: 24)),
               ),
@@ -729,10 +734,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: CleanTheme.steelDark,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.add, color: Colors.white),
+                  child: const Icon(Icons.add, color: CleanTheme.textOnPrimary),
                 ),
               ),
             ],
@@ -742,8 +747,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.blue.withValues(alpha: 0.15),
-              valueColor: const AlwaysStoppedAnimation(Colors.blue),
+              backgroundColor: CleanTheme.chromeSubtle,
+              valueColor: const AlwaysStoppedAnimation(CleanTheme.steelLight),
               minHeight: 8,
             ),
           ),
@@ -852,10 +857,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: meal.mealTypeColor.withValues(alpha: 0.1),
+              color: CleanTheme.chromeSubtle,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: CleanTheme.chromeSilver),
             ),
-            child: Icon(meal.mealTypeIcon, color: meal.mealTypeColor, size: 24),
+            child: Icon(
+              meal.mealTypeIcon,
+              color: const Color(0xFF3A3A3C),
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -938,9 +948,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.blue.withValues(alpha: 0.1),
+          color: CleanTheme.chromeSubtle,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+          border: Border.all(color: CleanTheme.chromeSilver),
         ),
         child: Column(
           children: [
@@ -951,7 +961,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: CleanTheme.steelDark,
               ),
             ),
           ],
@@ -967,7 +977,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('💧 +${ml}ml aggiunto!'),
-            backgroundColor: Colors.blue,
+            backgroundColor: CleanTheme.steelDark,
             duration: const Duration(seconds: 2),
           ),
         );

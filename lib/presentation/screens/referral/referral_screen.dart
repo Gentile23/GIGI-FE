@@ -7,6 +7,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/referral_service.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// REFERRAL SCREEN - Invite Friends & Earn Rewards
@@ -109,12 +110,12 @@ class _ReferralScreenState extends State<ReferralScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadReferralData,
-                    child: const Text('Riprova'),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: CleanTheme.accentRed),
                   ),
+                  const SizedBox(height: 16),
+                  CleanButton(onPressed: _loadReferralData, text: 'Riprova'),
                 ],
               ),
             )
@@ -145,50 +146,40 @@ class _ReferralScreenState extends State<ReferralScreen> {
   }
 
   Widget _buildHeroBanner() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            CleanTheme.accentPurple,
-            CleanTheme.accentPurple.withValues(alpha: 0.7),
+    return LiquidSteelContainer(
+      borderRadius: 24,
+      enableShine: true,
+      border: Border.all(
+        color: Colors.white.withValues(alpha: 0.2),
+        width: 1.5,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Text('🎁', style: TextStyle(fontSize: 48)),
+            const SizedBox(height: 16),
+            Text(
+              'Regala 1 Mese Premium',
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Invita 3 amici e ricevi\n1 mese di Premium gratis!',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: Colors.white.withValues(alpha: 0.9),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: CleanTheme.accentPurple.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          const Text('🎁', style: TextStyle(fontSize: 48)),
-          const SizedBox(height: 16),
-          Text(
-            'Regala 1 Mese Premium',
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Invita 3 amici e ricevi\n1 mese di Premium gratis!',
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: Colors.white.withValues(alpha: 0.9),
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
@@ -273,7 +264,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
                 '$_convertedReferrals/3 inviti',
                 style: GoogleFonts.inter(
                   fontSize: 14,
-                  color: CleanTheme.accentPurple,
+                  color: CleanTheme.primaryColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -287,7 +278,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
               backgroundColor: CleanTheme.borderSecondary,
               color: _hasEarnedReward
                   ? CleanTheme.accentGreen
-                  : CleanTheme.accentPurple,
+                  : CleanTheme.primaryColor,
               minHeight: 10,
             ),
           ),
@@ -581,7 +572,7 @@ class _ReferralScreenState extends State<ReferralScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Errore nel riscatto'),
-          backgroundColor: Colors.red,
+          backgroundColor: CleanTheme.accentRed,
         ),
       );
     }

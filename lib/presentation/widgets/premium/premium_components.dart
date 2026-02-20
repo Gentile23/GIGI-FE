@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/advanced_theme.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
 /// Bottone premium con gradient animato, glow e effetti
@@ -80,7 +80,8 @@ class _PremiumButtonState extends State<PremiumButton>
   Widget build(BuildContext context) {
     final gradientColors =
         widget.gradientColors ??
-        [AdvancedTheme.primaryColor, AdvancedTheme.accentPurple];
+        widget.gradientColors ??
+        [CleanTheme.accentGold, CleanTheme.accentOrange];
     final glowColor = widget.glowColor ?? gradientColors.first;
 
     return AnimatedBuilder(
@@ -228,7 +229,11 @@ class _TiltCardState extends State<TiltCard> {
           ..rotateX(_rotateX)
           ..rotateY(_rotateY),
         transformAlignment: Alignment.center,
-        decoration: AdvancedTheme.glassCardDark(),
+        decoration: BoxDecoration(
+          color: CleanTheme.steelDark.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
         child: widget.child,
       ),
     );
@@ -311,7 +316,7 @@ class _AnimatedStatCounterState extends State<AnimatedStatCounter>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? AdvancedTheme.primaryColor;
+    final color = widget.color ?? CleanTheme.accentGold;
 
     return AnimatedBuilder(
       animation: _controller,
@@ -320,7 +325,22 @@ class _AnimatedStatCounterState extends State<AnimatedStatCounter>
           scale: _scaleAnimation.value,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: AdvancedTheme.premiumCard(glowColor: color),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.3),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -445,7 +465,7 @@ class _AnimatedProgressRingState extends State<AnimatedProgressRing>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.color ?? AdvancedTheme.primaryColor;
+    final color = widget.color ?? CleanTheme.accentGold;
     final bgColor =
         widget.backgroundColor ?? Colors.white.withValues(alpha: 0.1);
 

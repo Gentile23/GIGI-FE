@@ -93,23 +93,23 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         SliverAppBar(
           expandedHeight: 180,
           pinned: true,
-          backgroundColor: const Color(0xFF1A1A2E),
-          iconTheme: const IconThemeData(color: Colors.white),
+          backgroundColor: CleanTheme.primaryColor,
+          iconTheme: const IconThemeData(color: CleanTheme.textOnDark),
           title: Text(
             AppLocalizations.of(context)!.weeklyReport,
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: CleanTheme.textOnDark,
             ),
           ),
           flexibleSpace: FlexibleSpaceBar(
             collapseMode: CollapseMode.parallax,
             background: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF1A1A2E), Color(0xFF2D2D44)],
+                  colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
                 ),
               ),
               child: SafeArea(
@@ -132,14 +132,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: CleanTheme.textOnDark,
                                   ),
                                 ),
                                 Text(
                                   _formatPeriod(),
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: Colors.white70,
+                                    color: CleanTheme.textOnDark.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -155,7 +157,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.share, color: Colors.white),
+              icon: const Icon(Icons.share, color: CleanTheme.textOnDark),
               onPressed: _shareReport,
             ),
           ],
@@ -546,13 +548,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    CleanTheme.accentPurple.withValues(alpha: 0.1),
+                    CleanTheme.primaryColor.withValues(alpha: 0.1),
                     CleanTheme.primaryColor.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: CleanTheme.accentPurple.withValues(alpha: 0.2),
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -589,7 +591,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: CleanTheme.accentPurple.withValues(alpha: 0.2),
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -597,7 +599,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: CleanTheme.accentPurple,
+                        color: CleanTheme.primaryColor,
                       ),
                     ),
                   ),
@@ -613,13 +615,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+        gradient: LinearGradient(
+          colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667EEA).withValues(alpha: 0.4),
+            color: CleanTheme.primaryColor.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -637,7 +639,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: CleanTheme.textOnDark,
                 ),
               ),
             ],
@@ -647,7 +649,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             _report!.aiTip,
             style: GoogleFonts.inter(
               fontSize: 15,
-              color: Colors.white.withValues(alpha: 0.95),
+              color: CleanTheme.textOnDark.withValues(alpha: 0.95),
               height: 1.5,
             ),
           ),

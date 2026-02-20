@@ -87,7 +87,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                     selectedColor: CleanTheme.primaryColor,
                     labelStyle: GoogleFonts.inter(
                       color: isSelected
-                          ? Colors.white
+                          ? CleanTheme.textOnDark
                           : CleanTheme.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -247,7 +247,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                           style: GoogleFonts.outfit(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: CleanTheme.textOnDark,
                           ),
                         ),
                       ),
@@ -298,7 +298,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         gradient: LinearGradient(
           colors: [
             CleanTheme.primaryColor.withValues(alpha: 0.1),
-            CleanTheme.accentPurple.withValues(alpha: 0.1),
+            CleanTheme.primaryColor.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -319,7 +319,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: CleanTheme.textOnDark,
                 ),
               ),
             ),
@@ -360,7 +360,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                         ),
                       ),
                     ),
@@ -397,11 +397,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   Color _getRankColor(int index) {
     switch (index) {
       case 0:
-        return const Color(0xFFFFD700); // Gold
+        return CleanTheme.accentGold; // Gold
       case 1:
-        return const Color(0xFFC0C0C0); // Silver
+        return CleanTheme.chromeSilver; // Silver
       case 2:
-        return const Color(0xFFCD7F32); // Bronze
+        return CleanTheme.accentOrange; // Bronze
       default:
         return CleanTheme.textSecondary;
     }

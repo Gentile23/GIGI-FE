@@ -60,13 +60,13 @@ class PremiumGateWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        CleanTheme.primaryColor.withValues(alpha: 0.2),
-                        CleanTheme.accentPurple.withValues(alpha: 0.2),
+                        CleanTheme.steelDark.withValues(alpha: 0.2),
+                        CleanTheme.accentGold.withValues(alpha: 0.2),
                       ],
                     ),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: CleanTheme.primaryColor, size: 32),
+                  child: Icon(icon, color: CleanTheme.accentGold, size: 32),
                 ),
 
                 const SizedBox(height: 16),
@@ -79,10 +79,7 @@ class PremiumGateWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        CleanTheme.primaryColor,
-                        CleanTheme.accentPurple,
-                      ],
+                      colors: [CleanTheme.accentGold, CleanTheme.accentOrange],
                     ),
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -248,9 +245,9 @@ class _DailyPremiumBannerState extends State<DailyPremiumBanner>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                CleanTheme.primaryColor,
-                CleanTheme.accentPurple,
-                CleanTheme.primaryColor,
+                CleanTheme.steelDark,
+                CleanTheme.accentGold,
+                CleanTheme.steelDark,
               ],
               stops: [0, _shimmerController.value, 1],
               begin: Alignment.topLeft,
@@ -378,7 +375,7 @@ class ProBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [CleanTheme.primaryColor, CleanTheme.accentPurple],
+          colors: [CleanTheme.accentGold, CleanTheme.accentOrange],
         ),
         borderRadius: BorderRadius.circular(size * 0.3),
         boxShadow: [

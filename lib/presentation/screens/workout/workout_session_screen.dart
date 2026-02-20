@@ -24,6 +24,8 @@ import '../../../data/services/voice_coaching_service.dart';
 import '../../../data/services/trial_workout_service.dart'; // [NEW]
 import '../../../data/models/trial_workout_model.dart'; // [NEW]
 import 'package:gigi/l10n/app_localizations.dart';
+import '../../../providers/gamification_provider.dart';
+import '../../../core/services/sound_service.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -47,6 +49,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   DateTime? _sessionStartTime;
   Timer? _sessionTimer;
   Duration _elapsedTime = Duration.zero;
+
+  // Fullscreen Rest Timer Overlay
+  bool _isRestTimerOverlayVisible = false;
+  int _restTimerSeconds = 0;
+  int _restTimerTotal = 0;
+  String? _nextExerciseName;
+  String? _nextExerciseInfo;
+
+  // Session registration tracking
+  bool _sessionRegistered = false;
+  Timer? _registrationRetryTimer;
 
   // Voice Coaching TTS
   late GigiTTSService _gigiTTS;
@@ -101,7 +114,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: CleanTheme.textOnDark,
                 ),
               ),
               const SizedBox(width: 16),
@@ -145,6 +158,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   void dispose() {
     _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
+    _registrationRetryTimer?.cancel();
     _gigiTTS.dispose();
     _voiceController.dispose();
     super.dispose();
@@ -185,16 +199,75 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: CleanTheme.textOnDark,
           ),
         ),
         const SizedBox(width: 2),
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 10, color: Colors.white60),
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            color: CleanTheme.textOnDark.withValues(alpha: 0.6),
+          ),
         ),
       ],
     );
+  }
+
+  /// Called by SetLoggingWidget when rest timer starts/stops
+  void _onRestTimerStateChanged(
+    String exerciseId,
+    bool isActive,
+    int secondsRemaining,
+    int totalSeconds,
+  ) {
+    if (isActive) {
+      final nextExercise = _getNextExercise(exerciseId);
+      setState(() {
+        _isRestTimerOverlayVisible = true;
+        _restTimerSeconds = secondsRemaining;
+        _restTimerTotal = totalSeconds;
+        _nextExerciseName = nextExercise?.exercise.name;
+        _nextExerciseInfo = nextExercise != null
+            ? '${nextExercise.sets}×${nextExercise.reps} • ${nextExercise.restSeconds}s rest'
+            : null;
+      });
+    } else {
+      setState(() {
+        _isRestTimerOverlayVisible = false;
+      });
+    }
+  }
+
+  /// Find the next exercise after the given exerciseId
+  WorkoutExercise? _getNextExercise(String currentExerciseId) {
+    final mainWorkout = widget.workoutDay.mainWorkout;
+    for (int i = 0; i < mainWorkout.length; i++) {
+      if (mainWorkout[i].exercise.id == currentExerciseId) {
+        // If there's a next exercise that's not completed, return it
+        for (int j = i + 1; j < mainWorkout.length; j++) {
+          if (!_completedExercises.contains(mainWorkout[j].exercise.id)) {
+            return mainWorkout[j];
+          }
+        }
+        // If current is last or all following are completed, check uncompleted before
+        for (int j = 0; j < i; j++) {
+          if (!_completedExercises.contains(mainWorkout[j].exercise.id)) {
+            return mainWorkout[j];
+          }
+        }
+        return null; // All completed
+      }
+    }
+    return null;
+  }
+
+  /// Skip the rest timer — closes the overlay and notifies the child widget
+  void _skipRestTimerOverlay() {
+    setState(() {
+      _isRestTimerOverlayVisible = false;
+    });
+    // The SetLoggingWidget will handle its own timer stop via internal logic
   }
 
   Future<void> _startWorkoutSession() async {
@@ -203,49 +276,82 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       'DEBUG: Starting workout session for day ID: ${widget.workoutDay.id}',
     );
 
+    // Always start the local session timer immediately — never block UX on API
+    if (!_isSessionActive) {
+      _startSession();
+    }
+
     // Skip session registration for trial workouts (they have fake IDs)
-    // Trial workouts don't need server-side logging
     if (widget.workoutDay.id.startsWith('trial_')) {
       debugPrint('DEBUG: Skipping session registration for trial workout');
-      // Auto-start the session timer for trial workout
-      if (!_isSessionActive) {
-        _startSession();
-      }
       return;
     }
 
-    try {
-      await provider.startWorkout(workoutDayId: widget.workoutDay.id);
-
-      if (provider.currentWorkoutLog != null) {
-        debugPrint(
-          'DEBUG: Workout log created with ID: ${provider.currentWorkoutLog!.id}',
-        );
-      } else {
-        debugPrint('DEBUG: WARNING - Workout log is NULL after startWorkout');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.sessionNotRecorded),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
+    // Register session with backend — retry silently up to 3 times
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+        if (provider.currentWorkoutLog != null) {
+          debugPrint(
+            'DEBUG: Workout log created with ID: ${provider.currentWorkoutLog!.id}',
+          );
+          setState(() {
+            _sessionRegistered = true;
+          });
+          return; // Success
+        } else {
+          debugPrint(
+            'DEBUG: WARNING - Workout log is NULL after startWorkout (attempt $attempt)',
           );
         }
-      }
-    } catch (e) {
-      debugPrint('DEBUG: Error starting workout session: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.sessionStartError(e.toString()),
-            ),
-            backgroundColor: CleanTheme.accentRed,
-          ),
+      } catch (e) {
+        debugPrint(
+          'DEBUG: Error starting workout session (attempt $attempt): $e',
         );
       }
+      // Exponential backoff: 1s, 2s, 4s
+      if (attempt < 3) {
+        await Future.delayed(Duration(seconds: 1 << (attempt - 1)));
+      }
     }
+    // All retries exhausted — start background retry every 10 seconds
+    debugPrint(
+      'DEBUG: Session registration failed after 3 attempts — starting background retry',
+    );
+    _startRegistrationRetryLoop();
+  }
+
+  /// Background retry loop: tries to register the session every 10 seconds
+  void _startRegistrationRetryLoop() {
+    _registrationRetryTimer?.cancel();
+    _registrationRetryTimer = Timer.periodic(const Duration(seconds: 10), (
+      timer,
+    ) async {
+      if (!mounted || _sessionRegistered) {
+        timer.cancel();
+        return;
+      }
+      try {
+        final provider = Provider.of<WorkoutLogProvider>(
+          context,
+          listen: false,
+        );
+        await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+        if (provider.currentWorkoutLog != null) {
+          debugPrint(
+            'DEBUG: Background retry succeeded! Log ID: ${provider.currentWorkoutLog!.id}',
+          );
+          if (mounted) {
+            setState(() {
+              _sessionRegistered = true;
+            });
+          }
+          timer.cancel();
+        }
+      } catch (e) {
+        debugPrint('DEBUG: Background retry failed: $e');
+      }
+    });
   }
 
   @override
@@ -348,6 +454,58 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ), // Dynamic bottom padding for floating stats + button
                   children: [
+                    // Session not registered warning banner
+                    if (!_sessionRegistered &&
+                        !widget.workoutDay.id.startsWith('trial_'))
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.accentOrange.withValues(
+                            alpha: 0.15,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: CleanTheme.accentOrange.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.cloud_off_rounded,
+                              size: 18,
+                              color: CleanTheme.accentOrange,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.sessionNotRecorded,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: CleanTheme.accentOrange,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: CleanTheme.accentOrange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Stats Header
                     _buildStatsHeader(),
                     const SizedBox(height: 16),
@@ -397,10 +555,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          CleanTheme.primaryColor,
-                          CleanTheme.accentPurple,
-                        ],
+                        colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
@@ -443,7 +598,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 26,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: CleanTheme.textOnDark,
                                     letterSpacing: 1,
                                   ),
                                 ),
@@ -456,7 +611,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
+                                color: CleanTheme.textOnDark.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -467,7 +624,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: CleanTheme.textOnDark,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -477,7 +634,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               children: [
                                 Icon(
                                   Icons.fitness_center,
-                                  color: Colors.white70,
+                                  color: CleanTheme.textOnDark.withValues(
+                                    alpha: 0.7,
+                                  ),
                                   size: 18,
                                 ),
                                 const SizedBox(width: 6),
@@ -486,7 +645,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    color: CleanTheme.textOnDark,
                                   ),
                                 ),
                               ],
@@ -502,10 +661,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 ? _completedExercises.length /
                                       widget.workoutDay.mainExerciseCount
                                 : 0,
-                            backgroundColor: Colors.white.withValues(
+                            backgroundColor: CleanTheme.textOnDark.withValues(
                               alpha: 0.2,
                             ),
-                            valueColor: const AlwaysStoppedAnimation(
+                            valueColor: AlwaysStoppedAnimation(
                               CleanTheme.accentGreen,
                             ),
                             minHeight: 6,
@@ -553,7 +712,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                           letterSpacing: 1,
                         ),
                       ),
@@ -585,7 +744,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ? CleanTheme.accentGreen
                             : CleanTheme.primaryColor,
                         elevation: 8,
-                        shadowColor: Colors.black26,
+                        shadowColor: CleanTheme.primaryColor.withValues(
+                          alpha: 0.3,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(100),
                         ),
@@ -598,7 +759,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: CleanTheme.textOnDark,
                           letterSpacing: 1,
                         ),
                       ),
@@ -618,7 +779,217 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               child: VoiceControlsBar(controller: _voiceController),
             ),
           ),
+
+          // 6. FULLSCREEN REST TIMER OVERLAY
+          if (_isRestTimerOverlayVisible) _buildFullscreenRestTimerOverlay(),
         ],
+      ),
+    );
+  }
+
+  /// Immersive fullscreen rest timer — fills the entire screen
+  Widget _buildFullscreenRestTimerOverlay() {
+    final progress = _restTimerTotal > 0
+        ? _restTimerSeconds / _restTimerTotal
+        : 0.0;
+    final minutes = _restTimerSeconds ~/ 60;
+    final seconds = _restTimerSeconds % 60;
+    final isUrgent = _restTimerSeconds <= 3 && _restTimerSeconds > 0;
+
+    return Positioned.fill(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: 1.0,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                CleanTheme.steelDark,
+                CleanTheme.primaryColor.withValues(alpha: 0.95),
+                CleanTheme.steelDark,
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(flex: 2),
+
+                // Label
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isUrgent
+                            ? CleanTheme.accentRed
+                            : CleanTheme.accentBlue,
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (isUrgent
+                                        ? CleanTheme.accentRed
+                                        : CleanTheme.accentBlue)
+                                    .withValues(alpha: 0.6),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'RECUPERO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 4,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Huge Timer
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: GoogleFonts.outfit(
+                    fontSize: 80,
+                    fontWeight: FontWeight.w800,
+                    color: isUrgent
+                        ? CleanTheme.accentRed
+                        : CleanTheme.textOnDark,
+                    letterSpacing: 4,
+                  ),
+                  child: Text('$minutes:${seconds.toString().padLeft(2, '0')}'),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Progress Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: CleanTheme.textOnDark.withValues(
+                        alpha: 0.1,
+                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        isUrgent ? CleanTheme.accentRed : CleanTheme.accentBlue,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const Spacer(flex: 1),
+
+                // Next Exercise Card
+                if (_nextExerciseName != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PROSSIMO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: CleanTheme.accentBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _nextExerciseName!,
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: CleanTheme.textOnDark,
+                            ),
+                          ),
+                          if (_nextExerciseInfo != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              _nextExerciseInfo!,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: CleanTheme.textOnDark.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 24),
+
+                // Skip Button
+                TextButton(
+                  onPressed: _skipRestTimerOverlay,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                      side: BorderSide(
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Salta',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.skip_next_rounded,
+                        size: 20,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Spacer(flex: 1),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -648,7 +1019,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CleanTheme.surfaceColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: CleanTheme.borderSecondary),
       ),
@@ -1270,7 +1641,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ]
                 : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -1300,14 +1671,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ? const Icon(
                                 Icons.check,
                                 size: 18,
-                                color: Colors.white,
+                                color: CleanTheme.textOnDark,
                               )
                             : Text(
                                 '${widget.workoutDay.exercises.indexOf(exercise) + 1}',
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: CleanTheme.textOnDark,
                                 ),
                               ),
                       ),
@@ -1384,7 +1755,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             secondaryMuscleGroups:
                                 exercise.exercise.secondaryMuscleGroups,
                             height: 105,
-                            highlightColor: const Color(0xFFFF0000),
+                            highlightColor: CleanTheme.accentRed,
                           ),
                         ),
                       ),
@@ -1420,6 +1791,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 onRestTimerSkipped: () {
                   // Voice coaching disabled on rest skip per user request
                 },
+                onRestTimerStateChanged:
+                    (isActive, secondsRemaining, totalSeconds) {
+                      _onRestTimerStateChanged(
+                        exercise.exercise.id,
+                        isActive,
+                        secondsRemaining,
+                        totalSeconds,
+                      );
+                    },
               ),
 
               // Divider + Quick Actions
@@ -1575,6 +1955,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               );
 
               final navigator = Navigator.of(context);
+              final gamificationProvider = Provider.of<GamificationProvider>(
+                context,
+                listen: false,
+              );
 
               try {
                 debugPrint(
@@ -1586,6 +1970,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   );
                 }
                 await provider.completeWorkout();
+
+                // Play workout complete sound
+                SoundService().play(SoundType.workoutComplete);
+
+                // Refresh gamification stats so home screen updates
+                gamificationProvider.refresh();
 
                 if (!mounted) return;
                 navigator.pop(); // Close loading dialog

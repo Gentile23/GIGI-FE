@@ -200,14 +200,14 @@ class _StatsScreenState extends State<StatsScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: CleanTheme.accentPurple.withValues(
+                            color: CleanTheme.primaryColor.withValues(
                               alpha: 0.1,
                             ),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.pie_chart_outline,
-                            color: CleanTheme.accentPurple,
+                            color: CleanTheme.primaryColor,
                             size: 40,
                           ),
                         ),

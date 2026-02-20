@@ -13,8 +13,13 @@ import '../../../providers/auth_provider.dart';
 
 class UnifiedQuestionnaireScreen extends StatefulWidget {
   final VoidCallback? onComplete;
+  final bool isOnboarding;
 
-  const UnifiedQuestionnaireScreen({super.key, this.onComplete});
+  const UnifiedQuestionnaireScreen({
+    super.key,
+    this.onComplete,
+    this.isOnboarding = true,
+  });
 
   @override
   State<UnifiedQuestionnaireScreen> createState() =>
@@ -368,7 +373,7 @@ class _UnifiedQuestionnaireScreenState
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: CleanTheme.primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor: CleanTheme.textOnDark,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -519,16 +524,20 @@ class _UnifiedQuestionnaireScreenState
         if (mounted) {
           // Go directly to the main app - no forced measurements or trial workout
           // Users can access these features optionally from within the app
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
+          if (widget.isOnboarding) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const MainScreen()),
+            );
+          } else {
+            Navigator.of(context).pop(true);
+          }
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(AppLocalizations.of(context)!.errorSavingProfile),
-              backgroundColor: Colors.red,
+              backgroundColor: CleanTheme.accentRed,
             ),
           );
         }
@@ -540,7 +549,7 @@ class _UnifiedQuestionnaireScreenState
             content: Text(
               '${AppLocalizations.of(context)!.unexpectedError}: $e',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
@@ -811,7 +820,7 @@ class _UnifiedQuestionnaireScreenState
             width: 180,
             height: 180,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: ClipOval(
@@ -865,7 +874,7 @@ class _UnifiedQuestionnaireScreenState
               onPressed: _nextPage,
               style: ElevatedButton.styleFrom(
                 backgroundColor: CleanTheme.textPrimary,
-                foregroundColor: Colors.white,
+                foregroundColor: CleanTheme.textOnDark,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -1784,7 +1793,7 @@ class _UnifiedQuestionnaireScreenState
                           trailing: IconButton(
                             icon: const Icon(
                               Icons.delete,
-                              color: Colors.redAccent,
+                              color: CleanTheme.accentRed,
                             ),
                             onPressed: () =>
                                 setState(() => _injuries.removeAt(index)),
@@ -1828,7 +1837,7 @@ class _UnifiedQuestionnaireScreenState
                       children: [
                         const Icon(
                           Icons.check_circle_outline,
-                          color: Colors.greenAccent,
+                          color: CleanTheme.accentGreen,
                           size: 32,
                         ),
                         const SizedBox(width: 16),
@@ -2040,7 +2049,7 @@ class _UnifiedQuestionnaireScreenState
                   Icon(
                     Icons.check_circle,
                     color: _tempInjuryOvercome == true
-                        ? Colors.green
+                        ? CleanTheme.accentGreen
                         : CleanTheme.textSecondary,
                     size: 28,
                   ),
@@ -2054,7 +2063,7 @@ class _UnifiedQuestionnaireScreenState
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: _tempInjuryOvercome == true
-                                    ? Colors.green
+                                    ? CleanTheme.accentGreen
                                     : CleanTheme.textPrimary,
                               ),
                         ),
@@ -2080,7 +2089,7 @@ class _UnifiedQuestionnaireScreenState
                   Icon(
                     Icons.warning_amber,
                     color: _tempInjuryOvercome == false
-                        ? Colors.orange
+                        ? CleanTheme.accentOrange
                         : CleanTheme.textSecondary,
                     size: 28,
                   ),
@@ -2094,7 +2103,7 @@ class _UnifiedQuestionnaireScreenState
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
                                 color: _tempInjuryOvercome == false
-                                    ? Colors.orange
+                                    ? CleanTheme.accentOrange
                                     : CleanTheme.textPrimary,
                               ),
                         ),
@@ -2227,8 +2236,9 @@ class _UnifiedQuestionnaireScreenState
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: CleanTheme.primaryColor,
-                            inactiveTrackColor: Colors.white24,
-                            thumbColor: Colors.white,
+                            inactiveTrackColor: CleanTheme.textOnDark
+                                .withValues(alpha: 0.24),
+                            thumbColor: CleanTheme.textOnDark,
                             overlayColor: CleanTheme.primaryColor.withAlpha(
                               (0.2 * 255).round(),
                             ),

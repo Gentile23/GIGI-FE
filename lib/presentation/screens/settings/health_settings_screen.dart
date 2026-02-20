@@ -234,7 +234,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
         gradient: LinearGradient(
           colors: Platform.isIOS
               ? [const Color(0xFF000000), const Color(0xFF333333)]
-              : [const Color(0xFF00C853), const Color(0xFF64DD17)],
+              : [
+                  CleanTheme.accentGreen,
+                  CleanTheme.accentGreen.withValues(alpha: 0.8),
+                ],
         ),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -251,13 +254,16 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                   style: GoogleFonts.outfit(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: CleanTheme.textOnDark,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.white70),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),
@@ -311,7 +317,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
               label: Text(AppLocalizations.of(context)!.installHealthConnect),
               style: ElevatedButton.styleFrom(
                 backgroundColor: CleanTheme.accentOrange,
-                foregroundColor: Colors.white,
+                foregroundColor: CleanTheme.textOnDark,
               ),
             ),
           ],
@@ -394,7 +400,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                 backgroundColor: _isConnected
                     ? CleanTheme.accentRed
                     : CleanTheme.primaryColor,
-                foregroundColor: Colors.white,
+                foregroundColor: CleanTheme.textOnDark,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -406,7 +412,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: CleanTheme.textOnDark,
                       ),
                     )
                   : Text(

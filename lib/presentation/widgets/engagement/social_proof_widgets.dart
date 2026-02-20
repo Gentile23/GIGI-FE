@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/clean_theme.dart';
 
 /// Widget per social proof counter animato
 /// Mostra quanti workout sono stati completati oggi dalla community
@@ -87,12 +88,14 @@ class _SocialProofCounterState extends State<SocialProofCounter>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.purple.withValues(alpha: 0.2),
-                  Colors.blue.withValues(alpha: 0.2),
+                  CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  CleanTheme.accentBlue.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(
+                color: CleanTheme.borderSecondary.withValues(alpha: 0.5),
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -101,12 +104,12 @@ class _SocialProofCounterState extends State<SocialProofCounter>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.2),
+                    color: CleanTheme.accentGreen.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.people,
-                    color: Colors.green,
+                    color: CleanTheme.accentGreen,
                     size: 20,
                   ),
                 ),
@@ -121,14 +124,14 @@ class _SocialProofCounterState extends State<SocialProofCounter>
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: CleanTheme.textPrimary,
                       ),
                     ),
                     Text(
                       widget.message,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: CleanTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -148,7 +151,7 @@ class _SocialProofCounterState extends State<SocialProofCounter>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.2),
+        color: CleanTheme.accentRed.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -158,7 +161,7 @@ class _SocialProofCounterState extends State<SocialProofCounter>
             width: 6,
             height: 6,
             decoration: const BoxDecoration(
-              color: Colors.red,
+              color: CleanTheme.accentRed,
               shape: BoxShape.circle,
             ),
           ),
@@ -168,7 +171,7 @@ class _SocialProofCounterState extends State<SocialProofCounter>
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: Colors.red,
+              color: CleanTheme.accentRed,
             ),
           ),
         ],
@@ -235,18 +238,24 @@ class _NearMissWidgetState extends State<NearMissWidget>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.amber.withValues(alpha: _glowAnimation.value * 0.5),
-                    Colors.orange.withValues(alpha: _glowAnimation.value * 0.3),
+                    CleanTheme.accentOrange.withValues(
+                      alpha: _glowAnimation.value * 0.5,
+                    ),
+                    CleanTheme.accentYellow.withValues(
+                      alpha: _glowAnimation.value * 0.3,
+                    ),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.amber.withValues(alpha: _glowAnimation.value),
+                  color: CleanTheme.accentOrange.withValues(
+                    alpha: _glowAnimation.value,
+                  ),
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.amber.withValues(
+                    color: CleanTheme.accentOrange.withValues(
                       alpha: _glowAnimation.value * 0.5,
                     ),
                     blurRadius: 20,
@@ -260,7 +269,7 @@ class _NearMissWidgetState extends State<NearMissWidget>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.3),
+                      color: CleanTheme.accentYellow.withValues(alpha: 0.3),
                       shape: BoxShape.circle,
                     ),
                     child: const Text('⚡', style: TextStyle(fontSize: 24)),
@@ -293,7 +302,7 @@ class _NearMissWidgetState extends State<NearMissWidget>
                   // Freccia
                   const Icon(
                     Icons.arrow_forward_ios,
-                    color: Colors.amber,
+                    color: CleanTheme.accentYellow,
                     size: 20,
                   ),
                 ],
@@ -357,23 +366,23 @@ class _StreakWarningWidgetState extends State<StreakWarningWidget>
               gradient: LinearGradient(
                 colors: isUrgent
                     ? [
-                        Colors.red.withValues(
+                        CleanTheme.accentRed.withValues(
                           alpha: 0.4 + _controller.value * 0.2,
                         ),
-                        Colors.orange.withValues(alpha: 0.3),
+                        CleanTheme.accentOrange.withValues(alpha: 0.3),
                       ]
                     : [
-                        Colors.orange.withValues(alpha: 0.3),
-                        Colors.yellow.withValues(alpha: 0.2),
+                        CleanTheme.accentOrange.withValues(alpha: 0.3),
+                        CleanTheme.accentYellow.withValues(alpha: 0.2),
                       ],
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isUrgent
-                    ? Colors.red.withValues(
+                    ? CleanTheme.accentRed.withValues(
                         alpha: 0.5 + _controller.value * 0.3,
                       )
-                    : Colors.orange.withValues(alpha: 0.5),
+                    : CleanTheme.accentOrange.withValues(alpha: 0.5),
                 width: 2,
               ),
             ),
@@ -387,7 +396,7 @@ class _StreakWarningWidgetState extends State<StreakWarningWidget>
                     shadows: isUrgent
                         ? [
                             Shadow(
-                              color: Colors.red.withValues(
+                              color: CleanTheme.accentRed.withValues(
                                 alpha: _controller.value,
                               ),
                               blurRadius: 10,
@@ -420,7 +429,7 @@ class _StreakWarningWidgetState extends State<StreakWarningWidget>
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.red,
+                                color: CleanTheme.accentRed,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
@@ -455,7 +464,9 @@ class _StreakWarningWidgetState extends State<StreakWarningWidget>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: isUrgent ? Colors.red : Colors.orange,
+                    color: isUrgent
+                        ? CleanTheme.accentRed
+                        : CleanTheme.accentOrange,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

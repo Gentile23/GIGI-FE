@@ -103,10 +103,7 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
                     ? const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF6366F1), // Indigo
-                          Color(0xFF8B5CF6), // Violet
-                        ],
+                        colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                       )
                     : null,
                 color: isEnabled ? null : Colors.grey[200],
@@ -114,7 +111,7 @@ class _VoiceCoachingToggleState extends State<VoiceCoachingToggle>
                 boxShadow: isEnabled
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF6366F1).withValues(alpha: 0.4),
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -270,7 +267,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -337,8 +334,8 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
                         child: Slider(
                           value: controller.volume,
                           onChanged: (v) => controller.setVolume(v),
-                          activeColor: const Color(0xFF6366F1),
-                          inactiveColor: Colors.grey[200],
+                          activeColor: CleanTheme.primaryColor,
+                          inactiveColor: CleanTheme.borderSecondary,
                         ),
                       ),
                       const Icon(
@@ -377,14 +374,14 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.08),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               children: [
                 const Icon(
                   Icons.info_outline,
-                  color: Color(0xFF6366F1),
+                  color: CleanTheme.primaryColor,
                   size: 22,
                 ),
                 const SizedBox(width: 12),
@@ -422,13 +419,13 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xFF6366F1).withValues(alpha: 0.08)
-              : Colors.grey[100],
+              ? CleanTheme.primaryColor.withValues(alpha: 0.08)
+              : CleanTheme.surfaceColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isActive
-                ? const Color(0xFF6366F1).withValues(alpha: 0.3)
-                : Colors.grey[200]!,
+                ? CleanTheme.primaryColor.withValues(alpha: 0.3)
+                : CleanTheme.borderSecondary,
           ),
         ),
         child: Row(
@@ -437,14 +434,14 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isActive
-                    ? const Color(0xFF6366F1).withValues(alpha: 0.15)
-                    : Colors.grey[200],
+                    ? CleanTheme.primaryColor.withValues(alpha: 0.15)
+                    : CleanTheme.borderSecondary.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 color: isActive
-                    ? const Color(0xFF6366F1)
+                    ? CleanTheme.primaryColor
                     : CleanTheme.textSecondary,
                 size: 22,
               ),
@@ -475,7 +472,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
             Switch(
               value: isActive,
               onChanged: (_) => onTap(),
-              activeTrackColor: const Color(0xFF6366F1),
+              activeTrackColor: CleanTheme.primaryColor,
             ),
           ],
         ),

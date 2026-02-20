@@ -39,6 +39,11 @@ class SetLoggingWidget extends StatefulWidget {
   /// Called when rest timer is skipped - for voice coaching sync
   final VoidCallback? onRestTimerSkipped;
 
+  /// Called when rest timer state changes — parent shows fullscreen overlay
+  /// Parameters: (bool isActive, int secondsRemaining, int totalSeconds)
+  final Function(bool isActive, int secondsRemaining, int totalSeconds)?
+  onRestTimerStateChanged;
+
   /// Whether this is a trial workout (athletic assessment)
   /// If true, logs are not sent to backend immediately, but timer and callbacks still fire.
   final bool isTrial;
@@ -50,6 +55,7 @@ class SetLoggingWidget extends StatefulWidget {
     required this.onCompletionChanged,
     this.onSetCompleted,
     this.onRestTimerSkipped,
+    this.onRestTimerStateChanged,
     this.isTrial = false,
   });
 
@@ -65,9 +71,12 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   final VoiceCoachingPlayer _coachingPlayer = VoiceCoachingPlayer();
   bool _showCoachingControls = false;
 
+  // Persistent TextEditingControllers — created once, never recreated on rebuild
+  final Map<int, TextEditingController> _weightControllers = {};
+  final Map<int, TextEditingController> _repsControllers = {};
+
   // Previous workout data
   Map<int, Map<String, dynamic>>? _previousData;
-  bool _loadingPrevious = true;
 
   // Rest timer
   Timer? _restTimer;
@@ -83,8 +92,44 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   void initState() {
     super.initState();
     _initializeData();
+    _initializeControllers();
     _initializeCoaching();
     _loadPreviousData();
+  }
+
+  /// Create persistent TextEditingControllers for each set — called once in initState
+  void _initializeControllers() {
+    for (int i = 1; i <= widget.exercise.sets; i++) {
+      // Weight controller
+      final weightVal = _weights[i];
+      final weightText = weightVal != null && weightVal > 0
+          ? (weightVal % 1 == 0
+                ? weightVal.toInt().toString()
+                : weightVal.toStringAsFixed(1))
+          : '';
+      _weightControllers[i] = TextEditingController(text: weightText);
+      _weightControllers[i]!.addListener(() {
+        final parsed = double.tryParse(_weightControllers[i]!.text);
+        if (parsed != null) {
+          _weights[i] = parsed;
+        } else if (_weightControllers[i]!.text.isEmpty) {
+          _weights[i] = 0;
+        }
+      });
+
+      // Reps controller
+      final repsVal = _reps[i];
+      final repsText = repsVal != null && repsVal > 0 ? repsVal.toString() : '';
+      _repsControllers[i] = TextEditingController(text: repsText);
+      _repsControllers[i]!.addListener(() {
+        final parsed = int.tryParse(_repsControllers[i]!.text);
+        if (parsed != null) {
+          _reps[i] = parsed;
+        } else if (_repsControllers[i]!.text.isEmpty) {
+          _reps[i] = 0;
+        }
+      });
+    }
   }
 
   void _initializeCoaching() {
@@ -154,27 +199,25 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         if (mounted) {
           setState(() {
             _previousData = previousMap;
-            _loadingPrevious = false;
           });
         }
       } else {
-        if (mounted) {
-          setState(() {
-            _loadingPrevious = false;
-          });
-        }
+        // No previous data found, nothing to update
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _loadingPrevious = false;
-        });
-      }
+      // Silently handle — previous data is nice-to-have, not critical
     }
   }
 
   @override
   void dispose() {
+    // Dispose persistent controllers to prevent memory leaks
+    for (final c in _weightControllers.values) {
+      c.dispose();
+    }
+    for (final c in _repsControllers.values) {
+      c.dispose();
+    }
     _coachingPlayer.dispose();
     _restTimer?.cancel();
     _timerAudioPlayer.dispose();
@@ -187,19 +230,33 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       _isRestTimerActive = true;
     });
 
+    // Notify parent to show fullscreen timer overlay
+    widget.onRestTimerStateChanged?.call(
+      true,
+      _defaultRestSeconds,
+      _defaultRestSeconds,
+    );
+
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_restSecondsRemaining > 0) {
         setState(() {
           _restSecondsRemaining--;
         });
 
-        // Play beep at 3, 2, 1
-        if (_restSecondsRemaining <= 3 && _restSecondsRemaining > 0) {
-          _timerAudioPlayer.play(AssetSource('sounds/beep.mp3'));
+        // Notify parent of countdown
+        widget.onRestTimerStateChanged?.call(
+          true,
+          _restSecondsRemaining,
+          _defaultRestSeconds,
+        );
+
+        // Play countdown tick every second during last 5 seconds
+        if (_restSecondsRemaining <= 5 && _restSecondsRemaining > 0) {
+          _timerAudioPlayer.play(AssetSource('sounds/secondi.mp3'));
         }
       } else {
         _stopRestTimer();
-        _timerAudioPlayer.play(AssetSource('sounds/complete.mp3'));
+        _timerAudioPlayer.play(AssetSource('sounds/tempo-finito.mp3'));
       }
     });
   }
@@ -210,11 +267,14 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
       _isRestTimerActive = false;
       _restSecondsRemaining = 0;
     });
+    // Notify parent to hide fullscreen timer
+    widget.onRestTimerStateChanged?.call(false, 0, 0);
   }
 
-  void _skipRestTimer() {
+  /// Skip the rest timer — called when parent overlay's skip button is pressed
+  /// Also fires onRestTimerSkipped for voice coaching sync
+  void skipRestTimer() {
     _stopRestTimer();
-    // Notify voice coaching that rest was skipped
     widget.onRestTimerSkipped?.call();
   }
 
@@ -233,11 +293,11 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
   Color _getExerciseTypeColor() {
     switch (widget.exercise.exerciseType) {
       case 'cardio':
-        return const Color(0xFFFF6B35); // Orange for cardio
+        return CleanTheme.accentOrange; // Orange for cardio
       case 'mobility':
-        return const Color(0xFF26A69A); // Teal for mobility
+        return CleanTheme.accentBlue; // Blue for mobility
       case 'warmup':
-        return const Color(0xFFFFB74D); // Amber for warmup
+        return CleanTheme.accentYellow; // Yellow for warmup
       default:
         return CleanTheme.primaryColor; // Default blue for strength
     }
@@ -278,7 +338,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                         : widget.exercise.exerciseType == 'mobility'
                         ? Icons.self_improvement
                         : Icons.whatshot,
-                    color: Colors.white,
+                    color: CleanTheme.textOnPrimary,
                     size: 16,
                   ),
                   const SizedBox(width: 6),
@@ -287,7 +347,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: CleanTheme.textOnPrimary,
                     ),
                   ),
                 ],
@@ -296,8 +356,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
           if (_showCoachingControls) _buildCoachingControls(),
 
-          // Rest Timer (if active)
-          if (_isRestTimerActive) _buildRestTimerWidget(),
+          // Rest Timer is now rendered fullscreen by parent via onRestTimerStateChanged
 
           // Header
           Padding(
@@ -378,121 +437,70 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     );
   }
 
-  Widget _buildRestTimerWidget() {
-    final progress = _restSecondsRemaining / _defaultRestSeconds;
-    final minutes = _restSecondsRemaining ~/ 60;
-    final seconds = _restSecondsRemaining % 60;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.accentBlue.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CleanTheme.accentBlue.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.timer, color: CleanTheme.accentBlue, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                'Recupero',
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.accentBlue,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 6,
-                  backgroundColor: CleanTheme.borderPrimary,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    _restSecondsRemaining <= 3
-                        ? CleanTheme.accentRed
-                        : CleanTheme.accentBlue,
-                  ),
-                ),
-              ),
-              Text(
-                '$minutes:${seconds.toString().padLeft(2, '0')}',
-                style: GoogleFonts.outfit(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: _restSecondsRemaining <= 3
-                      ? CleanTheme.accentRed
-                      : CleanTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: _skipRestTimer,
-            child: Text(
-              'Salta',
-              style: GoogleFonts.inter(
-                color: CleanTheme.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSetRow(int setNumber) {
     final isCompleted = _completedSets[setNumber] ?? false;
     final previousSet = _previousData?[setNumber];
+    final prevWeight = previousSet != null
+        ? _formatWeight(previousSet['weight_kg'])
+        : null;
+    final prevReps = previousSet?['reps']?.toString();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: isCompleted
-            ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        gradient: isCompleted
+            ? LinearGradient(
+                colors: [
+                  CleanTheme.accentGreen.withValues(alpha: 0.08),
+                  CleanTheme.accentGreen.withValues(alpha: 0.03),
+                ],
+              )
+            : null,
+        color: isCompleted ? null : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: isCompleted
+            ? Border.all(
+                color: CleanTheme.accentGreen.withValues(alpha: 0.3),
+                width: 1,
+              )
+            : null,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Set Number
+          // Set Number Badge
           SizedBox(
-            width: 32,
+            width: 36,
             child: Container(
-              width: 22,
-              height: 22,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isCompleted
                     ? CleanTheme.accentGreen
-                    : CleanTheme.borderSecondary,
+                    : CleanTheme.primaryColor.withValues(alpha: 0.08),
                 border: Border.all(
                   color: isCompleted
                       ? CleanTheme.accentGreen
                       : CleanTheme.borderPrimary,
+                  width: 1.5,
                 ),
               ),
               child: Center(
                 child: isCompleted
-                    ? const Icon(Icons.check, size: 12, color: Colors.white)
+                    ? const Icon(
+                        Icons.check,
+                        size: 14,
+                        color: CleanTheme.textOnPrimary,
+                      )
                     : Text(
                         '$setNumber',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: CleanTheme.textPrimary,
                         ),
                       ),
@@ -500,134 +508,157 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             ),
           ),
 
-          // Previous Data
+          // Weight Input — Premium with previous data subtitle
           Expanded(
-            flex: 2,
-            child: _loadingPrevious
-                ? const Center(
-                    child: SizedBox(
-                      width: 12,
-                      height: 12,
-                      child: CircularProgressIndicator(strokeWidth: 1),
+            flex: 3,
+            child: Column(
+              children: [
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? CleanTheme.accentGreen.withValues(alpha: 0.06)
+                        : CleanTheme.primaryColor.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isCompleted
+                          ? CleanTheme.accentGreen.withValues(alpha: 0.3)
+                          : CleanTheme.borderPrimary,
+                      width: 1.5,
                     ),
-                  )
-                : Text(
-                    previousSet != null
-                        ? '${_formatWeight(previousSet['weight_kg'])}x${previousSet['reps'] ?? '-'}'
-                        : '-',
+                  ),
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    controller: _weightControllers[setNumber],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isCompleted
+                          ? CleanTheme.accentGreen
+                          : CleanTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 8,
+                      ),
+                      hintText: 'kg',
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textTertiary,
+                      ),
+                    ),
+                    enabled: !isCompleted,
+                  ),
+                ),
+                // Previous data subtitle
+                if (prevWeight != null && prevWeight != '-') ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'prev: ${prevWeight}kg',
                     style: GoogleFonts.inter(
-                      fontSize: 11,
+                      fontSize: 9,
                       color: CleanTheme.textTertiary,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-          ),
-
-          // Weight Input
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: CleanTheme.borderPrimary),
-              ),
-              child: TextField(
-                textAlign: TextAlign.center,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: CleanTheme.textPrimary,
-                ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                onChanged: (value) {
-                  _weights[setNumber] = double.tryParse(value) ?? 0;
-                },
-                controller:
-                    TextEditingController(
-                        text: _weights[setNumber]?.toString() ?? '',
-                      )
-                      ..selection = TextSelection.fromPosition(
-                        TextPosition(
-                          offset:
-                              (_weights[setNumber]?.toString() ?? '').length,
-                        ),
-                      ),
-              ),
+                ],
+              ],
             ),
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
-          // Reps Input
+          // Reps Input — Premium with previous data subtitle
           Expanded(
-            flex: 2,
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: CleanTheme.borderPrimary),
-              ),
-              child: TextField(
-                textAlign: TextAlign.center,
-                keyboardType: TextInputType.number,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: CleanTheme.textPrimary,
-                ),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                onChanged: (value) {
-                  _reps[setNumber] = int.tryParse(value) ?? 0;
-                },
-                controller:
-                    TextEditingController(
-                        text: _reps[setNumber]?.toString() ?? '',
-                      )
-                      ..selection = TextSelection.fromPosition(
-                        TextPosition(
-                          offset: (_reps[setNumber]?.toString() ?? '').length,
-                        ),
+            flex: 3,
+            child: Column(
+              children: [
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? CleanTheme.accentGreen.withValues(alpha: 0.06)
+                        : CleanTheme.primaryColor.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isCompleted
+                          ? CleanTheme.accentGreen.withValues(alpha: 0.3)
+                          : CleanTheme.borderPrimary,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    controller: _repsControllers[setNumber],
+                    keyboardType: TextInputType.number,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: isCompleted
+                          ? CleanTheme.accentGreen
+                          : CleanTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 8,
                       ),
-              ),
+                      hintText: widget.exercise.reps,
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textTertiary,
+                      ),
+                    ),
+                    enabled: !isCompleted,
+                  ),
+                ),
+                // Previous data subtitle
+                if (prevReps != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'prev: $prevReps',
+                    style: GoogleFonts.inter(
+                      fontSize: 9,
+                      color: CleanTheme.textTertiary,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
-          // RPE Selector
+          // RPE Selector — Compact
           Expanded(
             flex: 2,
             child: GestureDetector(
-              onTap: () => _showRPEPicker(setNumber),
+              onTap: isCompleted ? null : () => _showRPEPicker(setNumber),
               child: Container(
-                height: 32,
+                height: 44,
                 decoration: BoxDecoration(
                   color: _getRPEColor(
                     _rpe[setNumber] ?? 7,
-                  ).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
+                  ).withValues(alpha: isCompleted ? 0.1 : 0.15),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: _getRPEColor(
                       _rpe[setNumber] ?? 7,
-                    ).withValues(alpha: 0.5),
+                    ).withValues(alpha: 0.4),
+                    width: 1.5,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     '${_rpe[setNumber] ?? 7}',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
                       color: _getRPEColor(_rpe[setNumber] ?? 7),
                     ),
                   ),
@@ -636,44 +667,45 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
             ),
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: 8),
 
-          // Custom Checkbox Button
+          // Premium Checkbox Button
           GestureDetector(
             onTap: () => _toggleSet(setNumber, !isCompleted),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 36,
-              height: 36,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: isCompleted
-                    ? CleanTheme.primaryColor
+                    ? CleanTheme.accentGreen
                     : CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isCompleted
-                      ? CleanTheme.primaryColor
-                      : CleanTheme.borderSecondary,
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.borderPrimary,
                   width: 2,
                 ),
                 boxShadow: isCompleted
                     ? [
                         BoxShadow(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: CleanTheme.accentGreen.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ]
                     : [],
               ),
               child: Center(
-                child: isCompleted
-                    ? const Icon(Icons.check, size: 20, color: Colors.white)
-                    : Icon(
-                        Icons.check,
-                        size: 20,
-                        color: CleanTheme.borderSecondary,
-                      ),
+                child: Icon(
+                  isCompleted ? Icons.check_rounded : Icons.check_rounded,
+                  size: 22,
+                  color: isCompleted
+                      ? CleanTheme.textOnPrimary
+                      : CleanTheme.textTertiary,
+                ),
               ),
             ),
           ),
@@ -684,7 +716,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
   Color _getRPEColor(int rpe) {
     if (rpe <= 4) return CleanTheme.accentGreen;
-    if (rpe <= 6) return Colors.amber;
+    if (rpe <= 6) return CleanTheme.accentYellow;
     if (rpe <= 8) return CleanTheme.accentOrange;
     return CleanTheme.accentRed;
   }
@@ -751,7 +783,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: isSelected
-                              ? Colors.white
+                              ? CleanTheme.textOnPrimary
                               : _getRPEColor(rpeValue),
                         ),
                       ),
@@ -773,7 +805,10 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                 ),
                 Text(
                   '5-6: Medio',
-                  style: GoogleFonts.inter(fontSize: 11, color: Colors.amber),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: CleanTheme.accentYellow,
+                  ),
                 ),
                 Text(
                   '7-8: Difficile',
@@ -806,6 +841,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
 
     // Start rest timer IMMEDIATELY after checking the set for instant feedback
     if (value && setNumber <= widget.exercise.sets && !_isRestTimerActive) {
+      // Play success sound on set completion
+      _timerAudioPlayer.play(AssetSource('sounds/success.wav'));
       _startRestTimer();
     }
 
@@ -898,19 +935,16 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
           margin: const EdgeInsets.symmetric(vertical: 16),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E), // Dark futuristic background
+            color: CleanTheme.surfaceColor, // Dark futuristic background
             borderRadius: BorderRadius.circular(32), // Stadium shape
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: CleanTheme.primaryColor.withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
             ],
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
-            ),
+            border: Border.all(color: CleanTheme.borderPrimary, width: 1),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -922,8 +956,9 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   Icon(
                     Icons.graphic_eq,
                     color: _coachingPlayer.isPlaying
-                        ? const Color(0xFF00E676) // Neon Green when playing
-                        : Colors.white54,
+                        ? CleanTheme
+                              .accentGreen // Neon Green when playing
+                        : CleanTheme.textSecondary,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
@@ -933,7 +968,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2,
-                      color: Colors.white54,
+                      color: CleanTheme.textSecondary,
                     ),
                   ),
                 ],
@@ -955,7 +990,11 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
 
                   // Divider
-                  Container(width: 1, height: 24, color: Colors.white10),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: CleanTheme.borderPrimary,
+                  ),
 
                   // EXECUTION (Play styled - Main)
                   _buildMainPlayButton(
@@ -970,7 +1009,11 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
 
                   // Divider
-                  Container(width: 1, height: 24, color: Colors.white10),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: CleanTheme.borderPrimary,
+                  ),
 
                   // Outro Button (Next/Forward styled)
                   _buildFuturisticButton(
@@ -990,12 +1033,12 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.red.withValues(alpha: 0.2),
+                          color: CleanTheme.accentRed.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.redAccent,
+                          color: CleanTheme.accentRed,
                           size: 20,
                         ),
                       ),
@@ -1017,8 +1060,8 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
     required VoidCallback onTap,
   }) {
     final color = isActive
-        ? const Color(0xFF00E676)
-        : Colors.white; // Neon Green or White
+        ? CleanTheme.accentGreen
+        : CleanTheme.textOnPrimary; // Neon Green or White
 
     return InkWell(
       onTap: onTap,
@@ -1060,14 +1103,12 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         height: 56,
         width: 56,
         decoration: BoxDecoration(
-          color: isActive
-              ? const Color(0xFF00E676)
-              : Colors.white.withValues(alpha: 0.1),
+          color: isActive ? CleanTheme.accentGreen : CleanTheme.surfaceColor,
           shape: BoxShape.circle,
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: const Color(0xFF00E676).withValues(alpha: 0.4),
+                    color: CleanTheme.accentGreen.withValues(alpha: 0.4),
                     blurRadius: 20,
                     spreadRadius: 2,
                   ),
@@ -1076,7 +1117,7 @@ class _SetLoggingWidgetState extends State<SetLoggingWidget> {
         ),
         child: Icon(
           isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-          color: isActive ? Colors.black : Colors.white,
+          color: isActive ? CleanTheme.primaryColor : CleanTheme.textOnPrimary,
           size: 32,
         ),
       ),

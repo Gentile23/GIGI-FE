@@ -1,8 +1,11 @@
 import 'package:gigi/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../widgets/animations/background_motion.dart';
+import '../../widgets/animations/animated_logo.dart';
 
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
@@ -41,10 +44,6 @@ class _AuthScreenState extends State<AuthScreen>
   bool _acceptedTerms = false;
   bool _acceptedHealthData = false;
 
-  // Animation controller for logo
-  late AnimationController _logoAnimationController;
-  late Animation<double> _logoOpacityAnimation;
-
   // Store AuthProvider reference for safe disposal
   AuthProvider? _authProvider;
 
@@ -52,17 +51,6 @@ class _AuthScreenState extends State<AuthScreen>
   void initState() {
     super.initState();
     _isLogin = widget.initialIsLogin;
-    _logoAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _logoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoAnimationController, curve: Curves.easeIn),
-    );
-
-    // Start animation
-    _logoAnimationController.forward();
 
     // Listen for auth changes (needed for Web GSI button flow)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -124,7 +112,6 @@ class _AuthScreenState extends State<AuthScreen>
     // Remove listener using stored reference (safe for dispose)
     _authProvider?.removeListener(_onAuthChanged);
 
-    _logoAnimationController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
@@ -155,6 +142,11 @@ class _AuthScreenState extends State<AuthScreen>
       body: SafeArea(
         child: Stack(
           children: [
+            // 1. Background Motion (Subtle)
+            const Positioned.fill(
+              child: Opacity(opacity: 0.5, child: BackgroundMotion()),
+            ),
+
             SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Form(
@@ -164,32 +156,13 @@ class _AuthScreenState extends State<AuthScreen>
                   children: [
                     const SizedBox(height: 40),
 
-                    // Logo GIGI with fade-in animation
-                    Center(
-                      child: AnimatedBuilder(
-                        animation: _logoAnimationController,
-                        builder: (context, child) {
-                          return Opacity(
-                            opacity: _logoOpacityAnimation.value,
-                            child: child,
-                          );
-                        },
-                        child: SizedBox(
-                          width: 200,
-                          height: 80,
-                          child: Image.asset(
-                            'assets/images/gigi_new_logo.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Text(
-                              'GIGI',
-                              style: GoogleFonts.outfit(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
+                    // 2. Animated Logo (Hero)
+                    const Center(
+                      child: AnimatedLogo(
+                        size: 180,
+                        heroTag: 'gigi_logo',
+                        enableBreathing: true,
+                        enableShimmer: true,
                       ),
                     ),
 
@@ -197,148 +170,190 @@ class _AuthScreenState extends State<AuthScreen>
 
                     // Title
                     Text(
-                      _isLogin
-                          ? AppLocalizations.of(context)!.welcomeBack
-                          : AppLocalizations.of(context)!.createAccount,
-                      style: GoogleFonts.outfit(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textPrimary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                          _isLogin
+                              ? AppLocalizations.of(context)!.welcomeBack
+                              : AppLocalizations.of(context)!.createAccount,
+                          style: GoogleFonts.outfit(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            color: CleanTheme.textPrimary,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: 0.1, end: 0),
 
                     const SizedBox(height: 8),
 
                     Text(
-                      _isLogin
-                          ? AppLocalizations.of(context)!.loginSubtitle
-                          : AppLocalizations.of(context)!.registerSubtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: CleanTheme.textSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                          _isLogin
+                              ? AppLocalizations.of(context)!.loginSubtitle
+                              : AppLocalizations.of(context)!.registerSubtitle,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            color: CleanTheme.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms, delay: 100.ms)
+                        .slideY(begin: 0.1, end: 0),
 
                     const SizedBox(height: 40),
 
                     // Name field (only for register)
                     if (!_isLogin) ...[
                       _buildTextField(
-                        controller: _nameController,
-                        label: AppLocalizations.of(context)!.fullName,
-                        icon: Icons.person_outline,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.enterYourName;
-                          }
-                          return null;
-                        },
-                      ),
+                            controller: _nameController,
+                            label: AppLocalizations.of(context)!.fullName,
+                            icon: Icons.person_outline,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.enterYourName;
+                              }
+                              return null;
+                            },
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms, delay: 200.ms)
+                          .slideX(begin: -0.1, end: 0),
                       const SizedBox(height: 16),
                     ],
 
                     // Email field
                     _buildTextField(
-                      controller: _emailController,
-                      label: AppLocalizations.of(context)!.email,
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!.enterYourEmail;
-                        }
-                        if (!value.contains('@')) {
-                          return AppLocalizations.of(context)!.enterValidEmail;
-                        }
-                        return null;
-                      },
-                    ),
+                          controller: _emailController,
+                          label: AppLocalizations.of(context)!.email,
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(
+                                context,
+                              )!.enterYourEmail;
+                            }
+                            if (!value.contains('@')) {
+                              return AppLocalizations.of(
+                                context,
+                              )!.enterValidEmail;
+                            }
+                            return null;
+                          },
+                        )
+                        .animate()
+                        .fadeIn(
+                          duration: 400.ms,
+                          delay: _isLogin ? 200.ms : 300.ms,
+                        )
+                        .slideX(begin: -0.1, end: 0),
 
                     const SizedBox(height: 16),
 
                     // Password field
                     _buildTextField(
-                      controller: _passwordController,
-                      label: AppLocalizations.of(context)!.password,
-                      icon: Icons.lock_outline,
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: CleanTheme.textTertiary,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!.enterPassword;
-                        }
-                        if (value.length < 6) {
-                          return AppLocalizations.of(context)!.passwordTooShort;
-                        }
-                        return null;
-                      },
-                    ),
+                          controller: _passwordController,
+                          label: AppLocalizations.of(context)!.password,
+                          icon: Icons.lock_outline,
+                          obscureText: _obscurePassword,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: CleanTheme.textTertiary,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppLocalizations.of(
+                                context,
+                              )!.enterPassword;
+                            }
+                            if (value.length < 6) {
+                              return AppLocalizations.of(
+                                context,
+                              )!.passwordTooShort;
+                            }
+                            return null;
+                          },
+                        )
+                        .animate()
+                        .fadeIn(
+                          duration: 400.ms,
+                          delay: _isLogin ? 300.ms : 400.ms,
+                        )
+                        .slideX(begin: -0.1, end: 0),
 
                     // Confirm Password field (only for register)
                     if (!_isLogin) ...[
                       const SizedBox(height: 16),
                       _buildTextField(
-                        controller: _confirmPasswordController,
-                        label: AppLocalizations.of(context)!.confirmPassword,
-                        icon: Icons.lock_outline,
-                        obscureText: _obscureConfirmPassword,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: CleanTheme.textTertiary,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(
+                            controller: _confirmPasswordController,
+                            label: AppLocalizations.of(
                               context,
-                            )!.enterConfirmPassword;
-                          }
-                          if (value != _passwordController.text) {
-                            return AppLocalizations.of(
-                              context,
-                            )!.passwordsDoNotMatch;
-                          }
-                          return null;
-                        },
-                      ),
+                            )!.confirmPassword,
+                            icon: Icons.lock_outline,
+                            obscureText: _obscureConfirmPassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: CleanTheme.textTertiary,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.enterConfirmPassword;
+                              }
+                              if (value != _passwordController.text) {
+                                return AppLocalizations.of(
+                                  context,
+                                )!.passwordsDoNotMatch;
+                              }
+                              return null;
+                            },
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms, delay: 500.ms)
+                          .slideX(begin: -0.1, end: 0),
 
                       // Referral Code (Optional)
                       const SizedBox(height: 16),
                       _buildTextField(
-                        controller: _referralCodeController,
-                        label: 'Codice Referral (Opzionale)',
-                        icon: Icons.confirmation_number_outlined,
-                        validator: (value) => null, // Optional
-                      ),
+                            controller: _referralCodeController,
+                            label: 'Codice Referral (Opzionale)',
+                            icon: Icons.confirmation_number_outlined,
+                            validator: (value) => null, // Optional
+                          )
+                          .animate()
+                          .fadeIn(duration: 400.ms, delay: 600.ms)
+                          .slideX(begin: -0.1, end: 0),
                     ],
 
                     // GDPR Consent checkboxes (only for registration)
                     if (!_isLogin) ...[
                       const SizedBox(height: 24),
-                      _buildConsentSection(),
+                      _buildConsentSection().animate().fadeIn(
+                        duration: 400.ms,
+                        delay: 700.ms,
+                      ),
                     ],
 
                     const SizedBox(height: 24),
@@ -388,22 +403,28 @@ class _AuthScreenState extends State<AuthScreen>
                             ),
                           ],
                         ),
-                      ),
+                      ).animate().fadeIn().shake(),
                       const SizedBox(height: 16),
                     ],
 
                     // Submit button
                     CleanButton(
-                      text: _isLogin
-                          ? AppLocalizations.of(context)!.login
-                          : AppLocalizations.of(context)!.register,
-                      onPressed: _isLoading
-                          ? null
-                          : (_isLogin || _allConsentsAccepted)
-                          ? _handleSubmit
-                          : null,
-                      width: double.infinity,
-                    ),
+                          text: _isLogin
+                              ? AppLocalizations.of(context)!.login
+                              : AppLocalizations.of(context)!.register,
+                          onPressed: _isLoading
+                              ? null
+                              : (_isLogin || _allConsentsAccepted)
+                              ? _handleSubmit
+                              : null,
+                          width: double.infinity,
+                        )
+                        .animate()
+                        .fadeIn(
+                          duration: 400.ms,
+                          delay: _isLogin ? 400.ms : 800.ms,
+                        )
+                        .scale(),
 
                     // Consent reminder for registration
                     if (!_isLogin && !_allConsentsAccepted) ...[
@@ -440,6 +461,9 @@ class _AuthScreenState extends State<AuthScreen>
                           child: Divider(color: CleanTheme.borderPrimary),
                         ),
                       ],
+                    ).animate().fadeIn(
+                      duration: 400.ms,
+                      delay: _isLogin ? 500.ms : 900.ms,
                     ),
 
                     const SizedBox(height: 24),
@@ -450,7 +474,12 @@ class _AuthScreenState extends State<AuthScreen>
                     if (kIsWeb)
                       Center(child: getGoogleSignInButton())
                     else
-                      _buildGoogleButton(onPressed: _handleGoogleSignIn),
+                      _buildGoogleButton(
+                        onPressed: _handleGoogleSignIn,
+                      ).animate().fadeIn(
+                        duration: 400.ms,
+                        delay: _isLogin ? 600.ms : 1000.ms,
+                      ),
 
                     const SizedBox(height: 32),
 
@@ -484,6 +513,9 @@ class _AuthScreenState extends State<AuthScreen>
                           ),
                         ),
                       ],
+                    ).animate().fadeIn(
+                      duration: 400.ms,
+                      delay: _isLogin ? 700.ms : 1100.ms,
                     ),
                   ],
                 ),
@@ -835,10 +867,10 @@ class _AuthScreenState extends State<AuthScreen>
               'Codice referral applicato! Hai 1 mese di Premium gratis! 🎉',
               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
-            backgroundColor: const Color(0xFF00D26A),
+            backgroundColor: CleanTheme.accentGreen,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
             margin: const EdgeInsets.all(16),
           ),

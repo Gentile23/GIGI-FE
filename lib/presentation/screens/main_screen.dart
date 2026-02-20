@@ -41,9 +41,10 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           // 1. Main Content (Behind Navbar)
           Positioned.fill(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _screens[_currentIndex],
+            child: IndexedStack(
+              key: const ValueKey('main_content_stack'),
+              index: _currentIndex,
+              children: _screens,
             ),
           ),
 

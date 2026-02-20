@@ -72,11 +72,11 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [const Color(0xFF1A1A2E), const Color(0xFF16213E)],
+              colors: [CleanTheme.steelDark, CleanTheme.steelMid],
             ),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: CleanTheme.primaryColor.withValues(
+              color: CleanTheme.borderPrimary.withValues(
                 alpha: widget.isActive ? _breatheAnimation.value : 0.3,
               ),
               width: 2,
@@ -112,12 +112,16 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.1,
+                            ),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.info_outline,
-                            color: Colors.white70,
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.7,
+                            ),
                             size: 20,
                           ),
                         ),
@@ -133,14 +137,14 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 height: 100,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
                   child: Icon(
                     Icons.fitness_center,
                     size: 48,
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.3),
                   ),
                 ),
               ),
@@ -153,7 +157,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 style: GoogleFonts.outfit(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: CleanTheme.textOnPrimary,
                   letterSpacing: 1,
                 ),
                 textAlign: TextAlign.center,
@@ -190,7 +194,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                           ? CleanTheme.accentGreen
                           : isCurrent
                           ? CleanTheme.primaryColor
-                          : Colors.white.withValues(alpha: 0.2),
+                          : CleanTheme.textOnPrimary.withValues(alpha: 0.2),
                       boxShadow: isCurrent
                           ? [
                               BoxShadow(
@@ -215,7 +219,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70,
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.7),
                   letterSpacing: 1,
                 ),
               ),
@@ -268,7 +272,9 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                           widget.exercise.notes!,
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: Colors.white70,
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.7,
+                            ),
                             height: 1.4,
                           ),
                         ),
@@ -292,18 +298,22 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.2,
+                          ),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.skip_next,
-                            color: Colors.white70,
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.7,
+                            ),
                             size: 18,
                           ),
                           const SizedBox(width: 6),
@@ -312,7 +322,9 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white70,
+                              color: CleanTheme.textOnPrimary.withValues(
+                                alpha: 0.7,
+                              ),
                             ),
                           ),
                         ],
@@ -369,26 +381,33 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white60, size: 18),
+          Icon(
+            icon,
+            color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Text(
             value,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: CleanTheme.textOnPrimary,
             ),
           ),
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 12, color: Colors.white60),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.6),
+            ),
           ),
         ],
       ),

@@ -6,55 +6,62 @@ import 'package:google_fonts/google_fonts.dart';
 /// Colors: White background, Black primary, Silver/Glass accents
 class CleanTheme {
   // ═══════════════════════════════════════════════════════════
-  // REFINED COLOR PALETTE - MONOCHROME & GLASS
+  // REFINED COLOR PALETTE - CHROME & STEEL
   // ═══════════════════════════════════════════════════════════
 
-  // Primary - Elegant Black
+  // Core Monochrome
   static const Color primaryColor = Color(0xFF000000); // Pure Black
-  static const Color primaryLight = Color(
-    0xFFF5F5F7,
-  ); // Very light gray (Apple style)
-  static const Color primaryDark = Color(0xFF1C1C1E); // Apple Dark Grey
-
-  // Backgrounds - Pristine White
   static const Color backgroundColor = Color(0xFFFFFFFF); // Pure White
-  static const Color surfaceColor = Color(0xFFFFFFFF); // Pure White
-  static const Color cardColor = Color(0xFFFFFFFF); // Pure White
-  static const Color scaffoldBackgroundColor = Color(
-    0xFFFFFFFF,
-  ); // White for clean look
+  static const Color scaffoldBackgroundColor = Color(0xFFFFFFFF);
 
-  // Text Colors - Sharp & Professional
-  static const Color textPrimary = Color(0xFF000000); // Pure Black
-  static const Color textSecondary = Color(0xFF8E8E93); // Apple Gray
-  static const Color textTertiary = Color(0xFFC7C7CC); // Apple Light Gray
-  static const Color textOnPrimary = Color(0xFFFFFFFF); // White
+  // Liquid Steel Palette
+  static const Color steelDark = Color(0xFF1C1C1E);
+  static const Color steelMid = Color(0xFF2C2C2E);
+  static const Color steelLight = Color(0xFF3A3A3C);
+  static const Color steelSilver = Color(0xFF48484A);
+
+  // metallic Accents
+  static const Color chromeSilver = Color(0xFFD1D1D6);
+  static const Color chromeGray = Color(0xFF8E8E93);
+  static const Color chromeSubtle = Color(0xFFE5E5EA);
+
+  // Text Colors
+  static const Color textPrimary = Color(0xFF000000);
+  static const Color textSecondary = Color(0xFF8E8E93);
+  static const Color textTertiary = Color(0xFFC7C7CC);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color textOnDark = Color(0xFFFFFFFF);
 
   // Border & Divider Colors
-  static const Color borderPrimary = Color(0xFFD1D1D6); // Visible separation
-  static const Color borderSecondary = Color(0xFFE5E5EA); // Subtle separation
+  static const Color borderPrimary = Color(0xFFD1D1D6);
+  static const Color borderSecondary = Color(0xFFE5E5EA);
   static const Color dividerColor = Color(0xFFE5E5EA);
 
-  // Accent Colors - Monochromatic/Silver
-  // Keeping functional colors but desaturated or specific where needed
-  static const Color accentOrange = Color(0xFFFF9500); // Keep for warnings
-  static const Color accentRed = Color(0xFFFF3B30); // Errors
-  static const Color accentBlue = Color(0xFF000000); // Links/Active -> Black
-  static const Color accentGreen = Color(0xFF34C759); // Success
-  static const Color accentPurple = Color(0xFFAF52DE);
-  static const Color accentTeal = Color(0xFF5AC8FA);
+  // Dynamic Accents (Based on Home)
+  static const Color accentOrange = Color(0xFFFF9500); // Community / Streak
+  static const Color accentGold = Color(0xFFFDB515); // PRO / Achievement
 
-  // Legacy/Additional Accents
-  static const Color accentYellow = Color(0xFFFFCC00);
-  static const Color immersiveDark = Color(0xFF000000);
-  static const Color immersiveDarkSecondary = Color(0xFF1C1C1E);
-  static const Color immersiveAccent = Color(0xFF98989D); // Silver
+  // Functional colors aliases
+  static const Color accentRed = Color(0xFFFF3B30); // Use sparingly
+  static const Color accentGreen = Color(0xFF34C759);
 
-  // Emotion Colors (Gamification) - Refined
-  static const Color emotionSuccess = Color(0xFF34C759);
-  static const Color emotionProgress = Color(0xFF000000); // Black for progress
-  static const Color emotionMotivation = Color(0xFF8E8E93); // Grey
-  static const Color emotionRecovery = Color(0xFFFFCC00);
+  // Legacy Aliases for Build Stability (Mapped to new palette)
+  static const Color primaryLight = chromeSubtle;
+  static const Color accentBlue = chromeSilver;
+  static const Color accentPurple = steelLight;
+  static const Color accentYellow = accentGold;
+  static const Color immersiveDark = steelDark;
+  static const Color immersiveDarkSecondary = steelMid;
+  static const Color immersiveAccent = chromeSilver;
+  static const Color emotionSuccess = chromeSilver;
+  static const Color emotionProgress = steelMid;
+  static const Color emotionMotivation = chromeGray;
+  static const Color emotionRecovery = accentGold;
+
+  // High-level surface aliases
+  static const Color surfaceColor = Color(0xFFFFFFFF);
+  static const Color cardColor = Color(0xFFFFFFFF);
+  static const Color darkCardColor = Color(0xFF1C1C1E);
 
   // Animation Curves & Durations
   static const Duration quickDuration = Duration(milliseconds: 200);
@@ -124,8 +131,8 @@ class CleanTheme {
       // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
-        secondary: textPrimary,
-        tertiary: textSecondary,
+        secondary: steelDark,
+        tertiary: chromeGray,
         surface: surfaceColor,
         error: accentRed,
         onPrimary: textOnPrimary,

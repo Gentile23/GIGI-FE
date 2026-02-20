@@ -62,7 +62,7 @@ class StreakDisplayWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: CleanTheme.accentGreen,
+                color: CleanTheme.accentGold,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -70,7 +70,7 @@ class StreakDisplayWidget extends StatelessWidget {
                 style: GoogleFonts.outfit(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -130,12 +130,12 @@ class StreakDisplayWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [CleanTheme.accentGreen, Color(0xFF22C55E)],
+                      colors: [CleanTheme.accentGold, Color(0xFFFFD700)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: CleanTheme.accentGreen.withValues(alpha: 0.4),
+                        color: CleanTheme.accentGold.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -499,7 +499,7 @@ class _RewardChestWidgetState extends State<RewardChestWidget>
       case ChestRarity.gold:
         return const Color(0xFFFFD700);
       case ChestRarity.legendary:
-        return CleanTheme.accentPurple;
+        return CleanTheme.chromeSilver;
     }
   }
 

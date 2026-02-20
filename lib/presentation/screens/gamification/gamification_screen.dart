@@ -288,7 +288,7 @@ class _GamificationScreenState extends State<GamificationScreen>
                   'Reps',
                   '${_stats!.totalRepsCompleted}',
                   Icons.trending_up,
-                  Colors.purple,
+                  CleanTheme.primaryColor,
                 ),
                 _buildStatCard(
                   'Peso (kg)',

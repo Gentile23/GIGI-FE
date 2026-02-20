@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/theme/advanced_theme.dart';
+import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
 /// Barra di navigazione bottom personalizzata con effetti premium
@@ -64,8 +65,8 @@ class _PremiumBottomNavBarState extends State<PremiumBottomNavBar>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AdvancedTheme.surfaceColor.withValues(alpha: 0.9),
-            AdvancedTheme.cardColor.withValues(alpha: 0.9),
+            CleanTheme.steelDark.withValues(alpha: 0.95),
+            CleanTheme.primaryColor.withValues(alpha: 0.95),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
@@ -151,7 +152,7 @@ class _PremiumBottomNavBarState extends State<PremiumBottomNavBar>
                             color: Colors.red,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AdvancedTheme.surfaceColor,
+                              color: CleanTheme.steelDark,
                               width: 2,
                             ),
                           ),
@@ -198,7 +199,7 @@ class PremiumNavItem {
     required this.icon,
     required this.activeIcon,
     required this.label,
-    this.color = const Color(0xFF6366F1),
+    this.color = CleanTheme.accentGold,
     this.badge,
   });
 }
@@ -231,8 +232,8 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AdvancedTheme.backgroundColor.withValues(alpha: 0.95),
-            AdvancedTheme.surfaceColor.withValues(alpha: 0.9),
+            CleanTheme.primaryColor.withValues(alpha: 0.95),
+            CleanTheme.steelDark.withValues(alpha: 0.9),
           ],
         ),
         border: Border(
@@ -253,7 +254,16 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
             const SizedBox(width: 16),
 
           // Title
-          Expanded(child: Text(title, style: AdvancedTheme.titleLarge)),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
 
           // Actions
           if (actions != null) ...actions!,
@@ -307,7 +317,7 @@ class _PremiumFABState extends State<PremiumFAB>
   Widget build(BuildContext context) {
     final colors =
         widget.gradientColors ??
-        [AdvancedTheme.primaryColor, AdvancedTheme.accentPurple];
+        [CleanTheme.accentGold, CleanTheme.accentOrange];
 
     return AnimatedBuilder(
       animation: _controller,
@@ -408,7 +418,7 @@ class PremiumSnackbar {
               ),
           ],
         ),
-        backgroundColor: AdvancedTheme.cardColor,
+        backgroundColor: CleanTheme.steelDark,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -423,13 +433,13 @@ class PremiumSnackbar {
   static Color _getTypeColor(SnackbarType type) {
     switch (type) {
       case SnackbarType.success:
-        return AdvancedTheme.accentGreen;
+        return CleanTheme.accentGreen;
       case SnackbarType.error:
         return Colors.red;
       case SnackbarType.warning:
         return Colors.amber;
       case SnackbarType.info:
-        return AdvancedTheme.accentCyan;
+        return CleanTheme.accentBlue;
     }
   }
 

@@ -34,6 +34,11 @@ enum SoundType {
   challengeStart,
   challengeComplete,
   challengeFailed,
+
+  // Workout Timer
+  timerTick,
+  timerComplete,
+  setComplete,
 }
 
 class SoundService {
@@ -194,6 +199,14 @@ class SoundService {
         return 'sounds/success.wav';
       case SoundType.challengeFailed:
         return 'sounds/notification.wav';
+
+      // Workout Timer
+      case SoundType.timerTick:
+        return 'sounds/secondi.mp3';
+      case SoundType.timerComplete:
+        return 'sounds/tempo-finito.mp3';
+      case SoundType.setComplete:
+        return 'sounds/success.wav';
     }
   }
 

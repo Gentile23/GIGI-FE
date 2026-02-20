@@ -149,16 +149,9 @@ class _AppNavigatorState extends State<AppNavigator> {
                     width: 120,
                     height: 120,
                     margin: const EdgeInsets.only(bottom: 32),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
                     ),
                     child: ClipOval(
                       child: Image.asset(
@@ -191,12 +184,7 @@ class _AppNavigatorState extends State<AppNavigator> {
           }
         }
 
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 500),
-          switchInCurve: Curves.easeIn,
-          switchOutCurve: Curves.easeOut,
-          child: child,
-        );
+        return child;
       },
     );
   }

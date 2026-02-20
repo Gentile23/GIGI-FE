@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/clean_theme.dart';
+import '../animations/liquid_steel_container.dart';
 
 /// Widget per Daily Challenge con countdown timer
 class DailyChallengeWidget extends StatefulWidget {
@@ -74,174 +76,159 @@ class _DailyChallengeWidgetState extends State<DailyChallengeWidget>
       child: AnimatedBuilder(
         animation: Listenable.merge([_shimmerController, _urgencyController]),
         builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF1a1a2e),
-                  isUrgent
-                      ? Color.lerp(
-                          const Color(0xFF16213e),
-                          Colors.red.withValues(alpha: 0.3),
-                          _urgencyController.value,
-                        )!
-                      : const Color(0xFF16213e),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isUrgent
-                    ? Colors.red.withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.1),
-                width: isUrgent ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
+          return LiquidSteelContainer(
+            enableShine: true,
+            borderRadius: 20,
+            border: Border.all(
+              color: isUrgent
+                  ? CleanTheme.accentRed.withValues(alpha: 0.5)
+                  : CleanTheme.borderPrimary,
+              width: isUrgent ? 2 : 1,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    // Badge sfida
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.flash_on, color: Colors.white, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            'SFIDA',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    // Timer
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isUrgent
-                            ? Colors.red.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.timer,
-                            color: isUrgent ? Colors.red : Colors.white70,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatTime(widget.timeRemaining),
-                            style: TextStyle(
-                              color: isUrgent ? Colors.red : Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Titolo
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Descrizione
-                Text(
-                  widget.description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Progress bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Stack(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
                     children: [
+                      // Badge sfida
                       Container(
-                        height: 8,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          gradient: LinearGradient(
+                            colors: [
+                              CleanTheme.primaryColor,
+                              CleanTheme.primaryColor.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.flash_on, color: Colors.white, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              'SFIDA',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      FractionallySizedBox(
-                        widthFactor: widget.progress.clamp(0.0, 1.0),
-                        child: Container(
-                          height: 8,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF10B981),
-                                const Color(0xFF34D399),
-                              ],
+                      const Spacer(),
+                      // Timer
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isUrgent
+                              ? CleanTheme.accentRed.withValues(alpha: 0.2)
+                              : CleanTheme.surfaceColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.timer,
+                              color: isUrgent ? Colors.red : Colors.white70,
+                              size: 14,
                             ),
-                          ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatTime(widget.timeRemaining),
+                              style: TextStyle(
+                                color: isUrgent
+                                    ? CleanTheme.accentRed
+                                    : CleanTheme.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Footer
-                Row(
-                  children: [
-                    // XP reward
-                    _buildRewardChip(),
-                    const Spacer(),
-                    // Social proof
-                    if (widget.completedToday > 0)
-                      Text(
-                        '${widget.completedToday} persone l\'hanno completata',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.5),
+                  const SizedBox(height: 16),
+                  // Titolo
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Descrizione
+                  Text(
+                    widget.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Progress bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ],
+                        FractionallySizedBox(
+                          widthFactor: widget.progress.clamp(0.0, 1.0),
+                          child: Container(
+                            height: 8,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  CleanTheme.accentGreen,
+                                  CleanTheme.accentGreen.withValues(alpha: 0.8),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Footer
+                  Row(
+                    children: [
+                      // XP reward
+                      _buildRewardChip(),
+                      const Spacer(),
+                      // Social proof
+                      if (widget.completedToday > 0)
+                        Text(
+                          '${widget.completedToday} persone l\'hanno completata',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: CleanTheme.textTertiary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -258,16 +245,18 @@ class _DailyChallengeWidgetState extends State<DailyChallengeWidget>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.amber.withValues(alpha: 0.3),
-                Colors.amber.withValues(
+                CleanTheme.accentYellow.withValues(alpha: 0.3),
+                CleanTheme.accentYellow.withValues(
                   alpha: 0.1 + _shimmerController.value * 0.2,
                 ),
-                Colors.amber.withValues(alpha: 0.3),
+                CleanTheme.accentYellow.withValues(alpha: 0.3),
               ],
               stops: [0.0, _shimmerController.value, 1.0],
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: CleanTheme.accentYellow.withValues(alpha: 0.5),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -277,7 +266,7 @@ class _DailyChallengeWidgetState extends State<DailyChallengeWidget>
               Text(
                 '+${widget.xpReward} XP',
                 style: const TextStyle(
-                  color: Colors.amber,
+                  color: CleanTheme.accentYellow,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -316,20 +305,20 @@ class DailyChallengesList extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: CleanTheme.textPrimary,
                 ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.2),
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${challenges.where((c) => c['completed'] == true).length}/${challenges.length}',
                   style: const TextStyle(
-                    color: Colors.green,
+                    color: CleanTheme.accentGreen,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
