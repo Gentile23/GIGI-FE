@@ -134,6 +134,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     'glutei': ['glute'],
     'polpacci': ['calf'],
     'cardio': ['cardio', 'run', 'jump'],
+    'mobilità': ['mobility', 'stretch', 'yoga', 'foam'],
   };
 
   void _applySearch() {

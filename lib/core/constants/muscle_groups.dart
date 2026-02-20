@@ -18,9 +18,10 @@ class MuscleGroups {
   static const String glutes = 'Glutes';
   static const String calves = 'Calves';
 
-  // Full Body
+  // Full Body & Others
   static const String fullBody = 'Full Body';
   static const String cardio = 'Cardio';
+  static const String mobility = 'Mobilità';
 
   // List of all valid groups for validation
   static const List<String> all = [
@@ -39,5 +40,6 @@ class MuscleGroups {
     calves,
     fullBody,
     cardio,
+    mobility,
   ];
 }

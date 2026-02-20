@@ -617,7 +617,7 @@ class _EditExerciseSheet extends StatefulWidget {
 
 class _EditExerciseSheetState extends State<_EditExerciseSheet> {
   late TextEditingController _setsController;
-  late TextEditingController _repsController;
+  late List<TextEditingController> _repsControllers;
   late TextEditingController _restController;
   late TextEditingController _notesController;
   late String _exerciseType;
@@ -629,19 +629,65 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     _setsController = TextEditingController(
       text: widget.exercise.sets.toString(),
     );
-    _repsController = TextEditingController(text: widget.exercise.reps);
+    _setsController.addListener(_updateRepsControllers);
+
     _restController = TextEditingController(
       text: widget.exercise.restSeconds.toString(),
     );
     _notesController = TextEditingController(text: widget.exercise.notes ?? '');
     _exerciseType = widget.exercise.exerciseType;
     _position = widget.exercise.position;
+
+    _initializeRepsControllers();
+  }
+
+  void _initializeRepsControllers() {
+    final repsList = widget.exercise.reps
+        .split(',')
+        .map((s) => s.trim())
+        .toList();
+    _repsControllers = List.generate(
+      widget.exercise.sets,
+      (index) => TextEditingController(
+        text: index < repsList.length
+            ? repsList[index]
+            : (repsList.isNotEmpty ? repsList.last : '10'),
+      ),
+    );
+  }
+
+  void _updateRepsControllers() {
+    final newSets = int.tryParse(_setsController.text) ?? 0;
+    if (newSets <= 0 || newSets > 20) return; // Basic validation
+
+    if (newSets != _repsControllers.length) {
+      setState(() {
+        if (newSets > _repsControllers.length) {
+          // Add controllers
+          final lastValue = _repsControllers.isNotEmpty
+              ? _repsControllers.last.text
+              : '10';
+          for (int i = _repsControllers.length; i < newSets; i++) {
+            _repsControllers.add(TextEditingController(text: lastValue));
+          }
+        } else {
+          // Remove controllers
+          for (int i = _repsControllers.length - 1; i >= newSets; i--) {
+            _repsControllers[i].dispose();
+            _repsControllers.removeAt(i);
+          }
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    _setsController.removeListener(_updateRepsControllers);
     _setsController.dispose();
-    _repsController.dispose();
+    for (var controller in _repsControllers) {
+      controller.dispose();
+    }
     _restController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -649,10 +695,14 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the viewport metrics
+    final mediaQuery = MediaQuery.of(context);
+    // Use an absolute maximum height (e.g., 85% of screen height) to ensure it doesn't overflow when keyboard is open
+    final maxHeight = mediaQuery.size.height * 0.85;
+
     return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      padding: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
       decoration: BoxDecoration(
         color: CleanTheme.surfaceColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -698,20 +748,67 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildField(
-                    AppLocalizations.of(context)!.reps,
-                    _repsController,
-                    'es. 10 o 8-12',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildField(
                     AppLocalizations.of(context)!.restSecondsLabel,
                     _restController,
                     AppLocalizations.of(context)!.seconds,
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            // Reps dynamically built row
+            Text(
+              // "Ripetizioni per serie" or fall back to AppLocalizations
+              'Ripetizioni per serie',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // We use a Wrap to flexibly display the rep fields, or a horizontal list
+            SizedBox(
+              height: 50,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _repsControllers.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: SizedBox(
+                      width: 60,
+                      child: TextField(
+                        controller: _repsControllers[index],
+                        style: GoogleFonts.outfit(
+                          color: CleanTheme.textPrimary,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          hintText: '...',
+                          helperText: 'Set ${index + 1}',
+                          helperStyle: GoogleFonts.outfit(
+                            fontSize: 10,
+                            color: CleanTheme.textTertiary,
+                          ),
+                          filled: true,
+                          fillColor: CleanTheme.cardColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        keyboardType: TextInputType
+                            .text, // allows comma if they still want it or text like '10-12'
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 16),
             // Category and Position row
@@ -758,8 +855,9 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                               ),
                             ],
                             onChanged: (val) {
-                              if (val != null)
+                              if (val != null) {
                                 setState(() => _exerciseType = val);
+                              }
                             },
                           ),
                         ),
@@ -832,12 +930,16 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  // Combine all reps into a comma separated string
+                  final combinedReps = _repsControllers
+                      .map((c) => c.text.trim())
+                      .where((text) => text.isNotEmpty)
+                      .join(', ');
+
                   final updated = _LocalExercise(
                     exercise: widget.exercise.exercise,
                     sets: int.tryParse(_setsController.text) ?? 3,
-                    reps: _repsController.text.isNotEmpty
-                        ? _repsController.text
-                        : '10',
+                    reps: combinedReps.isNotEmpty ? combinedReps : '10',
                     restSeconds: int.tryParse(_restController.text) ?? 60,
                     exerciseType: _exerciseType,
                     position: _position,
