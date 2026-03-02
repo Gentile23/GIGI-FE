@@ -15,6 +15,7 @@ import '../../widgets/gigi/gigi_coach_message.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../workout/workout_session_screen.dart';
 import '../../../data/models/user_model.dart';
@@ -25,6 +26,7 @@ import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
+import '../progress/progress_dashboard_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -181,7 +183,16 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                       ),
                                     ),
                                     TextButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        HapticService.lightTap();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const ProgressDashboardScreen(),
+                                          ),
+                                        );
+                                      },
                                       child: Text(
                                         AppLocalizations.of(context)!.viewAll,
                                         style: GoogleFonts.inter(
@@ -430,27 +441,135 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         final isActive = streak > 0;
 
         if (isActive) {
-          return LiquidSteelContainer(
-            borderRadius: 20,
-            enableShine: true,
-            border: Border.all(
-              color: CleanTheme.textOnPrimary.withValues(alpha: 0.3),
-              width: 1,
-            ),
-            child: Padding(
+          return Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF000000), // Nera come la sidebar
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      spreadRadius: -2,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.accentOrange.withValues(
+                            alpha: 0.15,
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: CleanTheme.accentOrange.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                        ),
+                        child: const Text('🔥', style: TextStyle(fontSize: 24))
+                            .animate(
+                              onPlay: (controller) => controller.repeat(),
+                            )
+                            .shimmer(duration: 1500.ms, color: Colors.white)
+                            .scaleXY(
+                              begin: 1.0,
+                              end: 1.15,
+                              duration: 600.ms,
+                              curve: Curves.easeInOut,
+                            )
+                            .then()
+                            .scaleXY(
+                              begin: 1.15,
+                              end: 1.0,
+                              duration: 600.ms,
+                              curve: Curves.easeInOut,
+                            ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.streakDays(streak),
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: CleanTheme.textOnPrimary,
+                                letterSpacing: 1.0,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withValues(alpha: 0.8),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppLocalizations.of(context)!.streakKeepGoing,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: CleanTheme.textOnPrimary.withValues(
+                                  alpha: 0.9,
+                                ),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                duration: 600.ms,
+                curve: Curves.easeOutQuint,
+              )
+              .shimmer(delay: 800.ms, duration: 1500.ms, color: Colors.white10);
+        }
+
+        return Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF000000), // Nera come la sidebar
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+                ),
+              ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
-                      ),
                     ),
-                    child: Text('🔥', style: TextStyle(fontSize: 24)),
+                    child: const Text('🔥', style: TextStyle(fontSize: 20))
+                        .animate(
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true),
+                        )
+                        .shimmer(duration: 2000.ms, color: Colors.white54),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -458,28 +577,21 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context)!.streakDays(streak),
+                          AppLocalizations.of(context)!.streakStart,
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: CleanTheme.textOnPrimary,
                             letterSpacing: 1.0,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                blurRadius: 4,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          AppLocalizations.of(context)!.streakKeepGoing,
+                          AppLocalizations.of(context)!.streakStartToday,
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             color: CleanTheme.textOnPrimary.withValues(
-                              alpha: 0.9,
+                              alpha: 0.8,
                             ),
                             height: 1.4,
                           ),
@@ -489,56 +601,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   ),
                 ],
               ),
-            ),
-          );
-        }
-
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: CleanTheme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: CleanTheme.borderSecondary),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Text('🔥', style: TextStyle(fontSize: 20)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.streakStart,
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: CleanTheme.textPrimary,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppLocalizations.of(context)!.streakStartToday,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
+            )
+            .animate()
+            .fadeIn(duration: 600.ms)
+            .slideY(
+              begin: 0.1,
+              end: 0,
+              duration: 600.ms,
+              curve: Curves.easeOutQuint,
+            );
       },
     );
   }
@@ -553,7 +624,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     // List<Color> gradientColors = [CleanTheme.primaryColor, Colors.black87]; // Removed
     VoidCallback? onActionTap;
     String actionLabel = AppLocalizations.of(context)!.start;
-    bool showHeart = false;
 
     // --- Default Dashboard View ---
     final hasActivePlan = workoutProvider.currentPlan != null;
@@ -570,7 +640,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       subtitle =
           '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min';
       // gradientColors = [const Color(0xFF1C1C1E), const Color(0xFF000000)]; // Removed
-      showHeart = true;
 
       onActionTap = () async {
         // Increment workout index for next time
@@ -601,7 +670,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         title = AppLocalizations.of(context)!.generatePlanCardTitle;
         subtitle = AppLocalizations.of(context)!.generatePlanCardSubtitle;
         // gradientColors = [const Color(0xFF3A3A3C), const Color(0xFF1C1C1E)]; // Removed
-        showHeart = false;
 
         onActionTap = () {
           _generatePlanDirectly();
@@ -654,28 +722,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   ),
                 ),
               ),
-
-              // Heart Icon
-              if (showHeart)
-                Positioned(
-                  top: 24,
-                  right: 24,
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.favorite_border,
-                      color: CleanTheme.textOnPrimary,
-                      size: 20,
-                    ),
-                  ),
-                ),
 
               // Content
               Positioned(
@@ -1119,12 +1165,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       Navigator.pop(context); // Close loading
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('✅ Scheda generata con successo!'),
-            backgroundColor: const Color(0xFF1C1C1E),
-          ),
-        );
         _loadData();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
