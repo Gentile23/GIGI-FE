@@ -150,7 +150,7 @@ class WorkoutProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     final result = await _workoutService.generatePlan(
       language: language,
@@ -168,12 +168,12 @@ class WorkoutProvider with ChangeNotifier {
       }
 
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners());
       return true;
     } else {
       _error = result['message'];
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners());
       return false;
     }
   }
@@ -184,7 +184,7 @@ class WorkoutProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
-    notifyListeners();
+    Future.microtask(() => notifyListeners());
 
     debugPrint('DEBUG: Generating custom plan with filters: $filters');
     final result = await _workoutService.generatePlan(
@@ -201,12 +201,12 @@ class WorkoutProvider with ChangeNotifier {
         _pollPlanStatus(plan.id);
       }
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners());
       return true;
     } else {
       _error = result['message'];
       _isLoading = false;
-      notifyListeners();
+      Future.microtask(() => notifyListeners());
       return false;
     }
   }
