@@ -9,7 +9,6 @@ import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
 import '../../widgets/workout/alternative_exercises_sheet.dart';
-import '../../widgets/form_check_widget.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 import 'package:provider/provider.dart';
@@ -156,13 +155,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Sets, Reps, Rest
             _buildWorkoutInfo(),
-            const SizedBox(height: 12),
-
-            // AI Form Check CTA
-            FormCheckWidget(
-              exerciseName: widget.workoutExercise.exercise.name,
-              exerciseId: int.tryParse(widget.workoutExercise.exercise.id),
-            ),
             const SizedBox(height: 24),
 
             // Equipment

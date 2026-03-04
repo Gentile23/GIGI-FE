@@ -794,7 +794,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         ),
       ),
       child: Container(
-        height: 200,
+        width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -827,7 +827,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -859,6 +859,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           color: CleanTheme.textOnDark,
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         '${AppLocalizations.of(context)!.exercisesCount(nextWorkout.exercises.length)} • ${AppLocalizations.of(context)!.durationMinutes(nextWorkout.estimatedDuration)}',
                         style: GoogleFonts.inter(
@@ -868,6 +869,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Container(

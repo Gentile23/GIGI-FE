@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -193,13 +194,17 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         // PERSISTENCE FIX: Only update weight and trigger auto-fill if we have a valid positive number.
         // If the user clears the field to type a new number, we don't zero it out immediately.
         if (parsed != null && parsed > 0 && parsed != _weights[i]) {
-          _weights[i] = parsed;
-          _handleWeightChange(i, parsed);
+          setState(() {
+            _weights[i] = parsed;
+            _handleWeightChange(i, parsed);
+          });
         }
         // If it's explicitly '0', we allow it, but we don't trigger auto-fill/deletion logic on empty.
         else if (text == '0' && _weights[i] != 0) {
-          _weights[i] = 0;
-          _handleWeightChange(i, 0);
+          setState(() {
+            _weights[i] = 0;
+            _handleWeightChange(i, 0);
+          });
         }
       });
 
@@ -213,12 +218,16 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         final text = repsController.text;
         final parsed = int.tryParse(text);
         if (parsed != null && parsed != _reps[i]) {
-          _reps[i] = parsed;
-          _manuallyEditedReps.add(i); // Track manual edit
+          setState(() {
+            _reps[i] = parsed;
+            _manuallyEditedReps.add(i); // Track manual edit
+          });
           _scheduleAutoSave(i);
         } else if (text.isEmpty && _reps[i] != 0) {
-          _reps[i] = 0;
-          _manuallyEditedReps.add(i); // Track manual edit
+          setState(() {
+            _reps[i] = 0;
+            _manuallyEditedReps.add(i); // Track manual edit
+          });
           _scheduleAutoSave(i);
         }
       });
@@ -809,6 +818,11 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                   const TextInputType.numberWithOptions(
                                     decimal: true,
                                   ),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d*\.?\d*'),
+                                ),
+                              ],
                               scrollPadding: const EdgeInsets.only(bottom: 120),
                               // Quando il campo mostra ancora il peso precedente (grigio),
                               // al tap seleziona tutto così il primo tasto sostituisce il valore.
@@ -896,6 +910,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 textAlign: TextAlign.center,
                                 controller: _repsControllers[setNumber],
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
                                 onTap: () {
                                   final isGhost =
                                       !_manuallyEditedReps.contains(
@@ -951,19 +968,32 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 top: 4,
                                 left: 0,
                                 right: 0,
-                                child: Text(
-                                  isCardioMobility
-                                      ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
-                                      : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 7,
-                                    fontWeight: FontWeight.w800,
-                                    color: CleanTheme.textTertiary.withValues(
-                                      alpha: 0.8,
-                                    ),
-                                    letterSpacing: 0.5,
+                                child: Container(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
                                   ),
-                                  textAlign: TextAlign.center,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: CleanTheme.borderSecondary
+                                            .withValues(alpha: 0.5),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    isCardioMobility
+                                        ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                                        : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 7,
+                                      fontWeight: FontWeight.w800,
+                                      color: CleanTheme.textPrimary,
+                                      letterSpacing: 0.5,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
                             ],

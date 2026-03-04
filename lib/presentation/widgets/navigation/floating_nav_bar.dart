@@ -29,6 +29,10 @@ class FloatingNavBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: CleanTheme.primaryColor,
             borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.15),
+              width: 1,
+            ),
             boxShadow: CleanTheme.floatingShadow,
           ),
           child: SingleChildScrollView(

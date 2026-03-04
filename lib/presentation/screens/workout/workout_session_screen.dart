@@ -1371,129 +1371,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  void _showMobilityOptionsSheet(WorkoutExercise exercise) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        decoration: const BoxDecoration(
-          color: CleanTheme.surfaceColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: CleanTheme.chromeSubtle,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              exercise.exercise.name,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            _buildOptionRow(
-              icon: Icons.info_outline_rounded,
-              title: AppLocalizations.of(context)!.info,
-              color: CleanTheme.primaryColor,
-              onTap: () {
-                Navigator.pop(context);
-                _navigateToExerciseDetail(exercise);
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildOptionRow(
-              icon: Icons.camera_alt_outlined,
-              title: AppLocalizations.of(context)!.aiCheck,
-              color: CleanTheme.steelDark,
-              onTap: () {
-                Navigator.pop(context);
-                final exerciseId = int.tryParse(exercise.exercise.id);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FormAnalysisScreen(
-                      exerciseName: exercise.exercise.name,
-                      exerciseId: exerciseId,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildOptionRow(
-              icon: Icons.record_voice_over_outlined,
-              title: AppLocalizations.of(context)!.executeWithGigi,
-              color: CleanTheme.accentOrange,
-              onTap: () {
-                Navigator.pop(context);
-                _startGuidedExecution(exercise);
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOptionRow({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: CleanTheme.borderSecondary),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-              const Spacer(),
-              Icon(Icons.chevron_right_rounded, color: CleanTheme.textTertiary),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildInlineCardioMobilityExercise({
     required WorkoutExercise exercise,
     required String sectionId,
@@ -1522,126 +1399,159 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           width: isCompleted ? 2 : 1.5,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Emoji circle
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 22)),
-            ),
-          ),
-          const SizedBox(width: 14),
-          // Exercise info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  exercise.exercise.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isCompleted
-                        ? CleanTheme.textSecondary
-                        : CleanTheme.textPrimary,
-                    decoration: isCompleted ? TextDecoration.lineThrough : null,
-                  ),
+          Row(
+            children: [
+              // Emoji circle
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(height: 4),
-                Row(
+                child: Center(
+                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Exercise info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.timer_outlined, size: 14, color: color),
-                    const SizedBox(width: 4),
                     Text(
-                      exercise.reps.contains('min') ||
-                              exercise.reps.contains('sec')
-                          ? exercise.reps
-                          : '${exercise.reps} min',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: color,
+                      exercise.exercise.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: isCompleted
+                            ? CleanTheme.textSecondary
+                            : CleanTheme.textPrimary,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
-                    if (exercise.exercise.muscleGroups.isNotEmpty) ...[
-                      const SizedBox(width: 12),
-                      Text(
-                        '•',
-                        style: TextStyle(color: CleanTheme.textTertiary),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          exercise.exercise.muscleGroups.join(', '),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.timer_outlined, size: 14, color: color),
+                        const SizedBox(width: 4),
+                        Text(
+                          exercise.reps.contains('min') ||
+                                  exercise.reps.contains('sec')
+                              ? exercise.reps
+                              : '${exercise.reps} min',
                           style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: CleanTheme.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: color,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                        if (exercise.exercise.muscleGroups.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          Text(
+                            '•',
+                            style: TextStyle(color: CleanTheme.textTertiary),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              exercise.exercise.muscleGroups.join(', '),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: CleanTheme.textSecondary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ],
+                ),
+              ),
+              // Info button
+              const SizedBox(width: 8),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    // Navigate to detail page
+                    _navigateToExerciseDetail(exercise);
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.info_outline, color: color, size: 20),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Transform.scale(
+                scale: 1.2,
+                child: Checkbox(
+                  value: isCompleted,
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == true) {
+                        _completedSections.add(sectionId);
+                        _autoStartSessionIfNeeded();
+                      } else {
+                        _completedSections.remove(sectionId);
+                      }
+                    });
+                  },
+                  activeColor: CleanTheme.accentGreen,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  side: BorderSide(color: color, width: 2),
+                ),
+              ),
+            ],
+          ),
+          if (!isCompleted) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionButton(
+                    icon: Icons.camera_alt_outlined,
+                    label: AppLocalizations.of(context)!.aiCheck,
+                    color: CleanTheme.steelDark,
+                    isPrimary: true,
+                    onTap: () {
+                      final exerciseId = int.tryParse(exercise.exercise.id);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FormAnalysisScreen(
+                            exerciseName: exercise.exercise.name,
+                            exerciseId: exerciseId,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
-          ),
-          // Info button
-          const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                final exerciseType = exercise.exerciseType.toLowerCase();
-                if (exerciseType == 'mobility' || exerciseType == 'warmup') {
-                  // Show Bottom Sheet for Mobility Options
-                  _showMobilityOptionsSheet(exercise);
-                } else {
-                  // Standard navigation for cardio
-                  _navigateToExerciseDetail(exercise);
-                }
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.info_outline, color: color, size: 20),
-              ),
+            const SizedBox(height: 8),
+            _GigiExecuteButton(
+              onTap: () => _startGuidedExecution(exercise),
+              label: AppLocalizations.of(context)!.executeWithGigi,
             ),
-          ),
-          const SizedBox(width: 8),
-          Transform.scale(
-            scale: 1.2,
-            child: Checkbox(
-              value: isCompleted,
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    _completedSections.add(sectionId);
-                    _autoStartSessionIfNeeded();
-                  } else {
-                    _completedSections.remove(sectionId);
-                  }
-                });
-              },
-              activeColor: CleanTheme.accentGreen,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              side: BorderSide(color: color, width: 2),
-            ),
-          ),
+          ],
         ],
       ),
     );
