@@ -47,7 +47,7 @@ class CleanTheme {
 
   // Legacy Aliases for Build Stability (Mapped to new palette)
   static const Color primaryLight = chromeSubtle;
-  static const Color accentBlue = chromeSilver;
+  static const Color accentBlue = Color(0xFF8B9DC3); // Acciaio / Steel Blue
   static const Color accentPurple = steelLight;
   static const Color accentYellow = accentGold;
   static const Color immersiveDark = steelDark;

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'anatomical_muscle_view.dart';
 
+// Colori muscolari fissi — non modificabili dall'esterno
+const Color _kPrimaryMuscleColor = Color(0xFFE53935); // Rosso acceso
+const Color _kSecondaryMuscleColor = Color(0xFFEF9A9A); // Rosso chiaro
+
 class DualAnatomicalView extends StatelessWidget {
   final List<String> muscleGroups;
   final List<String> secondaryMuscleGroups;
   final double height;
+  // highlightColor mantenuto per retrocompatibilità ma ignorato internamente
   final Color highlightColor;
 
   const DualAnatomicalView({
@@ -12,28 +17,27 @@ class DualAnatomicalView extends StatelessWidget {
     required this.muscleGroups,
     this.secondaryMuscleGroups = const [],
     this.height = 220,
-    this.highlightColor = const Color(0xFFFF0000),
+    this.highlightColor = const Color(0xFFE53935),
   });
 
   @override
   Widget build(BuildContext context) {
     final Map<String, Color> colorMap = {};
 
-    // Secondary muscles: Very light faded red
-    // Using 0.1 opacity for small images as requested (super chiaro)
+    // Muscoli secondari: rosso chiaro
     for (final muscle in secondaryMuscleGroups) {
-      colorMap[muscle] = highlightColor.withValues(alpha: 0.1);
+      colorMap[muscle] = _kSecondaryMuscleColor;
     }
 
-    // Primary muscles: Bright red
+    // Muscoli primari: rosso acceso (sovrascrive eventuali secondari duplicati)
     for (final muscle in muscleGroups) {
-      colorMap[muscle] = highlightColor;
+      colorMap[muscle] = _kPrimaryMuscleColor;
     }
 
     return AnatomicalMuscleView(
       muscleGroups: muscleGroups,
       height: height,
-      highlightColor: highlightColor,
+      highlightColor: _kPrimaryMuscleColor,
       colorMap: colorMap,
     );
   }

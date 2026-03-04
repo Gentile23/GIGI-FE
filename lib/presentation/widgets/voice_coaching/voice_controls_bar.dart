@@ -67,7 +67,7 @@ class VoiceControlsBar extends StatelessWidget {
                   IconButton(
                     icon: const Icon(
                       Icons.pause_rounded,
-                      color: CleanTheme.accentOrange,
+                      color: Colors.white,
                       size: 28,
                     ),
                     onPressed: () => controller.pauseAudio(),

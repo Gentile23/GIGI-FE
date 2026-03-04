@@ -53,11 +53,24 @@ class SoundService {
   bool get isEnabled => _isEnabled;
   double get volume => _volume;
 
+  final Map<SoundType, Source> _sources = {};
+
   /// Initialize sound service
   Future<void> initialize() async {
     // Preload frequently used sounds
-    // In production, you'd cache these
-    debugPrint('SoundService initialized');
+    _sources[SoundType.buttonTap] = AssetSource('sounds/tap_light.wav');
+    _sources[SoundType.toggle] = AssetSource('sounds/toggle_on.wav');
+    _sources[SoundType.workoutComplete] = AssetSource('sounds/success.wav');
+    _sources[SoundType.setComplete] = AssetSource('sounds/success.wav');
+    _sources[SoundType.timerTick] = AssetSource('sounds/secondi.mp3');
+    _sources[SoundType.timerComplete] = AssetSource('sounds/tempo-finito.mp3');
+
+    // Preload sources onto player to minimize first-play latency
+    for (var source in _sources.values) {
+      await _player.setSource(source);
+    }
+
+    debugPrint('SoundService initialized with pre-loaded sounds');
   }
 
   /// Play a sound effect
@@ -65,11 +78,12 @@ class SoundService {
     if (!_isEnabled) return;
 
     try {
-      final assetPath = _getAssetPath(type);
+      final source = _sources[type] ?? AssetSource(_getAssetPath(type));
+      await _player.stop();
       await _player.setVolume(_volume);
-      await _player.play(AssetSource(assetPath));
+      await _player.play(source, mode: PlayerMode.lowLatency);
     } catch (e) {
-      debugPrint('Failed to play sound: $e');
+      debugPrint('Failed to play sound ($type): $e');
     }
   }
 

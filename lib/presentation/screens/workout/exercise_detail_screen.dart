@@ -9,7 +9,12 @@ import '../../../data/models/workout_model.dart';
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
 import '../../widgets/workout/alternative_exercises_sheet.dart';
+import '../../widgets/form_check_widget.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../paywall/paywall_screen.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final WorkoutExercise workoutExercise;
@@ -86,13 +91,22 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Difficulty Badge
-            _buildDifficultyBadge(),
+            // Badges Row
+            Row(
+              children: [
+                _buildTypeBadge(),
+                const SizedBox(width: 12),
+                _buildDifficultyBadge(),
+              ],
+            ),
             const SizedBox(height: 24),
 
-            // Similar & Alternative Exercises Buttons
-            _buildExerciseOptionsButtons(),
-            const SizedBox(height: 24),
+            // Similar & Alternative Exercises Buttons (only for strength)
+            if (widget.workoutExercise.exercise.exerciseType != 'cardio' &&
+                widget.workoutExercise.exercise.exerciseType != 'warmup') ...[
+              _buildExerciseOptionsButtons(),
+              const SizedBox(height: 24),
+            ],
 
             // Anatomical Diagram
             if (widget.workoutExercise.exercise.muscleGroups.isNotEmpty &&
@@ -142,6 +156,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
             // Sets, Reps, Rest
             _buildWorkoutInfo(),
+            const SizedBox(height: 12),
+
+            // AI Form Check CTA
+            FormCheckWidget(
+              exerciseName: widget.workoutExercise.exercise.name,
+              exerciseId: int.tryParse(widget.workoutExercise.exercise.id),
+            ),
             const SizedBox(height: 24),
 
             // Equipment
@@ -215,11 +236,34 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
   }
 
+  /// Build PRO badge helper
+  Widget _buildProBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [CleanTheme.accentGold, CleanTheme.accentOrange],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        "PRO",
+        style: GoogleFonts.outfit(
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
   /// Build buttons for similar exercises and alternatives
   Widget _buildExerciseOptionsButtons() {
     final isBodyweight = widget.workoutExercise.exercise.equipment.contains(
       'Bodyweight',
     );
+    final isPremium =
+        context.watch<AuthProvider>().user?.subscription?.isActive ?? false;
 
     return Row(
       children: [
@@ -227,6 +271,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         Expanded(
           child: GestureDetector(
             onTap: () {
+              if (!isPremium) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                );
+                return;
+              }
               SimilarExercisesSheet.show(
                 context,
                 exercise: widget.workoutExercise.exercise,
@@ -246,19 +297,30 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.compare_arrows,
-                    color: CleanTheme.primaryColor,
+                    !isPremium ? Icons.lock_outline : Icons.compare_arrows,
+                    color: !isPremium
+                        ? CleanTheme.textSecondary
+                        : CleanTheme.primaryColor,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    AppLocalizations.of(context)!.similarExercises,
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
+                  Flexible(
+                    child: Text(
+                      AppLocalizations.of(context)!.similarExercises,
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: !isPremium
+                            ? CleanTheme.textSecondary
+                            : CleanTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (!isPremium) ...[
+                    const SizedBox(width: 4),
+                    _buildProBadge(),
+                  ],
                 ],
               ),
             ),
@@ -269,6 +331,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         Expanded(
           child: GestureDetector(
             onTap: () {
+              if (!isPremium) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PaywallScreen()),
+                );
+                return;
+              }
               AlternativeExercisesSheet.show(
                 context,
                 exercise: widget.workoutExercise.exercise,
@@ -292,12 +361,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    isBodyweight
-                        ? Icons.fitness_center
-                        : Icons.accessibility_new,
-                    color: isBodyweight
-                        ? CleanTheme.accentBlue
-                        : CleanTheme.accentGreen,
+                    !isPremium
+                        ? Icons.lock_outline
+                        : (isBodyweight
+                              ? Icons.fitness_center
+                              : Icons.accessibility_new),
+                    color: !isPremium
+                        ? CleanTheme.textSecondary
+                        : (isBodyweight
+                              ? CleanTheme.accentBlue
+                              : CleanTheme.accentGreen),
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -309,17 +382,73 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
+                        color: !isPremium
+                            ? CleanTheme.textSecondary
+                            : CleanTheme.textPrimary,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (!isPremium) ...[
+                    const SizedBox(width: 4),
+                    _buildProBadge(),
+                  ],
                 ],
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTypeBadge() {
+    Color badgeColor;
+    IconData icon;
+    String label;
+
+    final type = widget.workoutExercise.exercise.exerciseType;
+
+    switch (type) {
+      case 'cardio':
+        badgeColor = CleanTheme.accentGold;
+        icon = Icons.bolt;
+        label = 'Cardio';
+        break;
+      case 'warmup':
+        badgeColor = CleanTheme.accentOrange;
+        icon = Icons.self_improvement;
+        label = 'Mobilità';
+        break;
+      case 'strength':
+      default:
+        badgeColor = CleanTheme.primaryColor;
+        icon = Icons.fitness_center;
+        label = 'Workout';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: badgeColor),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: badgeColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

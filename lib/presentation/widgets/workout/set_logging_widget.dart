@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/workout_model.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../data/models/workout_log_model.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../core/services/audio/voice_coaching_player.dart';
@@ -42,12 +44,21 @@ class SetLoggingWidget extends StatefulWidget {
 
   /// Called when rest timer state changes — parent shows fullscreen overlay
   /// Parameters: (bool isActive, int secondsRemaining, int totalSeconds)
-  final Function(bool isActive, int secondsRemaining, int totalSeconds)?
+  /// Parameters: (bool isActive, int secondsRemaining, int totalSeconds, int setNumber)
+  final Function(
+    bool isActive,
+    int secondsRemaining,
+    int totalSeconds,
+    int setNumber,
+  )?
   onRestTimerStateChanged;
 
   /// Whether this is a trial workout (athletic assessment)
   /// If true, logs are not sent to backend immediately, but timer and callbacks still fire.
   final bool isTrial;
+
+  /// Custom debounce time for auto-saving
+  final Duration debounceTime;
 
   const SetLoggingWidget({
     super.key,
@@ -58,6 +69,7 @@ class SetLoggingWidget extends StatefulWidget {
     this.onRestTimerSkipped,
     this.onRestTimerStateChanged,
     this.isTrial = false,
+    this.debounceTime = const Duration(milliseconds: 500),
   });
 
   @override
@@ -65,6 +77,12 @@ class SetLoggingWidget extends StatefulWidget {
 }
 
 class SetLoggingWidgetState extends State<SetLoggingWidget> {
+  // --- Public methods to access controllers from overlay ---
+  TextEditingController? getWeightController(int setNumber) =>
+      _weightControllers[setNumber];
+  TextEditingController? getRepsController(int setNumber) =>
+      _repsControllers[setNumber];
+
   final Map<int, double> _weights = {};
   final Map<int, int> _reps = {};
   final Map<int, int> _rpe = {};
@@ -79,13 +97,19 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   // Previous workout data
   Map<int, Map<String, dynamic>>? _previousData;
 
+  // Preset (Target) data from the workout plan - kept separate to show alongside previous data
+  final Map<int, String> _presetReps = {};
+
   // Rest timer
   Timer? _restTimer;
   int _restSecondsRemaining = 0;
   bool _isRestTimerActive = false;
+  int _activeRestSetNumber = 0;
   final AudioPlayer _timerAudioPlayer = AudioPlayer();
   final AudioPlayer _successAudioPlayer = AudioPlayer();
   final Source _successSource = AssetSource('sounds/success.wav');
+  final Source _countdownSource = AssetSource('sounds/secondi.mp3');
+  final Source _timerEndSource = AssetSource('sounds/tempo-finito.mp3');
 
   // Default rest time from exercise or 60 seconds
   int get _defaultRestSeconds =>
@@ -98,8 +122,55 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _initializeControllers();
     _initializeCoaching();
     _loadPreviousData();
-    // Pre-set success source for zero-latency playback
+    // Pre-load sounds for zero-latency playback
     _successAudioPlayer.setSource(_successSource);
+    _timerAudioPlayer.setSource(_countdownSource);
+    // Use low latency mode if available (depends on audioplayers version, but usually default is fine)
+  }
+
+  @override
+  void didUpdateWidget(SetLoggingWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the exercise log has been updated from outside (e.g. backend refresh)
+    // and we are not currently editing, sync local state.
+    if (widget.exerciseLog != oldWidget.exerciseLog &&
+        widget.exerciseLog != null) {
+      _syncStateWithLog();
+    }
+  }
+
+  void _syncStateWithLog() {
+    if (widget.exerciseLog == null) return;
+
+    setState(() {
+      for (final setLog in widget.exerciseLog!.setLogs) {
+        final num = setLog.setNumber;
+        _weights[num] = setLog.weightKg ?? 0;
+        _reps[num] = setLog.reps;
+        _rpe[num] = setLog.rpe ?? 0;
+        _completedSets[num] = setLog.completed;
+
+        // Update controllers if they exist
+        final weightController = _weightControllers[num];
+        if (weightController != null) {
+          final newText = _weights[num]! % 1 == 0
+              ? _weights[num]!.toInt().toString()
+              : _weights[num]!.toStringAsFixed(1);
+          if (weightController.text != newText &&
+              !_manuallyEditedWeights.contains(num)) {
+            weightController.text = newText;
+          }
+        }
+
+        final repsController = _repsControllers[num];
+        if (repsController != null && !_manuallyEditedReps.contains(num)) {
+          final newText = _reps[num]!.toString();
+          if (repsController.text != newText) {
+            repsController.text = newText;
+          }
+        }
+      }
+    });
   }
 
   /// Create persistent TextEditingControllers for each set — called once in initState
@@ -112,28 +183,117 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                 ? weightVal.toInt().toString()
                 : weightVal.toStringAsFixed(1))
           : '';
-      _weightControllers[i] = TextEditingController(text: weightText);
-      _weightControllers[i]!.addListener(() {
-        final parsed = double.tryParse(_weightControllers[i]!.text);
-        if (parsed != null) {
+      final weightController = TextEditingController(text: weightText);
+      _weightControllers[i] = weightController;
+
+      weightController.addListener(() {
+        final text = weightController.text;
+        final parsed = double.tryParse(text);
+
+        // PERSISTENCE FIX: Only update weight and trigger auto-fill if we have a valid positive number.
+        // If the user clears the field to type a new number, we don't zero it out immediately.
+        if (parsed != null && parsed > 0 && parsed != _weights[i]) {
           _weights[i] = parsed;
-        } else if (_weightControllers[i]!.text.isEmpty) {
+          _handleWeightChange(i, parsed);
+        }
+        // If it's explicitly '0', we allow it, but we don't trigger auto-fill/deletion logic on empty.
+        else if (text == '0' && _weights[i] != 0) {
           _weights[i] = 0;
+          _handleWeightChange(i, 0);
         }
       });
 
       // Reps controller
       final repsVal = _reps[i];
       final repsText = repsVal != null && repsVal > 0 ? repsVal.toString() : '';
-      _repsControllers[i] = TextEditingController(text: repsText);
-      _repsControllers[i]!.addListener(() {
-        final parsed = int.tryParse(_repsControllers[i]!.text);
-        if (parsed != null) {
+      final repsController = TextEditingController(text: repsText);
+      _repsControllers[i] = repsController;
+
+      repsController.addListener(() {
+        final text = repsController.text;
+        final parsed = int.tryParse(text);
+        if (parsed != null && parsed != _reps[i]) {
           _reps[i] = parsed;
-        } else if (_repsControllers[i]!.text.isEmpty) {
+          _manuallyEditedReps.add(i); // Track manual edit
+          _scheduleAutoSave(i);
+        } else if (text.isEmpty && _reps[i] != 0) {
           _reps[i] = 0;
+          _manuallyEditedReps.add(i); // Track manual edit
+          _scheduleAutoSave(i);
         }
       });
+    }
+  }
+
+  // Map to track manual overrides to auto-fill
+  final Set<int> _manuallyEditedWeights = {};
+  final Set<int> _manuallyEditedReps = {};
+
+  // Map for debounce timers
+  final Map<int, Timer?> _autoSaveTimers = {};
+
+  void _handleWeightChange(int setNumber, double weight) {
+    _manuallyEditedWeights.add(setNumber);
+
+    // Auto-fill subsequent sets that haven't been manually edited
+    for (int i = setNumber + 1; i <= widget.exercise.sets; i++) {
+      if (!_manuallyEditedWeights.contains(i)) {
+        _weights[i] = weight;
+        final controller = _weightControllers[i];
+        if (controller != null) {
+          final newText = weight % 1 == 0
+              ? weight.toInt().toString()
+              : weight.toStringAsFixed(1);
+
+          if (controller.text != newText) {
+            controller.text = newText;
+          }
+        }
+      }
+    }
+
+    _scheduleAutoSave(setNumber);
+  }
+
+  void _scheduleAutoSave(int setNumber) {
+    _autoSaveTimers[setNumber]?.cancel();
+    _autoSaveTimers[setNumber] = Timer(widget.debounceTime, () {
+      _persistSetData(setNumber);
+    });
+  }
+
+  Future<void> _persistSetData(int setNumber) async {
+    if (widget.isTrial) return;
+
+    final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+    final isCompleted = _completedSets[setNumber] ?? false;
+
+    // If set is already in a session, update it
+    final setLogId = widget.exerciseLog?.setLogs
+        .firstWhere(
+          (s) => s.setNumber == setNumber,
+          orElse: () => SetLogModel(
+            id: '',
+            exerciseLogId: '',
+            setNumber: setNumber,
+            reps: 0,
+          ),
+        )
+        .id;
+
+    if (setLogId != null && setLogId.isNotEmpty) {
+      await provider.updateSetLog(
+        setLogId: setLogId,
+        exerciseLogId: widget.exerciseLog!.id,
+        reps: _reps[setNumber],
+        weightKg: _weights[setNumber],
+        rpe: _rpe[setNumber],
+        completed: isCompleted,
+      );
+    } else if (isCompleted) {
+      // If not yet completed but data is being entered, we might want to wait or
+      // proactively create a set log. For now, we follow the existing pattern
+      // where _toggleSet handles the initial creation.
     }
   }
 
@@ -154,16 +314,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
     for (int i = 1; i <= widget.exercise.sets; i++) {
       int defaultReps = 0;
+      String currentTargetValue = '10';
       if (repsList.isNotEmpty) {
         final repString = i <= repsList.length
             ? repsList[i - 1]
             : repsList.last;
+        currentTargetValue = repString;
         final match = RegExp(r'(\d+)').firstMatch(repString);
         if (match != null) {
           defaultReps = int.parse(match.group(1)!);
         }
       }
-
+      _presetReps[i] = currentTargetValue;
       _reps[i] = defaultReps;
       _rpe[i] = 7; // Default RPE
 
@@ -196,7 +358,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         widget.exercise.exercise.id,
       );
 
-      if (data != null && data['sets'] != null) {
+      if (data != null && data['has_previous'] == true) {
         final sets = data['sets'] as List;
         final previousMap = <int, Map<String, dynamic>>{};
 
@@ -220,10 +382,13 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         if (mounted) {
           setState(() {
             _previousData = previousMap;
-            // Auto-populate weight controllers with previous data if current is empty
+            // Auto-populate weight & reps controllers with previous data if current is empty
             for (var entry in previousMap.entries) {
               final setNum = entry.key;
               final prevWeight = entry.value['weight_kg'];
+              final prevReps = entry.value['reps'];
+
+              // Sync Weight
               if (_weightControllers.containsKey(setNum) &&
                   (_weightControllers[setNum]!.text.isEmpty ||
                       _weightControllers[setNum]!.text == '0')) {
@@ -234,14 +399,23 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                       : prevWeight.toStringAsFixed(1);
                 }
               }
+
+              // Sync Reps
+              if (_repsControllers.containsKey(setNum) &&
+                  (_repsControllers[setNum]!.text.isEmpty ||
+                      _repsControllers[setNum]!.text == '0' ||
+                      !_manuallyEditedReps.contains(setNum))) {
+                if (prevReps != null && prevReps > 0) {
+                  _reps[setNum] = prevReps;
+                  _repsControllers[setNum]!.text = prevReps.toString();
+                }
+              }
             }
           });
         }
-      } else {
-        // No previous data found, nothing to update
       }
     } catch (e) {
-      // Silently handle — previous data is nice-to-have, not critical
+      // Silently handle
     }
   }
 
@@ -258,13 +432,17 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _restTimer?.cancel();
     _timerAudioPlayer.dispose();
     _successAudioPlayer.dispose();
+    for (final timer in _autoSaveTimers.values) {
+      timer?.cancel();
+    }
     super.dispose();
   }
 
-  void _startRestTimer() {
+  void _startRestTimer(int setNumber) {
     setState(() {
       _restSecondsRemaining = _defaultRestSeconds;
       _isRestTimerActive = true;
+      _activeRestSetNumber = setNumber;
     });
 
     // Notify parent to show fullscreen timer overlay
@@ -272,6 +450,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       true,
       _defaultRestSeconds,
       _defaultRestSeconds,
+      setNumber,
     );
 
     _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -285,21 +464,32 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           true,
           _restSecondsRemaining,
           _defaultRestSeconds,
+          _activeRestSetNumber,
         );
 
-        // Play countdown tick every second during last 3 seconds
-        if (_restSecondsRemaining <= 3 && _restSecondsRemaining > 0) {
-          _timerAudioPlayer.stop().then(
-            (_) => _timerAudioPlayer.play(AssetSource('sounds/secondi.mp3')),
-          );
+        // Sound and haptic feedback at key moments
+        // Play countdown sound for the last 3-1 seconds
+        if (_restSecondsRemaining <= 3 && _restSecondsRemaining >= 1) {
+          // Play tick (secondi.mp3)
+          _playTimerSound(_countdownSource);
+        }
+
+        // ANTICIPATION: Play "tempo-finito.mp3" when 1 second is remaining
+        // This ensures the sound is felt exactly when it hits 0 or just before
+        if (_restSecondsRemaining == 1) {
+          _playTimerSound(_timerEndSource);
         }
       } else {
         _stopRestTimer();
-        _timerAudioPlayer.stop().then(
-          (_) => _timerAudioPlayer.play(AssetSource('sounds/tempo-finito.mp3')),
-        );
+        // We already played "tempo-finito" at 1s, but we still ensure timer is cleared
       }
     });
+  }
+
+  /// Helper to play timer sounds with minimal latency
+  Future<void> _playTimerSound(Source source) async {
+    await _timerAudioPlayer.stop();
+    await _timerAudioPlayer.play(source, mode: PlayerMode.lowLatency);
   }
 
   void _stopRestTimer() {
@@ -309,7 +499,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       _restSecondsRemaining = 0;
     });
     // Notify parent to hide fullscreen timer
-    widget.onRestTimerStateChanged?.call(false, 0, 0);
+    widget.onRestTimerStateChanged?.call(false, 0, 0, 0);
   }
 
   /// Skip the rest timer — called when parent overlay's skip button is pressed
@@ -323,13 +513,13 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   Color _getExerciseTypeColor() {
     switch (widget.exercise.exerciseType) {
       case 'cardio':
-        return CleanTheme.accentOrange; // Orange for cardio
+        return CleanTheme.accentRed;
       case 'mobility':
-        return CleanTheme.accentBlue; // Blue for mobility
+        return CleanTheme.accentOrange;
       case 'warmup':
-        return CleanTheme.accentYellow; // Yellow for warmup
+        return CleanTheme.accentOrange;
       default:
-        return CleanTheme.primaryColor; // Default blue for strength
+        return CleanTheme.primaryColor;
     }
   }
 
@@ -337,6 +527,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   Widget build(BuildContext context) {
     final typeColor = _getExerciseTypeColor();
     final isSpecialType = widget.exercise.exerciseType != 'strength';
+    final isCardioMobility =
+        widget.exercise.exerciseType == 'cardio' ||
+        widget.exercise.exerciseType == 'mobility' ||
+        widget.exercise.exerciseType == 'warmup';
 
     return Container(
       decoration: isSpecialType
@@ -388,7 +582,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
           // Rest Timer is now rendered fullscreen by parent via onRestTimerStateChanged
 
-          // Header
+          // Header — columns change based on exercise type
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
@@ -404,47 +598,68 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'KG',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textSecondary,
-                      letterSpacing: 1,
+                if (!isCardioMobility) ...[
+                  // Strength: KG + REPS
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      'KG',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textSecondary,
+                        letterSpacing: 1,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'REPS',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textSecondary,
-                      letterSpacing: 1,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      'REPS',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textSecondary,
+                        letterSpacing: 1,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'RPE',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textSecondary,
-                      letterSpacing: 1,
+                  const SizedBox(width: 8),
+                  // RPE for strength only
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'RPE',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textSecondary,
+                        letterSpacing: 1,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
+                ] else ...[
+                  // Cardio/Mobility/Warmup: only DURATA
+                  Expanded(
+                    flex: 6,
+                    child: Text(
+                      widget.exercise.exerciseType == 'cardio'
+                          ? 'DURATA'
+                          : 'DURATA / HOLD',
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textSecondary,
+                        letterSpacing: 1,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 40), // Space for checkbox
               ],
             ),
@@ -461,278 +676,376 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
   Widget _buildSetRow(int setNumber) {
     final isCompleted = _completedSets[setNumber] ?? false;
+    final isCardioMobility =
+        widget.exercise.exerciseType == 'cardio' ||
+        widget.exercise.exerciseType == 'mobility' ||
+        widget.exercise.exerciseType == 'warmup';
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: isCompleted
-            ? LinearGradient(
-                colors: [
-                  CleanTheme.accentGreen.withValues(alpha: 0.08),
-                  CleanTheme.accentGreen.withValues(alpha: 0.03),
-                ],
-              )
-            : null,
-        color: isCompleted ? null : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: isCompleted
-            ? Border.all(
-                color: CleanTheme.accentGreen.withValues(alpha: 0.3),
-                width: 1,
-              )
-            : null,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Set Number Badge
-          SizedBox(
-            width: 36,
-            child: Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isCompleted
-                    ? CleanTheme.accentGreen
-                    : CleanTheme.primaryColor.withValues(alpha: 0.08),
-                border: Border.all(
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : CleanTheme.borderPrimary,
-                  width: 1.5,
-                ),
-              ),
-              child: Center(
-                child: isCompleted
-                    ? const Icon(
-                        Icons.check,
-                        size: 14,
-                        color: CleanTheme.textOnPrimary,
-                      )
-                    : Text(
-                        '$setNumber',
-                        style: GoogleFonts.outfit(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: CleanTheme.textPrimary,
-                        ),
-                      ),
-              ),
-            ),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            gradient: isCompleted
+                ? LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      CleanTheme.accentGreen.withValues(alpha: 0.07),
+                      Colors.transparent,
+                    ],
+                  )
+                : null,
+            color: isCompleted ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: isCompleted
+                ? Border.all(
+                    color: CleanTheme.accentGreen.withValues(alpha: 0.25),
+                    width: 1,
+                  )
+                : null,
+            boxShadow: isCompleted
+                ? [
+                    BoxShadow(
+                      color: CleanTheme.accentGreen.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
           ),
-
-          // Weight Input — Rounded Oval
-          Expanded(
-            flex: 3,
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? CleanTheme.accentGreen.withValues(alpha: 0.06)
-                    : CleanTheme.primaryColor.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(22), // Oval
-                border: Border.all(
-                  color: isCompleted
-                      ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                      : CleanTheme.borderPrimary,
-                  width: 1.5,
-                ),
-              ),
-              child: TextField(
-                textAlign: TextAlign.center,
-                controller: _weightControllers[setNumber],
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                scrollPadding: const EdgeInsets.only(bottom: 120),
-                style: GoogleFonts.outfit(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : (_weightControllers[setNumber]!.text.isNotEmpty &&
-                                _previousData != null &&
-                                _previousData![setNumber] != null &&
-                                _weightControllers[setNumber]!.text ==
-                                    (_previousData![setNumber]!['weight_kg'] %
-                                                1 ==
-                                            0
-                                        ? _previousData![setNumber]!['weight_kg']
-                                              .toInt()
-                                              .toString()
-                                        : _previousData![setNumber]!['weight_kg']
-                                              .toStringAsFixed(1))
-                            ? CleanTheme
-                                  .textSecondary // Lighter black for previous
-                            : CleanTheme.textPrimary),
-                ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 4,
-                  ),
-                  hintText: '0',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textTertiary,
-                  ),
-                ),
-                enabled: !isCompleted,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Reps Input — Rounded Oval
-          Expanded(
-            flex: 3,
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? CleanTheme.accentGreen.withValues(alpha: 0.06)
-                    : CleanTheme.primaryColor.withValues(alpha: 0.03),
-                borderRadius: BorderRadius.circular(22), // Oval
-                border: Border.all(
-                  color: isCompleted
-                      ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                      : CleanTheme.borderPrimary,
-                  width: 1.5,
-                ),
-              ),
-              child: TextField(
-                textAlign: TextAlign.center,
-                controller: _repsControllers[setNumber],
-                keyboardType: TextInputType.number,
-                scrollPadding: const EdgeInsets.only(bottom: 120),
-                style: GoogleFonts.outfit(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : CleanTheme.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 4,
-                  ),
-                  hintText: widget.exercise.reps,
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textTertiary,
-                  ),
-                ),
-                enabled: !isCompleted,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // RPE Selector — Compact
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: isCompleted ? null : () => _showRPEPicker(setNumber),
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: _getRPEColor(
-                    _rpe[setNumber] ?? 7,
-                  ).withValues(alpha: isCompleted ? 0.1 : 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _getRPEColor(
-                      _rpe[setNumber] ?? 7,
-                    ).withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '${_rpe[setNumber] ?? 7}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: _getRPEColor(_rpe[setNumber] ?? 7),
+          clipBehavior: Clip.hardEdge,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left accent bar
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 3,
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? CleanTheme.accentGreen
+                        : CleanTheme.chromeSubtle,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // Premium Checkbox Button
-          GestureDetector(
-            onTap: () {
-              if (!isCompleted) {
-                // Haptic and sound IMMEDIATELY on tap for zero perceived latency
-                HapticService.mediumTap();
-                _successAudioPlayer
-                    .resume(); // Resume is faster than play if source is set
-                // Also reset for next time
-                _successAudioPlayer.setSource(_successSource);
-              }
-              _toggleSet(setNumber, !isCompleted);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? CleanTheme.accentGreen
-                    : CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : CleanTheme.borderPrimary,
-                  width: 2,
-                ),
-                boxShadow: isCompleted
-                    ? [
-                        BoxShadow(
-                          color: CleanTheme.accentGreen.withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Set Number Badge
+                      SizedBox(
+                        width: 36,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isCompleted
+                                ? CleanTheme.accentGreen
+                                : CleanTheme.steelDark.withValues(alpha: 0.06),
+                            border: Border.all(
+                              color: isCompleted
+                                  ? CleanTheme.accentGreen
+                                  : CleanTheme.chromeGray.withValues(
+                                      alpha: 0.6,
+                                    ),
+                              width: isCompleted ? 0 : 1.5,
+                            ),
+                          ),
+                          child: Center(
+                            child: isCompleted
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 13,
+                                    color: CleanTheme.textOnPrimary,
+                                  )
+                                : Text(
+                                    '$setNumber',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: CleanTheme.textPrimary,
+                                    ),
+                                  ),
+                          ),
                         ),
-                      ]
-                    : [],
-              ),
-              child: Center(
-                child: Icon(
-                  isCompleted ? Icons.check_rounded : Icons.check_rounded,
-                  size: 22,
-                  color: isCompleted
-                      ? CleanTheme.textOnPrimary
-                      : CleanTheme.textTertiary,
+                      ),
+
+                      // Weight Input — only for strength exercises
+                      if (!isCardioMobility) ...[
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isCompleted
+                                  ? CleanTheme.accentGreen.withValues(
+                                      alpha: 0.06,
+                                    )
+                                  : CleanTheme.chromeSubtle.withValues(
+                                      alpha: 0.5,
+                                    ),
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: isCompleted
+                                    ? CleanTheme.accentGreen.withValues(
+                                        alpha: 0.3,
+                                      )
+                                    : CleanTheme.borderSecondary,
+                                width: 1,
+                              ),
+                            ),
+                            child: TextField(
+                              textAlign: TextAlign.center,
+                              controller: _weightControllers[setNumber],
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              scrollPadding: const EdgeInsets.only(bottom: 120),
+                              // Quando il campo mostra ancora il peso precedente (grigio),
+                              // al tap seleziona tutto così il primo tasto sostituisce il valore.
+                              onTap: () {
+                                final isGhost =
+                                    !_manuallyEditedWeights.contains(
+                                      setNumber,
+                                    ) &&
+                                    (_weightControllers[setNumber]
+                                            ?.text
+                                            .isNotEmpty ??
+                                        false);
+                                if (isGhost) {
+                                  _weightControllers[setNumber]!
+                                      .selection = TextSelection(
+                                    baseOffset: 0,
+                                    extentOffset: _weightControllers[setNumber]!
+                                        .text
+                                        .length,
+                                  );
+                                }
+                              },
+                              style: GoogleFonts.outfit(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: isCompleted
+                                    ? CleanTheme.accentGreen
+                                    : (!_manuallyEditedWeights.contains(
+                                                setNumber,
+                                              ) &&
+                                              _weightControllers[setNumber]!
+                                                  .text
+                                                  .isNotEmpty
+                                          ? CleanTheme.textSecondary.withValues(
+                                              alpha: 0.5,
+                                            )
+                                          : CleanTheme.textPrimary),
+                              ),
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 4,
+                                ),
+                                hintText: '0',
+                                hintStyle: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: CleanTheme.textTertiary,
+                                ),
+                              ),
+                              enabled: true,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+                      ],
+
+                      // Reps/Duration Input — Rounded Oval
+                      Expanded(
+                        flex: isCardioMobility ? 6 : 3,
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isCompleted
+                                ? CleanTheme.accentGreen.withValues(alpha: 0.06)
+                                : CleanTheme.chromeSubtle.withValues(
+                                    alpha: 0.5,
+                                  ),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: isCompleted
+                                  ? CleanTheme.accentGreen.withValues(
+                                      alpha: 0.3,
+                                    )
+                                  : CleanTheme.borderSecondary,
+                              width: 1,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              TextField(
+                                textAlign: TextAlign.center,
+                                controller: _repsControllers[setNumber],
+                                keyboardType: TextInputType.number,
+                                onTap: () {
+                                  final isGhost =
+                                      !_manuallyEditedReps.contains(
+                                        setNumber,
+                                      ) &&
+                                      (_repsControllers[setNumber]
+                                              ?.text
+                                              .isNotEmpty ??
+                                          false);
+                                  if (isGhost) {
+                                    _repsControllers[setNumber]!
+                                        .selection = TextSelection(
+                                      baseOffset: 0,
+                                      extentOffset: _repsControllers[setNumber]!
+                                          .text
+                                          .length,
+                                    );
+                                  }
+                                },
+                                style: GoogleFonts.outfit(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: isCompleted
+                                      ? CleanTheme.accentGreen
+                                      : (!_manuallyEditedReps.contains(
+                                                  setNumber,
+                                                ) &&
+                                                _repsControllers[setNumber]!
+                                                    .text
+                                                    .isNotEmpty
+                                            ? CleanTheme.textSecondary
+                                                  .withValues(alpha: 0.5)
+                                            : CleanTheme.textPrimary),
+                                ),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.only(
+                                    top: 18,
+                                    bottom: 6,
+                                    left: 4,
+                                    right: 4,
+                                  ),
+                                  hintText: _presetReps[setNumber] ?? '10',
+                                  hintStyle: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    color: CleanTheme.textTertiary,
+                                  ),
+                                ),
+                                enabled: true,
+                              ),
+                              Positioned(
+                                top: 4,
+                                left: 0,
+                                right: 0,
+                                child: Text(
+                                  isCardioMobility
+                                      ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                                      : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 7,
+                                    fontWeight: FontWeight.w800,
+                                    color: CleanTheme.textTertiary.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                    letterSpacing: 0.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      // RPE Selector — only for strength exercises
+                      if (!isCardioMobility)
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: isCompleted
+                                ? null
+                                : () => _showRPEPicker(setNumber),
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: _getRPEColor(
+                                  _rpe[setNumber] ?? 7,
+                                ).withValues(alpha: isCompleted ? 0.08 : 0.12),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _getRPEColor(
+                                    _rpe[setNumber] ?? 7,
+                                  ).withValues(alpha: 0.35),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${_rpe[setNumber] ?? 7}',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: _getRPEColor(_rpe[setNumber] ?? 7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(width: 8),
+
+                      // Premium Animated Checkbox
+                      _PremiumCheckbox(
+                        isCompleted: isCompleted,
+                        onTap: () {
+                          if (!isCompleted) {
+                            HapticService.mediumTap();
+                            _successAudioPlayer.resume();
+                            _successAudioPlayer.setSource(_successSource);
+                          }
+                          _toggleSet(setNumber, !isCompleted);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
+        )
+        .animate(delay: (setNumber * 50).ms)
+        .fade(duration: 400.ms)
+        .slideX(begin: 0.1, duration: 400.ms, curve: Curves.easeOutCubic)
+        .animate(
+          target: isCompleted ? 1 : 0,
+        ) // Secondary animation triggered by completion
+        .shimmer(
+          duration: 800.ms,
+          color: CleanTheme.accentGreen.withValues(alpha: 0.3),
+        );
   }
 
   Color _getRPEColor(int rpe) {
     if (rpe <= 4) return CleanTheme.accentGreen;
-    if (rpe <= 6) return CleanTheme.accentYellow;
-    if (rpe <= 8) return CleanTheme.accentOrange;
+    if (rpe <= 6) return CleanTheme.accentGold;
+    if (rpe <= 8) return CleanTheme.accentGold;
     return CleanTheme.accentRed;
   }
 
@@ -776,6 +1089,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                     setState(() {
                       _rpe[setNumber] = rpeValue;
                     });
+                    _scheduleAutoSave(setNumber);
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -822,14 +1136,14 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                   '5-6: Medio',
                   style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: CleanTheme.accentYellow,
+                    color: CleanTheme.accentGold,
                   ),
                 ),
                 Text(
                   '7-8: Difficile',
                   style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: CleanTheme.accentOrange,
+                    color: CleanTheme.accentGold,
                   ),
                 ),
                 Text(
@@ -854,10 +1168,12 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       _completedSets[setNumber] = value;
     });
 
+    _scheduleAutoSave(setNumber);
+
     // Start rest timer IMMEDIATELY after checking the set for instant feedback
     if (value && setNumber <= widget.exercise.sets && !_isRestTimerActive) {
       // Sound is now handled in onTap for faster response
-      _startRestTimer();
+      _startRestTimer(setNumber);
     }
 
     // [NEW] Trial Workout Logic: Bypass backend logging, just do UI/Timer/Callback
@@ -1137,4 +1453,229 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       ),
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PREMIUM ANIMATED CHECKBOX
+// ═══════════════════════════════════════════════════════════
+
+class _PremiumCheckbox extends StatefulWidget {
+  final bool isCompleted;
+  final VoidCallback onTap;
+
+  const _PremiumCheckbox({required this.isCompleted, required this.onTap});
+
+  @override
+  State<_PremiumCheckbox> createState() => _PremiumCheckboxState();
+}
+
+class _PremiumCheckboxState extends State<_PremiumCheckbox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnim;
+  late Animation<double> _strokeAnim;
+  late Animation<double> _glowAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    );
+
+    // Spring scale: 0.85 → 1.18 → 1.0
+    _scaleAnim = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.85,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 1,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.85,
+          end: 1.18,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 2,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.18,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.elasticOut)),
+        weight: 3,
+      ),
+    ]).animate(_controller);
+
+    // Checkmark stroke draw-in
+    _strokeAnim = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.2, 0.85, curve: Curves.easeOut),
+    );
+
+    // Glow fades in then out
+    _glowAnim = TweenSequence([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 3,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.3,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 4,
+      ),
+    ]).animate(_controller);
+
+    if (widget.isCompleted) {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(_PremiumCheckbox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCompleted && !oldWidget.isCompleted) {
+      _controller.forward(from: 0);
+    } else if (!widget.isCompleted && oldWidget.isCompleted) {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final glowOpacity = widget.isCompleted ? _glowAnim.value : 0.0;
+          return Transform.scale(
+            scale: widget.isCompleted ? _scaleAnim.value : 1.0,
+            child: Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: widget.isCompleted
+                    ? CleanTheme.accentGreen
+                    : CleanTheme.surfaceColor,
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(
+                  color: widget.isCompleted
+                      ? CleanTheme.accentGreen
+                      : CleanTheme.chromeGray.withValues(alpha: 0.5),
+                  width: widget.isCompleted ? 0 : 1.5,
+                ),
+                boxShadow: [
+                  if (widget.isCompleted)
+                    BoxShadow(
+                      color: CleanTheme.accentGreen.withValues(
+                        alpha: 0.45 * glowOpacity,
+                      ),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 2),
+                    ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: CustomPaint(
+                painter: _CheckmarkPainter(
+                  progress: widget.isCompleted ? _strokeAnim.value : 0.0,
+                  color: CleanTheme.textOnPrimary,
+                  emptyColor: CleanTheme.chromeGray.withValues(alpha: 0.3),
+                  isEmpty: !widget.isCompleted,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CheckmarkPainter extends CustomPainter {
+  final double progress; // 0.0 → 1.0 draw-in
+  final Color color;
+  final Color emptyColor;
+  final bool isEmpty;
+
+  _CheckmarkPainter({
+    required this.progress,
+    required this.color,
+    required this.emptyColor,
+    required this.isEmpty,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (isEmpty) {
+      // Draw a subtle grey checkmark outline when uncompleted
+      final paint = Paint()
+        ..color = emptyColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+
+      final path = _buildCheckPath(size);
+      canvas.drawPath(path, paint);
+      return;
+    }
+
+    if (progress <= 0) return;
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    // Create path metrics to draw partial path
+    final fullPath = _buildCheckPath(size);
+    final metrics = fullPath.computeMetrics().toList();
+    final totalLength = metrics.fold<double>(0, (sum, m) => sum + m.length);
+    final drawLength = totalLength * progress;
+
+    double remaining = drawLength;
+    for (final metric in metrics) {
+      if (remaining <= 0) break;
+      final segLen = math.min(remaining, metric.length);
+      canvas.drawPath(metric.extractPath(0, segLen), paint);
+      remaining -= segLen;
+    }
+  }
+
+  Path _buildCheckPath(Size size) {
+    final path = Path();
+    final w = size.width;
+    final h = size.height;
+    // Classic checkmark: bottom-left to center-bottom to top-right
+    path.moveTo(w * 0.22, h * 0.50);
+    path.lineTo(w * 0.42, h * 0.68);
+    path.lineTo(w * 0.78, h * 0.32);
+    return path;
+  }
+
+  @override
+  bool shouldRepaint(_CheckmarkPainter old) =>
+      old.progress != progress || old.isEmpty != isEmpty;
 }

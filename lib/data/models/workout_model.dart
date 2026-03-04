@@ -15,6 +15,7 @@ class Exercise {
   final VoiceCoaching? voiceCoaching;
   final String? displayName;
   final String? displayDescription;
+  final String exerciseType; // 'strength', 'cardio', 'warmup'
 
   Exercise({
     required this.id,
@@ -30,6 +31,7 @@ class Exercise {
     this.voiceCoaching,
     this.displayName,
     this.displayDescription,
+    this.exerciseType = 'strength',
   }) : _name = name,
        _description = description;
 
@@ -55,6 +57,7 @@ class Exercise {
       'secondaryMuscleGroups': secondaryMuscleGroups,
       'difficulty': difficulty.toString(),
       'equipment': equipment,
+      'exercise_type': exerciseType,
     };
   }
 
@@ -84,6 +87,7 @@ class Exercise {
       voiceCoaching: voiceCoaching,
       displayName: json['display_name']?.toString(),
       displayDescription: json['display_description']?.toString(),
+      exerciseType: json['exercise_type']?.toString() ?? 'strength',
     );
   }
 
@@ -276,7 +280,7 @@ class WorkoutDay {
               ?.map((e) => WorkoutExercise.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      estimatedDuration: json['estimated_duration'] as int,
+      estimatedDuration: json['estimated_duration'] as int? ?? 0,
     );
   }
 }
@@ -291,6 +295,7 @@ class WorkoutPlan {
   final List<WorkoutDay> workouts;
   final String status;
   final String? errorMessage;
+  final String? aiGenerationNotes;
 
   WorkoutPlan({
     required this.id,
@@ -301,6 +306,7 @@ class WorkoutPlan {
     required this.workouts,
     this.status = 'completed',
     this.errorMessage,
+    this.aiGenerationNotes,
   });
 
   // Getter for backward compatibility
@@ -316,6 +322,7 @@ class WorkoutPlan {
       'workouts': workouts.map((w) => w.toJson()).toList(),
       'status': status,
       'errorMessage': errorMessage,
+      'aiGenerationNotes': aiGenerationNotes,
     };
   }
 
@@ -335,6 +342,7 @@ class WorkoutPlan {
           [],
       status: json['status'] ?? 'completed',
       errorMessage: json['error_message'],
+      aiGenerationNotes: json['ai_generation_notes'],
     );
   }
 }

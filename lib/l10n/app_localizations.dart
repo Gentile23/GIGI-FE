@@ -337,13 +337,13 @@ abstract class AppLocalizations {
   /// No description provided for @slogan.
   ///
   /// In it, this message translates to:
-  /// **'La tua evoluzione fitness,\nguidata dall\'intelligenza.'**
+  /// **'Sblocca la versione migliore di te,\npotenziata dall\'AI.'**
   String get slogan;
 
   /// No description provided for @sloganSubtitle.
   ///
   /// In it, this message translates to:
-  /// **'Allenati con intelligenza. Ottieni risultati.'**
+  /// **'Zero dubbi. Allenamenti scientifici. Solo risultati veri.'**
   String get sloganSubtitle;
 
   /// No description provided for @invalidCredentials.
@@ -2434,6 +2434,24 @@ abstract class AppLocalizations {
   /// **'INIZIAMO!'**
   String get introButton;
 
+  /// No description provided for @introTitleUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'Ci siamo, {name}! ⚡'**
+  String introTitleUpdate(String name);
+
+  /// No description provided for @introDescriptionUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'Analizziamo i tuoi progressi per creare un piano ancora più potente. Ti farò qualche domanda per aggiornare le tue preferenze.'**
+  String get introDescriptionUpdate;
+
+  /// No description provided for @introButtonUpdate.
+  ///
+  /// In it, this message translates to:
+  /// **'AGGIORNA SCHEDA'**
+  String get introButtonUpdate;
+
   /// No description provided for @sectionAboutYou.
   ///
   /// In it, this message translates to:
@@ -3481,7 +3499,7 @@ abstract class AppLocalizations {
   /// No description provided for @workoutNameLabel.
   ///
   /// In it, this message translates to:
-  /// **'Nome Scheda *'**
+  /// **'Nome Scheda'**
   String get workoutNameLabel;
 
   /// No description provided for @workoutNameRequired.
@@ -6909,6 +6927,36 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Seleziona video e inserisci nome esercizio'**
   String get selectVideoAndExercise;
+
+  /// No description provided for @bestPracticesTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'📸 Per un\'Analisi Perfetta'**
+  String get bestPracticesTitle;
+
+  /// No description provided for @bestPractice1.
+  ///
+  /// In it, this message translates to:
+  /// **'Registra di lato (profilo) o frontalmente.'**
+  String get bestPractice1;
+
+  /// No description provided for @bestPractice2.
+  ///
+  /// In it, this message translates to:
+  /// **'Mantieni il telefono fermo o appoggialo.'**
+  String get bestPractice2;
+
+  /// No description provided for @bestPractice3.
+  ///
+  /// In it, this message translates to:
+  /// **'Inquadra tutto il corpo durante il movimento.'**
+  String get bestPractice3;
+
+  /// No description provided for @bestPractice4.
+  ///
+  /// In it, this message translates to:
+  /// **'Resta nei 15 secondi di limite massimo.'**
+  String get bestPractice4;
 
   /// No description provided for @ml.
   ///

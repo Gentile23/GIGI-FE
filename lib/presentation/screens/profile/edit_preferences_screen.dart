@@ -36,7 +36,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   int? _sessionDuration;
   CardioPreference? _cardioPreference;
   MobilityPreference? _mobilityPreference;
-  WorkoutType? _workoutType;
   double? _height;
   double? _weight;
   Gender? _gender;
@@ -163,15 +162,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             orElse: () => MobilityPreference.postWorkout,
           );
         }
-
-        if (user.workoutType != null) {
-          _workoutType = WorkoutType.values.firstWhere(
-            (e) =>
-                e.toString().split('.').last.toLowerCase() ==
-                user.workoutType!.toLowerCase(),
-            orElse: () => WorkoutType.hypertrophy,
-          );
-        }
       });
     }
   }
@@ -204,7 +194,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         sessionDuration: _sessionDuration,
         cardioPreference: _cardioPreference?.toString().split('.').last,
         mobilityPreference: _mobilityPreference?.toString().split('.').last,
-        workoutType: _workoutType?.toString().split('.').last,
         silent: true,
       );
 
@@ -371,13 +360,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             _buildSectionTitle(
               AppLocalizations.of(context)!.trainingPreferences,
             ),
-            _buildDropdown<WorkoutType>(
-              label: AppLocalizations.of(context)!.workoutType,
-              value: _workoutType,
-              items: WorkoutType.values,
-              itemLabel: _getWorkoutTypeLabel,
-              onChanged: (value) => setState(() => _workoutType = value),
-            ),
             _buildDropdown<TrainingSplit>(
               label: AppLocalizations.of(context)!.trainingSplit,
               value: _trainingSplit,
@@ -398,14 +380,18 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             _buildDropdown<CardioPreference>(
               label: AppLocalizations.of(context)!.cardioPreference,
               value: _cardioPreference,
-              items: CardioPreference.values,
+              items: CardioPreference.values
+                  .where((p) => p != CardioPreference.separateSession)
+                  .toList(),
               itemLabel: (pref) => pref.displayName,
               onChanged: (value) => setState(() => _cardioPreference = value),
             ),
             _buildDropdown<MobilityPreference>(
               label: AppLocalizations.of(context)!.mobilityPreference,
               value: _mobilityPreference,
-              items: MobilityPreference.values,
+              items: MobilityPreference.values
+                  .where((p) => p != MobilityPreference.dedicatedSession)
+                  .toList(),
               itemLabel: (pref) => pref.displayName,
               onChanged: (value) => setState(() => _mobilityPreference = value),
             ),
@@ -590,7 +576,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: FitnessGoal.values.map((goal) {
+            children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((
+              goal,
+            ) {
               final isSelected = _goals.contains(goal);
               return FilterChip(
                 label: Text(
@@ -774,21 +762,6 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         return AppLocalizations.of(context)!.machines;
       case Equipment.bodyweight:
         return AppLocalizations.of(context)!.bodyweight;
-    }
-  }
-
-  String _getWorkoutTypeLabel(WorkoutType type) {
-    switch (type) {
-      case WorkoutType.strength:
-        return AppLocalizations.of(context)!.strength;
-      case WorkoutType.hypertrophy:
-        return AppLocalizations.of(context)!.ipertrofia;
-      case WorkoutType.endurance:
-        return AppLocalizations.of(context)!.endurance;
-      case WorkoutType.functional:
-        return AppLocalizations.of(context)!.functional;
-      case WorkoutType.calisthenics:
-        return AppLocalizations.of(context)!.calisthenics;
     }
   }
 }

@@ -43,10 +43,18 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
     }
   }
 
+  static String? _cachedSvgString;
+
   Future<void> _loadAndModifySvg() async {
     try {
       // Load the SVG file
-      String svgString = await rootBundle.loadString('assets/images/body.svg');
+      String svgString;
+      if (_cachedSvgString != null) {
+        svgString = _cachedSvgString!;
+      } else {
+        svgString = await rootBundle.loadString('assets/images/body.svg');
+        _cachedSvgString = svgString;
+      }
 
       // Parse XML
       final document = xml.XmlDocument.parse(svgString);
@@ -74,15 +82,19 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
 
       // Modify SVG to highlight specific muscles
       _highlightMusclesInXml(document, elementColors);
-      setState(() {
-        _svgContent = document.toXmlString();
-        _hasError = false;
-      });
+      if (mounted) {
+        setState(() {
+          _svgContent = document.toXmlString();
+          _hasError = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading SVG: $e');
-      setState(() {
-        _hasError = true;
-      });
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+        });
+      }
     }
   }
 

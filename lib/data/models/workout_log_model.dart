@@ -32,7 +32,9 @@ class WorkoutLog {
       userId: json['user_id'].toString(),
       workoutPlanId: json['workout_plan_id']?.toString(),
       workoutDayId: json['workout_day_id']?.toString(),
-      startedAt: DateTime.parse(json['started_at']),
+      startedAt: json['started_at'] != null
+          ? DateTime.parse(json['started_at'])
+          : DateTime.now(),
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'])
           : null,

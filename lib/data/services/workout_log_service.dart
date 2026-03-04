@@ -195,6 +195,7 @@ class WorkoutLogService extends ApiService {
 
       if (response['success'] == true && response['has_previous'] == true) {
         return {
+          'has_previous': true,
           'workout_date': response['workout_date'],
           'sets': response['sets'] as List,
         };

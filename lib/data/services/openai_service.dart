@@ -108,6 +108,8 @@ Regole fondamentali:
 7. I nomi degli esercizi devono essere SEMPRE in INGLESE (es. "Bench Press" non "Panca Piana")
 8. Rispetta RIGOROSAMENTE l'ordine di Cardio e Mobilità indicato nelle preferenze
 9. Se fornite le misure corporee, analizza le proporzioni e suggerisci focus specifici
+10. Per ogni gruppo muscolare allenato in una sessione, DEVI includere un MINIMO di 3 esercizi
+11. RAGGRUPPA gli esercizi per gruppo muscolare: tutti gli esercizi dello stesso gruppo devono essere consecutivi. Non alternare esercizi di gruppi diversi (es. NON fare petto, poi tricipiti, poi petto; DEVI fare tutto il petto e poi tutti i tricipiti)
 ''';
   }
 
@@ -370,25 +372,30 @@ Regole fondamentali:
       // ORDERING INSTRUCTIONS
       buffer.writeln('');
       buffer.writeln('ISTRUZIONI ORDINE ESERCIZI:');
+      buffer.writeln(
+        'NOTA: Cardio e Mobilità sono gestiti separatamente. Genera SOLO esercizi di forza.',
+      );
 
-      // Cardio Ordering
-      if (prefs.cardioPreference.toString().contains('warmUp')) {
+      // Cardio context for warmup/cooldown description
+      if (prefs.cardioPreference.name == 'warmUp') {
         buffer.writeln(
-          '- INCLUDI il Cardio nel campo "warmup" (Riscaldamento)',
+          '- Descrivi nel campo "warmup" che il riscaldamento include cardio leggero (5-10 min)',
         );
-      } else if (prefs.cardioPreference.toString().contains('postWorkout')) {
+      } else if (prefs.cardioPreference.name == 'postWorkout') {
         buffer.writeln(
-          '- INCLUDI il Cardio nel campo "cooldown" o come ultimo esercizio',
+          '- Descrivi nel campo "cooldown" che include cardio post-allenamento (15-20 min)',
         );
       }
 
-      // Mobility Ordering
-      if (prefs.mobilityPreference.toString().contains('preWorkout')) {
+      // Mobility context for warmup/cooldown description
+      if (prefs.mobilityPreference.name == 'preWorkout') {
         buffer.writeln(
-          '- INCLUDI la Mobilità nel campo "warmup" PRIMA del workouot principale',
+          '- Descrivi nel campo "warmup" che include mobilità pre-allenamento',
         );
-      } else if (prefs.mobilityPreference.toString().contains('postWorkout')) {
-        buffer.writeln('- INCLUDI lo Stretching/Mobilità nel campo "cooldown"');
+      } else if (prefs.mobilityPreference.name == 'postWorkout') {
+        buffer.writeln(
+          '- Descrivi nel campo "cooldown" che include stretching/mobilità',
+        );
       }
       buffer.writeln('');
     }

@@ -1,1 +1,56 @@
-{}
+{
+  "ar": [
+    "introTitleUpdate",
+    "introDescriptionUpdate",
+    "introButtonUpdate",
+    "bestPracticesTitle",
+    "bestPractice1",
+    "bestPractice2",
+    "bestPractice3",
+    "bestPractice4"
+  ],
+
+  "de": [
+    "introTitleUpdate",
+    "introDescriptionUpdate",
+    "introButtonUpdate",
+    "bestPracticesTitle",
+    "bestPractice1",
+    "bestPractice2",
+    "bestPractice3",
+    "bestPractice4"
+  ],
+
+  "en": [
+    "introTitleUpdate",
+    "introDescriptionUpdate",
+    "introButtonUpdate",
+    "bestPracticesTitle",
+    "bestPractice1",
+    "bestPractice2",
+    "bestPractice3",
+    "bestPractice4"
+  ],
+
+  "fr": [
+    "introTitleUpdate",
+    "introDescriptionUpdate",
+    "introButtonUpdate",
+    "bestPracticesTitle",
+    "bestPractice1",
+    "bestPractice2",
+    "bestPractice3",
+    "bestPractice4"
+  ],
+
+  "pt": [
+    "introTitleUpdate",
+    "introDescriptionUpdate",
+    "introButtonUpdate",
+    "bestPracticesTitle",
+    "bestPractice1",
+    "bestPractice2",
+    "bestPractice3",
+    "bestPractice4"
+  ]
+}

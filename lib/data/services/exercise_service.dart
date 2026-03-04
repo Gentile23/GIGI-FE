@@ -25,6 +25,7 @@ class ExerciseService {
     String? difficulty,
     String? muscleGroup,
     String? equipment,
+    String? exerciseType,
     String? locale,
   }) async {
     try {
@@ -32,6 +33,7 @@ class ExerciseService {
       if (difficulty != null) queryParams['difficulty'] = difficulty;
       if (muscleGroup != null) queryParams['muscle_group'] = muscleGroup;
       if (equipment != null) queryParams['equipment'] = equipment;
+      if (exerciseType != null) queryParams['exercise_type'] = exerciseType;
       // Add locale for translations
       queryParams['locale'] = locale ?? _getLocale();
 

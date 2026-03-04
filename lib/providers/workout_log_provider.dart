@@ -186,6 +186,34 @@ class WorkoutLogProvider with ChangeNotifier {
     return await _logService.getExerciseLastPerformance(exerciseId);
   }
 
+  /// Update an existing set log
+  Future<void> updateSetLog({
+    required String setLogId,
+    required String exerciseLogId, // Needed for local state update
+    int? reps,
+    double? weightKg,
+    int? durationSeconds,
+    int? rpe,
+    bool? completed,
+  }) async {
+    try {
+      final updatedSet = await _logService.updateSetLog(
+        setLogId,
+        reps: reps,
+        weightKg: weightKg,
+        durationSeconds: durationSeconds,
+        rpe: rpe,
+        completed: completed,
+      );
+
+      // Update local state
+      _updateLocalSetLog(exerciseLogId, updatedSet);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating set log: $e');
+    }
+  }
+
   // Helper to update local state deeply
   void _updateLocalSetLog(String exerciseLogId, SetLogModel setLog) {
     if (_currentWorkoutLog == null) return;
@@ -203,11 +231,19 @@ class WorkoutLogProvider with ChangeNotifier {
       if (setIndex != -1) {
         exerciseLog.setLogs[setIndex] = setLog;
       } else {
-        exerciseLog.setLogs.add(setLog);
+        // Also check if setNumber already exists to avoid duplicates
+        final setNumberIndex = exerciseLog.setLogs.indexWhere(
+          (s) => s.setNumber == setLog.setNumber,
+        );
+        if (setNumberIndex != -1) {
+          exerciseLog.setLogs[setNumberIndex] = setLog;
+        } else {
+          exerciseLog.setLogs.add(setLog);
+        }
       }
 
-      // We need to trigger a rebuild of the object tree if we want immutable updates
-      // For now, we're mutating the list which works with ChangeNotifier
+      // Sort sets by set number to keep UI consistent
+      exerciseLog.setLogs.sort((a, b) => a.setNumber.compareTo(b.setNumber));
     }
   }
 

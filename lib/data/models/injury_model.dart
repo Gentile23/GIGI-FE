@@ -52,14 +52,25 @@ class InjuryModel {
       id: json['id'] as String,
       category: InjuryCategory.values.firstWhere(
         (e) => e.name == json['category'],
+        orElse: () => InjuryCategory.muscular,
       ),
-      area: InjuryArea.values.firstWhere((e) => e.name == json['area']),
+      area: InjuryArea.values.firstWhere(
+        (e) => e.name == json['area'],
+        orElse: () => InjuryArea.neck,
+      ),
       severity: InjurySeverity.values.firstWhere(
         (e) => e.name == json['severity'],
+        orElse: () => InjurySeverity.mild,
       ),
-      status: InjuryStatus.values.firstWhere((e) => e.name == json['status']),
+      status: InjuryStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => InjuryStatus.active,
+      ),
       timing: json['timing'] != null
-          ? InjuryTiming.values.firstWhere((e) => e.name == json['timing'])
+          ? InjuryTiming.values.firstWhere(
+              (e) => e.name == json['timing'],
+              orElse: () => InjuryTiming.current,
+            )
           : InjuryTiming.current,
       side: json['side'] as String?,
       isOvercome: json['is_overcome'] as bool?,

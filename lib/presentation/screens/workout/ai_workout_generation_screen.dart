@@ -6,6 +6,7 @@ import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
 import '../../../data/models/workout_model.dart';
+import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/theme/clean_theme.dart';
 
 /// Screen for generating AI-powered workout plan
@@ -29,6 +30,11 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
   WorkoutPlan? _generatedPlan;
   String? _errorMessage;
 
+  bool get _isPremium => [
+    SubscriptionTier.pro,
+    SubscriptionTier.elite,
+  ].contains(widget.user.subscriptionTier);
+
   Future<void> _generatePlan() async {
     setState(() {
       _isGenerating = true;
@@ -42,7 +48,9 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
         listen: false,
       );
 
-      final success = await workoutProvider.generatePlan();
+      final success = await workoutProvider.generatePlan(
+        includeHistory: _isPremium,
+      );
 
       if (success) {
         setState(() {
@@ -431,6 +439,80 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
           ),
 
           const SizedBox(height: 24),
+
+          // AI Reasoning Card (Premium only)
+          if (_generatedPlan!.aiGenerationNotes != null &&
+              _generatedPlan!.aiGenerationNotes!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    CleanTheme.accentGold.withValues(alpha: 0.15),
+                    CleanTheme.accentGold.withValues(alpha: 0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CleanTheme.accentGold.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        color: CleanTheme.accentGold,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Perché questa scheda',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: CleanTheme.accentGold,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.accentGold.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'PREMIUM',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.accentGold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _generatedPlan!.aiGenerationNotes!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CleanTheme.textPrimary,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Workouts
           const Text(

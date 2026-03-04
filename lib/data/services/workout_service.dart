@@ -210,6 +210,10 @@ class WorkoutService {
           : <String>[];
 
       final workoutExercises = exercisesData.map((ex) {
+        // Parse exercise_type and position from AI response
+        final exerciseType = ex['exercise_type'] as String? ?? 'strength';
+        final position = ex['position'] as String? ?? 'main';
+
         // Create Exercise object
         final exercise = Exercise(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -218,15 +222,18 @@ class WorkoutService {
           muscleGroups: focusAreas,
           difficulty: ExerciseDifficulty.intermediate,
           equipment: [],
+          exerciseType: exerciseType,
         );
 
-        // Create WorkoutExercise with sets/reps
+        // Create WorkoutExercise with sets/reps and type/position
         return WorkoutExercise(
           exercise: exercise,
           sets: ex['sets'] as int,
           reps: ex['reps'].toString(),
           restSeconds: _parseRestSeconds(ex['rest'] as String),
           notes: ex['notes'] as String?,
+          exerciseType: exerciseType,
+          position: position,
         );
       }).toList();
 

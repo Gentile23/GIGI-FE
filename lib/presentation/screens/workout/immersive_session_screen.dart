@@ -259,6 +259,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
           ),
           TextButton(
             onPressed: () {
+              _gigiTTS.stop(); // Stop audio immediately on exit
               Navigator.pop(context);
               Navigator.pop(context);
             },

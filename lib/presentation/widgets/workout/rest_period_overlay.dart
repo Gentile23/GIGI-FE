@@ -40,6 +40,8 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
   Timer? _timer;
   int _secondsRemaining = 0;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final Source _countdownSource = AssetSource('sounds/secondi.mp3');
+  final Source _timerEndSource = AssetSource('sounds/tempo-finito.mp3');
 
   // Motivational quotes for rest periods
   final List<String> _quotes = [
@@ -88,22 +90,29 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
       });
 
       // Sound and haptic feedback at key moments
-      if (_secondsRemaining <= 3 && _secondsRemaining > 0) {
+      if (_secondsRemaining <= 3 && _secondsRemaining >= 1) {
         HapticService.lightTap();
-        _audioPlayer.stop().then(
-          (_) => _audioPlayer.play(AssetSource('sounds/secondi.mp3')),
-        );
+        _playTimerSound(_countdownSource);
+      }
+
+      // ANTICIPATION: Play "tempo-finito.mp3" when 1 second is remaining
+      if (_secondsRemaining == 1) {
+        _playTimerSound(_timerEndSource);
       }
 
       if (_secondsRemaining <= 0) {
         _timer?.cancel();
         HapticService.heavyTap();
-        _audioPlayer.stop().then(
-          (_) => _audioPlayer.play(AssetSource('sounds/tempo-finito.mp3')),
-        );
+        // Skip playing here as it was anticipated at 1s
         widget.onComplete();
       }
     });
+  }
+
+  /// Helper to play timer sounds with minimal latency
+  Future<void> _playTimerSound(Source source) async {
+    await _audioPlayer.stop();
+    await _audioPlayer.play(source, mode: PlayerMode.lowLatency);
   }
 
   @override
@@ -126,7 +135,7 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
 
   Color get _timerColor {
     if (_secondsRemaining <= 5) return CleanTheme.accentRed;
-    if (_secondsRemaining <= 10) return CleanTheme.accentOrange;
+    if (_secondsRemaining <= 10) return CleanTheme.accentGold;
     return CleanTheme.accentGreen;
   }
 

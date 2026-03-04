@@ -560,6 +560,15 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _isGuidedExecutionPlaying = true;
     notifyListeners();
 
+    // Load script early so we can show exercise tips during generation
+    _currentScript ??= getScriptForExercise(exerciseName);
+    if (_currentScript == null && muscleGroups != null) {
+      _currentScript = createGenericScript(
+        exerciseName: exerciseName,
+        muscleGroups: muscleGroups,
+      );
+    }
+
     // 0. Immediate personalized feedback to mask loading time
     final introPhrase = _getGuidedExecutionIntro(exerciseName);
     await _speak(introPhrase);
@@ -569,7 +578,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
     // 1. Try API-generated script if exerciseId is provided
     if (exerciseId != null && voiceCoachingService != null) {
       try {
-        _loadingStatus = "Analizzo l'esercizio...";
+        // Show exercise tip instead of generic "loading..." to make wait feel useful
+        _loadingStatus = _getPreparationTip(exerciseName);
         notifyListeners();
 
         scriptToSpeak = await voiceCoachingService.getGuidedExecutionScript(
@@ -583,14 +593,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
     // 2. Fallback to local script database
     if (scriptToSpeak == null) {
-      _currentScript ??= getScriptForExercise(exerciseName);
-      if (_currentScript == null && muscleGroups != null) {
-        _currentScript = createGenericScript(
-          exerciseName: exerciseName,
-          muscleGroups: muscleGroups,
-        );
-      }
-
       if (_currentScript != null) {
         scriptToSpeak = _currentScript!.getGuidedExecutionScript(firstName);
       }
@@ -620,7 +622,8 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
 
     if (voiceCoachingService != null) {
       try {
-        _loadingStatus = "Genero la voce...";
+        // Show breathing tip while generating audio — masks latency as learning
+        _loadingStatus = _getBreathingTip(exerciseName);
         notifyListeners();
 
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
@@ -634,7 +637,7 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
         if (audioUrl != null && audioUrl.isNotEmpty) {
           debugPrint('🎧 Playing high-quality audio: $audioUrl');
 
-          _loadingStatus = "In riproduzione...";
+          _loadingStatus = "🎧 In riproduzione...";
           notifyListeners();
 
           // Use speak() method which waits for completion (via _playUrlAndWait internally)
@@ -659,28 +662,10 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     // Fallback to local TTS if high-quality failed
     if (!playedWithHighQuality) {
       debugPrint('🗣️ using local TTS');
-      _loadingStatus = "Riproduzione locale...";
+      _loadingStatus = "🗣️ Riproduzione locale...";
       notifyListeners();
       await _speak(scriptToSpeak);
     }
-
-    // Wait for speaking to finish not strictly needed here as _speak waits,
-    // but for URL playback we might want to track state.
-    // _isGuidedExecutionPlaying will be reset when speech completes via listeners in UI or manually here?
-    // Actually _speak waits, but speakUrl does not necessarily wait for completion in this implementation.
-    // However, GigiTTSService handles isSpeaking state.
-
-    // If we used local TTS, we awaited. If we used URL, we didn't await the full duration.
-    // Ideally speakUrl should return a Future that completes when audio finishes.
-    // For now, let's trust the service state management.
-
-    // Note: The UI won't perform "cleanup" of isGuidedExecutionPlaying until user interaction or we set it false.
-    // But wait, the original code sets it false immediately after _speak!
-    // Original: await _speak(...); _isGuidedExecutionPlaying = false; notifyListeners();
-
-    // We need to keep it true while playing.
-    // For local TTS, _speak waits.
-    // For URL TTS, we need to monitor completion.
 
     if (playedWithHighQuality) {
       // Wait while speaking
@@ -696,6 +681,29 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     _isGuidedExecutionPlaying = false;
     _loadingStatus = null;
     notifyListeners();
+  }
+
+  /// Get a preparation tip from the exercise script to show during loading
+  /// This masks the audio generation time by showing useful exercise info
+  String _getPreparationTip(String exerciseName) {
+    if (_currentScript != null) {
+      // Cycle through different tips each time
+      final tips = [
+        '📍 ${_currentScript!.positionSetup}',
+        '🎯 Muscoli: ${_currentScript!.muscleGroups}',
+        '💡 ${_currentScript!.getBriefTip()}',
+      ];
+      return tips[DateTime.now().second % tips.length];
+    }
+    return '🎯 Prepara la posizione per $exerciseName...';
+  }
+
+  /// Get a breathing tip to show during TTS generation (second loading phase)
+  String _getBreathingTip(String exerciseName) {
+    if (_currentScript != null) {
+      return '🌬️ ${_currentScript!.breathingCue}';
+    }
+    return '🌬️ Inspira nella discesa, espira nello sforzo';
   }
 
   /// Generate and speak a short personalized closing phrase

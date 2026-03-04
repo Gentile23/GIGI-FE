@@ -73,8 +73,6 @@ enum TrainingSplit {
   upperLower, // Upper/Lower split
   pushPullLegs, // Push/Pull/Legs
   fullBody, // Full body ogni sessione
-  bodyPartSplit, // Bro split classico
-  arnoldSplit, // Arnold split (chest/back, shoulders/arms, legs)
 }
 
 /// Cardio preferences
@@ -82,6 +80,7 @@ enum CardioPreference {
   none,
   warmUp, // Riscaldamento
   postWorkout, // Fine allenamento
+  preAndPost, // NEW
   separateSession, // Sessione a parte
 }
 
@@ -90,6 +89,7 @@ enum MobilityPreference {
   none, // Nessuna mobilità
   postWorkout, // Stretching post workout
   preWorkout, // Mobilità prima dell'allenamento
+  preAndPost, // NEW
   dedicatedSession, // Sessione dedicata
 }
 
@@ -107,10 +107,6 @@ extension TrainingSplitExtension on TrainingSplit {
         return 'Push/Pull/Legs';
       case TrainingSplit.fullBody:
         return 'Full Body';
-      case TrainingSplit.bodyPartSplit:
-        return 'Split per Gruppo Muscolare';
-      case TrainingSplit.arnoldSplit:
-        return 'Arnold Split';
     }
   }
 
@@ -126,17 +122,12 @@ extension TrainingSplitExtension on TrainingSplit {
         return 'Spinta, Trazione, Gambe in rotazione';
       case TrainingSplit.fullBody:
         return 'Tutto il corpo in ogni sessione';
-      case TrainingSplit.bodyPartSplit:
-        return 'Un gruppo muscolare principale per sessione';
-      case TrainingSplit.arnoldSplit:
-        return 'Petto/Schiena, Spalle/Braccia, Gambe';
     }
   }
 
   int get recommendedWeeklyFrequency {
     switch (this) {
       case TrainingSplit.monofrequency:
-      case TrainingSplit.bodyPartSplit:
         return 5;
       case TrainingSplit.multifrequency:
       case TrainingSplit.fullBody:
@@ -144,8 +135,6 @@ extension TrainingSplitExtension on TrainingSplit {
       case TrainingSplit.upperLower:
         return 4;
       case TrainingSplit.pushPullLegs:
-        return 6;
-      case TrainingSplit.arnoldSplit:
         return 6;
     }
   }
@@ -162,10 +151,6 @@ extension TrainingSplitExtension on TrainingSplit {
         return '💪🏋️🦵';
       case TrainingSplit.fullBody:
         return '🎯';
-      case TrainingSplit.bodyPartSplit:
-        return '📋';
-      case TrainingSplit.arnoldSplit:
-        return '🏆';
     }
   }
 }
@@ -176,11 +161,13 @@ extension CardioPreferenceExtension on CardioPreference {
       case CardioPreference.none:
         return 'Nessuno';
       case CardioPreference.warmUp:
-        return 'Riscaldamento (5-10 min)';
+        return 'Solo Riscaldamento';
       case CardioPreference.postWorkout:
-        return 'Post-Workout (15-20 min)';
+        return 'Solo Fine Allenamento';
+      case CardioPreference.preAndPost:
+        return 'Sia Prima che Dopo';
       case CardioPreference.separateSession:
-        return 'Sessione Dedicata';
+        return 'Sessione Separata';
     }
   }
 
@@ -189,11 +176,13 @@ extension CardioPreferenceExtension on CardioPreference {
       case CardioPreference.none:
         return 'Solo pesi';
       case CardioPreference.warmUp:
-        return 'Per attivare il corpo';
+        return '10-15 min prima della forza.';
       case CardioPreference.postWorkout:
-        return 'Per bruciare extra calorie';
+        return '15-30 min dopo la forza.';
+      case CardioPreference.preAndPost:
+        return 'Breve riscaldamento e cardio finale.';
       case CardioPreference.separateSession:
-        return 'Focus sulla resistenza';
+        return 'In giorni o orari diversi.';
     }
   }
 
@@ -202,11 +191,13 @@ extension CardioPreferenceExtension on CardioPreference {
       case CardioPreference.none:
         return '🚫';
       case CardioPreference.warmUp:
-        return '🔥';
+        return '🏃‍♂️';
       case CardioPreference.postWorkout:
-        return '🏃';
+        return '🚶‍♂️';
+      case CardioPreference.preAndPost:
+        return '🔄';
       case CardioPreference.separateSession:
-        return '🚴';
+        return '📅';
     }
   }
 }
@@ -216,10 +207,12 @@ extension MobilityPreferenceExtension on MobilityPreference {
     switch (this) {
       case MobilityPreference.none:
         return 'Nessuna';
-      case MobilityPreference.postWorkout:
-        return 'Stretching Post Workout';
       case MobilityPreference.preWorkout:
-        return 'Mobilità Pre-Workout';
+        return 'Pre-Workout (Dinamica)';
+      case MobilityPreference.postWorkout:
+        return 'Post-Workout (Statica)';
+      case MobilityPreference.preAndPost:
+        return 'Sia Prima che Dopo';
       case MobilityPreference.dedicatedSession:
         return 'Sessione Dedicata';
     }
@@ -229,12 +222,14 @@ extension MobilityPreferenceExtension on MobilityPreference {
     switch (this) {
       case MobilityPreference.none:
         return 'Nessuna sessione di mobilità';
-      case MobilityPreference.postWorkout:
-        return 'Allungamento a fine sessione';
       case MobilityPreference.preWorkout:
-        return 'Preparazione al movimento';
+        return 'Focus sulla mobilità articolare.';
+      case MobilityPreference.postWorkout:
+        return 'Focus su stretching e rilascio.';
+      case MobilityPreference.preAndPost:
+        return 'Mobilità dinamica e stretching finale.';
       case MobilityPreference.dedicatedSession:
-        return 'Focus su flessibilità e mobilità';
+        return 'Allenamento completo di mobilità.';
     }
   }
 
@@ -242,12 +237,14 @@ extension MobilityPreferenceExtension on MobilityPreference {
     switch (this) {
       case MobilityPreference.none:
         return '🚫';
-      case MobilityPreference.postWorkout:
-        return '🧘';
       case MobilityPreference.preWorkout:
-        return '🤸';
+        return '🤸‍♂️';
+      case MobilityPreference.postWorkout:
+        return '🧘‍♂️';
+      case MobilityPreference.preAndPost:
+        return '🔄';
       case MobilityPreference.dedicatedSession:
-        return '✨';
+        return '📅';
     }
   }
 }

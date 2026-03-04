@@ -23,6 +23,7 @@ class UserModel {
   final DateTime? dateOfBirth;
   final double? height; // in cm
   final double? weight; // in kg
+  final int? age;
   final String? bodyShape;
   final String? workoutType;
   final DateTime? createdAt;
@@ -59,6 +60,7 @@ class UserModel {
     this.dateOfBirth,
     this.height,
     this.weight,
+    this.age,
     this.bodyShape,
     this.workoutType,
     this.createdAt,
@@ -125,6 +127,7 @@ class UserModel {
       dateOfBirth: json['date_of_birth'] != null
           ? DateTime.parse(json['date_of_birth'] as String)
           : null,
+      age: profile?['age'] as int? ?? json['age'] as int?,
       height: _parseDouble(profile?['height']) ?? _parseDouble(json['height']),
       weight: _parseDouble(profile?['weight']) ?? _parseDouble(json['weight']),
       bodyShape:
@@ -309,6 +312,7 @@ class UserModel {
       'voice_coaching_trial_used': voiceCoachingTrialUsed,
       'gender': gender,
       'date_of_birth': dateOfBirth?.toIso8601String(),
+      'age': age,
       'height': height,
       'weight': weight,
       'body_shape': bodyShape,
@@ -347,6 +351,7 @@ class UserModel {
     DateTime? dateOfBirth,
     double? height,
     double? weight,
+    int? age,
     String? bodyShape,
     String? workoutType,
     DateTime? createdAt,
@@ -382,6 +387,7 @@ class UserModel {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       height: height ?? this.height,
       weight: weight ?? this.weight,
+      age: age ?? this.age,
       bodyShape: bodyShape ?? this.bodyShape,
       workoutType: workoutType ?? this.workoutType,
       createdAt: createdAt ?? this.createdAt,

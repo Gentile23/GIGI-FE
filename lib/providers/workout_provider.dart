@@ -113,19 +113,11 @@ class WorkoutProvider with ChangeNotifier {
           );
         }
 
-        // If plan is processing, check if data is already populated
+        // If plan is processing, start polling until fully completed
         if (_currentPlan?.status == 'processing' && !_isGenerating) {
-          if (_currentPlan!.workouts.isNotEmpty &&
-              _currentPlan!.workouts.any((w) => w.exercises.isNotEmpty)) {
-            // Data already populated but status stuck — treat as completed
-            debugPrint(
-              'DEBUG: Plan processing but data populated. Treating as completed.',
-            );
-          } else {
-            debugPrint('DEBUG: Plan is processing, starting poll');
-            _isGenerating = true;
-            _pollPlanStatus(_currentPlan!.id);
-          }
+          debugPrint('DEBUG: Plan is processing, starting poll');
+          _isGenerating = true;
+          _pollPlanStatus(_currentPlan!.id);
         }
       } else {
         // No plan found is not an error - it's expected for new users
@@ -292,22 +284,9 @@ class WorkoutProvider with ChangeNotifier {
               _isLoading = false;
               notifyListeners();
               return;
-            } else if (plan.status == 'processing' &&
-                plan.workouts.isNotEmpty &&
-                plan.workouts.any((w) => w.exercises.isNotEmpty)) {
-              // Data is populated but status stuck at processing — treat as completed
-              debugPrint(
-                'Plan data fully populated but status still processing. Treating as completed.',
-              );
-              _currentPlan = plan;
-              _isGenerating = false;
-              _isLoading = false;
-              await fetchWorkoutPlans();
-              notifyListeners();
-              onGenerationComplete?.call();
-              return;
             }
-            // If still processing with no data, continue polling
+            // If still processing, continue polling — wait for FinalizeWorkoutPlan
+            // to mark status as 'completed' before showing to user
           }
         }
       } catch (e) {

@@ -39,45 +39,51 @@ class LandingScreen extends StatelessWidget {
 
                   const SizedBox(height: 48),
 
-                  // 3. App Title (Animate In)
+                  // 3. App Title (Minimal Animation)
                   Text(
                         'GIGI',
-                        style: GoogleFonts.outfit(
-                          fontSize: 48,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 54,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 8,
-                          color: CleanTheme.textPrimary,
+                          letterSpacing: 12,
+                          color: CleanTheme.primaryColor,
                         ),
                       )
                       .animate()
-                      .fadeIn(duration: 600.ms, delay: 200.ms)
-                      .slideY(begin: 0.2, end: 0),
+                      .fadeIn(duration: 800.ms, delay: 200.ms)
+                      .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 800.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
                   // 4. Slogan (Animate In)
                   Text(
                         AppLocalizations.of(context)!.slogan,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 16, // Leggermente più piccolo
+                          fontWeight: FontWeight.w400, // Più sottile e arioso
                           color: CleanTheme.textSecondary,
-                          height: 1.5,
+                          height: 1.6, // Più spazio tra le righe
+                          letterSpacing: 0.5,
                         ),
                       )
                       .animate()
-                      .fadeIn(duration: 600.ms, delay: 400.ms)
+                      .fadeIn(duration: 800.ms, delay: 400.ms)
                       .slideY(begin: 0.2, end: 0),
 
-                  const Spacer(flex: 2),
+                  const Spacer(flex: 3),
 
                   // 5. Action Buttons (Animate In Staggered)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       CleanButton(
-                            text: AppLocalizations.of(context)!.startNow,
+                            text: 'INIZIA LA TUA TRASFORMAZIONE',
                             onPressed: () {
                               Navigator.push(
                                 context,
@@ -96,7 +102,7 @@ class LandingScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
                       CleanButton(
-                            text: AppLocalizations.of(context)!.login,
+                            text: 'HO GIÀ UN ACCOUNT',
                             onPressed: () {
                               Navigator.push(
                                 context,

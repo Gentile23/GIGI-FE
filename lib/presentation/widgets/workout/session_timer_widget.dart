@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// SESSION TIMER WIDGET - Live workout duration with stats
@@ -153,18 +154,32 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
 
                 // Stats badges
                 _buildStatBadge(
-                  Icons.local_fire_department_rounded,
-                  '$_estimatedCalories',
-                  'kcal',
-                  CleanTheme.accentOrange,
-                ),
+                      Icons.local_fire_department_rounded,
+                      '$_estimatedCalories',
+                      'kcal',
+                      CleanTheme.accentGold,
+                    )
+                    .animate()
+                    .fade(duration: 400.ms, delay: 200.ms)
+                    .slideY(
+                      begin: 0.5,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 const SizedBox(width: 12),
                 _buildStatBadge(
-                  Icons.fitness_center_rounded,
-                  '${widget.currentExercise}',
-                  '/${widget.totalExercises}',
-                  CleanTheme.primaryColor,
-                ),
+                      Icons.fitness_center_rounded,
+                      '${widget.currentExercise}',
+                      '/${widget.totalExercises}',
+                      CleanTheme.primaryColor,
+                    )
+                    .animate()
+                    .fade(duration: 400.ms, delay: 300.ms)
+                    .slideY(
+                      begin: 0.5,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
 
                 // Pause button (optional)
                 if (widget.onPauseTap != null) ...[

@@ -23,7 +23,7 @@ class MobilityExerciseDetailScreen extends StatefulWidget {
 
 class _MobilityExerciseDetailScreenState
     extends State<MobilityExerciseDetailScreen> {
-  static const Color _mobilityColor = CleanTheme.accentPurple;
+  static const Color _mobilityColor = CleanTheme.accentOrange;
   static const Color _breathingColor = CleanTheme.accentGreen;
 
   YoutubePlayerController? _videoController;

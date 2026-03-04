@@ -143,6 +143,17 @@ class _UnifiedQuestionnaireScreenState
 
       if (user.height != null) _height = user.height;
       if (user.weight != null) _weight = user.weight;
+
+      if (user.gender != null) {
+        try {
+          _selectedGender = Gender.values.firstWhere(
+            (e) => e.toString().split('.').last == user.gender,
+          );
+        } catch (_) {}
+      }
+
+      if (user.age != null) _age = user.age;
+
       if (user.bodyShape != null) {
         try {
           _selectedBodyShape = BodyShape.values.firstWhere(
@@ -437,16 +448,8 @@ class _UnifiedQuestionnaireScreenState
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Apply defaults for non-advanced users
+      // Apply defaults for non-advanced users (Workout Type only)
       if (_selectedLevel != ExperienceLevel.advanced) {
-        // Default Split based on goal
-        if (_selectedGoals.contains(FitnessGoal.muscleGain) ||
-            _selectedGoals.contains(FitnessGoal.strength)) {
-          _selectedSplit = TrainingSplit.monofrequency;
-        } else {
-          _selectedSplit = TrainingSplit.multifrequency;
-        }
-
         // Default Workout Type based on goal
         if (_selectedGoals.contains(FitnessGoal.strength)) {
           _selectedWorkoutType = WorkoutType.strength;
@@ -563,9 +566,11 @@ class _UnifiedQuestionnaireScreenState
   @override
   Widget build(BuildContext context) {
     // Calculate total pages dynamically based on current state
-    // Base pages: 15 (Gigi, Height, Gender, BodyFat, Goal, Level, Freq, Time, Location, Equipment, Injuries, Duration, Sleep, Nutrition, Cardio, Notes)
+    // Base pages: 16 (Gigi, Height, Gender, BodyFat, Goal, Level, Split, Freq, Time, Location, Equipment, Injuries, Duration, Sleep, Nutrition, Cardio, Notes)
     // + Conditional pages based on selections
-    int totalPages = 15; // Base count without conditionals
+    int totalPages = widget.isOnboarding
+        ? 16
+        : 15; // Base count without conditionals
 
     // Add conditional pages if applicable
     if (_selectedEquipment.contains(Equipment.bodyweight) &&
@@ -580,7 +585,7 @@ class _UnifiedQuestionnaireScreenState
       totalPages += 3; // Injury category, area, details
     }
     if (_selectedLevel == ExperienceLevel.advanced) {
-      totalPages += 2; // Workout type, training split
+      totalPages += 1; // Workout type only
     }
 
     return Scaffold(
@@ -657,7 +662,7 @@ class _UnifiedQuestionnaireScreenState
                   _buildHeightWeightPage(),
 
                   // 2. Gender & Age
-                  _buildGenderAgePage(),
+                  if (widget.isOnboarding) _buildGenderAgePage(),
 
                   // 3. Body Fat Percentage
                   if (_selectedGender != null) _buildBodyFatPage(),
@@ -714,12 +719,16 @@ class _UnifiedQuestionnaireScreenState
                             isSelected: _selectedLevel == l,
                             onTap: () {
                               setState(() => _selectedLevel = l);
-                              _nextPage();
                             },
                           ),
                         )
                         .toList(),
+                    onContinue: _nextPage,
+                    canContinue: _selectedLevel != null,
                   ),
+
+                  // 5.5 Training Split (Moved here to be available for all users)
+                  _buildTrainingSplitPage(),
 
                   // 6. Frequency & Preferred Days
                   _buildWeeklyFrequencyPage(),
@@ -741,11 +750,12 @@ class _UnifiedQuestionnaireScreenState
                             isSelected: _selectedLocation == l,
                             onTap: () {
                               setState(() => _selectedLocation = l);
-                              _nextPage();
                             },
                           ),
                         )
                         .toList(),
+                    onContinue: _nextPage,
+                    canContinue: _selectedLocation != null,
                   ),
 
                   // 4. Equipment
@@ -788,10 +798,6 @@ class _UnifiedQuestionnaireScreenState
                   // 12. Workout Type (Only for Advanced)
                   if (_selectedLevel == ExperienceLevel.advanced)
                     _buildWorkoutTypePage(),
-
-                  // 13. Training Split (Only for Advanced)
-                  if (_selectedLevel == ExperienceLevel.advanced)
-                    _buildTrainingSplitPage(),
 
                   // 14. Final Notes
                   _buildFinalNotesPage(),
@@ -839,9 +845,16 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 40),
 
           // Title with emoji
-          // Title with emoji
           Text(
-            AppLocalizations.of(context)!.introTitle,
+            widget.isOnboarding
+                ? AppLocalizations.of(context)!.introTitle
+                : AppLocalizations.of(context)!.introTitleUpdate(
+                    Provider.of<AuthProvider>(
+                          context,
+                          listen: false,
+                        ).user?.name ??
+                        '',
+                  ),
             style: GoogleFonts.outfit(
               fontSize: 32,
               fontWeight: FontWeight.w700,
@@ -853,9 +866,10 @@ class _UnifiedQuestionnaireScreenState
           const SizedBox(height: 16),
 
           // Description
-          // Description
           Text(
-            AppLocalizations.of(context)!.introDescription,
+            widget.isOnboarding
+                ? AppLocalizations.of(context)!.introDescription
+                : AppLocalizations.of(context)!.introDescriptionUpdate,
             style: GoogleFonts.inter(
               fontSize: 16,
               color: CleanTheme.textSecondary,
@@ -881,7 +895,9 @@ class _UnifiedQuestionnaireScreenState
                 elevation: 0,
               ),
               child: Text(
-                AppLocalizations.of(context)!.introButton,
+                widget.isOnboarding
+                    ? AppLocalizations.of(context)!.introButton
+                    : AppLocalizations.of(context)!.introButtonUpdate,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -1034,6 +1050,8 @@ class _UnifiedQuestionnaireScreenState
     required String title,
     required String subtitle,
     required List<_Option> options,
+    VoidCallback? onContinue,
+    bool canContinue = true,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1105,6 +1123,14 @@ class _UnifiedQuestionnaireScreenState
                       ),
                     );
                   }),
+                  if (onContinue != null) ...[
+                    const Spacer(),
+                    const SizedBox(height: 32),
+                    CleanButton(
+                      text: AppLocalizations.of(context)!.proceedButton,
+                      onPressed: canContinue ? onContinue : null,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1373,7 +1399,7 @@ class _UnifiedQuestionnaireScreenState
           SizedBox(
             width: double.infinity,
             child: CleanButton(
-              text: AppLocalizations.of(context)!.continueButton,
+              text: AppLocalizations.of(context)!.proceedButton,
               onPressed: _selectedEquipment.isNotEmpty ? _nextPage : null,
             ),
           ),
@@ -1805,15 +1831,17 @@ class _UnifiedQuestionnaireScreenState
                   ],
 
                   CleanCard(
+                    isSelected: _hasInjuries == true,
                     onTap: () {
                       setState(() => _hasInjuries = true);
-                      _nextPage(); // Go to Category selection
                     },
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.add_circle_outline,
-                          color: CleanTheme.primaryColor,
+                          color: _hasInjuries == true
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.textPrimary,
                           size: 32,
                         ),
                         const SizedBox(width: 16),
@@ -1828,16 +1856,17 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const SizedBox(height: 16),
                   CleanCard(
+                    isSelected: _hasInjuries == false,
                     onTap: () {
                       setState(() => _hasInjuries = false);
-                      // Skip injury steps.
-                      _nextPage();
                     },
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.check_circle_outline,
-                          color: CleanTheme.accentGreen,
+                          color: _hasInjuries == false
+                              ? CleanTheme.accentGreen
+                              : CleanTheme.textPrimary,
                           size: 32,
                         ),
                         const SizedBox(width: 16),
@@ -1851,6 +1880,11 @@ class _UnifiedQuestionnaireScreenState
                     ),
                   ),
                   const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.proceedButton,
+                    onPressed: _hasInjuries != null ? _nextPage : null,
+                  ),
                 ],
               ),
             ),
@@ -2289,24 +2323,30 @@ class _UnifiedQuestionnaireScreenState
                   const SizedBox(height: 32),
                   Text(
                     AppLocalizations.of(context)!.cardioSection,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(fontSize: 18),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   ...CardioPreference.values
                       .where((p) => p != CardioPreference.separateSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 8),
                           child: CleanCard(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             isSelected: _cardioPreference == p,
                             onTap: () => setState(() => _cardioPreference = p),
                             child: Row(
                               children: [
                                 Text(
                                   p.icon,
-                                  style: const TextStyle(fontSize: 24),
+                                  style: const TextStyle(fontSize: 20),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -2314,15 +2354,18 @@ class _UnifiedQuestionnaireScreenState
                                     children: [
                                       Text(
                                         _getCardioLabel(p),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       Text(
                                         _getCardioDescription(p),
                                         style: Theme.of(
                                           context,
-                                        ).textTheme.bodyMedium,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -2332,18 +2375,24 @@ class _UnifiedQuestionnaireScreenState
                           ),
                         );
                       }),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 20),
                   Text(
                     AppLocalizations.of(context)!.mobilitySection,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineMedium?.copyWith(fontSize: 18),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   ...MobilityPreference.values
                       .where((p) => p != MobilityPreference.dedicatedSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 8),
                           child: CleanCard(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             isSelected: _mobilityPreference == p,
                             onTap: () =>
                                 setState(() => _mobilityPreference = p),
@@ -2351,9 +2400,9 @@ class _UnifiedQuestionnaireScreenState
                               children: [
                                 Text(
                                   p.icon,
-                                  style: const TextStyle(fontSize: 24),
+                                  style: const TextStyle(fontSize: 20),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -2361,15 +2410,18 @@ class _UnifiedQuestionnaireScreenState
                                     children: [
                                       Text(
                                         _getMobilityLabel(p),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       Text(
                                         _getMobilityDescription(p),
                                         style: Theme.of(
                                           context,
-                                        ).textTheme.bodyMedium,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -2380,9 +2432,9 @@ class _UnifiedQuestionnaireScreenState
                         );
                       }),
                   const Spacer(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   CleanButton(
-                    text: AppLocalizations.of(context)!.continueButton,
+                    text: AppLocalizations.of(context)!.proceedButton,
                     onPressed: _nextPage,
                   ),
                 ],
@@ -2417,51 +2469,108 @@ class _UnifiedQuestionnaireScreenState
                   const SizedBox(height: 32),
                   ...TrainingSplit.values.map((split) {
                     final isSelected = _selectedSplit == split;
+                    final isBeginner =
+                        _selectedLevel == ExperienceLevel.beginner;
+                    final isRecommendedForBeginner =
+                        isBeginner &&
+                        (split == TrainingSplit.fullBody ||
+                            split == TrainingSplit.upperLower);
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: CleanCard(
                         isSelected: isSelected,
                         onTap: () {
                           setState(() => _selectedSplit = split);
-                          _nextPage();
                         },
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              split.icon,
-                              style: const TextStyle(fontSize: 32),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getSplitLabel(split),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
+                            if (isRecommendedForBeginner)
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: CleanTheme.accentOrange.withValues(
+                                    alpha: 0.15,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _getSplitDescription(split),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: CleanTheme.accentOrange.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    width: 1,
                                   ),
-                                ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.whatshot,
+                                      color: CleanTheme.accentOrange,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Consigliato per Iniziare',
+                                      style: GoogleFonts.inter(
+                                        color: CleanTheme.accentOrange,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                            Row(
+                              children: [
+                                Text(
+                                  split.icon,
+                                  style: const TextStyle(fontSize: 32),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _getSplitLabel(split),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _getSplitDescription(split),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (isSelected)
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: CleanTheme.primaryColor,
+                                  ),
+                              ],
                             ),
-                            if (isSelected)
-                              const Icon(
-                                Icons.check_circle,
-                                color: CleanTheme.primaryColor,
-                              ),
                           ],
                         ),
                       ),
                     );
                   }),
+                  const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.proceedButton,
+                    onPressed: _nextPage,
+                  ),
                 ],
               ),
             ),
@@ -2488,58 +2597,22 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppLocalizations.of(context)!.finalDetailsSubtitle,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppLocalizations.of(context)!.finalDetailsHint,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: CleanTheme.textSecondary,
-                      fontStyle: FontStyle.italic,
+                    '${AppLocalizations.of(context)!.finalDetailsSubtitle} (Facoltativo)',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: CleanTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.primaryColor.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: CleanTheme.borderPrimary),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.finalDetailsBulletTitle,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: CleanTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildBulletPoint(
-                          AppLocalizations.of(context)!.bulletPreferences,
-                        ),
-                        _buildBulletPoint(
-                          AppLocalizations.of(context)!.bulletGoals,
-                        ),
-                        _buildBulletPoint(
-                          AppLocalizations.of(context)!.bulletMedical,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
                   TextField(
                     controller: _prefNotesController,
-                    maxLines: 5,
+                    maxLines: 4,
                     style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.finalNotesHint,
                       fillColor: CleanTheme.primaryLight,
                       filled: true,
+                      contentPadding: const EdgeInsets.all(16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(
@@ -2561,13 +2634,75 @@ class _UnifiedQuestionnaireScreenState
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: CleanTheme.borderSecondary),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Cosa puoi aggiungere?",
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: CleanTheme.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Preferenze extra, obiettivi specifici o dettagli medici non catturati prima.",
+                          style: TextStyle(
+                            color: CleanTheme.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const Spacer(),
-                  CleanButton(
-                    text: _isLoading
-                        ? AppLocalizations.of(context)!.savingButton
-                        : AppLocalizations.of(context)!.proceedButton,
-                    onPressed: _isLoading ? null : _finish,
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isLoading ? null : _finish,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side: BorderSide(
+                              color: CleanTheme.textSecondary.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "Procedi senza aggiungere dettagli",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.outfit(
+                              color: CleanTheme.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CleanButton(
+                          text: _isLoading
+                              ? AppLocalizations.of(context)!.savingButton
+                              : AppLocalizations.of(context)!.proceedButton,
+                          onPressed: _isLoading ? null : _finish,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -2575,27 +2710,6 @@ class _UnifiedQuestionnaireScreenState
           ),
         );
       },
-    );
-  }
-
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ', style: TextStyle(color: CleanTheme.textSecondary)),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: CleanTheme.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -2750,10 +2864,6 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.splitPushPullLegs;
       case TrainingSplit.fullBody:
         return AppLocalizations.of(context)!.splitFullBody;
-      case TrainingSplit.bodyPartSplit:
-        return AppLocalizations.of(context)!.splitBodyPart;
-      case TrainingSplit.arnoldSplit:
-        return AppLocalizations.of(context)!.splitArnold;
     }
   }
 
@@ -2769,10 +2879,6 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.splitPushPullLegsDesc;
       case TrainingSplit.fullBody:
         return AppLocalizations.of(context)!.splitFullBodyDesc;
-      case TrainingSplit.bodyPartSplit:
-        return AppLocalizations.of(context)!.splitBodyPartDesc;
-      case TrainingSplit.arnoldSplit:
-        return AppLocalizations.of(context)!.splitArnoldDesc;
     }
   }
 
@@ -2784,6 +2890,8 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.cardioWarmUp;
       case CardioPreference.postWorkout:
         return AppLocalizations.of(context)!.cardioPostWorkout;
+      case CardioPreference.preAndPost:
+        return AppLocalizations.of(context)!.cardioPreAndPost;
       case CardioPreference.separateSession:
         return AppLocalizations.of(context)!.cardioSeparate;
     }
@@ -2797,6 +2905,8 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.cardioWarmUpDesc;
       case CardioPreference.postWorkout:
         return AppLocalizations.of(context)!.cardioPostWorkoutDesc;
+      case CardioPreference.preAndPost:
+        return AppLocalizations.of(context)!.cardioPreAndPostDesc;
       case CardioPreference.separateSession:
         return AppLocalizations.of(context)!.cardioSeparateDesc;
     }
@@ -2810,6 +2920,8 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.mobilityPostWorkout;
       case MobilityPreference.preWorkout:
         return AppLocalizations.of(context)!.mobilityPreWorkout;
+      case MobilityPreference.preAndPost:
+        return AppLocalizations.of(context)!.mobilityPreAndPost;
       case MobilityPreference.dedicatedSession:
         return AppLocalizations.of(context)!.mobilityDedicated;
     }
@@ -2823,6 +2935,8 @@ class _UnifiedQuestionnaireScreenState
         return AppLocalizations.of(context)!.mobilityPostWorkoutDesc;
       case MobilityPreference.preWorkout:
         return AppLocalizations.of(context)!.mobilityPreWorkoutDesc;
+      case MobilityPreference.preAndPost:
+        return AppLocalizations.of(context)!.mobilityPreAndPostDesc;
       case MobilityPreference.dedicatedSession:
         return AppLocalizations.of(context)!.mobilityDedicatedDesc;
     }
@@ -3197,30 +3311,29 @@ class _UnifiedQuestionnaireScreenState
                     final isSelected = _bodyFatPercentage == bf;
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: CleanCard(
                         isSelected: isSelected,
                         onTap: () {
                           setState(() => _bodyFatPercentage = bf);
-                          _nextPage();
                         },
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: CleanTheme.primaryColor.withValues(
                                   alpha: 0.1,
                                 ),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
                                 icon,
                                 color: CleanTheme.primaryColor,
-                                size: 28,
+                                size: 24,
                               ),
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -3229,29 +3342,26 @@ class _UnifiedQuestionnaireScreenState
                                     title,
                                     style: Theme.of(context)
                                         .textTheme
-                                        .headlineMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20, // Large
-                                        ),
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 2),
                                   Text(
                                     subtitle,
-                                    style: Theme.of(context).textTheme.bodyLarge
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
                                         ?.copyWith(
                                           color: CleanTheme.textSecondary,
-                                          fontSize: 16, // Medium
                                         ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 2),
                                   Text(
                                     percentage,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: CleanTheme.primaryColor,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 12, // Small
                                         ),
                                   ),
                                 ],
@@ -3261,12 +3371,19 @@ class _UnifiedQuestionnaireScreenState
                               const Icon(
                                 Icons.check_circle,
                                 color: CleanTheme.primaryColor,
+                                size: 20,
                               ),
                           ],
                         ),
                       ),
                     );
                   }),
+                  const Spacer(),
+                  const SizedBox(height: 32),
+                  CleanButton(
+                    text: AppLocalizations.of(context)!.proceedButton,
+                    onPressed: (_bodyFatPercentage != null) ? _nextPage : null,
+                  ),
                 ],
               ),
             ),
@@ -3280,6 +3397,8 @@ class _UnifiedQuestionnaireScreenState
     return _buildSelectionPage(
       title: AppLocalizations.of(context)!.questionTimeTitle,
       subtitle: AppLocalizations.of(context)!.questionTimeSubtitle,
+      onContinue: _nextPage,
+      canContinue: _timePreference != null,
       options: TimePreference.values.map((t) {
         String label;
         String description;
@@ -3310,7 +3429,6 @@ class _UnifiedQuestionnaireScreenState
           isSelected: _timePreference == t,
           onTap: () {
             setState(() => _timePreference = t);
-            _nextPage();
           },
         );
       }).toList(),
@@ -3474,10 +3592,11 @@ class _UnifiedQuestionnaireScreenState
           isSelected: _nutritionApproach == n,
           onTap: () {
             setState(() => _nutritionApproach = n);
-            _nextPage();
           },
         );
       }).toList(),
+      onContinue: () => _nextPage(),
+      canContinue: _nutritionApproach != null,
     );
   }
 }

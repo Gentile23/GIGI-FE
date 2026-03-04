@@ -1103,12 +1103,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           child: GigiCoachMessage(
             message: AppLocalizations.of(context)!.gigiAssessmentComplete,
             emotion: GigiEmotion.celebrating,
-            action: CleanButton(
-              text: AppLocalizations.of(context)!.gigiGeneratePlanButton,
-              onPressed: () {
-                _generatePlanDirectly();
-              },
-            ),
           ),
         );
       } else {

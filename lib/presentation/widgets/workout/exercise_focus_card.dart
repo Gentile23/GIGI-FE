@@ -253,17 +253,17 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
                   margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                    color: CleanTheme.accentGold.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                      color: CleanTheme.accentGold.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.lightbulb_outline,
-                        color: CleanTheme.accentOrange,
+                        color: CleanTheme.accentGold,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
@@ -349,7 +349,7 @@ class _ExerciseFocusCardState extends State<ExerciseFocusCard>
         label = 'FACILE';
         break;
       case ExerciseDifficulty.intermediate:
-        color = CleanTheme.accentOrange;
+        color = CleanTheme.accentGold;
         label = 'MEDIO';
         break;
       case ExerciseDifficulty.advanced:

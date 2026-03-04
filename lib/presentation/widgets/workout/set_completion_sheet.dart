@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// SET COMPLETION SHEET - Quick logging after completing a set
@@ -151,127 +152,152 @@ class _SetCompletionSheetState extends State<SetCompletionSheet>
 
               // Header
               Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.accentGreen.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check_circle,
-                      color: CleanTheme.accentGreen,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Serie ${widget.setNumber} Completata!',
-                          style: GoogleFonts.outfit(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: CleanTheme.textPrimary,
+                children:
+                    [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentGreen.withValues(
+                                alpha: 0.2,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.check_circle,
+                              color: CleanTheme.accentGreen,
+                              size: 28,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Registra il tuo risultato',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: CleanTheme.textSecondary,
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Serie ${widget.setNumber} Completata!',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: CleanTheme.textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  'Registra il tuo risultato',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: CleanTheme.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                        ]
+                        .animate()
+                        .fade(duration: 300.ms)
+                        .slideY(begin: -0.2, curve: Curves.easeOut),
               ),
 
               const SizedBox(height: 32),
 
               // Reps counter
               _buildCounter(
-                label: AppLocalizations.of(context)!.repsLabel,
-                value: _reps.toString(),
-                previousValue: widget.previousReps != null
-                    ? 'Precedente: ${widget.previousReps}'
-                    : null,
-                onDecrement: _decrementReps,
-                onIncrement: _incrementReps,
-                color: CleanTheme.primaryColor,
-              ),
+                    label: AppLocalizations.of(context)!.repsLabel,
+                    value: _reps.toString(),
+                    previousValue: widget.previousReps != null
+                        ? 'Precedente: ${widget.previousReps}'
+                        : null,
+                    onDecrement: _decrementReps,
+                    onIncrement: _incrementReps,
+                    color: CleanTheme.primaryColor,
+                  )
+                  .animate()
+                  .fade(duration: 400.ms, delay: 100.ms)
+                  .slideY(begin: 0.1, curve: Curves.easeOut),
 
               const SizedBox(height: 20),
 
               // Weight counter
               _buildCounter(
-                label: AppLocalizations.of(context)!.weightLabel,
-                value: _weight > 0 ? _weight.toStringAsFixed(1) : '-',
-                previousValue: widget.previousWeight != null
-                    ? 'Precedente: ${widget.previousWeight!.toStringAsFixed(1)} kg'
-                    : null,
-                onDecrement: _decrementWeight,
-                onIncrement: _incrementWeight,
-                color: CleanTheme.accentOrange,
-              ),
+                    label: AppLocalizations.of(context)!.weightLabel,
+                    value: _weight > 0 ? _weight.toStringAsFixed(1) : '-',
+                    previousValue: widget.previousWeight != null
+                        ? 'Precedente: ${widget.previousWeight!.toStringAsFixed(1)} kg'
+                        : null,
+                    onDecrement: _decrementWeight,
+                    onIncrement: _incrementWeight,
+                    color: CleanTheme.accentGold,
+                  )
+                  .animate()
+                  .fade(duration: 400.ms, delay: 200.ms)
+                  .slideY(begin: 0.1, curve: Curves.easeOut),
 
               const SizedBox(height: 32),
 
               // Complete button
               GestureDetector(
                 onTap: _showSuccess ? null : _complete,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: _showSuccess
-                          ? [CleanTheme.accentGreen, CleanTheme.accentGreen]
-                          : [
-                              CleanTheme.primaryColor,
-                              CleanTheme.primaryColor.withValues(alpha: 0.7),
+                child:
+                    AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _showSuccess
+                                  ? [
+                                      CleanTheme.accentGreen,
+                                      CleanTheme.accentGreen,
+                                    ]
+                                  : [
+                                      CleanTheme.primaryColor,
+                                      CleanTheme.primaryColor.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ],
+                            ),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (_showSuccess
+                                            ? CleanTheme.accentGreen
+                                            : CleanTheme.primaryColor)
+                                        .withValues(alpha: 0.4),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
                             ],
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color:
-                            (_showSuccess
-                                    ? CleanTheme.accentGreen
-                                    : CleanTheme.primaryColor)
-                                .withValues(alpha: 0.4),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _showSuccess ? Icons.check : Icons.arrow_forward,
-                        color: CleanTheme.textOnPrimary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        _showSuccess
-                            ? AppLocalizations.of(context)!.savedLabel
-                            : AppLocalizations.of(context)!.confirmButton,
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: CleanTheme.textOnPrimary,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _showSuccess
+                                    ? Icons.check
+                                    : Icons.arrow_forward,
+                                color: CleanTheme.textOnPrimary,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                _showSuccess
+                                    ? AppLocalizations.of(context)!.savedLabel
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.confirmButton,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: CleanTheme.textOnPrimary,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fade(duration: 500.ms, delay: 300.ms)
+                        .scaleXY(begin: 0.9, curve: Curves.easeOutBack),
               ),
             ],
           ),

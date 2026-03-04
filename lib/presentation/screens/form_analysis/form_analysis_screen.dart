@@ -446,67 +446,67 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildVideoSelector() {
-    return Column(
+    return Row(
       children: [
-        CleanCard(
-          width: double.infinity,
-          onTap: () => _pickVideo(ImageSource.camera),
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: CleanTheme.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.videocam_outlined,
-                  size: 40,
+        Expanded(
+          child: CleanCard(
+            onTap: () => _pickVideo(ImageSource.gallery),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.photo_library_outlined,
+                  size: 32,
                   color: CleanTheme.primaryColor,
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!.recordVideo,
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.primaryColor,
+                const SizedBox(height: 12),
+                Text(
+                  AppLocalizations.of(context)!.uploadFromGallery,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: CleanTheme.textPrimary,
+                    height: 1.3,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(context)!.max15Seconds,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: CleanTheme.textTertiary,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 16),
-        CleanCard(
-          width: double.infinity,
-          onTap: () => _pickVideo(ImageSource.gallery),
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.video_library_outlined,
-                color: CleanTheme.textSecondary,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                AppLocalizations.of(context)!.uploadFromGallery,
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  color: CleanTheme.textPrimary,
+        const SizedBox(width: 16),
+        Expanded(
+          child: CleanCard(
+            onTap: () => _pickVideo(ImageSource.camera),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.videocam_outlined,
+                  size: 32,
+                  color: CleanTheme.primaryColor,
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  AppLocalizations.of(context)!.recordVideo,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: CleanTheme.textPrimary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -755,44 +755,107 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildInfoCard() {
-    return CleanCard(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      children: [
+        // How it works card
+        CleanCard(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: CleanTheme.accentBlue.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.info_outline,
-                  color: CleanTheme.accentBlue,
-                  size: 20,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentBlue.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: CleanTheme.accentBlue,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.howItWorks,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text(
-                AppLocalizations.of(context)!.howItWorks,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
+              const SizedBox(height: 16),
+              _buildInfoItem(
+                '📹',
+                AppLocalizations.of(context)!.howItWorksStep1,
+              ),
+              _buildInfoItem(
+                '🤖',
+                AppLocalizations.of(context)!.howItWorksStep2,
+              ),
+              _buildInfoItem(
+                '📊',
+                AppLocalizations.of(context)!.howItWorksStep3,
+              ),
+              _buildInfoItem(
+                '💡',
+                AppLocalizations.of(context)!.howItWorksStep4,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildInfoItem('📹', AppLocalizations.of(context)!.howItWorksStep1),
-          _buildInfoItem('🤖', AppLocalizations.of(context)!.howItWorksStep2),
-          _buildInfoItem('📊', AppLocalizations.of(context)!.howItWorksStep3),
-          _buildInfoItem('💡', AppLocalizations.of(context)!.howItWorksStep4),
-        ],
-      ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Best practices card
+        CleanCard(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.photo_camera_front_outlined,
+                      color: CleanTheme.accentOrange,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.bestPracticesTitle,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildInfoItem('📱', AppLocalizations.of(context)!.bestPractice1),
+              _buildInfoItem('🧘', AppLocalizations.of(context)!.bestPractice2),
+              _buildInfoItem(
+                '🧍‍♂️',
+                AppLocalizations.of(context)!.bestPractice3,
+              ),
+              _buildInfoItem('⏱️', AppLocalizations.of(context)!.bestPractice4),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

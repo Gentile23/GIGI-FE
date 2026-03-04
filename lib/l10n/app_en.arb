@@ -725,7 +725,7 @@
   "quotaCustomWorkoutDesc": "Upgrade to Pro to create more custom workouts!",
   "close": "Close",
   "upgradePro": "Upgrade to Pro",
-  "workoutNameLabel": "Workout Name *",
+  "workoutNameLabel": "Workout Name",
   "workoutNameRequired": "Please enter a name for the workout",
   "descriptionOptional": "Description (optional)",
   "noExercisesAdded": "No exercises added",

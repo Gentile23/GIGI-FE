@@ -1247,6 +1247,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get introButton => 'C\'EST PARTI !';
 
   @override
+  String introTitleUpdate(String name) {
+    return 'Ci siamo, $name! ⚡';
+  }
+
+  @override
+  String get introDescriptionUpdate =>
+      'Analizziamo i tuoi progressi per creare un piano ancora più potente. Ti farò qualche domanda per aggiornare le tue preferenze.';
+
+  @override
+  String get introButtonUpdate => 'AGGIORNA SCHEDA';
+
+  @override
   String get sectionAboutYou => 'Parlez-nous de vous';
 
   @override
@@ -3620,6 +3632,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get selectVideoAndExercise =>
       'Sélectionnez une vidéo et entrez le nom de l\'exercice';
+
+  @override
+  String get bestPracticesTitle => '📸 Per un\'Analisi Perfetta';
+
+  @override
+  String get bestPractice1 => 'Registra di lato (profilo) o frontalmente.';
+
+  @override
+  String get bestPractice2 => 'Mantieni il telefono fermo o appoggialo.';
+
+  @override
+  String get bestPractice3 => 'Inquadra tutto il corpo durante il movimento.';
+
+  @override
+  String get bestPractice4 => 'Resta nei 15 secondi di limite massimo.';
 
   @override
   String get ml => 'ml';

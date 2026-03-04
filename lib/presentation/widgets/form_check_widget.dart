@@ -5,7 +5,10 @@ import '../screens/form_analysis/form_analysis_screen.dart';
 import 'clean_widgets.dart';
 
 class FormCheckWidget extends StatelessWidget {
-  const FormCheckWidget({super.key});
+  final String? exerciseName;
+  final int? exerciseId;
+
+  const FormCheckWidget({super.key, this.exerciseName, this.exerciseId});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +19,12 @@ class FormCheckWidget extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const FormAnalysisScreen()),
+            MaterialPageRoute(
+              builder: (context) => FormAnalysisScreen(
+                exerciseName: exerciseName,
+                exerciseId: exerciseId,
+              ),
+            ),
           );
         },
         child: Row(

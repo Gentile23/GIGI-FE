@@ -293,15 +293,15 @@ class _ImmersiveCoachingOverlayState extends State<ImmersiveCoachingOverlay>
   Color _getPhaseColor(CoachingPhase phase) {
     switch (phase) {
       case CoachingPhase.exerciseIntro:
-        return CleanTheme.accentBlue;
+        return CleanTheme.chromeGray;
       case CoachingPhase.preSet:
-        return CleanTheme.accentOrange;
+        return CleanTheme.accentGold;
       case CoachingPhase.duringRep:
         return CleanTheme.accentGreen;
       case CoachingPhase.postSet:
         return CleanTheme.accentGreen;
       case CoachingPhase.rest:
-        return CleanTheme.accentBlue;
+        return CleanTheme.chromeGray;
       case CoachingPhase.completed:
         return CleanTheme.primaryColor;
       default:
