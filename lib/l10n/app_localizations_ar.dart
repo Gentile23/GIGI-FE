@@ -1478,6 +1478,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cardioPostWorkoutDesc => 'لحرق سعرات حرارية إضافية';
 
   @override
+  String get cardioPreAndPost => 'Sia Prima che Dopo';
+
+  @override
+  String get cardioPreAndPostDesc => 'Breve riscaldamento e cardio finale.';
+
+  @override
   String get cardioSeparate => 'جلسة مخصصة';
 
   @override
@@ -1500,6 +1506,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mobilityPreWorkoutDesc => 'التحضير للحركة';
+
+  @override
+  String get mobilityPreAndPost => 'Sia Prima che Dopo';
+
+  @override
+  String get mobilityPreAndPostDesc => 'Mobilità dinamica e stretching finale.';
 
   @override
   String get mobilityDedicated => 'جلسة مخصصة';

@@ -127,7 +127,7 @@ class _AiAnalysisLoadingScreenState extends State<AiAnalysisLoadingScreen> {
 
               const SizedBox(height: 60),
               Text(
-                "Stiamo calcolando l'incremento di carico scientificamente perfetto per te.",
+                "Stiamo calcolando l'incremento di carico scientificamente perfetto per te.\n\nCi vorranno da 1 a 2 minuti per la generazione della scheda.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 13,

@@ -334,7 +334,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Gigi sta creando la tua scheda personalizzata. Questo potrebbe richiedere alcuni secondi...',
+                      "Gigi sta creando la tua scheda personalizzata. Ci vorranno da 1 a 2 minuti.",
                       style: TextStyle(
                         fontSize: 13,
                         color: CleanTheme.textPrimary,

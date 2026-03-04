@@ -2902,6 +2902,18 @@ abstract class AppLocalizations {
   /// **'Per bruciare extra calorie'**
   String get cardioPostWorkoutDesc;
 
+  /// No description provided for @cardioPreAndPost.
+  ///
+  /// In it, this message translates to:
+  /// **'Sia Prima che Dopo'**
+  String get cardioPreAndPost;
+
+  /// No description provided for @cardioPreAndPostDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Breve riscaldamento e cardio finale.'**
+  String get cardioPreAndPostDesc;
+
   /// No description provided for @cardioSeparate.
   ///
   /// In it, this message translates to:
@@ -2949,6 +2961,18 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Preparazione al movimento'**
   String get mobilityPreWorkoutDesc;
+
+  /// No description provided for @mobilityPreAndPost.
+  ///
+  /// In it, this message translates to:
+  /// **'Sia Prima che Dopo'**
+  String get mobilityPreAndPost;
+
+  /// No description provided for @mobilityPreAndPostDesc.
+  ///
+  /// In it, this message translates to:
+  /// **'Mobilità dinamica e stretching finale.'**
+  String get mobilityPreAndPostDesc;
 
   /// No description provided for @mobilityDedicated.
   ///

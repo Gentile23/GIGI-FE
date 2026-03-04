@@ -1489,6 +1489,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cardioPostWorkoutDesc => 'Um zusätzliche Kalorien zu verbrennen';
 
   @override
+  String get cardioPreAndPost => 'Sia Prima che Dopo';
+
+  @override
+  String get cardioPreAndPostDesc => 'Breve riscaldamento e cardio finale.';
+
+  @override
   String get cardioSeparate => 'Separate Einheit';
 
   @override
@@ -1511,6 +1517,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get mobilityPreWorkoutDesc => 'Bewegungsvorbereitung';
+
+  @override
+  String get mobilityPreAndPost => 'Sia Prima che Dopo';
+
+  @override
+  String get mobilityPreAndPostDesc => 'Mobilità dinamica e stretching finale.';
 
   @override
   String get mobilityDedicated => 'Separate Einheit';
