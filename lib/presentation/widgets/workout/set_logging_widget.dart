@@ -981,18 +981,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
                       // Goal text moved outside the oval
                       Padding(
-                        padding: const EdgeInsets.only(left: 4),
+                        padding: const EdgeInsets.only(left: 6),
                         child: Text(
                           isCardioMobility
-                              ? 'OBJ: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
-                              : 'OBJ: ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                              ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                              : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
                           style: GoogleFonts.outfit(
-                            fontSize: 7,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
                             color: CleanTheme.textPrimary.withValues(
-                              alpha: 0.5,
+                              alpha: 0.6,
                             ),
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.2,
                           ),
                           textAlign: TextAlign.center,
                         ),
