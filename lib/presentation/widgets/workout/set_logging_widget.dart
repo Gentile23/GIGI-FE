@@ -974,8 +974,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 ),
                                 enabled: true,
                               ),
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ),
@@ -990,7 +989,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                           style: GoogleFonts.outfit(
                             fontSize: 7,
                             fontWeight: FontWeight.w800,
-                            color: CleanTheme.textPrimary.withValues(alpha: 0.5),
+                            color: CleanTheme.textPrimary.withValues(
+                              alpha: 0.5,
+                            ),
                             letterSpacing: 0.5,
                           ),
                           textAlign: TextAlign.center,
