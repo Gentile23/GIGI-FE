@@ -1075,7 +1075,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
-                color: CleanTheme.textOnDark,
+                color: Colors.black,
               ),
               textAlign: TextAlign.right,
               decoration: const InputDecoration(

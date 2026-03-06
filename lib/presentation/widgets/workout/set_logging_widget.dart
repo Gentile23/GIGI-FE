@@ -974,40 +974,26 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 ),
                                 enabled: true,
                               ),
-                              Positioned(
-                                top: 4,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: CleanTheme.borderSecondary
-                                            .withValues(alpha: 0.5),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    isCardioMobility
-                                        ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
-                                        : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 7,
-                                      fontWeight: FontWeight.w800,
-                                      color: CleanTheme.textPrimary,
-                                      letterSpacing: 0.5,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                        ),
+                      ),
+
+                      // Goal text moved outside the oval
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Text(
+                          isCardioMobility
+                              ? 'OBJ: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                              : 'OBJ: ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                          style: GoogleFonts.outfit(
+                            fontSize: 7,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.textPrimary.withValues(alpha: 0.5),
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
 
@@ -1018,9 +1004,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                         Expanded(
                           flex: 2,
                           child: GestureDetector(
-                            onTap: isCompleted
-                                ? null
-                                : () => _showRPEPicker(setNumber),
+                            onTap: () => _showRPEPicker(setNumber),
                             child: Container(
                               height: 44,
                               decoration: BoxDecoration(
@@ -1118,48 +1102,53 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
               ),
             ),
             const SizedBox(height: 20),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(10, (index) {
-                final rpeValue = index + 1;
-                final isSelected = _rpe[setNumber] == rpeValue;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _rpe[setNumber] = rpeValue;
-                    });
-                    _scheduleAutoSave(setNumber);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? _getRPEColor(rpeValue)
-                          : _getRPEColor(rpeValue).withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _getRPEColor(rpeValue),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$rpeValue',
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(10, (index) {
+                  final rpeValue = index + 1;
+                  final isSelected = _rpe[setNumber] == rpeValue;
+                  return GestureDetector(
+                    onTap: () {
+                      HapticService.selectionClick();
+                      setState(() {
+                        _rpe[setNumber] = rpeValue;
+                      });
+                      _scheduleAutoSave(setNumber);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? _getRPEColor(rpeValue)
+                            : _getRPEColor(rpeValue).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
                           color: isSelected
-                              ? CleanTheme.textOnPrimary
-                              : _getRPEColor(rpeValue),
+                              ? _getRPEColor(rpeValue)
+                              : _getRPEColor(rpeValue).withValues(alpha: 0.4),
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$rpeValue',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected
+                                ? Colors.black
+                                : _getRPEColor(rpeValue),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
