@@ -450,6 +450,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       children: [
         Expanded(
           child: CleanCard(
+            width: double.infinity,
             onTap: () => _pickVideo(ImageSource.gallery),
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
             child: Column(
@@ -481,6 +482,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         const SizedBox(width: 16),
         Expanded(
           child: CleanCard(
+            width: double.infinity,
             onTap: () => _pickVideo(ImageSource.camera),
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
             child: Column(

@@ -760,163 +760,193 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                       // Set Number Badge
                       SizedBox(
                         width: 36,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isCompleted
-                                ? CleanTheme.accentGreen
-                                : CleanTheme.steelDark.withValues(alpha: 0.06),
-                            border: Border.all(
-                              color: isCompleted
-                                  ? CleanTheme.accentGreen
-                                  : CleanTheme.chromeGray.withValues(
-                                      alpha: 0.6,
-                                    ),
-                              width: isCompleted ? 0 : 1.5,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 14), // Offset for labels
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isCompleted
+                                    ? CleanTheme.accentGreen
+                                    : CleanTheme.steelDark.withValues(
+                                        alpha: 0.06,
+                                      ),
+                                border: Border.all(
+                                  color: isCompleted
+                                      ? CleanTheme.accentGreen
+                                      : CleanTheme.chromeGray.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                  width: isCompleted ? 0 : 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: isCompleted
+                                    ? const Icon(
+                                        Icons.check,
+                                        size: 13,
+                                        color: CleanTheme.textOnPrimary,
+                                      )
+                                    : Text(
+                                        '$setNumber',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: CleanTheme.textPrimary,
+                                        ),
+                                      ),
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: isCompleted
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 13,
-                                    color: CleanTheme.textOnPrimary,
-                                  )
-                                : Text(
-                                    '$setNumber',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: CleanTheme.textPrimary,
-                                    ),
-                                  ),
-                          ),
+                          ],
                         ),
                       ),
 
-                      // Weight Input — only for strength exercises
+                      // Input Columns
                       if (!isCardioMobility) ...[
+                        // Weight Column
                         Expanded(
                           flex: 3,
-                          child: Container(
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: isCompleted
-                                  ? CleanTheme.accentGreen.withValues(
-                                      alpha: 0.06,
-                                    )
-                                  : CleanTheme.chromeSubtle.withValues(
-                                      alpha: 0.5,
-                                    ),
-                              borderRadius: BorderRadius.circular(22),
-                              border: Border.all(
-                                color: isCompleted
-                                    ? CleanTheme.accentGreen.withValues(
-                                        alpha: 0.3,
-                                      )
-                                    : CleanTheme.borderSecondary,
-                                width: 1,
-                              ),
-                            ),
-                            child: TextField(
-                              textAlign: TextAlign.center,
-                              controller: _weightControllers[setNumber],
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 12),
+                              Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isCompleted
+                                      ? CleanTheme.accentGreen.withValues(
+                                          alpha: 0.06,
+                                        )
+                                      : CleanTheme.chromeSubtle.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: isCompleted
+                                        ? CleanTheme.accentGreen.withValues(
+                                            alpha: 0.3,
+                                          )
+                                        : CleanTheme.borderSecondary,
+                                    width: 1,
                                   ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d*\.?\d*'),
                                 ),
-                              ],
-                              scrollPadding: const EdgeInsets.only(bottom: 120),
-                              // Quando il campo mostra ancora il peso precedente (grigio),
-                              // al tap seleziona tutto così il primo tasto sostituisce il valore.
-                              onTap: () {
-                                final isGhost =
-                                    !_manuallyEditedWeights.contains(
-                                      setNumber,
-                                    ) &&
-                                    (_weightControllers[setNumber]
-                                            ?.text
-                                            .isNotEmpty ??
-                                        false);
-                                if (isGhost) {
-                                  _weightControllers[setNumber]!
-                                      .selection = TextSelection(
-                                    baseOffset: 0,
-                                    extentOffset: _weightControllers[setNumber]!
-                                        .text
-                                        .length,
-                                  );
-                                }
-                              },
-                              style: GoogleFonts.outfit(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: isCompleted
-                                    ? CleanTheme.accentGreen
-                                    : (!_manuallyEditedWeights.contains(
-                                                setNumber,
-                                              ) &&
-                                              _weightControllers[setNumber]!
-                                                  .text
-                                                  .isNotEmpty
-                                          ? CleanTheme.textSecondary.withValues(
-                                              alpha: 0.5,
-                                            )
-                                          : CleanTheme.textPrimary),
+                                child: TextField(
+                                  textAlign: TextAlign.center,
+                                  controller: _weightControllers[setNumber],
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d*\.?\d*'),
+                                    ),
+                                  ],
+                                  scrollPadding: const EdgeInsets.only(
+                                    bottom: 120,
+                                  ),
+                                  onTap: () {
+                                    final isGhost =
+                                        !_manuallyEditedWeights.contains(
+                                          setNumber,
+                                        ) &&
+                                        (_weightControllers[setNumber]
+                                                ?.text
+                                                .isNotEmpty ??
+                                            false);
+                                    if (isGhost) {
+                                      _weightControllers[setNumber]!.selection =
+                                          TextSelection(
+                                            baseOffset: 0,
+                                            extentOffset:
+                                                _weightControllers[setNumber]!
+                                                    .text
+                                                    .length,
+                                          );
+                                    }
+                                  },
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: isCompleted
+                                        ? CleanTheme.accentGreen
+                                        : (!_manuallyEditedWeights.contains(
+                                                    setNumber,
+                                                  ) &&
+                                                  _weightControllers[setNumber]!
+                                                      .text
+                                                      .isNotEmpty
+                                              ? CleanTheme.textSecondary
+                                                    .withValues(alpha: 0.5)
+                                              : CleanTheme.textPrimary),
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                      horizontal: 4,
+                                    ),
+                                    hintText: '0',
+                                    hintStyle: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: CleanTheme.textTertiary,
+                                    ),
+                                  ),
+                                  enabled: true,
+                                ),
                               ),
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 4,
-                                ),
-                                hintText: '0',
-                                hintStyle: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: CleanTheme.textTertiary,
-                                ),
-                              ),
-                              enabled: true,
-                            ),
+                            ],
                           ),
                         ),
-
                         const SizedBox(width: 8),
                       ],
 
-                      // Reps/Duration Input — Rounded Oval
+                      // Reps/Duration Column
                       Expanded(
                         flex: isCardioMobility ? 6 : 3,
-                        child: Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: isCompleted
-                                ? CleanTheme.accentGreen.withValues(alpha: 0.06)
-                                : CleanTheme.chromeSubtle.withValues(
-                                    alpha: 0.5,
-                                  ),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
-                              color: isCompleted
-                                  ? CleanTheme.accentGreen.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : CleanTheme.borderSecondary,
-                              width: 1,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              isCardioMobility
+                                  ? 'OBIETTIVI: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                                  : 'OBIETTIVI: ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w900,
+                                color: CleanTheme.textPrimary.withValues(
+                                  alpha: 0.6,
+                                ),
+                                letterSpacing: 0.2,
+                              ),
                             ),
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              TextField(
+                            const SizedBox(height: 4),
+                            Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isCompleted
+                                    ? CleanTheme.accentGreen.withValues(
+                                        alpha: 0.06,
+                                      )
+                                    : CleanTheme.chromeSubtle.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(
+                                  color: isCompleted
+                                      ? CleanTheme.accentGreen.withValues(
+                                          alpha: 0.3,
+                                        )
+                                      : CleanTheme.borderSecondary,
+                                  width: 1,
+                                ),
+                              ),
+                              child: TextField(
                                 textAlign: TextAlign.center,
                                 controller: _repsControllers[setNumber],
                                 keyboardType: TextInputType.number,
@@ -960,11 +990,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
                                   isDense: true,
-                                  contentPadding: const EdgeInsets.only(
-                                    top: 18,
-                                    bottom: 6,
-                                    left: 4,
-                                    right: 4,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 4,
                                   ),
                                   hintText: _presetReps[setNumber] ?? '10',
                                   hintStyle: GoogleFonts.inter(
@@ -974,79 +1002,75 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 ),
                                 enabled: true,
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Goal text moved outside the oval
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6),
-                        child: Text(
-                          isCardioMobility
-                              ? 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}s'
-                              : 'OBIETTIVO: ${_presetReps[setNumber] ?? widget.exercise.reps}',
-                          style: GoogleFonts.outfit(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w900,
-                            color: CleanTheme.textPrimary.withValues(
-                              alpha: 0.6,
                             ),
-                            letterSpacing: 0.2,
-                          ),
-                          textAlign: TextAlign.center,
+                          ],
                         ),
                       ),
 
                       const SizedBox(width: 8),
 
-                      // RPE Selector — only for strength exercises
-                      if (!isCardioMobility)
+                      // RPE Column (only for strength)
+                      if (!isCardioMobility) ...[
                         Expanded(
                           flex: 2,
-                          child: GestureDetector(
-                            onTap: () => _showRPEPicker(setNumber),
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: _getRPEColor(
-                                  _rpe[setNumber] ?? 7,
-                                ).withValues(alpha: isCompleted ? 0.08 : 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: _getRPEColor(
-                                    _rpe[setNumber] ?? 7,
-                                  ).withValues(alpha: 0.35),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${_rpe[setNumber] ?? 7}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: _getRPEColor(_rpe[setNumber] ?? 7),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 12),
+                              GestureDetector(
+                                onTap: () => _showRPEPicker(setNumber),
+                                child: Container(
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: _getRPEColor(_rpe[setNumber] ?? 7)
+                                        .withValues(
+                                          alpha: isCompleted ? 0.08 : 0.12,
+                                        ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: _getRPEColor(
+                                        _rpe[setNumber] ?? 7,
+                                      ).withValues(alpha: 0.35),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${_rpe[setNumber] ?? 7}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: _getRPEColor(
+                                          _rpe[setNumber] ?? 7,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-
-                      const SizedBox(width: 8),
+                        const SizedBox(width: 8),
+                      ],
 
                       // Premium Animated Checkbox
-                      _PremiumCheckbox(
-                        isCompleted: isCompleted,
-                        onTap: () {
-                          if (!isCompleted) {
-                            HapticService.mediumTap();
-                            _successAudioPlayer.resume();
-                            _successAudioPlayer.setSource(_successSource);
-                          }
-                          _toggleSet(setNumber, !isCompleted);
-                        },
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 14), // Offset for labels
+                          _PremiumCheckbox(
+                            isCompleted: isCompleted,
+                            onTap: () {
+                              if (!isCompleted) {
+                                HapticService.mediumTap();
+                                _successAudioPlayer.resume();
+                                _successAudioPlayer.setSource(_successSource);
+                              }
+                              _toggleSet(setNumber, !isCompleted);
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),

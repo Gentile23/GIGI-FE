@@ -1607,26 +1607,27 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ],
                 ),
               ),
-              // Info button
-              const SizedBox(width: 8),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    // Navigate to detail page
-                    _navigateToExerciseDetail(exercise);
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+              // Info button (hidden for mobility, moved to bottom row)
+              if (exercise.exerciseType.toLowerCase() != 'mobility') ...[
+                const SizedBox(width: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      _navigateToExerciseDetail(exercise);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.info_outline, color: color, size: 20),
                     ),
-                    child: Icon(Icons.info_outline, color: color, size: 20),
                   ),
                 ),
-              ),
+              ],
               const SizedBox(width: 8),
               Transform.scale(
                 scale: 1.2,
@@ -1651,37 +1652,81 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
             ],
           ),
-          if (!isCompleted) ...[
+          if (!isCompleted &&
+              exercise.exerciseType.toLowerCase() != 'cardio') ...[
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickActionButton(
-                    icon: Icons.camera_alt_outlined,
-                    label: AppLocalizations.of(context)!.aiCheck,
-                    color: CleanTheme.steelDark,
-                    isPrimary: true,
-                    onTap: () {
-                      final exerciseId = int.tryParse(exercise.exercise.id);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => FormAnalysisScreen(
-                            exerciseName: exercise.exercise.name,
-                            exerciseId: exerciseId,
-                          ),
-                        ),
-                      );
-                    },
+            if (exercise.exerciseType.toLowerCase() == 'mobility') ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      icon: Icons.info_outline_rounded,
+                      label: AppLocalizations.of(context)!.info,
+                      color: CleanTheme.steelDark,
+                      onTap: () => _navigateToExerciseDetail(exercise),
+                      isOutlined: true,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _GigiExecuteButton(
-              onTap: () => _startGuidedExecution(exercise),
-              label: AppLocalizations.of(context)!.executeWithGigi,
-            ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: AppLocalizations.of(context)!.aiCheck,
+                      color: CleanTheme.steelDark,
+                      isOutlined: true,
+                      onTap: () {
+                        final exerciseId = int.tryParse(exercise.exercise.id);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FormAnalysisScreen(
+                              exerciseName: exercise.exercise.name,
+                              exerciseId: exerciseId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _GigiExecuteButton(
+                onTap: () => _startGuidedExecution(exercise),
+                label: AppLocalizations.of(context)!.executeWithGigi,
+                isOutlined: true,
+              ),
+            ] else ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickActionButton(
+                      icon: Icons.camera_alt_outlined,
+                      label: AppLocalizations.of(context)!.aiCheck,
+                      color: CleanTheme.steelDark,
+                      isPrimary: true,
+                      onTap: () {
+                        final exerciseId = int.tryParse(exercise.exercise.id);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => FormAnalysisScreen(
+                              exerciseName: exercise.exercise.name,
+                              exerciseId: exerciseId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _GigiExecuteButton(
+                onTap: () => _startGuidedExecution(exercise),
+                label: AppLocalizations.of(context)!.executeWithGigi,
+              ),
+            ],
           ],
         ],
       ),
@@ -1957,15 +2002,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required Color color,
     required VoidCallback onTap,
     bool isPrimary = false,
+    bool isOutlined = false,
   }) {
-    final bgColor = isPrimary ? CleanTheme.steelDark : CleanTheme.surfaceColor;
-    final iconColor = isPrimary ? CleanTheme.textOnDark : color;
-    final textColor = isPrimary
-        ? CleanTheme.textOnDark
-        : CleanTheme.textSecondary;
-    final borderColor = isPrimary
-        ? CleanTheme.steelDark
-        : CleanTheme.borderSecondary;
+    final bgColor = isOutlined
+        ? Colors.transparent
+        : (isPrimary ? CleanTheme.steelDark : CleanTheme.surfaceColor);
+    final iconColor = isOutlined
+        ? CleanTheme.textPrimary
+        : (isPrimary ? CleanTheme.textOnDark : color);
+    final textColor = isOutlined
+        ? CleanTheme.textPrimary
+        : (isPrimary ? CleanTheme.textOnDark : CleanTheme.textSecondary);
+    final borderColor = isOutlined
+        ? CleanTheme.textPrimary.withValues(alpha: 0.8)
+        : (isPrimary ? CleanTheme.steelDark : CleanTheme.borderSecondary);
 
     return Material(
       color: Colors.transparent,
@@ -1976,51 +2026,42 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: borderColor, width: 1),
-            boxShadow: isPrimary
-                ? [
-                    BoxShadow(
-                      color: CleanTheme.steelDark.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            border: Border.all(color: borderColor, width: isOutlined ? 1.5 : 1),
+            boxShadow: isOutlined
+                ? null
+                : (isPrimary
+                      ? [
+                          BoxShadow(
+                            color: CleanTheme.steelDark.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: isPrimary
-                        ? CleanTheme.textOnDark.withValues(alpha: 0.1)
-                        : CleanTheme.chromeSubtle,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
-                const SizedBox(height: 7),
+                Icon(icon, size: 22, color: iconColor),
+                const SizedBox(height: 6),
                 Text(
                   label,
                   style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: isPrimary || isOutlined
+                        ? FontWeight.w700
+                        : FontWeight.w600,
                     color: textColor,
-                    letterSpacing: 0.1,
+                    letterSpacing: 0.2,
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -2034,23 +2075,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     // Staggered entry animation index
     final index = widget.workoutDay.mainWorkout.indexOf(exercise);
 
-    // Redirect cardio and mobility to the compact renderer
+    // Redirect cardio to the compact renderer (Mobility/Warmup now use the full card)
     final type = exercise.exerciseType.toLowerCase();
-    if (type == 'cardio' || type == 'mobility' || type == 'warmup') {
+    if (type == 'cardio' ||
+        (type == 'warmup' &&
+            exercise.exercise.name.toLowerCase().contains('cardio'))) {
       return _buildInlineCardioMobilityExercise(
             exercise: exercise,
             sectionId: 'main_${exercise.exercise.id}',
-            emoji: type == 'cardio' ? '🔥' : '🤸',
-            color: type == 'cardio'
-                ? CleanTheme.accentRed
-                : CleanTheme.accentOrange,
+            emoji: '🔥',
+            color: CleanTheme.accentRed,
           )
           .animate(delay: (index * 80).ms)
           .fade(duration: 500.ms, curve: Curves.easeOut)
           .slideY(begin: 0.15, duration: 500.ms, curve: Curves.easeOutCubic);
     }
 
-    const isCompactType = false;
+    final isMobilityType = type == 'mobility' || type == 'warmup';
 
     return Consumer<WorkoutLogProvider>(
           builder: (context, provider, child) {
@@ -2208,14 +2249,21 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    if (!isCompactType)
+                                    if (!isMobilityType)
                                       _buildDifficultyBadge(
                                         exercise.exercise.difficulty,
                                       ),
-                                    if (!isCompactType)
+                                    if (!isMobilityType)
                                       const SizedBox(width: 8),
                                     Text(
-                                      '${exercise.sets}×${exercise.reps} • ${exercise.restSeconds}s',
+                                      isMobilityType
+                                          ? (exercise.reps.contains('min') ||
+                                                    exercise.reps.contains(
+                                                      'sec',
+                                                    )
+                                                ? exercise.reps
+                                                : '${exercise.reps} min')
+                                          : '${exercise.sets}×${exercise.reps} • ${exercise.restSeconds}s',
                                       style: GoogleFonts.inter(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w500,
@@ -2315,46 +2363,46 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               label: AppLocalizations.of(context)!.info,
                               color: CleanTheme.chromeGray,
                               onTap: () => _navigateToExerciseDetail(exercise),
+                              isOutlined: isMobilityType,
                             ),
                           ),
-                          if (!isCompactType) ...[
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _buildQuickActionButton(
-                                icon: Icons.camera_alt_outlined,
-                                label: AppLocalizations.of(context)!.aiCheck,
-                                color: CleanTheme.steelDark,
-                                isPrimary: true,
-                                onTap: () {
-                                  final exerciseId = int.tryParse(
-                                    exercise.exercise.id,
-                                  );
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => FormAnalysisScreen(
-                                        exerciseName: exercise.exercise.name,
-                                        exerciseId: exerciseId,
-                                      ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildQuickActionButton(
+                              icon: Icons.camera_alt_outlined,
+                              label: AppLocalizations.of(context)!.aiCheck,
+                              color: CleanTheme.steelDark,
+                              isPrimary: !isMobilityType,
+                              isOutlined: isMobilityType,
+                              onTap: () {
+                                final exerciseId = int.tryParse(
+                                  exercise.exercise.id,
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FormAnalysisScreen(
+                                      exerciseName: exercise.exercise.name,
+                                      exerciseId: exerciseId,
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
 
-                    // ── ESEGUI CON GIGI – Premium CTA (hidden for warmup/mobility/cardio) ──
-                    if (!isCompactType)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                        child: _GigiExecuteButton(
-                          onTap: () => _startGuidedExecution(exercise),
-                          label: AppLocalizations.of(context)!.executeWithGigi,
-                        ),
+                    // ── ESEGUI CON GIGI – Premium CTA ──
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                      child: _GigiExecuteButton(
+                        onTap: () => _startGuidedExecution(exercise),
+                        label: AppLocalizations.of(context)!.executeWithGigi,
+                        isOutlined: isMobilityType,
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -2670,8 +2718,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 class _GigiExecuteButton extends StatefulWidget {
   final VoidCallback onTap;
   final String label;
+  final bool isOutlined;
 
-  const _GigiExecuteButton({required this.onTap, required this.label});
+  const _GigiExecuteButton({
+    required this.onTap,
+    required this.label,
+    this.isOutlined = false,
+  });
 
   @override
   State<_GigiExecuteButton> createState() => _GigiExecuteButtonState();
@@ -2716,43 +2769,55 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
             return Container(
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: widget.isOutlined ? Colors.transparent : Colors.black,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1,
+                  color: widget.isOutlined
+                      ? Colors.black.withValues(alpha: 0.8)
+                      : Colors.white.withValues(alpha: 0.15),
+                  width: widget.isOutlined ? 1.5 : 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                boxShadow: widget.isOutlined
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 18,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
               ),
               child: Stack(
                 children: [
-                  // Shimmer sweep
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: _ShimmerSweep(controller: _shimmerController),
+                  // Shimmer sweep (hidden for outlined)
+                  if (!widget.isOutlined)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: _ShimmerSweep(controller: _shimmerController),
+                      ),
                     ),
-                  ),
                   // Content
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Pulsing mic icon
-                        _PulsingMicIcon(controller: _shimmerController),
+                        _PulsingMicIcon(
+                          controller: _shimmerController,
+                          color: widget.isOutlined
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           widget.label,
                           style: GoogleFonts.outfit(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: widget.isOutlined
+                                ? Colors.black
+                                : Colors.white,
                             letterSpacing: 0.4,
                           ),
                         ),
@@ -2804,11 +2869,13 @@ class _ShimmerSweep extends StatelessWidget {
 /// Softly pulsing mic icon.
 class _PulsingMicIcon extends StatelessWidget {
   final AnimationController controller;
+  final Color? color;
 
-  const _PulsingMicIcon({required this.controller});
+  const _PulsingMicIcon({required this.controller, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = color ?? Colors.white;
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
@@ -2826,16 +2893,16 @@ class _PulsingMicIcon extends StatelessWidget {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: effectiveColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.25),
+                color: effectiveColor.withValues(alpha: 0.25),
                 width: 1,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.record_voice_over_rounded,
-              color: Colors.white,
+              color: effectiveColor,
               size: 18,
             ),
           ),
