@@ -66,6 +66,13 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       body: SafeArea(
         child: Consumer<WorkoutProvider>(
           builder: (context, workoutProvider, _) {
+            final plan = workoutProvider.currentPlan;
+            final bool hasCompletedPlan =
+                plan != null &&
+                plan.status == 'completed' &&
+                plan.workouts.isNotEmpty &&
+                plan.workouts.any((w) => w.exercises.isNotEmpty);
+
             return RefreshIndicator(
               onRefresh: () async {
                 await workoutProvider.fetchCurrentPlan();
@@ -104,12 +111,14 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
                     const SizedBox(height: 32),
 
-                    // AI Workouts Section (only show when plans exist)
-                    if (workoutProvider.currentPlan != null) ...[
+                    // AI Workouts Section (only show when plans exist and are completed)
+                    if (hasCompletedPlan) ...[
                       _buildSectionTitle(
                         AppLocalizations.of(context)!.aiWorkoutsSectionTitle,
                         AppLocalizations.of(context)!.aiWorkoutsSectionSubtitle,
-                        action: workoutProvider.isGenerating
+                        action:
+                            workoutProvider.isGenerating ||
+                                plan.status == 'processing'
                             ? null
                             : GestureDetector(
                                 onTap: () => _handleCreateNewPlan(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/services/haptic_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -960,7 +961,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             isNext: isNext,
             exerciseId: exerciseId,
             setNumber: setNumber,
+            targetValue: _getTargetReps(exercise, setNumber),
           ),
+          if (!isNext) ...[
+            const SizedBox(height: 16),
+            _buildRpeOverlaySelector(
+              exerciseId: exerciseId,
+              setNumber: setNumber,
+            ),
+          ],
         ],
       ),
     );
@@ -1031,6 +1040,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required bool isNext,
     required String exerciseId,
     required int setNumber,
+    String? targetValue,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1053,6 +1063,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
+            flex: 2,
             child: TextField(
               key: ValueKey(
                 'overlay_input_${label}_${exerciseId}_$setNumber',
@@ -1075,9 +1086,120 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               cursorColor: CleanTheme.accentBlue,
             ),
           ),
+          if (targetValue != null && targetValue.isNotEmpty) ...[
+            const SizedBox(width: 12),
+            Flexible(
+              flex: 3,
+              child: Text(
+                'Obiettivo: $targetValue',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textOnDark.withValues(alpha: 0.4),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+                softWrap: false,
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildRpeOverlaySelector({
+    required String exerciseId,
+    required int setNumber,
+  }) {
+    final setLoggingState = _setLoggingKeys[exerciseId]?.currentState;
+    if (setLoggingState == null) return const SizedBox.shrink();
+
+    final currentRpe = setLoggingState.getRpe(setNumber);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'DIFFICOLTÀ (RPE)',
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.5),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              currentRpe.toString(),
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: CleanTheme.accentBlue,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(10, (index) {
+              final val = index + 1;
+              final isSelected = val == currentRpe;
+              return GestureDetector(
+                onTap: () {
+                  HapticService.selectionClick();
+                  setLoggingState.updateRpe(setNumber, val);
+                },
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? CleanTheme.accentBlue
+                        : CleanTheme.textOnDark.withValues(alpha: 0.1),
+                    border: Border.all(
+                      color: isSelected
+                          ? CleanTheme.accentBlue
+                          : CleanTheme.textOnDark.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      val.toString(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected
+                            ? Colors.black
+                            : CleanTheme.textOnDark,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getTargetReps(WorkoutExercise exercise, int setNumber) {
+    try {
+      final repsList = exercise.reps.split(',').map((s) => s.trim()).toList();
+      if (repsList.isEmpty) return '10';
+      return setNumber <= repsList.length
+          ? repsList[setNumber - 1]
+          : repsList.last;
+    } catch (e) {
+      return '10';
+    }
   }
 
   Widget _buildFullscreenRestTimerOverlay() {

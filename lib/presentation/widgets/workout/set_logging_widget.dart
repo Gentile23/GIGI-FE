@@ -83,6 +83,16 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       _weightControllers[setNumber];
   TextEditingController? getRepsController(int setNumber) =>
       _repsControllers[setNumber];
+  int getRpe(int setNumber) => _rpe[setNumber] ?? 7;
+
+  void updateRpe(int setNumber, int value) {
+    if (_rpe[setNumber] != value) {
+      setState(() {
+        _rpe[setNumber] = value;
+      });
+      _scheduleAutoSave(setNumber);
+    }
+  }
 
   final Map<int, double> _weights = {};
   final Map<int, int> _reps = {};
