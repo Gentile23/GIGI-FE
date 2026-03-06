@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -24,9 +25,56 @@ import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/nutrition_coach_provider.dart';
 import 'core/services/payment_service.dart';
+import 'core/services/music_integration_service.dart';
+import 'package:audio_session/audio_session.dart' as session;
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure global audio session for non-exclusive playback
+  // This prevents app sounds from pausing background music (Spotify, etc.)
+  try {
+    final audioSession = await session.AudioSession.instance;
+    await audioSession.configure(
+      session.AudioSessionConfiguration(
+        avAudioSessionCategory: session.AVAudioSessionCategory.playback,
+        avAudioSessionCategoryOptions:
+            session.AVAudioSessionCategoryOptions.mixWithOthers,
+        avAudioSessionMode: session.AVAudioSessionMode.defaultMode,
+        avAudioSessionRouteSharingPolicy:
+            session.AVAudioSessionRouteSharingPolicy.defaultPolicy,
+        avAudioSessionSetActiveOptions:
+            session.AVAudioSessionSetActiveOptions.none,
+        androidAudioAttributes: const session.AndroidAudioAttributes(
+          contentType: session.AndroidAudioContentType.music,
+          flags: session.AndroidAudioFlags.none,
+          usage: session.AndroidAudioUsage.media,
+        ),
+        androidAudioFocusGainType:
+            session.AndroidAudioFocusGainType.gainTransientMayDuck,
+        androidWillPauseWhenDucked: false,
+      ),
+    );
+
+    // Also configure default audioplayers context
+    AudioPlayer.global.setAudioContext(
+      AudioContext(
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: {AVAudioSessionOptions.mixWithOthers},
+        ),
+        android: const AudioContextAndroid(
+          isSpeakerphoneOn: true,
+          stayAwake: true,
+          contentType: AndroidContentType.music,
+          usageType: AndroidUsageType.assistanceSonification,
+          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+        ),
+      ),
+    );
+  } catch (e) {
+    debugPrint('Error configuring audio session: $e');
+  }
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
@@ -70,6 +118,9 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PaymentService()..initialize()),
         ChangeNotifierProvider(
           create: (_) => NutritionCoachProvider(apiClient),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => MusicIntegrationService()..initialize(),
         ),
       ],
       child: MaterialApp(

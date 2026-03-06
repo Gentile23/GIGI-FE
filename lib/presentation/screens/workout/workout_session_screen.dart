@@ -950,12 +950,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             label: 'KG',
             controller: weightController,
             isNext: isNext,
+            exerciseId: exerciseId,
+            setNumber: setNumber,
           ),
           const SizedBox(height: 8),
           _buildOverlayInputField(
             label: 'REPS',
             controller: repsController,
             isNext: isNext,
+            exerciseId: exerciseId,
+            setNumber: setNumber,
           ),
         ],
       ),
@@ -1025,6 +1029,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required String label,
     required TextEditingController? controller,
     required bool isNext,
+    required String exerciseId,
+    required int setNumber,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1048,6 +1054,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
+              key: ValueKey(
+                'overlay_input_${label}_${exerciseId}_$setNumber',
+              ), // Added Key
               controller: controller,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
