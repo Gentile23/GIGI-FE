@@ -1923,43 +1923,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     // Clear snackbar when done
   }
 
-  Widget _buildDifficultyBadge(ExerciseDifficulty difficulty) {
-    Color badgeColor;
-    String label;
-
-    switch (difficulty) {
-      case ExerciseDifficulty.beginner:
-        badgeColor = CleanTheme.accentGreen;
-        label = AppLocalizations.of(context)!.difficultyBeginner;
-        break;
-      case ExerciseDifficulty.intermediate:
-        badgeColor = CleanTheme.accentGold;
-        label = AppLocalizations.of(context)!.difficultyIntermediate;
-        break;
-      case ExerciseDifficulty.advanced:
-        badgeColor = CleanTheme.steelDark;
-        label = AppLocalizations.of(context)!.difficultyAdvanced;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: badgeColor,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSectionHeader(String title, String emoji) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
@@ -2249,27 +2212,46 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    if (!isMobilityType)
-                                      _buildDifficultyBadge(
-                                        exercise.exercise.difficulty,
-                                      ),
-                                    if (!isMobilityType)
-                                      const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.timer_outlined,
+                                      size: 14,
+                                      color: CleanTheme.accentOrange,
+                                    ),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      isMobilityType
-                                          ? (exercise.reps.contains('min') ||
-                                                    exercise.reps.contains(
-                                                      'sec',
-                                                    )
-                                                ? exercise.reps
-                                                : '${exercise.reps} min')
-                                          : '${exercise.sets}×${exercise.reps} • ${exercise.restSeconds}s',
+                                      '${exercise.restSeconds}s',
                                       style: GoogleFonts.inter(
                                         fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: CleanTheme.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                        color: CleanTheme.accentOrange,
                                       ),
                                     ),
+                                    if (exercise
+                                        .exercise
+                                        .muscleGroups
+                                        .isNotEmpty) ...[
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        '•',
+                                        style: TextStyle(
+                                          color: CleanTheme.textTertiary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          exercise.exercise.muscleGroups.join(
+                                            ', ',
+                                          ),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            color: CleanTheme.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ],
