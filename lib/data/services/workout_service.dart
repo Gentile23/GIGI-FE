@@ -105,7 +105,12 @@ class WorkoutService {
         final planData =
             response.data is Map && response.data.containsKey('data')
             ? response.data['data']
-            : response.data;
+            : (response.data is Map && response.data.containsKey('plan')
+                  ? response.data['plan']
+                  : (response.data is Map &&
+                            response.data.containsKey('workout_plan')
+                        ? response.data['workout_plan']
+                        : response.data));
         return {'success': true, 'plan': WorkoutPlan.fromJson(planData)};
       }
 

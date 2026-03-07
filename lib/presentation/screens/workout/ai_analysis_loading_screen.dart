@@ -45,7 +45,17 @@ class _AiAnalysisLoadingScreenState extends State<AiAnalysisLoadingScreen> {
   }
 
   Future<void> _executeGeneration() async {
+    final startTime = DateTime.now();
     await widget.onGenerate();
+
+    // Ensure the screen stays visible for at least 6 seconds to show some steps
+    final elapsed = DateTime.now().difference(startTime);
+    const minDuration = Duration(seconds: 6);
+
+    if (elapsed < minDuration) {
+      await Future.delayed(minDuration - elapsed);
+    }
+
     if (mounted) {
       Navigator.pop(context, true);
     }

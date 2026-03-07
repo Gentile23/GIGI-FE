@@ -157,59 +157,66 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                             AppLocalizations.of(
                               context,
                             )!.aiWorkoutsSectionSubtitle,
-                            action:
-                                workoutProvider.isGenerating ||
-                                    plan.status == 'processing'
-                                ? null
-                                : GestureDetector(
-                                    onTap: () {
+                            action: GestureDetector(
+                              onTap:
+                                  workoutProvider.isGenerating ||
+                                      plan.status == 'processing'
+                                  ? null
+                                  : () {
                                       HapticService.lightTap();
                                       _handleCreateNewPlan();
                                     },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            CleanTheme.primaryColor,
-                                            CleanTheme.primaryColor.withValues(
-                                              alpha: 0.8,
-                                            ),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: CleanTheme.primaryColor
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.auto_awesome,
-                                            size: 14,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            "Nuova",
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                              child: Opacity(
+                                opacity:
+                                    workoutProvider.isGenerating ||
+                                        plan.status == 'processing'
+                                    ? 0.5
+                                    : 1.0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        CleanTheme.primaryColor,
+                                        CleanTheme.primaryColor.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: CleanTheme.primaryColor
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.auto_awesome,
+                                        size: 14,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "Nuova",
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 12),
                           _buildAIWorkoutsList(workoutProvider),
@@ -583,51 +590,48 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  if (!isPremium)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            CleanTheme.accentGold,
-                                            CleanTheme.accentOrange,
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: CleanTheme.accentOrange
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 8,
-                                            spreadRadius: 1,
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (!isPremium) {
+                                        Navigator.pop(context);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const PaywallScreen(),
                                           ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        "PRO",
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
+                                        );
+                                      }
+                                    },
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        Switch(
+                                          value: isPremium
+                                              ? includeHistory
+                                              : false,
+                                          onChanged: isPremium
+                                              ? (val) => setState(
+                                                  () => includeHistory = val,
+                                                )
+                                              : null,
+                                          activeThumbColor: Colors.white,
+                                          activeTrackColor:
+                                              CleanTheme.accentOrange,
+                                          inactiveThumbColor: isPremium
+                                              ? Colors.white54
+                                              : Colors.white24,
+                                          inactiveTrackColor: Colors.white10,
                                         ),
-                                      ),
-                                    )
-                                  else
-                                    Switch(
-                                      value: includeHistory,
-                                      onChanged: (val) =>
-                                          setState(() => includeHistory = val),
-                                      activeThumbColor: CleanTheme.primaryColor,
-                                      activeTrackColor: CleanTheme.primaryColor
-                                          .withValues(alpha: 0.3),
-                                      inactiveThumbColor: Colors.white54,
-                                      inactiveTrackColor: Colors.white10,
+                                        if (!isPremium)
+                                          const Icon(
+                                            Icons.lock,
+                                            size: 14,
+                                            color: Colors.white70,
+                                          ),
+                                      ],
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
