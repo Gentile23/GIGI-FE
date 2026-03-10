@@ -2320,19 +2320,19 @@ class _UnifiedQuestionnaireScreenState
                     AppLocalizations.of(context)!.cardioMobilityTitle,
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
                   Text(
                     AppLocalizations.of(context)!.cardioSection,
                     style: Theme.of(
                       context,
                     ).textTheme.headlineMedium?.copyWith(fontSize: 18),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   ...CardioPreference.values
                       .where((p) => p != CardioPreference.separateSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 4),
                           child: CleanCard(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -2375,19 +2375,19 @@ class _UnifiedQuestionnaireScreenState
                           ),
                         );
                       }),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   Text(
                     AppLocalizations.of(context)!.mobilitySection,
                     style: Theme.of(
                       context,
                     ).textTheme.headlineMedium?.copyWith(fontSize: 18),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   ...MobilityPreference.values
                       .where((p) => p != MobilityPreference.dedicatedSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.only(bottom: 4),
                           child: CleanCard(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -2466,7 +2466,7 @@ class _UnifiedQuestionnaireScreenState
                     AppLocalizations.of(context)!.trainingSplitSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
                   ...TrainingSplit.values.map((split) {
                     final isSelected = _selectedSplit == split;
                     final isBeginner =
@@ -2477,7 +2477,7 @@ class _UnifiedQuestionnaireScreenState
                             split == TrainingSplit.upperLower);
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: 6),
                       child: CleanCard(
                         isSelected: isSelected,
                         onTap: () {
@@ -2527,11 +2527,6 @@ class _UnifiedQuestionnaireScreenState
                               ),
                             Row(
                               children: [
-                                Text(
-                                  split.icon,
-                                  style: const TextStyle(fontSize: 32),
-                                ),
-                                const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -2607,6 +2602,7 @@ class _UnifiedQuestionnaireScreenState
                   TextField(
                     controller: _prefNotesController,
                     maxLines: 4,
+                    onChanged: (text) => setState(() {}),
                     style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.finalNotesHint,
@@ -2665,12 +2661,49 @@ class _UnifiedQuestionnaireScreenState
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  if (!widget.isOnboarding)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            color: CleanTheme.primaryColor,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Attivando la memoria storica l'AI analizzerà i tuoi vecchi workout per creare una progressione perfetta e ti fornirà una spiegazione dettagliata del suo ragionamento.",
+                              style: TextStyle(
+                                color: CleanTheme.textPrimary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: _isLoading ? null : _finish,
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  // Ignore text input when proceeding without details
+                                  _prefNotesController.clear();
+                                  _finish();
+                                },
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -2683,10 +2716,12 @@ class _UnifiedQuestionnaireScreenState
                             ),
                           ),
                           child: Text(
-                            "Procedi senza aggiungere dettagli",
+                            widget.isOnboarding
+                                ? "Procedi senza dettagli"
+                                : "Genera senza dettagli",
                             textAlign: TextAlign.center,
                             style: GoogleFonts.outfit(
-                              color: CleanTheme.textPrimary,
+                              color: CleanTheme.textSecondary,
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
@@ -2698,8 +2733,12 @@ class _UnifiedQuestionnaireScreenState
                         child: CleanButton(
                           text: _isLoading
                               ? AppLocalizations.of(context)!.savingButton
-                              : AppLocalizations.of(context)!.proceedButton,
-                          onPressed: _isLoading ? null : _finish,
+                              : (widget.isOnboarding ? "Procedi" : "Genera"),
+                          onPressed:
+                              (_isLoading ||
+                                  _prefNotesController.text.trim().isEmpty)
+                              ? null
+                              : _finish,
                         ),
                       ),
                     ],
@@ -3259,7 +3298,7 @@ class _UnifiedQuestionnaireScreenState
                     AppLocalizations.of(context)!.questionBodyFatSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   ...BodyFatPercentage.values.map((bf) {
                     String title;
                     String subtitle;
@@ -3311,7 +3350,7 @@ class _UnifiedQuestionnaireScreenState
                     final isSelected = _bodyFatPercentage == bf;
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 4),
                       child: CleanCard(
                         isSelected: isSelected,
                         onTap: () {
@@ -3455,7 +3494,7 @@ class _UnifiedQuestionnaireScreenState
                     AppLocalizations.of(context)!.questionSleepSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
                   // Sleep Slider
                   Text(
@@ -3473,14 +3512,14 @@ class _UnifiedQuestionnaireScreenState
                         setState(() => _sleepHours = val.round()),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
 
                   // Recovery Capacity
                   Text(
                     AppLocalizations.of(context)!.questionRecoveryTitle,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 6),
                   ...RecoveryCapacity.values.map((r) {
                     String label;
                     String description;
@@ -3507,7 +3546,7 @@ class _UnifiedQuestionnaireScreenState
                     }
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
+                      padding: const EdgeInsets.only(bottom: 6.0),
                       child: CleanCard(
                         isSelected: _recoveryCapacity == r,
                         onTap: () {

@@ -142,15 +142,15 @@ extension TrainingSplitExtension on TrainingSplit {
   String get icon {
     switch (this) {
       case TrainingSplit.monofrequency:
-        return '1️⃣';
+        return '';
       case TrainingSplit.multifrequency:
-        return '🔄';
+        return '';
       case TrainingSplit.upperLower:
-        return '⬆️⬇️';
+        return '';
       case TrainingSplit.pushPullLegs:
-        return '💪🏋️🦵';
+        return '';
       case TrainingSplit.fullBody:
-        return '🎯';
+        return '';
     }
   }
 }

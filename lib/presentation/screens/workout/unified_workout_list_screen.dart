@@ -17,7 +17,6 @@ import '../../../data/services/quota_service.dart';
 import '../../../data/models/quota_status_model.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import '../paywall/paywall_screen.dart';
-import 'ai_analysis_loading_screen.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/celebrations/celebration_overlay.dart';
 import '../../../core/services/haptic_service.dart';
@@ -61,12 +60,143 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         setState(() {
           _showCelebration = true;
         });
+
+        final plan = workoutProvider.currentPlan;
+        if (plan != null &&
+            plan.aiGenerationNotes != null &&
+            plan.aiGenerationNotes!.isNotEmpty) {
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              _showAIGenerationNotesBottomSheet(plan.aiGenerationNotes!);
+            }
+          });
+        }
+
         // Refresh data
         workoutProvider.fetchCurrentPlan();
         _loadCustomWorkouts();
         Provider.of<AuthProvider>(context, listen: false).fetchUser();
       }
     };
+  }
+
+  void _showAIGenerationNotesBottomSheet(String notes) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: CleanTheme.backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                blurRadius: 20,
+                spreadRadius: 5,
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: CleanTheme.borderSecondary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.auto_awesome,
+                        color: CleanTheme.primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "L'Analisi di GiGi",
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: CleanTheme.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            "La scienza dietro la tua nuova scheda",
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: CleanTheme.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: CleanTheme.borderPrimary),
+                    ),
+                    child: Text(
+                      notes,
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        color: CleanTheme.textSecondary,
+                        height: 1.6,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: CleanButton(
+                  text: "Inizia ad Allenarti",
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -748,16 +878,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       context,
       listen: false,
     );
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AiAnalysisLoadingScreen(
-          onGenerate: () async => await workoutProvider.generatePlan(
-            includeHistory: includeHistory,
-          ),
-        ),
-      ),
-    );
+    await workoutProvider.generatePlan(includeHistory: includeHistory);
   }
 
   Widget _buildSectionTitle(String title, String subtitle, {Widget? action}) {
@@ -1037,21 +1158,61 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     }
 
     return Column(
-      children: plan.workoutDays.asMap().entries.map((entry) {
-        final workout = entry.value;
-        return _buildWorkoutCard(
-          title: workout.name,
-          subtitle: '${workout.exercises.length} esercizi',
-          duration: '${workout.estimatedDuration} min',
-          isAI: true,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WorkoutSessionScreen(workoutDay: workout),
+      children: [
+        ...plan.workoutDays.asMap().entries.map((entry) {
+          final workout = entry.value;
+          return _buildWorkoutCard(
+            title: workout.name,
+            subtitle: '${workout.exercises.length} esercizi',
+            duration: '${workout.estimatedDuration} min',
+            isAI: true,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => WorkoutSessionScreen(workoutDay: workout),
+              ),
+            ),
+          );
+        }),
+        if (plan.aiGenerationNotes != null &&
+            plan.aiGenerationNotes!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
+            child: GestureDetector(
+              onTap: () =>
+                  _showAIGenerationNotesBottomSheet(plan.aiGenerationNotes!),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.psychology,
+                      color: CleanTheme.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "✨ Leggi la strategia di questa scheda",
+                      style: GoogleFonts.outfit(
+                        color: CleanTheme.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        );
-      }).toList(),
+      ],
     );
   }
 
