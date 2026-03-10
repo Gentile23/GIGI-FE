@@ -2309,7 +2309,7 @@ class _UnifiedQuestionnaireScreenState
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
             child: IntrinsicHeight(
@@ -2332,11 +2332,11 @@ class _UnifiedQuestionnaireScreenState
                       .where((p) => p != CardioPreference.separateSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.only(bottom: 2),
                           child: CleanCard(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              horizontal: 14,
+                              vertical: 10,
                             ),
                             isSelected: _cardioPreference == p,
                             onTap: () => setState(() => _cardioPreference = p),
@@ -2387,11 +2387,11 @@ class _UnifiedQuestionnaireScreenState
                       .where((p) => p != MobilityPreference.dedicatedSession)
                       .map((p) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.only(bottom: 2),
                           child: CleanCard(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              horizontal: 14,
+                              vertical: 10,
                             ),
                             isSelected: _mobilityPreference == p,
                             onTap: () =>
@@ -2477,8 +2477,9 @@ class _UnifiedQuestionnaireScreenState
                             split == TrainingSplit.upperLower);
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
+                      padding: const EdgeInsets.only(bottom: 4),
                       child: CleanCard(
+                        padding: const EdgeInsets.all(12),
                         isSelected: isSelected,
                         onTap: () {
                           setState(() => _selectedSplit = split);
@@ -2488,7 +2489,7 @@ class _UnifiedQuestionnaireScreenState
                           children: [
                             if (isRecommendedForBeginner)
                               Container(
-                                margin: const EdgeInsets.only(bottom: 12),
+                                margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
                                   vertical: 4,
@@ -2592,7 +2593,7 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${AppLocalizations.of(context)!.finalDetailsSubtitle} (Facoltativo)',
+                    AppLocalizations.of(context)!.finalDetailsSubtitle,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: CleanTheme.primaryColor,
                       fontWeight: FontWeight.bold,
@@ -2662,70 +2663,25 @@ class _UnifiedQuestionnaireScreenState
                   ),
                   const Spacer(),
                   const SizedBox(height: 12),
-                  if (!widget.isOnboarding)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.auto_awesome,
-                            color: CleanTheme.primaryColor,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "Attivando la memoria storica l'AI analizzerà i tuoi vecchi workout per creare una progressione perfetta e ti fornirà una spiegazione dettagliata del suo ragionamento.",
-                              style: TextStyle(
-                                color: CleanTheme.textPrimary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
+                        child: CleanButton(
+                          text: widget.isOnboarding
+                              ? "Procedi senza details"
+                              : "Senza dettagli",
                           onPressed: _isLoading
                               ? null
-                              : () {
+                              : () async {
+                                  debugPrint(
+                                    "DEBUG: Genera senza dettagli clicked",
+                                  );
                                   // Ignore text input when proceeding without details
                                   _prefNotesController.clear();
-                                  _finish();
+                                  await _finish();
                                 },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: BorderSide(
-                              color: CleanTheme.textSecondary.withValues(
-                                alpha: 0.3,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            widget.isOnboarding
-                                ? "Procedi senza dettagli"
-                                : "Genera senza dettagli",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(
-                              color: CleanTheme.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
+                          isPrimary: false,
+                          backgroundColor: CleanTheme.steelDark,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -2738,7 +2694,12 @@ class _UnifiedQuestionnaireScreenState
                               (_isLoading ||
                                   _prefNotesController.text.trim().isEmpty)
                               ? null
-                              : _finish,
+                              : () async {
+                                  debugPrint(
+                                    "DEBUG: Genera with details clicked",
+                                  );
+                                  await _finish();
+                                },
                         ),
                       ),
                     ],

@@ -853,6 +853,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                 const UnifiedQuestionnaireScreen(isOnboarding: false),
           ),
         );
+        debugPrint("DEBUG: Questionnaire result: $questionnaireResult");
         if (questionnaireResult == true) shouldGenerate = true;
       } else {
         shouldGenerate = true;
