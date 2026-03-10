@@ -364,7 +364,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
               label: AppLocalizations.of(context)!.trainingSplit,
               value: _trainingSplit,
               items: TrainingSplit.values,
-              itemLabel: (split) => split.displayName,
+              itemLabel: (split) => '${split.icon} ${split.displayName}',
               onChanged: (value) => setState(() => _trainingSplit = value),
             ),
             _buildSlider(

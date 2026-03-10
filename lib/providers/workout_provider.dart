@@ -245,8 +245,22 @@ class WorkoutProvider with ChangeNotifier {
   bool _isGenerating = false;
   bool get isGenerating => _isGenerating;
 
-  // Callback for when generation completes
-  VoidCallback? onGenerationComplete;
+  // Callback listeners for when generation completes
+  final List<VoidCallback> _generationCompleteListeners = [];
+
+  void addGenerationCompleteListener(VoidCallback callback) {
+    _generationCompleteListeners.add(callback);
+  }
+
+  void removeGenerationCompleteListener(VoidCallback callback) {
+    _generationCompleteListeners.remove(callback);
+  }
+
+  void _notifyGenerationComplete() {
+    for (final listener in List.of(_generationCompleteListeners)) {
+      listener();
+    }
+  }
 
   void _pollPlanStatus(String planId) async {
     int attempts = 0;
@@ -272,10 +286,11 @@ class WorkoutProvider with ChangeNotifier {
               _currentPlan = plan;
               _isGenerating = false;
               _isLoading = false;
-              await fetchWorkoutPlans();
               notifyListeners();
-              // Trigger callback if set
-              onGenerationComplete?.call();
+              // Refresh full list in background
+              fetchWorkoutPlans();
+              // Trigger listeners
+              _notifyGenerationComplete();
               return;
             } else if (plan.status == 'failed') {
               debugPrint('Plan generation failed: ${plan.errorMessage}');

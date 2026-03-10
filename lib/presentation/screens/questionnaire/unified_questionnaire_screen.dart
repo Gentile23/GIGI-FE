@@ -2534,7 +2534,7 @@ class _UnifiedQuestionnaireScreenState
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _getSplitLabel(split),
+                                        '${split.icon} ${_getSplitLabel(split)}',
                                         style: Theme.of(
                                           context,
                                         ).textTheme.titleLarge,
@@ -3514,18 +3514,31 @@ class _UnifiedQuestionnaireScreenState
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
                             children: [
                               Text(
-                                label,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.headlineMedium,
+                                r.icon,
+                                style: const TextStyle(fontSize: 24),
                               ),
-                              Text(
-                                description,
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      label,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineMedium,
+                                    ),
+                                    Text(
+                                      description,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

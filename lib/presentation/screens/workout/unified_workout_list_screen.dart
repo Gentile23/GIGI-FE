@@ -36,6 +36,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   List<CustomWorkoutPlan> _customPlans = [];
   bool _isLoadingCustom = true;
   bool _showCelebration = false;
+  VoidCallback? _onGenerationComplete;
 
   @override
   void initState() {
@@ -55,7 +56,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       listen: false,
     );
 
-    workoutProvider.onGenerationComplete = () {
+    _onGenerationComplete = () {
       if (mounted) {
         setState(() {
           _showCelebration = true;
@@ -72,12 +73,12 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           });
         }
 
-        // Refresh data
-        workoutProvider.fetchCurrentPlan();
+        // Refresh other data but not the current plan which is already updated
         _loadCustomWorkouts();
         Provider.of<AuthProvider>(context, listen: false).fetchUser();
       }
     };
+    workoutProvider.addGenerationCompleteListener(_onGenerationComplete!);
   }
 
   void _showAIGenerationNotesBottomSheet(String notes) {
@@ -202,11 +203,15 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   @override
   void dispose() {
     try {
-      final workoutProvider = Provider.of<WorkoutProvider>(
-        context,
-        listen: false,
-      );
-      workoutProvider.onGenerationComplete = null;
+      if (_onGenerationComplete != null) {
+        final workoutProvider = Provider.of<WorkoutProvider>(
+          context,
+          listen: false,
+        );
+        workoutProvider.removeGenerationCompleteListener(
+          _onGenerationComplete!,
+        );
+      }
     } catch (_) {}
     super.dispose();
   }
@@ -234,11 +239,6 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             child: Consumer<WorkoutProvider>(
               builder: (context, workoutProvider, _) {
                 final plan = workoutProvider.currentPlan;
-                final bool hasCompletedPlan =
-                    plan != null &&
-                    plan.status == 'completed' &&
-                    plan.workouts.isNotEmpty &&
-                    plan.workouts.any((w) => w.exercises.isNotEmpty);
 
                 return RefreshIndicator(
                   onRefresh: () async {
@@ -278,8 +278,8 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
                         const SizedBox(height: 32),
 
-                        // AI Workouts Section (only show when plans exist and are completed)
-                        if (hasCompletedPlan) ...[
+                        // AI Workouts Section
+                        if (plan != null && plan.status != 'failed') ...[
                           _buildSectionTitle(
                             AppLocalizations.of(
                               context,
@@ -287,65 +287,93 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                             AppLocalizations.of(
                               context,
                             )!.aiWorkoutsSectionSubtitle,
-                            action: GestureDetector(
-                              onTap:
-                                  workoutProvider.isGenerating ||
-                                      plan.status == 'processing'
-                                  ? null
-                                  : () {
+                            action: Row(
+                              children: [
+                                if (plan.aiGenerationNotes != null &&
+                                    plan.aiGenerationNotes!.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () {
                                       HapticService.lightTap();
-                                      _handleCreateNewPlan();
+                                      _showAIGenerationNotesBottomSheet(
+                                        plan.aiGenerationNotes!,
+                                      );
                                     },
-                              child: Opacity(
-                                opacity:
-                                    workoutProvider.isGenerating ||
-                                        plan.status == 'processing'
-                                    ? 0.5
-                                    : 1.0,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        CleanTheme.primaryColor,
-                                        CleanTheme.primaryColor.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 12),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
                                         color: CleanTheme.primaryColor
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
+                                            .withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
                                       ),
-                                    ],
+                                      child: const Icon(
+                                        Icons.psychology_outlined,
+                                        size: 20,
+                                        color: CleanTheme.primaryColor,
+                                      ),
+                                    ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.auto_awesome,
-                                        size: 14,
-                                        color: Colors.white,
+                                GestureDetector(
+                                  onTap:
+                                      workoutProvider.isGenerating ||
+                                          plan.status == 'processing'
+                                      ? null
+                                      : () {
+                                          HapticService.lightTap();
+                                          _handleCreateNewPlan();
+                                        },
+                                  child: Opacity(
+                                    opacity:
+                                        workoutProvider.isGenerating ||
+                                            plan.status == 'processing'
+                                        ? 0.5
+                                        : 1.0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        "Nuova",
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.white,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            CleanTheme.primaryColor,
+                                            CleanTheme.primaryColor.withValues(
+                                              alpha: 0.8,
+                                            ),
+                                          ],
                                         ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: CleanTheme.primaryColor
+                                                .withValues(alpha: 0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.auto_awesome,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            "Nuova",
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -932,12 +960,11 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   Widget _buildHeroNextWorkout(WorkoutProvider workoutProvider) {
     final plan = workoutProvider.currentPlan;
 
-    // Show generating state only if plan is processing AND has no data yet
+    // Show generating state only if plan is processing or provider is generating
     final bool isStillGenerating =
-        plan != null &&
-        plan.status == 'processing' &&
-        (plan.workouts.isEmpty ||
-            plan.workouts.every((w) => w.exercises.isEmpty));
+        workoutProvider.isGenerating ||
+        (plan != null && plan.status == 'processing');
+
     if (isStillGenerating) {
       return _buildGeneratingHeroCard();
     }
@@ -1157,10 +1184,8 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
     // Show generating state only if plan is processing AND has no data yet
     final bool isStillGenerating =
-        plan != null &&
-        plan.status == 'processing' &&
-        (plan.workouts.isEmpty ||
-            plan.workouts.every((w) => w.exercises.isEmpty));
+        workoutProvider.isGenerating ||
+        (plan != null && plan.status == 'processing');
     if (isStillGenerating) {
       return _buildGeneratingSection();
     }
@@ -1192,44 +1217,6 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
           );
         }),
-        if (plan.aiGenerationNotes != null &&
-            plan.aiGenerationNotes!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-            child: GestureDetector(
-              onTap: () =>
-                  _showAIGenerationNotesBottomSheet(plan.aiGenerationNotes!),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.psychology,
-                      color: CleanTheme.primaryColor,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "✨ Leggi la strategia di questa scheda",
-                      style: GoogleFonts.outfit(
-                        color: CleanTheme.primaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }

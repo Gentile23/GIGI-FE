@@ -40,10 +40,7 @@ class WorkoutSessionScreen extends StatefulWidget {
 
 class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   final Set<String> _completedExercises = {};
-  final Set<String> _completedSections = {};
-  final Set<String> _skippedSections = {};
 
-  // Trial Workout Local State [NEW]
   // Trial Workout Local State [NEW]
 
   // Session Timer
@@ -788,9 +785,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         ),
                       ),
                     // Start Session Button (when session not active and nothing done yet)
-                    if (!_isSessionActive &&
-                        _completedExercises.isEmpty &&
-                        _completedSections.isEmpty)
+                    if (!_isSessionActive && _completedExercises.isEmpty)
                       SizedBox(
                         width: double.infinity,
                         height: 56,
@@ -1480,254 +1475,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 16),
           // Inline Cardio Exercises
-          ...warmupCardio.map(
-            (exercise) => _buildInlineCardioMobilityExercise(
-              exercise: exercise,
-              sectionId: 'warmupCardio_${exercise.exercise.id}',
-              emoji: '🔥',
-              color: CleanTheme.accentRed,
-            ),
-          ),
+          ...warmupCardio.map((exercise) => _buildExerciseCard(exercise)),
           // Inline Mobility Exercises
-          ...preWorkoutMobility.map(
-            (exercise) => _buildInlineCardioMobilityExercise(
-              exercise: exercise,
-              sectionId: 'preWorkoutMobility_${exercise.exercise.id}',
-              emoji: '🤸',
-              color: CleanTheme.accentOrange,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInlineCardioMobilityExercise({
-    required WorkoutExercise exercise,
-    required String sectionId,
-    required String emoji,
-    required Color color,
-  }) {
-    final isCompleted = _completedSections.contains(sectionId);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            color.withValues(alpha: isCompleted ? 0.15 : 0.08),
-            color.withValues(alpha: isCompleted ? 0.08 : 0.03),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isCompleted
-              ? CleanTheme.accentGreen
-              : color.withValues(alpha: 0.3),
-          width: isCompleted ? 2 : 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              // Emoji circle
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
-                ),
-              ),
-              const SizedBox(width: 14),
-              // Exercise info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      exercise.exercise.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: isCompleted
-                            ? CleanTheme.textSecondary
-                            : CleanTheme.textPrimary,
-                        decoration: isCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.timer_outlined, size: 14, color: color),
-                        const SizedBox(width: 4),
-                        Text(
-                          exercise.reps.contains('min') ||
-                                  exercise.reps.contains('sec')
-                              ? exercise.reps
-                              : '${exercise.reps} min',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: color,
-                          ),
-                        ),
-                        if (exercise.exercise.muscleGroups.isNotEmpty) ...[
-                          const SizedBox(width: 12),
-                          Text(
-                            '•',
-                            style: TextStyle(color: CleanTheme.textTertiary),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              exercise.exercise.muscleGroups.join(', '),
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: CleanTheme.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Info button (hidden for mobility, moved to bottom row)
-              if (exercise.exerciseType.toLowerCase() != 'mobility') ...[
-                const SizedBox(width: 8),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      _navigateToExerciseDetail(exercise);
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(Icons.info_outline, color: color, size: 20),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(width: 8),
-              Transform.scale(
-                scale: 1.2,
-                child: Checkbox(
-                  value: isCompleted,
-                  onChanged: (value) {
-                    setState(() {
-                      if (value == true) {
-                        _completedSections.add(sectionId);
-                        _autoStartSessionIfNeeded();
-                      } else {
-                        _completedSections.remove(sectionId);
-                      }
-                    });
-                  },
-                  activeColor: CleanTheme.accentGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  side: BorderSide(color: color, width: 2),
-                ),
-              ),
-            ],
-          ),
-          if (!isCompleted &&
-              exercise.exerciseType.toLowerCase() != 'cardio') ...[
-            const SizedBox(height: 12),
-            if (exercise.exerciseType.toLowerCase() == 'mobility') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildQuickActionButton(
-                      icon: Icons.info_outline_rounded,
-                      label: AppLocalizations.of(context)!.info,
-                      color: CleanTheme.steelDark,
-                      onTap: () => _navigateToExerciseDetail(exercise),
-                      isOutlined: true,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildQuickActionButton(
-                      icon: Icons.camera_alt_outlined,
-                      label: AppLocalizations.of(context)!.aiCheck,
-                      color: CleanTheme.steelDark,
-                      isOutlined: true,
-                      onTap: () {
-                        final exerciseId = int.tryParse(exercise.exercise.id);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FormAnalysisScreen(
-                              exerciseName: exercise.exercise.name,
-                              exerciseId: exerciseId,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _GigiExecuteButton(
-                onTap: () => _startGuidedExecution(exercise),
-                label: AppLocalizations.of(context)!.executeWithGigi,
-                isOutlined: true,
-              ),
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildQuickActionButton(
-                      icon: Icons.camera_alt_outlined,
-                      label: AppLocalizations.of(context)!.aiCheck,
-                      color: CleanTheme.steelDark,
-                      isPrimary: true,
-                      onTap: () {
-                        final exerciseId = int.tryParse(exercise.exercise.id);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FormAnalysisScreen(
-                              exerciseName: exercise.exercise.name,
-                              exerciseId: exerciseId,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _GigiExecuteButton(
-                onTap: () => _startGuidedExecution(exercise),
-                label: AppLocalizations.of(context)!.executeWithGigi,
-              ),
-            ],
-          ],
+          ...preWorkoutMobility.map((exercise) => _buildExerciseCard(exercise)),
         ],
       ),
     );
@@ -1780,101 +1530,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 16),
           // Inline post-workout exercises
-          ...postWorkoutExercises.map((exercise) {
-            final isCardio = exercise.exerciseType == 'cardio';
-            return _buildInlineCardioMobilityExercise(
-              exercise: exercise,
-              sectionId: 'postWorkout_${exercise.exercise.id}',
-              emoji: isCardio ? '🏃' : '🧘',
-              color: isCardio ? CleanTheme.accentRed : CleanTheme.accentOrange,
-            );
-          }),
+          ...postWorkoutExercises.map(
+            (exercise) => _buildExerciseCard(exercise),
+          ),
         ],
       ),
     );
   }
 
   // ignore: unused_element
-  Widget _buildNavigationButton({
-    required String id,
-    required String title,
-    required String emoji,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    final isCompleted = _completedSections.contains(id);
-    final isSkipped = _skippedSections.contains(id);
-
-    return InkWell(
-      onTap: isSkipped ? null : onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isCompleted
-              ? CleanTheme.accentGreen.withValues(alpha: 0.1)
-              : isSkipped
-              ? CleanTheme.textTertiary.withValues(alpha: 0.1)
-              : color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isCompleted
-                ? CleanTheme.accentGreen
-                : isSkipped
-                ? CleanTheme.textTertiary
-                : color,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: isCompleted
-                      ? CleanTheme.accentGreen
-                      : isSkipped
-                      ? CleanTheme.textTertiary
-                      : color,
-                  decoration: isSkipped ? TextDecoration.lineThrough : null,
-                ),
-              ),
-            ),
-            if (isCompleted)
-              const Icon(Icons.check_circle, color: CleanTheme.accentGreen)
-            else if (isSkipped)
-              IconButton(
-                icon: const Icon(Icons.undo, color: CleanTheme.textTertiary),
-                onPressed: () {
-                  setState(() {
-                    _skippedSections.remove(id);
-                  });
-                },
-                tooltip: 'Annulla skip',
-              )
-            else ...[
-              IconButton(
-                icon: const Icon(Icons.skip_next, color: CleanTheme.accentGold),
-
-                onPressed: () {
-                  setState(() {
-                    _skippedSections.add(id);
-                  });
-                },
-                tooltip: 'Salta sezione',
-              ),
-              Icon(Icons.arrow_forward_ios, color: color, size: 16),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 
   void _navigateToExerciseDetail(WorkoutExercise workoutExercise) {
     Widget detailScreen;
@@ -2038,23 +1702,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     // Staggered entry animation index
     final index = widget.workoutDay.mainWorkout.indexOf(exercise);
 
-    // Redirect cardio to the compact renderer (Mobility/Warmup now use the full card)
+    // All exercise types now use the full card renderer
     final type = exercise.exerciseType.toLowerCase();
-    if (type == 'cardio' ||
-        (type == 'warmup' &&
-            exercise.exercise.name.toLowerCase().contains('cardio'))) {
-      return _buildInlineCardioMobilityExercise(
-            exercise: exercise,
-            sectionId: 'main_${exercise.exercise.id}',
-            emoji: '🔥',
-            color: CleanTheme.accentRed,
-          )
-          .animate(delay: (index * 80).ms)
-          .fade(duration: 500.ms, curve: Curves.easeOut)
-          .slideY(begin: 0.15, duration: 500.ms, curve: Curves.easeOutCubic);
-    }
 
-    final isMobilityType = type == 'mobility' || type == 'warmup';
+    final isMobilityType =
+        type == 'mobility' || type == 'warmup' || type == 'cardio';
 
     return Consumer<WorkoutLogProvider>(
           builder: (context, provider, child) {

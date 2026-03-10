@@ -44,6 +44,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
   final int _currentWorkoutIndex = 0; // Track which workout to show
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
+  VoidCallback? _onGenerationComplete;
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       listen: false,
     );
 
-    workoutProvider.onGenerationComplete = () {
+    _onGenerationComplete = () {
       if (mounted) {
         setState(() {
           _showCelebration = true;
@@ -81,6 +82,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         );
       }
     };
+    workoutProvider.addGenerationCompleteListener(_onGenerationComplete!);
   }
 
   // ... (keeping other methods intact)
@@ -89,12 +91,14 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   void dispose() {
     // Clean up callback - use try-catch to avoid deactivated widget error
     try {
-      if (mounted) {
+      if (_onGenerationComplete != null && mounted) {
         final workoutProvider = Provider.of<WorkoutProvider>(
           context,
           listen: false,
         );
-        workoutProvider.onGenerationComplete = null;
+        workoutProvider.removeGenerationCompleteListener(
+          _onGenerationComplete!,
+        );
       }
     } catch (_) {
       // Widget already disposed, ignore
@@ -616,7 +620,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   // 4. Immersive Hero Card
   Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
-    if (workoutProvider.isGenerating) return _buildGeneratingCard();
+    final plan = workoutProvider.currentPlan;
+    final bool isStillGenerating =
+        workoutProvider.isGenerating ||
+        (plan != null && plan.status == 'processing');
+
+    if (isStillGenerating) return _buildGeneratingCard();
 
     // Determine what to show
     String title = '';
@@ -1128,7 +1137,17 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       }
     }
 
-    // User HAS an active plan
+    // User HAS a plan
+    if (provider.isGenerating || provider.currentPlan?.status == 'processing') {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: GigiCoachMessage(
+          message: "Sto elaborando la tua nuova strategia scientifica...",
+          emotion: GigiEmotion.expert,
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: GigiCoachMessage(

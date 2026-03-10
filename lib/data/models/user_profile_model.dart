@@ -66,6 +66,19 @@ enum BodyFatPercentage {
   veryLean, // <6% (M) / <15% (F)
 }
 
+extension RecoveryCapacityExtension on RecoveryCapacity {
+  String get icon {
+    switch (this) {
+      case RecoveryCapacity.excellent:
+        return '🔋';
+      case RecoveryCapacity.good:
+        return '⚡';
+      case RecoveryCapacity.poor:
+        return '🪫';
+    }
+  }
+}
+
 /// User profile data
 class UserProfile {
   final String userId;
