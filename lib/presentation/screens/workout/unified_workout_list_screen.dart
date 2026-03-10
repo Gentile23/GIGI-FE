@@ -498,7 +498,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       try {
         quotaStatus = await _quotaService.getQuotaStatus();
       } catch (e) {
-        debugPrint('Failed to get quota status for dialog: $e');
+        // debugPrint('Failed to get quota status for dialog: $e');
       }
 
       if (!mounted) return;
@@ -853,7 +853,6 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                 const UnifiedQuestionnaireScreen(isOnboarding: false),
           ),
         );
-        debugPrint("DEBUG: Questionnaire result: $questionnaireResult");
         if (questionnaireResult == true) shouldGenerate = true;
       } else {
         shouldGenerate = true;
@@ -879,7 +878,25 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       context,
       listen: false,
     );
-    await workoutProvider.generatePlan(includeHistory: includeHistory);
+    final success = await workoutProvider.generatePlan(
+      includeHistory: includeHistory,
+    );
+
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            workoutProvider.error ??
+                'Errore durante la generazione della scheda',
+          ),
+          backgroundColor: CleanTheme.accentRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildSectionTitle(String title, String subtitle, {Widget? action}) {

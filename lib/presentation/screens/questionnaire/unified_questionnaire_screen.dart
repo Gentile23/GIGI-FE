@@ -2667,9 +2667,7 @@ class _UnifiedQuestionnaireScreenState
                     children: [
                       Expanded(
                         child: CleanButton(
-                          text: widget.isOnboarding
-                              ? "Procedi senza details"
-                              : "Senza dettagli",
+                          text: "Genera senza dettagli",
                           onPressed: _isLoading
                               ? null
                               : () async {
@@ -2682,6 +2680,7 @@ class _UnifiedQuestionnaireScreenState
                                 },
                           isPrimary: false,
                           backgroundColor: CleanTheme.steelDark,
+                          textColor: Colors.white,
                         ),
                       ),
                       const SizedBox(width: 12),
