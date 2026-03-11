@@ -490,27 +490,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextButton.icon(
-                      onPressed: _isLoading ? null : _searchRecipes,
-                      icon: Icon(
-                        Icons.refresh_rounded,
-                        size: 20,
-                        color: _isLoading
-                            ? CleanTheme.textTertiary
-                            : CleanTheme.textSecondary,
-                      ),
-                      label: Text(
-                        'Rigenera',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: _isLoading
-                              ? CleanTheme.textTertiary
-                              : CleanTheme.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
                     ElevatedButton.icon(
                       onPressed: _isLoading ? null : _resetSearch,
                       style: ElevatedButton.styleFrom(
@@ -522,8 +501,8 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           borderRadius: BorderRadius.circular(100),
                         ),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
+                          horizontal: 24,
+                          vertical: 14,
                         ),
                       ),
                       icon: Icon(
@@ -536,7 +515,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                       label: Text(
                         'Nuova Ricerca',
                         style: GoogleFonts.inter(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: _isLoading
                               ? CleanTheme.textTertiary
