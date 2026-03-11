@@ -60,6 +60,11 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
     _nutritionService = NutritionService(apiClient);
     _quotaService = QuotaService(apiClient: apiClient);
     _loadQuota();
+    _ingredientFocusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    setState(() {}); // Rebuild to update border color dynamically
   }
 
   Future<void> _loadQuota() async {
@@ -76,8 +81,21 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   @override
   void dispose() {
     _ingredientController.dispose();
+    _ingredientFocusNode.removeListener(_onFocusChange);
     _ingredientFocusNode.dispose();
     super.dispose();
+  }
+
+  void _resetSearch() {
+    setState(() {
+      _ingredients.clear();
+      _ingredientController.clear();
+      _generatedMeal = null;
+      _portate = [];
+      _hasSearched = false;
+      _isLoading = false;
+    });
+    HapticService.lightTap();
   }
 
   Future<void> _addIngredient() async {
@@ -327,6 +345,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                     child: TextField(
                       controller: _ingredientController,
                       focusNode: _ingredientFocusNode,
+                      enabled: !_isLoading,
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(
                         hintText: 'Es: pollo, riso, broccoli...',
@@ -340,16 +359,20 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                         ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.add_circle),
-                          color: CleanTheme.primaryColor,
-                          onPressed: _addIngredient,
+                          color: _isLoading 
+                              ? CleanTheme.textTertiary 
+                              : CleanTheme.primaryColor,
+                          onPressed: _isLoading ? null : _addIngredient,
                         ),
                       ),
                       style: GoogleFonts.inter(
                         fontSize: 16,
-                        color: CleanTheme.textPrimary,
+                        color: _isLoading
+                            ? CleanTheme.textSecondary
+                            : CleanTheme.textPrimary,
                         fontWeight: FontWeight.w500,
                       ),
-                      onSubmitted: (_) => _addIngredient(),
+                      onSubmitted: (_) => _isLoading ? null : _addIngredient(),
                     ),
                   ),
                 ),
@@ -374,11 +397,14 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           ),
                         ),
                         backgroundColor: CleanTheme.surfaceColor,
-                        deleteIconColor: CleanTheme.accentRed,
-                        onDeleted: () {
-                          setState(() => _ingredients.remove(ing));
-                          HapticService.lightTap();
-                        },
+                        deleteIconColor:
+                            _isLoading ? CleanTheme.textTertiary : CleanTheme.accentRed,
+                        onDeleted: _isLoading
+                            ? null
+                            : () {
+                                setState(() => _ingredients.remove(ing));
+                                HapticService.lightTap();
+                              },
                         elevation: 2,
                         shadowColor: CleanTheme.primaryColor.withValues(
                           alpha: 0.1,
@@ -395,52 +421,57 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                     )
                     .toList(),
               ),
-              const SizedBox(height: 32),
-
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _searchRecipes,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CleanTheme.primaryColor,
-                    foregroundColor: CleanTheme.textOnPrimary,
-                    elevation: 8,
-                    shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(100),
+              if ((!_hasSearched || _isLoading) && _generatedMeal == null) ...[
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _searchRecipes,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CleanTheme.primaryColor,
+                      foregroundColor: CleanTheme.textOnPrimary,
+                      elevation: 8,
+                      shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: CleanTheme.textOnPrimary,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        else ...[
+                          const Icon(Icons.auto_awesome, size: 20),
+                          const SizedBox(width: 8),
+                        ],
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: Text(
+                            _isLoading
+                                ? 'Chef AI sta creando...'
+                                : 'Genera Menu da Chef',
+                            key: ValueKey<bool>(_isLoading),
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_isLoading)
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: CleanTheme.textOnPrimary,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      else ...[
-                        const Icon(Icons.auto_awesome, size: 20),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        _isLoading
-                            ? 'Chef AI sta creando...'
-                            : 'Genera Menu da Chef',
-                        style: GoogleFonts.outfit(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
+              ],
             ],
 
             if (_hasSearched) ...[
@@ -456,29 +487,66 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                   _buildChefTip(_generatedMeal!['consiglio_chef']),
 
                 const SizedBox(height: 32),
-                TextButton.icon(
-                  onPressed: _searchRecipes,
-                  icon: Icon(
-                    Icons.refresh_rounded,
-                    size: 20,
-                    color: CleanTheme.textSecondary,
-                  ),
-                  label: Text(
-                    'Non ti piace? Rigenera',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: CleanTheme.textSecondary,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _isLoading ? null : _searchRecipes,
+                      icon: Icon(
+                        Icons.refresh_rounded,
+                        size: 20,
+                        color: _isLoading
+                            ? CleanTheme.textTertiary
+                            : CleanTheme.textSecondary,
+                      ),
+                      label: Text(
+                        'Rigenera',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: _isLoading
+                              ? CleanTheme.textTertiary
+                              : CleanTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _resetSearch,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CleanTheme.surfaceColor,
+                        foregroundColor: CleanTheme.primaryColor,
+                        elevation: 0,
+                        side: BorderSide(color: CleanTheme.borderPrimary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      icon: Icon(
+                        Icons.add_rounded,
+                        size: 20,
+                        color: _isLoading
+                            ? CleanTheme.textTertiary
+                            : CleanTheme.primaryColor,
+                      ),
+                      label: Text(
+                        'Nuova Ricerca',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _isLoading
+                              ? CleanTheme.textTertiary
+                              : CleanTheme.primaryColor,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ] else if (_portate.isEmpty && !_isLoading)
+              ] else if (_generatedMeal == null && !_isLoading)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
@@ -509,73 +577,92 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                 ),
             ],
 
-            const SizedBox(height: 48),
-            Text(
-              '✨ Ingredienti suggeriti',
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textSecondary,
+            if (_generatedMeal == null && !_isLoading) ...[
+              const SizedBox(height: 48),
+              Text(
+                '✨ Ingredienti suggeriti',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 12,
-              children: _suggestedIngredients.map((item) {
-                final name = item.split(' ').last;
-                final isSelected = _ingredients.contains(name);
-                return GestureDetector(
-                  onTap: () {
-                    HapticService.lightTap();
-                    if (!isSelected) {
-                      setState(() => _ingredients.add(name));
-                    }
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? CleanTheme.primaryColor
-                          : CleanTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 12,
+                children: _suggestedIngredients.map((item) {
+                  final name = item.split(' ').last;
+                  final isSelected = _ingredients.contains(name);
+                  return GestureDetector(
+                    onTap: _isLoading
+                        ? null
+                        : () {
+                            HapticService.lightTap();
+                            if (!isSelected) {
+                              setState(() => _ingredients.add(name));
+                            } else {
+                              setState(() => _ingredients.remove(name));
+                            }
+                          },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? CleanTheme.primaryColor
-                            : CleanTheme.borderPrimary,
-                      ),
-                      boxShadow: [
-                        if (!isSelected)
-                          BoxShadow(
-                            color: CleanTheme.primaryColor.withValues(
-                              alpha: 0.03,
+                            : CleanTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.borderPrimary,
+                        ),
+                        boxShadow: [
+                          if (!isSelected)
+                            BoxShadow(
+                              color: CleanTheme.primaryColor.withValues(
+                                alpha: 0.03,
+                              ),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item,
+                            style: GoogleFonts.inter(
+                              color: isSelected
+                                  ? CleanTheme.textOnPrimary
+                                  : CleanTheme.textPrimary,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              fontSize: 13,
+                            ),
                           ),
-                      ],
-                    ),
-                    child: Text(
-                      item,
-                      style: GoogleFonts.inter(
-                        color: isSelected
-                            ? CleanTheme.textOnPrimary
-                            : CleanTheme.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        fontSize: 13,
+                          if (isSelected) ...[
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.close_rounded,
+                              size: 14,
+                              color: CleanTheme.textOnPrimary,
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
+                  );
+                }).toList(),
+              ),
+            ],
             const SizedBox(height: 60),
           ],
         ),

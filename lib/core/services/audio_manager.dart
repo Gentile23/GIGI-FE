@@ -55,36 +55,36 @@ class AudioManager {
   bool _isInitialized = false;
   double _volume = 0.7;
 
-  /// Mappa dei percorsi audio
+  /// Mappa dei percorsi audio (Rimappati su assets/sounds/)
   static const Map<String, String> _audioAssets = {
     // UI Sounds
-    'tap_light': 'audio/ui/tap_light.mp3',
-    'tap_heavy': 'audio/ui/tap_heavy.mp3',
-    'swipe': 'audio/ui/swipe.mp3',
-    'toggle_on': 'audio/ui/toggle_on.mp3',
-    'toggle_off': 'audio/ui/toggle_off.mp3',
-    'success': 'audio/ui/success.mp3',
-    'error': 'audio/ui/error.mp3',
-    'notification': 'audio/ui/notification.mp3',
+    'tap_light': 'sounds/tap_light.wav',
+    'tap_heavy': 'sounds/tap_heavy.wav',
+    'swipe': 'sounds/swipe.wav',
+    'toggle_on': 'sounds/toggle_on.wav',
+    'toggle_off': 'sounds/toggle_on.wav',
+    'success': 'sounds/success.wav',
+    'error': 'sounds/success.wav',
+    'notification': 'sounds/notification.wav',
 
     // Achievement Sounds
-    'unlock_common': 'audio/achievements/unlock_common.mp3',
-    'unlock_rare': 'audio/achievements/unlock_rare.mp3',
-    'unlock_epic': 'audio/achievements/unlock_epic.mp3',
-    'unlock_legendary': 'audio/achievements/unlock_legendary.mp3',
+    'unlock_common': 'sounds/success.wav',
+    'unlock_rare': 'sounds/success.wav',
+    'unlock_epic': 'sounds/success.wav',
+    'unlock_legendary': 'sounds/success.wav',
 
     // Workout Sounds
-    'countdown': 'audio/workout/countdown.mp3',
-    'rep_complete': 'audio/workout/rep_complete.mp3',
-    'set_complete': 'audio/workout/set_complete.mp3',
-    'exercise_complete': 'audio/workout/exercise_complete.mp3',
-    'workout_complete': 'audio/workout/workout_complete.mp3',
-    'personal_record': 'audio/workout/personal_record.mp3',
-    'rest_start': 'audio/workout/rest_start.mp3',
-    'rest_end': 'audio/workout/rest_end.mp3',
+    'countdown': 'sounds/secondi.mp3',
+    'rep_complete': 'sounds/tap_light.wav',
+    'set_complete': 'sounds/success.wav',
+    'exercise_complete': 'sounds/success.wav',
+    'workout_complete': 'sounds/success.wav',
+    'personal_record': 'sounds/success.wav',
+    'rest_start': 'sounds/notification.wav',
+    'rest_end': 'sounds/tempo-finito.mp3',
 
     // Ambient
-    'focus_mode': 'audio/ambient/focus_mode.mp3',
+    'focus_mode': 'sounds/success.wav',
   };
 
   /// Inizializza l'audio manager

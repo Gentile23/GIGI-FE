@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -81,120 +82,42 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     workoutProvider.addGenerationCompleteListener(_onGenerationComplete!);
   }
 
+  /// Map icon string from backend to Flutter IconData
+  IconData _mapAnalysisIcon(String iconKey) {
+    switch (iconKey) {
+      case 'target':
+        return Icons.gps_fixed_rounded;
+      case 'science':
+        return Icons.science_rounded;
+      case 'shield':
+        return Icons.shield_rounded;
+      case 'trending_up':
+        return Icons.trending_up_rounded;
+      case 'psychology':
+        return Icons.psychology_rounded;
+      default:
+        return Icons.auto_awesome_rounded;
+    }
+  }
+
   void _showAIGenerationNotesBottomSheet(String notes) {
+    // Try to parse structured JSON
+    Map<String, dynamic>? structured;
+    try {
+      structured = jsonDecode(notes) as Map<String, dynamic>;
+    } catch (_) {
+      structured = null;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: CleanTheme.backgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: CleanTheme.borderSecondary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.auto_awesome,
-                        color: CleanTheme.primaryColor,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "L'Analisi di GiGi",
-                            style: GoogleFonts.outfit(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: CleanTheme.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            "La scienza dietro la tua nuova scheda",
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: CleanTheme.primaryColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: CleanTheme.borderPrimary),
-                    ),
-                    child: Text(
-                      notes,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: CleanTheme.textSecondary,
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: CleanButton(
-                  text: "Inizia ad Allenarti",
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
+      builder: (ctx) {
+        return _GiGiAnalysisSheet(
+          structured: structured,
+          rawNotes: notes,
+          mapIcon: _mapAnalysisIcon,
         );
       },
     );
@@ -800,7 +723,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                   ],
                 ),
                 actions: [
-                  TextButton(
+                  OutlinedButton(
                     onPressed: () {
                       if (!actuallyCanPerform) {
                         Navigator.pop(ctx);
@@ -817,10 +740,20 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                         });
                       }
                     },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.black, width: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     child: Text(
                       'Usa Attuali',
                       style: GoogleFonts.inter(
-                        color: CleanTheme.textSecondary,
+                        color: CleanTheme.textPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1503,6 +1436,497 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Premium animated bottom sheet for GiGi's AI Analysis
+class _GiGiAnalysisSheet extends StatefulWidget {
+  final Map<String, dynamic>? structured;
+  final String rawNotes;
+  final IconData Function(String) mapIcon;
+
+  const _GiGiAnalysisSheet({
+    required this.structured,
+    required this.rawNotes,
+    required this.mapIcon,
+  });
+
+  @override
+  State<_GiGiAnalysisSheet> createState() => _GiGiAnalysisSheetState();
+}
+
+class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late List<Animation<double>> _fadeAnimations;
+  late Animation<double> _ctaScale;
+
+  // Total sections: header + greeting + N analysis cards + promise + closing + CTA
+  int get _totalSections {
+    if (widget.structured == null) return 3; // header, text, CTA
+    final points = widget.structured!['analysis_points'] as List? ?? [];
+    return 3 +
+        points.length +
+        2; // header + greeting + cards + promise + closing + CTA
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final totalMs = _totalSections * 150 + 400;
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: totalMs),
+    );
+
+    _fadeAnimations = List.generate(_totalSections, (i) {
+      final start = (i * 150) / totalMs;
+      final end = ((i * 150) + 400) / totalMs;
+      return CurvedAnimation(
+        parent: _controller,
+        curve: Interval(
+          start.clamp(0.0, 1.0),
+          end.clamp(0.0, 1.0),
+          curve: Curves.easeOut,
+        ),
+      );
+    });
+
+    _ctaScale = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.8, 1.0, curve: Curves.elasticOut),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1C1C1E), Color(0xFF111113)],
+        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          // Drag handle
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Content
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                bottom: bottomPadding + 24,
+              ),
+              child: widget.structured != null
+                  ? _buildStructuredContent()
+                  : _buildFallbackContent(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedSection(int index, Widget child) {
+    if (index >= _fadeAnimations.length) return child;
+    return FadeTransition(
+      opacity: _fadeAnimations[index],
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.15),
+          end: Offset.zero,
+        ).animate(_fadeAnimations[index]),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildStructuredContent() {
+    final data = widget.structured!;
+    final greeting = data['greeting'] as String? ?? '';
+    final points = (data['analysis_points'] as List?) ?? [];
+    final promise = data['promise'] as String? ?? '';
+    final closing = data['closing'] as String? ?? '';
+    final rehabNote = data['rehab_note'] as String?;
+
+    int sectionIndex = 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+
+        // ── HEADER ──
+        _buildAnimatedSection(sectionIndex++, _buildHeader()),
+
+        const SizedBox(height: 24),
+
+        // ── GREETING ──
+        _buildAnimatedSection(sectionIndex++, _buildGreeting(greeting)),
+
+        const SizedBox(height: 20),
+
+        // ── ANALYSIS CARDS ──
+        ...points.map((point) {
+          final p = point as Map<String, dynamic>;
+          return _buildAnimatedSection(
+            sectionIndex++,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAnalysisCard(
+                icon: widget.mapIcon(p['icon'] ?? ''),
+                title: p['title'] ?? '',
+                detail: p['detail'] ?? '',
+              ),
+            ),
+          );
+        }),
+
+        // ── REHAB NOTE (if present) ──
+        if (rehabNote != null && rehabNote.isNotEmpty) ...[
+          _buildAnimatedSection(
+            sectionIndex++,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAnalysisCard(
+                icon: Icons.healing_rounded,
+                title: 'Protezione Infortuni',
+                detail: rehabNote,
+                accentColor: const Color(0xFFFF6B6B),
+              ),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 8),
+
+        // ── PROMISE ──
+        _buildAnimatedSection(sectionIndex++, _buildPromise(promise)),
+
+        const SizedBox(height: 16),
+
+        // ── CLOSING ──
+        _buildAnimatedSection(sectionIndex++, _buildClosing(closing)),
+
+        const SizedBox(height: 28),
+
+        // ── CTA BUTTON ──
+        _buildAnimatedSection(sectionIndex, _buildCTA()),
+
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFDB515), Color(0xFFFF9500)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFDB515).withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.auto_awesome_rounded,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "L'Analisi di GiGi",
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                "La scienza dietro la tua scheda",
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: const Color(0xFFFDB515),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGreeting(String greeting) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("👋", style: GoogleFonts.inter(fontSize: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              greeting,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: Colors.white.withValues(alpha: 0.9),
+                height: 1.5,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalysisCard({
+    required IconData icon,
+    required String title,
+    required String detail,
+    Color? accentColor,
+  }) {
+    final color = accentColor ?? Colors.white;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color.withValues(alpha: 0.8), size: 18),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.95),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detail,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.65),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromise(String promise) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFDB515).withValues(alpha: 0.12),
+            const Color(0xFFFF9500).withValues(alpha: 0.06),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFFDB515).withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("🎯", style: GoogleFonts.inter(fontSize: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              promise,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFFFDB515),
+                fontWeight: FontWeight.w500,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClosing(String closing) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        closing,
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          color: Colors.white.withValues(alpha: 0.5),
+          fontStyle: FontStyle.italic,
+          height: 1.5,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildCTA() {
+    return ScaleTransition(
+      scale: _ctaScale,
+      child: SizedBox(
+        width: double.infinity,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFDB515), Color(0xFFFF9500)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFFDB515).withValues(alpha: 0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                HapticService.mediumTap();
+                Navigator.pop(context);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.bolt_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Inizia ad Allenarti",
+                      style: GoogleFonts.outfit(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        _buildAnimatedSection(0, _buildHeader()),
+        const SizedBox(height: 24),
+        _buildAnimatedSection(
+          1,
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: Text(
+              widget.rawNotes,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.white.withValues(alpha: 0.7),
+                height: 1.6,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 28),
+        _buildAnimatedSection(2, _buildCTA()),
+        const SizedBox(height: 12),
+      ],
     );
   }
 }

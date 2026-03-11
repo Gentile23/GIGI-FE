@@ -264,7 +264,7 @@ class WorkoutProvider with ChangeNotifier {
 
   void _pollPlanStatus(String planId) async {
     int attempts = 0;
-    const maxAttempts = 40; // 2 minutes (3s * 40)
+    const maxAttempts = 100; // 5 minutes (3s * 100)
 
     while (attempts < maxAttempts) {
       await Future.delayed(const Duration(seconds: 3));

@@ -142,15 +142,15 @@ extension TrainingSplitExtension on TrainingSplit {
   String get icon {
     switch (this) {
       case TrainingSplit.monofrequency:
-        return '🗓️';
+        return '▦';
       case TrainingSplit.multifrequency:
-        return '📑';
+        return '≡';
       case TrainingSplit.upperLower:
-        return '⚖️';
+        return '⇅';
       case TrainingSplit.pushPullLegs:
-        return '🔄';
+        return '⟳';
       case TrainingSplit.fullBody:
-        return '🌍';
+        return '◉';
     }
   }
 }
@@ -189,15 +189,15 @@ extension CardioPreferenceExtension on CardioPreference {
   String get icon {
     switch (this) {
       case CardioPreference.none:
-        return '🚫';
+        return '✕';
       case CardioPreference.warmUp:
-        return '🏃‍♂️';
+        return '►';
       case CardioPreference.postWorkout:
-        return '🏁';
+        return '◄';
       case CardioPreference.preAndPost:
-        return '🔄';
+        return '⇄';
       case CardioPreference.separateSession:
-        return '📅';
+        return '▪';
     }
   }
 }
@@ -236,15 +236,15 @@ extension MobilityPreferenceExtension on MobilityPreference {
   String get icon {
     switch (this) {
       case MobilityPreference.none:
-        return '🚫';
+        return '✕';
       case MobilityPreference.preWorkout:
-        return '🤸‍♂️';
+        return '↗';
       case MobilityPreference.postWorkout:
-        return '🧘‍♂️';
+        return '↘';
       case MobilityPreference.preAndPost:
-        return '🔄';
+        return '⇄';
       case MobilityPreference.dedicatedSession:
-        return '🧘';
+        return '◈';
     }
   }
 }
