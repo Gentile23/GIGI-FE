@@ -13,6 +13,7 @@ import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
 import 'what_to_cook_screen.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import 'manual_goal_entry_screen.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
   const NutritionDashboardScreen({super.key});
@@ -152,12 +153,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 4: DATI GIORNALIERI (Calorie + Macro)
                         // ══════════════════════════════════════════════════════
-                        if (_goal != null) ...[
-                          _buildCalorieRingCard(),
-                          const SizedBox(height: 16),
-                          _buildMacroProgressCard(),
-                          const SizedBox(height: 24),
-                        ],
+                        _buildCalorieRingCard(),
+                        const SizedBox(height: 16),
+                        _buildMacroProgressCard(),
+                        const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 5: WATER TRACKER
@@ -195,7 +194,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   Widget _buildTwoMainCards() {
     return Column(
       children: [
-        // Card 1: Il Tuo Piano
+        // Card 1: Il Tuo Piano (Black)
         _buildMainEntryCard(
           emoji: '📋',
           title: 'Il Tuo Piano',
@@ -207,18 +206,104 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               ? Navigator.pushNamed(context, '/nutrition/coach/plan')
               : Navigator.pushNamed(context, '/nutrition/coach/upload'),
           badge: _hasActiveDiet ? '✓ Attivo' : null,
+          textColor: CleanTheme.textOnDark,
         ),
         const SizedBox(height: 12),
-        // Card 2: Imposta i Tuoi Obiettivi (versione grande)
-        _buildMainEntryCard(
-          emoji: '🎯',
-          title: AppLocalizations.of(context)!.setupGoalsTitle,
-          subtitle: AppLocalizations.of(context)!.setupGoalsSubtitle,
-          gradientColors: const [CleanTheme.steelLight, CleanTheme.steelMid],
-          onTap: _navigateToGoalSetup,
-          badge: null,
+        
+        Row(
+          children: [
+            // Card 2: Wizard (Grey)
+            Expanded(
+              child: _buildSmallEntryCard(
+                emoji: '🎯',
+                title: 'Wizard',
+                subtitle: 'Calcola obiettivi',
+                onTap: _navigateToGoalSetup,
+                textColor: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Card 3: Manual (Grey)
+            Expanded(
+              child: _buildSmallEntryCard(
+                emoji: '✏️',
+                title: 'Manuale',
+                subtitle: 'Imposta macro',
+                onTap: _navigateToManualGoalEntry,
+                textColor: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  void _navigateToManualGoalEntry() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ManualGoalEntryScreen(
+          currentCalories: _goal?.dailyCalories,
+          currentProtein: _goal?.proteinGrams,
+          currentCarbs: _goal?.carbsGrams,
+          currentFat: _goal?.fatGrams,
+        ),
+      ),
+    );
+    if (result == true) _loadData();
+  }
+
+  Widget _buildSmallEntryCard({
+    required String emoji,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required Color textColor,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CleanTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: textColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: textColor.withValues(alpha: 0.6),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -230,6 +315,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     required List<Color> gradientColors,
     required VoidCallback onTap,
     String? badge,
+    required Color textColor,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -242,10 +328,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             colors: gradientColors,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: CleanTheme.steelSilver, width: 1),
+          border: Border.all(
+            color: textColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -257,7 +346,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: CleanTheme.textOnDark.withValues(alpha: 0.2),
+                color: textColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(emoji, style: const TextStyle(fontSize: 32)),
@@ -275,7 +364,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: textColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -283,7 +372,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: CleanTheme.textOnDark,
+                          color: textColor,
                         ),
                       ),
                     ),
@@ -294,7 +383,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     style: GoogleFonts.outfit(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: CleanTheme.textOnDark,
+                      color: textColor,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -302,15 +391,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: CleanTheme.textOnDark.withValues(alpha: 0.9),
+                      color: textColor.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              color: CleanTheme.textOnDark,
+              color: textColor.withValues(alpha: 0.6),
               size: 18,
             ),
           ],
@@ -408,8 +497,22 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       child: LiquidSteelContainer(
         borderRadius: 16,
         enableShine: true,
+        colors: const [
+          Color(0xFFE5E5EA), // Chrome Light
+          Color(0xFFD1D1D6), // Chrome Mid
+          Color(0xFFE5E5EA), // Chrome Light
+          Color(0xFFD1D1D6), // Chrome Mid
+          Color(0xFFE5E5EA), // Chrome Light
+        ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
         border: Border.all(
-          color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+          color: CleanTheme.textPrimary.withValues(alpha: 0.1),
           width: 1,
         ),
         child: Padding(
@@ -419,15 +522,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  color: CleanTheme.chromeSilver.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+                    color: CleanTheme.textPrimary.withValues(alpha: 0.1),
                   ),
                 ),
                 child: const Icon(
                   Icons.camera_alt_rounded,
-                  color: CleanTheme.textOnDark,
+                  color: CleanTheme.textPrimary,
                   size: 24,
                 ),
               ),
@@ -441,14 +544,14 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: CleanTheme.textOnDark,
+                        color: CleanTheme.textPrimary,
                       ),
                     ),
                     Text(
                       'Scansiona pasto con Intelligenza Artificiale',
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: CleanTheme.textOnDark.withValues(alpha: 0.85),
+                        color: CleanTheme.textPrimary.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -456,7 +559,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                color: CleanTheme.textPrimary.withValues(alpha: 0.5),
                 size: 14,
               ),
             ],

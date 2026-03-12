@@ -5,6 +5,8 @@ class LiquidSteelContainer extends StatefulWidget {
   final double borderRadius;
   final bool enableShine;
   final Border? border;
+  final List<Color>? colors;
+  final List<BoxShadow>? boxShadow;
 
   const LiquidSteelContainer({
     super.key,
@@ -12,6 +14,8 @@ class LiquidSteelContainer extends StatefulWidget {
     this.borderRadius = 24,
     this.enableShine = true,
     this.border,
+    this.colors,
+    this.boxShadow,
   });
 
   @override
@@ -69,25 +73,27 @@ class _LiquidSteelContainerState extends State<LiquidSteelContainer>
                     color: Colors.white.withValues(alpha: 0.2),
                     width: 1,
                   ),
-              gradient: const LinearGradient(
-                begin: Alignment(-1, -1),
-                end: Alignment(1, 1),
-                colors: [
-                  Color(0xFF2C2C2E), // Dark Steel
-                  Color(0xFF3A3A3C), // Mid Steel
-                  Color(0xFF48484A), // Slightly Lighter Steel
-                  Color(0xFF3A3A3C), // Mid Steel
-                  Color(0xFF2C2C2E), // Dark Steel
-                ],
-                stops: [0.0, 0.3, 0.5, 0.7, 1.0],
+              gradient: LinearGradient(
+                begin: const Alignment(-1, -1),
+                end: const Alignment(1, 1),
+                colors: widget.colors ??
+                    const [
+                      Color(0xFF2C2C2E), // Dark Steel
+                      Color(0xFF3A3A3C), // Mid Steel
+                      Color(0xFF48484A), // Slightly Lighter Steel
+                      Color(0xFF3A3A3C), // Mid Steel
+                      Color(0xFF2C2C2E), // Dark Steel
+                    ],
+                stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+              boxShadow: widget.boxShadow ??
+                  [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
             ),
             child: Stack(
               fit: StackFit.loose,

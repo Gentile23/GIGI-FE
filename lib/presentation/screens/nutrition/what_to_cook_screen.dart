@@ -8,6 +8,8 @@ import '../../../data/services/quota_service.dart';
 import '../../../data/models/quota_status_model.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
+import 'generated_meal_screen.dart';
+import 'ingredient_questionnaire_screen.dart';
 
 class WhatToCookScreen extends StatefulWidget {
   const WhatToCookScreen({super.key});
@@ -28,6 +30,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   Map<String, dynamic>? _generatedMeal;
   List<dynamic> _portate = [];
   String _generationMode = 'complete'; // 'single' or 'complete'
+  String _mealType = 'fit'; // 'fit' or 'normal'
 
   QuotaStatus? _quotaStatus;
 
@@ -152,38 +155,76 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         ingredients: _ingredients,
         maxTimeMinutes: 30,
         mode: _generationMode,
+        mealType: _mealType,
+        step: 'questionnaire',
       );
 
       if (mounted) {
         setState(() {
           _isLoading = false;
-          if (result != null &&
-              result['success'] == true &&
-              result['meal'] != null) {
-            _generatedMeal = result['meal'];
-            _portate = _generatedMeal!['portate'] ?? [];
-            _loadQuota();
-            HapticService.notificationPattern();
-          } else if (result != null && result['quota_exceeded'] == true) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result['message'] ?? 'Limite quota raggiunto!'),
-                backgroundColor: CleanTheme.accentRed,
-              ),
-            );
-            HapticService.errorPattern();
-          } else if (result != null && result['success'] == false) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  result['message'] ?? 'Errore durante la generazione',
-                ),
-                backgroundColor: CleanTheme.accentRed,
-              ),
-            );
-            HapticService.errorPattern();
-          }
         });
+        if (result != null &&
+            result['success'] == true &&
+            result['questions'] != null) {
+          setState(() {
+            _hasSearched = false;
+          });
+          HapticService.notificationPattern();
+          final questions = (result['questions'] as List).map((e) => e.toString()).toList();
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => IngredientQuestionnaireScreen(
+                questions: questions,
+                originalIngredients: _ingredients,
+                dietType: 'standard', // Potrebbe essere dinamico se lo aggiungi all'UI
+                mode: _generationMode,
+                mealType: _mealType,
+                maxTimeMinutes: 30,
+                nutritionService: _nutritionService,
+              ),
+            ),
+          );
+        } else if (result != null &&
+            result['success'] == true &&
+            result['meal'] != null) {
+          // Caso in cui il questionario viene saltato e il pasto generato direttamente
+          HapticService.notificationPattern();
+          final mealData = result['meal'] as Map<String, dynamic>;
+          final portateList = (mealData['portate'] as List?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+              [];
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GeneratedMealScreen(
+                generatedMeal: mealData,
+                portate: portateList,
+              ),
+            ),
+          );
+        } else if (result != null && result['quota_exceeded'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Limite quota raggiunto!'),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+          HapticService.errorPattern();
+        } else if (result != null && result['success'] == false) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['message'] ?? 'Errore durante la generazione',
+              ),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+          HapticService.errorPattern();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -284,6 +325,33 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
               ),
             ),
             const SizedBox(height: 32),
+
+            // Fit vs Normal Toggle
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: CleanTheme.surfaceColor,
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(color: CleanTheme.borderPrimary),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildMealTypeOption(
+                    'Pasto Fit',
+                    'fit',
+                    Icons.fitness_center,
+                  ),
+                  _buildMealTypeOption(
+                    'Pasto Normale',
+                    'normal',
+                    Icons.restaurant,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             Container(
               padding: const EdgeInsets.all(4),
@@ -458,7 +526,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           child: Text(
                             _isLoading
                                 ? 'Chef AI sta creando...'
-                                : 'Genera Menu da Chef',
+                                : (_generationMode == 'single' ? 'Genera Piatto da Chef' : 'Genera Menu da Chef'),
                             key: ValueKey<bool>(_isLoading),
                             style: GoogleFonts.outfit(
                               fontSize: 16,
@@ -621,20 +689,10 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                               color: isSelected
                                   ? CleanTheme.textOnPrimary
                                   : CleanTheme.textPrimary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
+                              fontWeight: FontWeight.w500,
                               fontSize: 13,
                             ),
                           ),
-                          if (isSelected) ...[
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.close_rounded,
-                              size: 14,
-                              color: CleanTheme.textOnPrimary,
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -654,6 +712,46 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
     return GestureDetector(
       onTap: () {
         setState(() => _generationMode = value);
+        HapticService.selectionClick();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected ? CleanTheme.primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? CleanTheme.textOnPrimary
+                  : CleanTheme.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? CleanTheme.textOnPrimary
+                    : CleanTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMealTypeOption(String label, String value, IconData icon) {
+    final isSelected = _mealType == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() => _mealType = value);
         HapticService.selectionClick();
       },
       child: AnimatedContainer(

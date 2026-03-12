@@ -222,6 +222,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 SnackBar(
                   content: Text(
                     result?['warning'] ??
+                        result?['message'] ??
                         'Analisi fallita. Inserisci manualmente.',
                   ),
                   backgroundColor: CleanTheme.accentOrange,

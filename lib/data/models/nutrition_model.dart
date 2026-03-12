@@ -42,6 +42,8 @@ class NutritionGoal {
         return 'Fat Loss';
       case 'recomp':
         return 'Body Recomposition';
+      case 'custom':
+        return 'Personalizzato';
       default:
         return 'Maintenance';
     }
@@ -55,6 +57,8 @@ class NutritionGoal {
         return Colors.orange;
       case 'recomp':
         return Colors.purple;
+      case 'custom':
+        return Colors.blueGrey;
       default:
         return Colors.blue;
     }

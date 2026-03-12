@@ -39,7 +39,7 @@ class NutritionService {
       });
 
       final response = await _apiClient.postMultipart(
-        '/nutrition/quick-log',
+        '/nutrition/meals/quick-log',
         formData: formData,
       );
 
@@ -350,7 +350,7 @@ class NutritionService {
   }) async {
     try {
       final response = await _apiClient.post(
-        '/nutrition/tdee/calculate',
+        '/nutrition/tdee-calculator',
         body: {
           'weight_kg': weightKg,
           'height_cm': heightCm,
@@ -396,6 +396,17 @@ class NutritionService {
     }
   }
 
+  /// Delete user's nutrition goals
+  Future<bool> deleteGoals() async {
+    try {
+      final response = await _apiClient.delete('/nutrition/goals');
+      return response['success'] == true;
+    } catch (e) {
+      debugPrint('Error deleting nutrition goals: $e');
+      return false;
+    }
+  }
+
   /// Get smart meal suggestions based on remaining macros
   Future<Map<String, dynamic>?> getSmartSuggestions() async {
     try {
@@ -413,6 +424,9 @@ class NutritionService {
     int? maxTimeMinutes,
     String? dietType,
     String? mode,
+    String? mealType,
+    String step = 'generate_meal',
+    Map<String, bool>? answers,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -422,6 +436,9 @@ class NutritionService {
           if (maxTimeMinutes != null) 'max_time_minutes': maxTimeMinutes,
           if (dietType != null) 'diet_type': dietType,
           if (mode != null) 'mode': mode,
+          if (mealType != null) 'meal_type': mealType,
+          'step': step,
+          if (answers != null) 'answers': answers,
         },
       );
       return response;
