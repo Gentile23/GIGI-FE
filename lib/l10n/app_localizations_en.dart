@@ -351,7 +351,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challenges => 'Challenges';
 
   @override
-  String get challengesSubtitle => 'Daily, Weekly, Community';
+  String get challengesSubtitle => 'Daily, Weekly';
 
   @override
   String get leaderboard => 'Leaderboard';

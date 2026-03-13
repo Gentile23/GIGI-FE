@@ -25,7 +25,7 @@ class _ChallengesScreenState extends State<ChallengesScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -63,7 +63,6 @@ class _ChallengesScreenState extends State<ChallengesScreen>
             Tab(text: AppLocalizations.of(context)!.challengesTabActive),
             Tab(text: AppLocalizations.of(context)!.challengesTabDaily),
             Tab(text: AppLocalizations.of(context)!.challengesTabWeekly),
-            Tab(text: AppLocalizations.of(context)!.challengesTabCommunity),
           ],
         ),
       ),
@@ -73,7 +72,6 @@ class _ChallengesScreenState extends State<ChallengesScreen>
           _buildActiveTab(),
           _buildChallengesListByType(ChallengeType.daily),
           _buildChallengesListByType(ChallengeType.weekly),
-          _buildChallengesListByType(ChallengeType.community),
         ],
       ),
     );

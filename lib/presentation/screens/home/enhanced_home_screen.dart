@@ -22,7 +22,6 @@ import '../../../data/models/user_model.dart';
 
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
-import '../social/activity_feed_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
@@ -229,35 +228,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 // 6. Quick Actions
-                                // Row 1: Community
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildActionCardWide(
-                                        Icons.people_alt_rounded,
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.actionCommunity,
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.actionCommunityDesc,
-                                        CleanTheme.accentOrange,
-                                        () {
-                                          HapticService.lightTap();
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ActivityFeedScreen(),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                // Row 2: Form Check AI (Full Width)
+                                // Row 1: Form Check AI (Full Width)
                                 GestureDetector(
                                   onTap: () {
                                     HapticService.lightTap();
@@ -968,87 +939,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-  // _buildWeeklyProgress and _buildQuickActions removed as they are unused.
-
-  Widget _buildActionCardWide(
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    // Usa sempre toni neutri chrome indipendentemente dal colore passato
-    const chromeIcon = Color(0xFF3A3A3C);
-    const chromeBorder = Color(0xFFD1D1D6);
-    const chromeBg = Color(0xFFF5F5F7);
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: chromeBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: chromeBorder, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: chromeBorder),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: chromeIcon, size: 26),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: CleanTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFF8E8E93),
-              size: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildSkeletonLoading({Key? key}) {
     return Column(

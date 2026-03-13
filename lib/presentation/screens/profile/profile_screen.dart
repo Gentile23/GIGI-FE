@@ -19,7 +19,6 @@ import '../challenges/challenges_screen.dart';
 import '../referral/referral_screen.dart';
 import '../progress/transformation_tracker_screen.dart';
 import '../leaderboard/leaderboard_screen.dart';
-import '../community/community_goals_screen.dart';
 import '../gamification/gamification_screen.dart';
 import '../settings/health_settings_screen.dart';
 import 'edit_preferences_screen.dart';
@@ -437,21 +436,6 @@ class ProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const LeaderboardScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.public_outlined,
-                  title: AppLocalizations.of(context)!.community,
-                  subtitle: AppLocalizations.of(context)!.communitySubtitle,
-                  color: CleanTheme.accentOrange,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CommunityGoalsScreen(),
                       ),
                     );
                   },

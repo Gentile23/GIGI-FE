@@ -714,7 +714,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Condividi la tua vittoria con la community',
+            'Condividi il tuo risultato',
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w500,

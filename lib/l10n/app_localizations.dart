@@ -781,7 +781,7 @@ abstract class AppLocalizations {
   /// No description provided for @challengesSubtitle.
   ///
   /// In it, this message translates to:
-  /// **'Daily, Weekly, Community'**
+  /// **'Daily, Weekly'**
   String get challengesSubtitle;
 
   /// No description provided for @leaderboard.

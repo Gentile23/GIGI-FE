@@ -3,7 +3,6 @@ import 'package:gigi/l10n/app_localizations.dart';
 import 'home/enhanced_home_screen.dart';
 import 'workout/unified_workout_list_screen.dart';
 import 'nutrition/nutrition_dashboard_screen.dart';
-import 'social/activity_feed_screen.dart';
 import 'progress/progress_dashboard_screen.dart';
 import 'profile/profile_screen.dart';
 import '../../core/theme/clean_theme.dart';
@@ -28,9 +27,8 @@ class _MainScreenState extends State<MainScreen> {
     EnhancedHomeScreen(), // Tab 0: Home
     UnifiedWorkoutListScreen(), // Tab 1: Workout
     NutritionDashboardScreen(), // Tab 2: Nutrition
-    ActivityFeedScreen(), // Tab 3: Social
-    ProgressDashboardScreen(), // Tab 4: Progress (was Rewards)
-    ProfileScreen(), // Tab 5: Profile
+    ProgressDashboardScreen(), // Tab 3: Progress (was Rewards)
+    ProfileScreen(), // Tab 4: Profile
   ];
 
   @override
@@ -70,11 +68,6 @@ class _MainScreenState extends State<MainScreen> {
                 icon: Icons.restaurant_menu_outlined,
                 activeIcon: Icons.restaurant_menu,
                 label: AppLocalizations.of(context)!.nutrition,
-              ),
-              FloatingNavItem(
-                icon: Icons.people_outline,
-                activeIcon: Icons.people,
-                label: AppLocalizations.of(context)!.social,
               ),
               FloatingNavItem(
                 icon: Icons.trending_up_outlined,
