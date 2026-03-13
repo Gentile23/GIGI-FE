@@ -15,6 +15,7 @@
   ],
 
   "de": [
+    "gigiGoalSetupMessage",
     "introTitleUpdate",
     "introDescriptionUpdate",
     "introButtonUpdate",
@@ -26,7 +27,12 @@
     "bestPractice1",
     "bestPractice2",
     "bestPractice3",
-    "bestPractice4"
+    "bestPractice4",
+    "insertManually",
+    "addNutritionalGoal",
+    "customGoal",
+    "calculateForMe",
+    "setupGoals"
   ],
 
   "en": [

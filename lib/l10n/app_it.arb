@@ -46,20 +46,20 @@
   "healthDataLink": "dati sanitari",
   "healthDataDescription": "(peso, altezza, infortuni) per personalizzare i piani di allenamento",
   "acceptAllConsents": "Accetta tutti i consensi per procedere",
-  "home": "Home",
+  "home": "Casa",
   "workout": "Workout",
   "nutrition": "Nutrizione",
   "social": "Social",
   "progress": "Progressi",
   "profile": "Profilo",
-  "startNow": "INIZIA ORA",
+  "startNow": "Inizia Ora",
   "slogan": "Sblocca la versione migliore di te,\npotenziata dall'AI.",
   "sloganSubtitle": "Zero dubbi. Allenamenti scientifici. Solo risultati veri.",
   "invalidCredentials": "Credenziali non valide. Controlla email e password.",
   "registrationFailed": "Registrazione fallita. Riprova più tardi.",
   "emailAlreadyExists": "Questa email è già registrata. Prova ad accedere.",
   "connectionError": "Impossibile connettersi al server. Controlla la connessione internet.",
-  "unexpectedError": "Si è verificato un errore inatteso",
+  "unexpectedError": "Errore imprevisto",
   "googleSignInError": "Errore durante l'accesso con Google",
   "appleSignInError": "Errore durante l'accesso con Apple",
   "mustAcceptConsents": "Devi accettare tutti i consensi per registrarti.",
@@ -86,7 +86,7 @@
   "success": "Successo",
   "loading": "Caricamento...",
   "retry": "Riprova",
-  "next": "Avanti",
+  "next": "Prossimo",
   "back": "Indietro",
   "done": "Fatto",
   "skip": "Salta",
@@ -99,23 +99,23 @@
   "thisMonth": "Questo Mese",
   "noWorkoutPlan": "Nessun piano di allenamento trovato",
   "generatePlan": "Genera Piano",
-  "startWorkout": "Inizia Allenamento",
-  "completeWorkout": "Completa Allenamento",
+  "startWorkout": "Inizia Workout",
+  "completeWorkout": "COMPLETA ALLENAMENTO",
   "restDay": "Giorno di Riposo",
   "exercises": "Esercizi",
   "sets": "Serie",
-  "reps": "Ripetizioni",
+  "reps": "Reps",
   "weight": "Peso",
   "duration": "Durata",
-  "rest": "Riposo",
+  "rest": "Rest",
   "calories": "Calorie",
   "minutes": "minuti",
   "seconds": "secondi",
   "kg": "kg",
   "lbs": "lbs",
   "userDefaultName": "Utente",
-  "heightLabel": "Altezza",
-  "weightLabel": "Peso",
+  "heightLabel": "Altezza (cm)",
+  "weightLabel": "PESO (KG)",
   "ageLabel": "Età",
   "currentPlan": "Piano Attuale",
   "premium": "Premium",
@@ -156,10 +156,10 @@
   "locationGymLabel": "Palestra",
   "locationHomeLabel": "Casa",
   "locationOutdoorLabel": "Outdoor",
-  "injuryMuscular": "Strappi, contratture",
-  "injuryArticular": "Distorsioni, infiammazioni",
+  "injuryMuscular": "Muscolare",
+  "injuryArticular": "Articolare",
   "injuryBone": "Osseo",
-  "myWorkoutsTitle": "I Miei Workout",
+  "myWorkoutsTitle": "Le Mie Schede",
   "aiAnalyzingProfile": "🧠 Gigi sta analizzando il tuo profilo",
   "aiGeneratingPlanDescription": "Generazione piano in corso...\nAttendi mentre Gigi crea il tuo allenamento personalizzato.",
   "noWorkoutsTitle": "Nessun Workout",
@@ -189,20 +189,20 @@
       }
     }
   },
-  "startWorkout": "Inizia Workout",
   "difficultyBeginner": "Principiante",
   "difficultyIntermediate": "Intermedio",
   "difficultyAdvanced": "Avanzato",
-  "sets": "Sets",
-  "reps": "Reps",
-  "rest": "Rest",
   "voiceCoachingEnable": "Attiva Voice Coaching",
   "voiceCoachingDisable": "Disattiva Voice Coaching",
   "exerciseProgress": "Esercizio {current}/{total}",
   "@exerciseProgress": {
     "placeholders": {
-      "current": { "type": "int" },
-      "total": { "type": "int" }
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "aiWorkoutsSectionTitle": "🤖 Schede AI",
@@ -210,7 +210,6 @@
   "customWorkoutsSectionTitle": "✏️ Schede Personalizzate",
   "customWorkoutsSectionSubtitle": "Create da te",
   "nextWorkoutTitle": "🔥 Prossimo Workout",
-  "startNow": "Inizia Ora",
   "noAiWorkoutsTitle": "Nessun workout AI",
   "generateAiPlanSubtitle": "Genera una scheda dalla Home",
   "generatingInProgress": "🤖 Generazione in corso...",
@@ -226,13 +225,14 @@
   "waitFewMinutes": "Ci vorranno pochi minuti...",
   "champion": "Campione",
   "previous": "Precedente",
-  "next": "Prossimo",
   "finish": "Termina",
   "sessionNotRecorded": "⚠️ Sessione non registrata - i progressi potrebbero non essere salvati",
   "sessionStartError": "Errore avvio sessione: {error}",
   "@sessionStartError": {
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
   "noExercisesTitle": "Nessun Esercizio",
@@ -243,7 +243,6 @@
   "kcalStats": "Kcal",
   "preWorkoutSection": "Prima dell'allenamento",
   "startSession": "INIZIA SESSIONE",
-  "completeWorkout": "COMPLETA ALLENAMENTO",
   "finishSession": "TERMINA SESSIONE",
   "statsCalories": "kcal",
   "statsSeries": "serie",
@@ -261,13 +260,17 @@
   "sectionCompleted": "{title} completata!",
   "@sectionCompleted": {
     "placeholders": {
-      "title": { "type": "String" }
+      "title": {
+        "type": "String"
+      }
     }
   },
   "gigiGuidingYou": "🎤 Gigi ti guida per {exercise}...",
   "@gigiGuidingYou": {
     "placeholders": {
-      "exercise": { "type": "String" }
+      "exercise": {
+        "type": "String"
+      }
     }
   },
   "yourTurn": "✅ Ora tocca a te! Inizia le tue serie.",
@@ -276,18 +279,18 @@
   "exitWorkoutTitle": "Uscire dall'allenamento?",
   "exitWorkoutMessage": "Il tuo progresso andrà perso. Sei sicuro di voler uscire?",
   "confirmExit": "Esci",
-  "cancel": "Annulla",
   "finishWorkoutTitle": "Completa Allenamento",
   "finishWorkoutMessage": "Sei sicuro di voler terminare l'allenamento? Tutti i progressi verranno salvati.",
   "nextBadge": "PROSSIMO",
-  "info": "Info",
   "workoutCompletedTitle": "Allenamento Completato!",
   "workoutCompletedMessage": "Ottimo lavoro! Il tuo allenamento è stato registrato con successo.",
   "awesome": "Fantastico!",
   "saveError": "Errore durante il salvataggio: {error}",
   "@saveError": {
     "placeholders": {
-      "error": { "type": "Object" }
+      "error": {
+        "type": "Object"
+      }
     }
   },
   "workoutStrength": "Forza",
@@ -364,7 +367,7 @@
   "equipmentFreeWeights": "Pesi Liberi",
   "injuryAddedTitle": "Infortunio Aggiunto",
   "injuryAddedSubtitle": "Hai altri infortuni da segnalare?",
-  "addAnotherInjury": "Sì, Aggiungi Altro",
+  "addAnotherInjury": "Aggiungi un altro infortunio",
   "continueNoInjury": "No, Continua",
   "nutritionCoachTitle": "Nutrition Coach",
   "logMeal": "Registra Pasto",
@@ -375,13 +378,17 @@
   "kcalRemaining": "{kcal} kcal rimanenti",
   "@kcalRemaining": {
     "placeholders": {
-      "kcal": { "type": "int" }
+      "kcal": {
+        "type": "int"
+      }
     }
   },
   "kcalExcess": "{kcal} kcal in eccesso",
   "@kcalExcess": {
     "placeholders": {
-      "kcal": { "type": "int" }
+      "kcal": {
+        "type": "int"
+      }
     }
   },
   "protein": "Proteine",
@@ -393,9 +400,15 @@
   "waterGlassesCount": "{ml} / {goal} ml ({glasses} bicchieri)",
   "@waterGlassesCount": {
     "placeholders": {
-      "ml": { "type": "int" },
-      "goal": { "type": "int" },
-      "glasses": { "type": "int" }
+      "ml": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "glasses": {
+        "type": "int"
+      }
     }
   },
   "smartSuggestions": "💡 Suggerimenti Smart",
@@ -404,11 +417,19 @@
   "addWater": "💧 Aggiungi Acqua",
   "appBarTitleGoals": "Imposta Obiettivi",
   "profileDataSummary": "Dati dal profilo: {height} cm • {weight} kg • {age} anni",
+  "gigiGoalSetupMessage": "Ottimo passo! Definiamo insieme i tuoi macronutrienti per massimizzare i tuoi risultati. 🚀",
+  "gigiNutritionDashboardMessage": "La nutrizione è il 70% del risultato. Ecco come sta andando la tua giornata. 🍎",
   "@profileDataSummary": {
     "placeholders": {
-      "height": { "type": "int" },
-      "weight": { "type": "int" },
-      "age": { "type": "int" }
+      "height": {
+        "type": "int"
+      },
+      "weight": {
+        "type": "int"
+      },
+      "age": {
+        "type": "int"
+      }
     }
   },
   "goalStepTitle": "🎯 Qual è il tuo obiettivo?",
@@ -438,16 +459,16 @@
   "saveGoalsButton": "Salva Obiettivi",
   "yourProgress": "I Tuoi Progressi",
   "overview": "Panoramica",
-  "nutrition": "Nutrizione",
-  "thisWeek": "Questa Settimana",
   "recentActivity": "Attività Recente",
   "weeklySummary": "RIEPILOGO SETTIMANALE",
   "timeLabel": "Tempo",
   "streakLabel": "Streak",
-  "streakDays": "{days} giorni",
+  "streakDays": "GIORNI DI FILA",
   "@streakDays": {
     "placeholders": {
-      "days": { "type": "int" }
+      "days": {
+        "type": "int"
+      }
     }
   },
   "volumeLabel": "Volume",
@@ -462,20 +483,26 @@
   "connectTo": "Connetti {platform}",
   "@connectTo": {
     "placeholders": {
-      "platform": { "type": "String" }
+      "platform": {
+        "type": "String"
+      }
     }
   },
   "platformConnected": "{platform} connesso! ✅",
   "@platformConnected": {
     "placeholders": {
-      "platform": { "type": "String" }
+      "platform": {
+        "type": "String"
+      }
     }
   },
   "permissionDenied": "Permessi non concessi. Riprova dalle impostazioni del dispositivo.",
   "disconnectPlatform": "Disconnettere {platform}?",
   "@disconnectPlatform": {
     "placeholders": {
-      "platform": { "type": "String" }
+      "platform": {
+        "type": "String"
+      }
     }
   },
   "syncedDataRemains": "I dati sincronizzati rimarranno, ma non verranno più aggiornati automaticamente.",
@@ -494,7 +521,9 @@
   "workoutsSavedTo": "I tuoi allenamenti vengono salvati automaticamente in {platform}",
   "@workoutsSavedTo": {
     "placeholders": {
-      "platform": { "type": "String" }
+      "platform": {
+        "type": "String"
+      }
     }
   },
   "syncedData": "Dati sincronizzati",
@@ -504,7 +533,6 @@
   "heartRateDesc": "Battito a riposo e durante l'esercizio",
   "sleepLabel": "Sonno",
   "sleepDesc": "Analisi della qualità del sonno",
-  "weightLabel": "Peso",
   "trackYourProgress": "Traccia i tuoi progressi",
   "workoutsLabel": "Allenamenti",
   "syncSessionsAutomatically": "Sincronizza automaticamente le sessioni",
@@ -514,18 +542,18 @@
   "introTitleUpdate": "Ci siamo, {name}! ⚡",
   "@introTitleUpdate": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "introDescriptionUpdate": "Analizziamo i tuoi progressi per creare un piano ancora più potente. Ti farò qualche domanda per aggiornare le tue preferenze.",
   "introButtonUpdate": "AGGIORNA SCHEDA",
   "sectionAboutYou": "Parlaci di te",
   "sectionAboutYouSubtitle": "Queste informazioni ci aiutano a calcolare il tuo fabbisogno.",
-  "heightLabel": "Altezza (cm)",
   "equipmentTitle": "Attrezzatura",
   "equipmentSubtitleGym": "Seleziona gli stili di allenamento che preferisci.",
   "equipmentSubtitleHome": "Cosa hai a disposizione nel tuo spazio?",
-  "continueButton": "Continua",
   "machinesTitle": "Quali Macchine?",
   "machinesSubtitle": "Seleziona quelle disponibili.",
   "bodyweightTypeTitle": "Tipo di Corpo Libero",
@@ -534,7 +562,6 @@
   "injuriesSubtitleEmpty": "Hai infortuni attuali o passati?\n\n💡 Inserisci anche infortuni PASSATI se potrebbero influenzare il tuo allenamento (es. vecchie fratture, interventi chirurgici, problemi cronici).",
   "injuriesSubtitleFilled": "Hai aggiunto {count} infortuni. Vuoi aggiungerne altri?",
   "yesInjury": "Sì, ho un infortunio da segnalare",
-  "addAnotherInjury": "Aggiungi un altro infortunio",
   "noInjury": "No, sono sano",
   "noMoreInjuries": "No, ho finito",
   "injuryCategoryTitle": "Tipo di infortunio",
@@ -551,7 +578,7 @@
   "painfulExercisesTitle": "Esercizi che causano dolore",
   "painfulExercisesHint": "Es: Squat, Panca piana, Stacchi...",
   "notesTitle": "Note Aggiuntive (Opzionale)",
-  "notesHint": "Dettagli aggiuntivi...",
+  "notesHint": "Note sull'esercizio...",
   "saveInjuryButton": "Salva Infortunio",
   "sessionDurationTitle": "Durata Sessione",
   "sessionDurationSubtitle": "Quanto tempo hai per allenarti?",
@@ -633,7 +660,7 @@
   "hintWeight": "Es. 70",
   "injuryStatusOvercome": "Superato",
   "injuryStatusOvercomeDesc": "Non ho più problemi, ma meglio saperlo",
-  "injuryStatusActive": "Ancora presente",
+  "injuryStatusActive": "Attivo",
   "injuryStatusActiveDesc": "Ho ancora fastidi o limitazioni",
   "bwEquipmentFunctionalTitle": "Attrezzi Funzionali Disponibili",
   "bwEquipmentCalisthenicsTitle": "Attrezzi Calisthenics Disponibili",
@@ -650,7 +677,7 @@
   "homeTitleGreetingMorning": "Buongiorno",
   "homeTitleGreetingAfternoon": "Buon pomeriggio",
   "homeTitleGreetingEvening": "Buonasera",
-  "searchHint": "Cerca workout...",
+  "searchHint": "Cerca per nome, muscolo o attrezzatura...",
   "searchComingSoon": "Ricerca globale in arrivo! 🔍",
   "filterAll": "Tutti",
   "filterCardio": "Cardio",
@@ -660,7 +687,6 @@
   "homeNextWorkoutTitle": "Il tuo prossimo workout",
   "homeProgressTitle": "I tuoi progressi",
   "viewAll": "Vedi tutti",
-  "streakDays": "GIORNI DI FILA",
   "streakStart": "INIZIA LA TUA SERIE",
   "streakKeepGoing": "Non fermarti ora! Manca poco al prossimo livello.",
   "streakStartToday": "Completa un workout oggi per accendere la fiamma.",
@@ -674,9 +700,9 @@
   "loadingCategory": "Caricamento {category}...",
   "@loadingCategory": {
     "placeholders": {
-        "category": {
-            "type": "String"
-        }
+      "category": {
+        "type": "String"
+      }
     }
   },
   "pleaseWait": "Attendere prego",
@@ -687,9 +713,8 @@
   "insightsTitle": "I tuoi Insights",
   "viewReport": "Vedi report",
   "connectHealth": "Connetti Apple Health",
-  "connectHealthDesc": "Per vedere insights personalizzati sui tuoi dati di salute",
+  "connectHealthDesc": "Connetti Apple Health per generare il tuo report settimanale personalizzato.",
   "discoveredPatterns": "Pattern scoperti",
-  "aiCreatingPlan": "🤖 AI sta creando il tuo piano",
   "aiCreatingPlanDesc": "Ci vorranno pochi minuti...",
   "aiPlanBadge": "PIANO AI",
   "goal": "Obiettivo",
@@ -716,10 +741,8 @@
   "tapAddSearch": "Tocca \"Aggiungi\" per cercare esercizi",
   "restSecondsLabel": "Rest (s)",
   "notesOptional": "Note (opzionale)",
-  "notesHint": "Note sull'esercizio...",
   "saveChanges": "Salva Modifiche",
   "searchExercises": "Cerca Esercizi",
-  "searchHint": "Cerca per nome, muscolo o attrezzatura...",
   "filters": "Filtri",
   "clearFilters": "Azzera",
   "muscleGroup": "Gruppo Muscolare",
@@ -728,7 +751,6 @@
   "applyFilters": "Applica Filtri",
   "noExercisesFound": "Nessun esercizio trovato",
   "tryAdjustFilters": "Prova a modificare i filtri",
-  "retry": "Riprova",
   "intensity": "Intensità",
   "moderate": "Moderata",
   "add": "Aggiungi",
@@ -745,7 +767,6 @@
   "newRecord": "Nuovo Record!",
   "activeChallengesTitle": "Sfide Attive",
   "availableChallengesTitle": "Sfide Disponibili",
-  "viewAll": "Vedi tutte",
   "noActiveChallenges": "Nessuna sfida attiva al momento",
   "percentCompleted": "{percent}% completato",
   "daysRemaining": "{days} giorni rimasti",
@@ -797,10 +818,10 @@
   "startingPoint": "Il Tuo Punto di Partenza",
   "startingPointDesc": "Queste misure ci aiutano a creare la scheda perfetta per te e a tracciare i tuoi progressi nel tempo.",
   "startMeasurements": "Inizia le Misure",
-  "bicepRight": "Bicipite Destro",
-  "bicepLeft": "Bicipite Sinistro",
-  "thighRight": "Coscia Destra",
-  "thighLeft": "Coscia Sinistra",
+  "bicepRight": "Bicipite DX",
+  "bicepLeft": "Bicipite SX",
+  "thighRight": "Coscia DX",
+  "thighLeft": "Coscia SX",
   "measurementsSummary": "Riepilogo Misure",
   "startingMeasurementsNote": "Ecco le tue misure di partenza",
   "bicepDX": "Bicipite DX",
@@ -823,7 +844,7 @@
   "tapZoneDetails": "Tocca una zona per vedere i dettagli",
   "setGoal": "Imposta un obiettivo",
   "goalExample": "Es. \"Vita a 80cm\" o \"Bicipite a 40cm\"",
-  "quickActions": "Azioni Rapide",
+  "quickActions": "Azioni rapide",
   "newMeasurement": "Nuova Misura",
   "progressPhoto": "Foto Progresso",
   "yourJourneyPhotos": "Foto del Tuo Percorso",
@@ -849,7 +870,7 @@
   "chooseSource": "Scegli sorgente",
   "camera": "Fotocamera",
   "gallery": "Galleria",
-  "photosSavedSuccess": "🎉 Foto salvate con successo!",
+  "photosSavedSuccess": "Foto salvate con successo!",
   "yourProgressTab": "I Tuoi Progressi",
   "noPhotosYet": "Nessuna foto ancora",
   "noPhotosDesc": "Aggiungi foto per vedere la tua trasformazione nel tempo",
@@ -873,16 +894,13 @@
   "weightKg": "Peso (kg)",
   "profileUpdatedSuccess": "Profilo aggiornato con successo",
   "saveErrorGeneric": "Errore durante il salvataggio",
-  
   "voiceModeTitle": "VOICE MODE",
   "voiceModeSubtitle": "Gigi ti guida\nogni ripetizione",
   "musicModeTitle": "MUSIC MODE",
   "musicModeSubtitle": "La tua musica\n+ cue minimi",
   "discreteMode": "Modalità Discreta",
-  
   "unlockedCount": "Sbloccati ({count})",
   "toUnlockCount": "Da Sbloccare ({count})",
-  
   "howToMeasureTitle": "📏 Come prendere le misure",
   "howToMeasureDesc": "Segui questi consigli per misure accurate",
   "armsSection": "💪 Braccia",
@@ -891,74 +909,59 @@
   "torsoSectionDesc": "Petto, vita e fianchi",
   "legsSection": "🦵 Gambe",
   "legsSectionDesc": "Cosce e polpacci",
-  
   "frontPhoto": "Fronte",
   "sidePhoto": "Lato",
-  "backPhoto": "Dietro",
+  "backPhoto": "Retro",
   "cameraOption": "Fotocamera",
   "galleryOption": "Galleria",
-  
   "noPhotosYetTitle": "Nessuna foto ancora",
   "noPhotosYetDesc": "Aggiungi foto per vedere la tua trasformazione nel tempo",
   "noMeasurementsYetTitle": "Nessuna misura ancora",
   "noMeasurementsYetDesc": "Aggiungi le tue misure per tracciare i progressi",
-  
   "newMeasurementAction": "Nuova Misura",
   "progressPhotoAction": "Foto Progresso",
   "compareAction": "Confronta",
-  
   "weightStat": "Peso",
   "bodyFatStat": "Body Fat",
   "daysStat": "Giorni",
-  
   "streakStat": "Streak",
   "measurementsStat": "Misure",
   "waistStat": "Vita",
   "bicepStat": "Bicipite",
-  
   "exercisesLabel": "Esercizi",
   "durationLabel": "Durata",
   "caloriesLabel": "Calorie",
   "totalSetsLabel": "Serie Totali",
   "minutesLabel": "Minuti",
   "seriesLabel": "Serie",
-  
   "startButton": "Inizia",
   "completeButton": "Completa",
   "completedButton": "Completa 🎉",
-  
   "trialWorkoutTitle": "Trial Workout",
   "recommendedLabel": "Consigliato",
   "skipTrialTitle": "Salta il Trial",
   "generateNowLabel": "Genera subito",
-  
   "exampleTen": "Es: 10",
   "exampleWeight": "Es: 20.5",
-  "confirmButton": "Conferma",
+  "confirmButton": "CONFERMA",
   "errorTitle": "Errore",
   "setTimeLabel": "Tempo serie",
   "minutesLabelWithValue": "{value} minuti",
   "exampleDifficultyHint": "Es: Ho trovato difficile l'esercizio X...",
-  
   "instructionsSection": "Istruzioni",
   "videoDemoSection": "Video Dimostrazione",
   "intensityLabel": "Intensità",
   "heartRateZone": "Zona FC",
-  
   "basicInfoSection": "Informazioni Base",
   "goalsSection": "Obiettivi",
   "workoutPreferencesSection": "Preferenze Allenamento",
-  
   "editButton": "Modifica",
-  
   "introPhase": "Intro",
   "duringPhase": "Durante",
   "finalPhase": "Finale",
   "stopButton": "Stop",
-  
   "repsLabel": "RIPETIZIONI",
   "weightKgLabel": "PESO (KG)",
-  
   "consentManagementSection": "Gestione Consensi",
   "pushNotificationsTitle": "Notifiche Push",
   "pushNotificationsDesc": "Promemoria allenamenti e progressi",
@@ -972,7 +975,6 @@
   "exportDataDesc": "Scarica tutti i tuoi dati in formato JSON",
   "deleteAccountTitle": "Elimina Account",
   "deleteAccountDesc": "Cancella permanentemente i tuoi dati",
-  
   "goalLabel": "Obiettivo",
   "experienceLevelLabel": "Livello di Esperienza",
   "weeklyFrequencyLabel": "Frequenza Settimanale",
@@ -982,20 +984,14 @@
   "sessionDurationLabel": "Durata Sessione",
   "cardioPreferenceLabel": "Preferenza Cardio",
   "mobilityPreferenceLabel": "Preferenza Mobilità",
-  
   "trialWorkoutLabel": "Trial Workout",
   "heightWeightLabel": "Altezza e Peso",
-  
   "defaultWorkoutName": "Allenamento",
-  
   "goToWorkoutButton": "Vai all'Allenamento",
-  
   "startText": "Inizia",
   "nextText": "Avanti",
-  
   "yourNameHint": "Il tuo nome",
   "detailsLabel": "Dettagli",
-  
   "whatsappShare": "WhatsApp",
   "instagramShare": "Instagram",
   "otherShare": "Altro",
@@ -1004,43 +1000,27 @@
   "convertedReferrals": "Convertiti",
   "yourReferralCode": "Il tuo codice referral",
   "skipButton": "Salta",
-  "repsLabel": "RIPETIZIONI",
-  "weightLabel": "PESO (KG)",
   "instructionsLabel": "Istruzioni",
   "videoDemoLabel": "Video Dimostrazione",
   "pause": "Pausa",
   "resume": "Riprendi",
-  "close": "Chiudi",
   "savedLabel": "SALVATO!",
-  "confirmButton": "CONFERMA",
-  "myWorkoutsTitle": "Le Mie Schede",
   "deleteWorkoutTitle": "Elimina Scheda",
-  "delete": "Elimina",
   "reviewPreferences": "Rivedi Preferenze",
   "edit": "Modifica",
-  "generatePlan": "Genera Piano",
   "workoutCompleted": "Workout Completato! 🎉",
   "greatJobKeepItUp": "Ottimo lavoro! Continua così.",
-  "minutes": "Minuti",
-  "exercises": "Esercizi",
-  "sets": "Serie",
-  "calories": "Calorie",
   "greatJob": "Ottimo Lavoro!",
   "completedFirstWorkout": "Hai completato il tuo primo allenamento",
   "didYouLikeGigi": "Ti è piaciuto Gigi?",
   "workoutSession": "Sessione Allenamento",
-  "duration": "Durata",
   "volume": "Volume",
-  
   "cancelButton": "Annulla",
   "deleteButton": "Elimina",
-  
   "searchExercisesHint": "Cerca esercizi...",
   "searchWorkoutsHint": "Cerca scheda, esercizi...",
-  
   "ingredientsHint": "Es. pollo, riso, broccoli...",
-  "exerciseHint": "Es. Squat, Panca, Stacco...",
-
+  "exerciseHint": "es. Squat, Panca piana, Stacco...",
   "paywallTitle": "Scegli il Piano",
   "paywallSubtitle": "Allenati Sempre Con Un Coach",
   "paywallDescription": "GIGI ti parla mentre ti alleni e ti corregge come un PT vero.",
@@ -1064,25 +1044,20 @@
   "privacyPolicySubtitle": "La tua privacy è importante per noi",
   "termsOfServiceTitle": "Termini di Servizio",
   "termsOfServiceSubtitle": "Condizioni d'uso del servizio GIGI",
-
   "mealBreakfast": "Colazione",
   "mealLunch": "Pranzo",
   "mealDinner": "Cena",
   "mealSnack": "Snack",
-  "mealPreWorkout": "Pre-Workout",
-  "mealPostWorkout": "Post-Workout",
   "categoryAll": "Tutti",
   "categoryStrength": "Forza",
   "categoryCardio": "Cardio",
   "categoryMobility": "Mobilità",
-
   "challengesTitle": "Sfide",
   "challengesTabActive": "Attive",
   "challengesTabDaily": "Giornaliere",
   "challengesTabWeekly": "Settimanali",
   "challengesTabCommunity": "Community",
   "challengesActiveTitle": "Le tue sfide attive",
-
   "progressTitle": "I Miei Progressi",
   "progressStatsTitle": "Statistiche Allenamenti",
   "progressWorkouts": "Allenamenti",
@@ -1092,22 +1067,14 @@
   "progressBodyMapTitle": "Mappa Corporea",
   "progressBodyMapHint": "Tocca una zona per vedere i dettagli",
   "progressChangesTitle": "Cambiamenti",
-  "viewAll": "Vedi tutti",
   "progressTrendTitle": "Trend Misure",
   "progressAddMoreData": "Aggiungi più misure per vedere il trend",
   "progressGoalsTitle": "Obiettivi",
-  "add": "Aggiungi",
   "progressSetGoal": "Imposta un obiettivo",
   "progressGoalHint": "Es. Vita a 80cm o Bicipite a 40cm",
   "weeks": "settimane",
-  "consecutiveMeasurements": "di misurazioni consecutive",
   "measurements": "misurazioni",
   "lastMeasurement": "ultima",
-
-  "errorSavingProfile": "Errore durante il salvataggio del profilo",
-  "unexpectedError": "Errore imprevisto",
-
-  "days": "giorni",
   "xpBonus": "XP BONUS",
   "nextBonus": "Prossimo bonus: {multiplier} XP",
   "freezeTokens": "Freeze Token",
@@ -1122,11 +1089,6 @@
   "challengeMonthly": "MONTHLY",
   "challengeCommunity": "COMMUNITY",
   "challengeOneVsOne": "1v1",
-
-  "injuryMuscular": "Muscolare",
-  "injuryArticular": "Articolare",
-  "injuryBone": "Osseo",
-
   "injuryAreaNeck": "Collo",
   "injuryAreaTrapezius": "Trapezio",
   "injuryAreaDeltoids": "Deltoidi",
@@ -1147,7 +1109,6 @@
   "injuryAreaAdductors": "Adduttori",
   "injuryAreaAbductors": "Abduttori",
   "injuryAreaRotatorCuff": "Cuffia Rotatori",
-
   "injuryAreaCervicalSpine": "Colonna Cervicale",
   "injuryAreaShoulder": "Spalla",
   "injuryAreaElbow": "Gomito",
@@ -1161,7 +1122,6 @@
   "injuryAreaToes": "Dita Piede",
   "injuryAreaSacroiliac": "Sacroiliac",
   "injuryAreaTemporomandibular": "Temporo-Mandibolare",
-
   "injuryAreaSkull": "Cranio",
   "injuryAreaClavicle": "Clavicola",
   "injuryAreaScapula": "Scapola",
@@ -1182,32 +1142,21 @@
   "injuryAreaTarsals": "Tarso",
   "injuryAreaMetatarsals": "Metatarso",
   "injuryAreaPhalangesFoot": "Falangi Piede",
-
   "injurySeverityMild": "Lieve",
   "injurySeverityModerate": "Moderato",
   "injurySeveritySevere": "Grave",
-
   "injuryTimingCurrent": "Attuale",
   "injuryTimingPast": "Passato",
-
-  "injuryStatusActive": "Attivo",
   "injuryStatusRecovering": "In Recupero",
   "injuryStatusResolved": "Risolto",
-
   "scanMealWithAi": "Scansiona Pasto con AI",
   "takePhotoForAnalysis": "Scatta una foto per analisi automatica",
   "nextReward": "Prossimo premio",
-  "chooseSource": "Scegli sorgente",
-  "minimalClothing": "Abbigliamento minimale",
   "minimalClothingDesc": "Così vedi i cambiamenti",
-  "neutralPosition": "Posizione neutra",
   "neutralPositionDesc": "Rilassato, braccia lungo i fianchi",
-  "sameSpot": "Stesso punto",
   "sameSpotDesc": "Sfondo neutro, stessa distanza",
   "notSpecified": "Non specificato",
-  "whereToMeasure": "Dove misurare",
   "whereToMeasureDesc": "Nel punto più spesso del muscolo",
-  "howToMeasure": "Come misurare",
   "homeWorkout": "Allenamento domestico",
   "maybeLater": "Magari dopo",
   "averageSleep": "Sonno medio",
@@ -1215,7 +1164,6 @@
   "startHere": "Inizia qui",
   "yourWorkout": "Il tuo allenamento",
   "recommendedPrograms": "Programmi consigliati",
-  "quickActions": "Azioni rapide",
   "completeNow": "Completa ora",
   "seeMore": "Vedi altro",
   "burnedCalories": "Calorie bruciate",
@@ -1237,29 +1185,15 @@
   "savePhoto": "Salva Foto",
   "skipForNow": "Salta per ora",
   "motivationDesc": "Tra 4-8 settimane potrai vedere i cambiamenti confrontando le foto!",
-  "photosSavedSuccess": "Foto salvate con successo!",
-  "cameraOption": "Fotocamera",
-  "galleryOption": "Galleria",
-  "frontPhoto": "Fronte",
-  "sidePhoto": "Lato",
-  "backPhoto": "Retro",
   "howToTakeMeasurements": "Come prendere le misure",
   "followTips": "Segui questi consigli per misure accurate",
-  "measureSameTime": "Misura sempre alla stessa ora",
   "morningsFasting": "Preferibilmente al mattino, a digiuno",
   "flexibleTape": "Usa un metro da sarto flessibile",
-  "noRigidRulers": "Non usare righelli rigidi",
   "repeatTwice": "Ripeti ogni misura 2 volte",
-  "ensureCorrect": "Per assicurarti che sia corretta",
   "relaxNoContracting": "Rilassati, non contrarre",
-  "naturalPosition": "Posizione naturale, respiro normale",
-  "arms": "Braccia",
-  "measureBiceps": "Misura i tuoi bicipiti",
   "position": "Posizione",
   "bicepPositionDesc": "Braccio flesso a 90°, pugno chiuso",
-  "repeatBoth": "Ripeti per entrambi",
   "slightlyDifferent": "Potrebbero essere leggermente diversi",
-  "torso": "Torso",
   "torsoParts": "Petto, vita e fianchi",
   "chest": "Petto",
   "chestDesc": "Metro sotto le ascelle, sul punto più sporgente",
@@ -1267,36 +1201,22 @@
   "waistDesc": "All'altezza dell'ombelico, posizione naturale",
   "hips": "Fianchi",
   "hipsDesc": "Nel punto più largo dei glutei",
-  "legs": "Gambe",
   "legsParts": "Cosce e polpacci",
-  "thigh": "Coscia",
   "thighDesc": "A metà tra inguine e ginocchio, gamba rilassata",
-  "calf": "Polpaccio",
   "calfDesc": "Nel punto più largo, in piedi",
   "bodyMeasurements": "Misure Corporee",
   "yourStartingPoint": "Il Tuo Punto di Partenza",
   "measurementsHelpDesc": "Queste misure ci aiutano a creare la scheda perfetta per te e a tracciare i tuoi progressi nel tempo.",
-  "startMeasurements": "Inizia le Misure",
-  "measurementsSummary": "Riepilogo Misure",
   "startingMeasurementsDesc": "Ecco le tue misure di partenza",
   "updateWeeklyDesc": "Potrai aggiornare le misure ogni settimana per vedere i progressi!",
   "saveAndContinue": "Salva e Continua",
-  "edit": "Modifica",
-  "bicepRight": "Bicipite DX",
-  "bicepLeft": "Bicipite SX",
-  "thighRight": "Coscia DX",
-  "thighLeft": "Coscia SX",
-  "reviewPreferences": "Rivedi Preferenze",
   "editPreferences": "Modifica Preferenze",
   "reviewPreferencesDesc": "Rivedi le tue preferenze prima di generare il piano. Puoi modificarle se necessario.",
-  "personalInfo": "Informazioni Personali",
   "height": "Altezza",
-  "weight": "Peso",
   "age": "Età",
   "gender": "Genere",
   "bodyShape": "Forma Fisica",
   "trainingGoals": "Obiettivi di Allenamento",
-  "goal": "Obiettivo",
   "experienceLevel": "Livello di Esperienza",
   "weeklyFrequency": "Frequenza Settimanale",
   "daysPerWeek": "giorni/settimana",
@@ -1307,11 +1227,9 @@
   "workoutType": "Tipo di Allenamento",
   "trainingSplit": "Split di Allenamento",
   "sessionDuration": "Durata Sessione",
-  "minutes": "minuti",
   "cardioPreference": "Preferenza Cardio",
   "mobilityPreference": "Preferenza Mobilità",
   "generatePlanWithPrefs": "Genera Piano con Queste Preferenze",
-  "saveChanges": "Salva Modifiche",
   "savePreferences": "Salva Preferenze",
   "preferencesSavedSuccess": "Preferenze salvate con successo",
   "errorSavingPreferences": "Errore durante il salvataggio",
@@ -1334,14 +1252,12 @@
   "intermediate": "Intermedio",
   "advanced": "Avanzato",
   "gym": "Palestra",
-  "home": "Casa",
   "outdoor": "All'aperto",
   "bench": "Panca",
   "dumbbells": "Manubri",
   "barbell": "Bilanciere",
   "resistanceBands": "Bande Elastiche",
   "machines": "Macchine",
-  "bodyweight": "Corpo Libero",
   "ipertrofia": "Ipertrofia",
   "ipertrophy": "Ipertrofia",
   "endurance": "Resistenza",
@@ -1350,7 +1266,6 @@
   "weeklyReport": "Report Settimanale",
   "myWeeklyReport": "Il mio Report Settimanale GIGI",
   "sleep": "Sonno",
-  "steps": "Passi",
   "workouts": "Workout",
   "heartRate": "HR",
   "perNight": "/notte",
@@ -1364,7 +1279,6 @@
   "avgSleep": "Sonno medio",
   "stepsPerDay": "Passi/giorno",
   "hrBpm": "HR bpm",
-  "totalSteps": "Passi totali",
   "weeklyStepGoal": "Obiettivo: 70.000 passi/settimana",
   "basedOnDataPoints": "Basato su {count} giorni di dati",
   "@basedOnDataPoints": {
@@ -1375,10 +1289,8 @@
     }
   },
   "noDataAvailable": "Nessun dato disponibile",
-  "connectHealthDesc": "Connetti Apple Health per generare il tuo report settimanale personalizzato.",
   "aiFormCheck": "AI Form Check",
   "exerciseName": "Nome Esercizio",
-  "exerciseHint": "es. Squat, Panca piana, Stacco...",
   "recordVideo": "Registra Video",
   "max15Seconds": "Max 15 secondi",
   "uploadFromGallery": "Carica dalla Galleria",
@@ -1396,28 +1308,30 @@
   },
   "takeTimeDesc": "Questo può richiedere 30-60 secondi",
   "gigiFormMessage": "Ciao! Per un risultato perfetto, chiedi a qualcuno di riprenderti di profilo o appoggia il telefono. Assicurati che tutto il corpo sia visibile!",
-  "howItWorks": "Come funziona",
   "howItWorksStep1": "Registra o carica un video (max 15 sec)",
   "howItWorksStep2": "Gigi analizza la tua esecuzione",
   "howItWorksStep3": "Ricevi feedback su postura ed errori",
   "howItWorksStep4": "Migliora con suggerimenti personalizzati",
   "dailyAnalyses": "Analisi Settimanali",
-  "unlimitedAnalyses": "Analisi illimitate",
   "remainingToday": "{count}/{total} rimaste questa settimana",
   "@remainingToday": {
     "placeholders": {
-      "count": { "type": "int" },
-      "total": { "type": "int" }
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
-  "limitReached": "Limite Raggiunto",
   "limitReachedDesc": "Hai raggiunto il limite settimanale di {limit} analisi.\n\nUpgrade a Premium per analisi illimitate!",
   "@limitReachedDesc": {
     "placeholders": {
-      "limit": { "type": "int" }
+      "limit": {
+        "type": "int"
+      }
     }
   },
-  "close": "Chiudi",
   "upgrade": "Upgrade",
   "videoTooLarge": "Video troppo grande! Max 50MB",
   "selectVideoAndExercise": "Seleziona video e inserisci nome esercizio",
@@ -1426,7 +1340,6 @@
   "bestPractice2": "Mantieni il telefono fermo o appoggialo.",
   "bestPractice3": "Inquadra tutto il corpo durante il movimento.",
   "bestPractice4": "Resta nei 15 secondi di limite massimo.",
-  "analysisFailed": "Analisi fallita",
   "ml": "ml",
   "glasses": "bicchieri",
   "exercise": "Esercizio",
@@ -1434,5 +1347,20 @@
   "platform": "Piattaforma",
   "description": "Descrizione",
   "title": "Titolo",
-  "current": "Attuale"
+  "current": "Attuale",
+  "noGoalsSet": "Nessun obiettivo impostato",
+  "setupGoalsCallToAction": "Configura i tuoi obiettivi per iniziare a monitorare i tuoi macro.",
+  "suggestedMeal": "Pasto suggerito",
+  "change": "Cambia",
+  "gigiMealMessage": "Ciao! Scatta una foto chiara al tuo piatto. Identificherò gli ingredienti e calcolerò calorie e macro per te! 🍎",
+  "insertManually": "Inserisci Manualmente",
+  "addNutritionalGoal": "Imposta un Obiettivo",
+  "customGoal": "Configurazione Manuale",
+  "calculateForMe": "Calcolo Automatico AI",
+  "setupGoals": "Strategia Nutrizionale",
+  "gigiStrategySuggestion": "Sblocca il potenziale della tua nutrizione! 🚀\n\n🎯 Imposta il tuo Obiettivo: Scegli 'Calcolo Automatico AI' per far calcolare a Gigi le tue calorie e macro giornaliere.\n📸 Snap & Track AI: Più veloce di un diario. Scatta una foto al tuo piatto e Gigi identificherà nutrienti e calorie per te.",
+  "calculateForMeSubtitle": "Gigi calcola calorie e macro giornaliere per te",
+  "customGoalSubtitle": "Imposta manualmente calorie e macro giornaliere",
+  "snapAndTrackAiSubtitle": "Identifica i nutrienti con una foto",
+  "mealCustom": "Personalizzato"
 }

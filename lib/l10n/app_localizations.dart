@@ -2002,6 +2002,18 @@ abstract class AppLocalizations {
   /// **'Dati dal profilo: {height} cm • {weight} kg • {age} anni'**
   String profileDataSummary(int height, int weight, int age);
 
+  /// No description provided for @gigiGoalSetupMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Ottimo passo! Definiamo insieme i tuoi macronutrienti per massimizzare i tuoi risultati. 🚀'**
+  String get gigiGoalSetupMessage;
+
+  /// No description provided for @gigiNutritionDashboardMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'La nutrizione è il 70% del risultato. Ecco come sta andando la tua giornata. 🍎'**
+  String get gigiNutritionDashboardMessage;
+
   /// No description provided for @goalStepTitle.
   ///
   /// In it, this message translates to:
@@ -5404,18 +5416,6 @@ abstract class AppLocalizations {
   /// **'Snack'**
   String get mealSnack;
 
-  /// No description provided for @mealPreWorkout.
-  ///
-  /// In it, this message translates to:
-  /// **'Pre-Workout'**
-  String get mealPreWorkout;
-
-  /// No description provided for @mealPostWorkout.
-  ///
-  /// In it, this message translates to:
-  /// **'Post-Workout'**
-  String get mealPostWorkout;
-
   /// No description provided for @categoryAll.
   ///
   /// In it, this message translates to:
@@ -7029,6 +7029,96 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Attuale'**
   String get current;
+
+  /// No description provided for @noGoalsSet.
+  ///
+  /// In it, this message translates to:
+  /// **'Nessun obiettivo impostato'**
+  String get noGoalsSet;
+
+  /// No description provided for @setupGoalsCallToAction.
+  ///
+  /// In it, this message translates to:
+  /// **'Configura i tuoi obiettivi per iniziare a monitorare i tuoi macro.'**
+  String get setupGoalsCallToAction;
+
+  /// No description provided for @suggestedMeal.
+  ///
+  /// In it, this message translates to:
+  /// **'Pasto suggerito'**
+  String get suggestedMeal;
+
+  /// No description provided for @change.
+  ///
+  /// In it, this message translates to:
+  /// **'Cambia'**
+  String get change;
+
+  /// No description provided for @gigiMealMessage.
+  ///
+  /// In it, this message translates to:
+  /// **'Ciao! Scatta una foto chiara al tuo piatto. Identificherò gli ingredienti e calcolerò calorie e macro per te! 🍎'**
+  String get gigiMealMessage;
+
+  /// No description provided for @insertManually.
+  ///
+  /// In it, this message translates to:
+  /// **'Inserisci Manualmente'**
+  String get insertManually;
+
+  /// No description provided for @addNutritionalGoal.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta un Obiettivo'**
+  String get addNutritionalGoal;
+
+  /// No description provided for @customGoal.
+  ///
+  /// In it, this message translates to:
+  /// **'Configurazione Manuale'**
+  String get customGoal;
+
+  /// No description provided for @calculateForMe.
+  ///
+  /// In it, this message translates to:
+  /// **'Calcolo Automatico AI'**
+  String get calculateForMe;
+
+  /// No description provided for @setupGoals.
+  ///
+  /// In it, this message translates to:
+  /// **'Strategia Nutrizionale'**
+  String get setupGoals;
+
+  /// No description provided for @gigiStrategySuggestion.
+  ///
+  /// In it, this message translates to:
+  /// **'Sblocca il potenziale della tua nutrizione! 🚀\n\n🎯 Imposta il tuo Obiettivo: Scegli \'Calcolo Automatico AI\' per far calcolare a Gigi le tue calorie e macro giornaliere.\n📸 Snap & Track AI: Più veloce di un diario. Scatta una foto al tuo piatto e Gigi identificherà nutrienti e calorie per te.'**
+  String get gigiStrategySuggestion;
+
+  /// No description provided for @calculateForMeSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Gigi calcola calorie e macro giornaliere per te'**
+  String get calculateForMeSubtitle;
+
+  /// No description provided for @customGoalSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Imposta manualmente calorie e macro giornaliere'**
+  String get customGoalSubtitle;
+
+  /// No description provided for @snapAndTrackAiSubtitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Identifica i nutrienti con una foto'**
+  String get snapAndTrackAiSubtitle;
+
+  /// No description provided for @mealCustom.
+  ///
+  /// In it, this message translates to:
+  /// **'Personalizzato'**
+  String get mealCustom;
 }
 
 class _AppLocalizationsDelegate

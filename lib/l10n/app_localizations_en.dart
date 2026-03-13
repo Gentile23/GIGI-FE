@@ -1005,6 +1005,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gigiGoalSetupMessage =>
+      'Great move! Let\'s define your macronutrients together to maximize your results. 🚀';
+
+  @override
+  String get gigiNutritionDashboardMessage =>
+      'Nutrition is 70% of the result. Here is how you are doing today. 🍎';
+
+  @override
   String get goalStepTitle => '🎯 What is your goal?';
 
   @override
@@ -2819,12 +2827,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mealSnack => 'Snack';
 
   @override
-  String get mealPreWorkout => 'Pre-Workout';
-
-  @override
-  String get mealPostWorkout => 'Post-Workout';
-
-  @override
   String get categoryAll => 'All';
 
   @override
@@ -3647,4 +3649,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get current => 'Current';
+
+  @override
+  String get noGoalsSet => 'No nutrition goals set';
+
+  @override
+  String get setupGoalsCallToAction =>
+      'Set up your calorie and macro goals to start tracking your progress.';
+
+  @override
+  String get suggestedMeal => 'Suggested meal';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get gigiMealMessage =>
+      'Hi! Take a clear photo of your dish. I\'ll identify the ingredients and calculate calories and macros for you! 🍎';
+
+  @override
+  String get insertManually => 'Insert Manually';
+
+  @override
+  String get addNutritionalGoal => 'Set a Goal';
+
+  @override
+  String get customGoal => 'Manual Setup';
+
+  @override
+  String get calculateForMe => 'Automatic AI Calculation';
+
+  @override
+  String get setupGoals => 'Nutritional Strategy';
+
+  @override
+  String get gigiStrategySuggestion =>
+      'Unlock your nutrition\'s full potential! 🚀\n\n🎯 Set Your Goal: Choose \'Automatic AI Calculation\' to have Gigi calculate your ideal daily calories and macros.\n📸 Snap & Track AI: Faster than a diary. Take a photo of your dish and Gigi will identify nutrients and calories for you.';
+
+  @override
+  String get calculateForMeSubtitle =>
+      'Gigi calculates daily calories and macros for you';
+
+  @override
+  String get customGoalSubtitle =>
+      'Set your daily calories and macros manually';
+
+  @override
+  String get snapAndTrackAiSubtitle => 'Identify nutrients with a photo';
+
+  @override
+  String get mealCustom => 'Custom';
 }

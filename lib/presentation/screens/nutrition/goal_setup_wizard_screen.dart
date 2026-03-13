@@ -5,6 +5,7 @@ import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 class GoalSetupWizardScreen extends StatefulWidget {
@@ -113,6 +114,14 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: GigiCoachMessage(
+              message: AppLocalizations.of(context)!.gigiGoalSetupMessage,
+              emotion: GigiEmotion.expert,
+            ),
+          ),
+
           // User data summary card
           _buildUserDataSummary(),
 

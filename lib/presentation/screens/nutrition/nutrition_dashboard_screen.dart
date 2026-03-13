@@ -12,6 +12,7 @@ import '../../../core/services/haptic_service.dart';
 import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
 import 'what_to_cook_screen.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'manual_goal_entry_screen.dart';
 
@@ -31,7 +32,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   DailyNutritionLog? _dailyLog;
   List<Meal> _meals = [];
   NutritionGoal? _goal;
-  Map<String, dynamic>? _suggestions;
 
   // Stato per la dieta attiva
   bool _hasActiveDiet = false;
@@ -65,7 +65,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     try {
       final summary = await _nutritionService.getDailySummary();
       final goal = await _nutritionService.getGoals();
-      final suggestions = await _nutritionService.getSmartSuggestions();
 
       // Carica info sulla dieta attiva
       await coachProvider.loadActivePlan();
@@ -75,16 +74,18 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           if (summary != null) {
             _dailyLog = summary['summary'] as DailyNutritionLog?;
             _meals = (summary['meals'] as List<Meal>?) ?? [];
+          } else {
+            _dailyLog = null;
+            _meals = [];
           }
           _goal = goal;
-          _suggestions = suggestions;
 
           // Aggiorna stato dieta attiva
           _hasActiveDiet = coachProvider.hasActivePlan;
 
           _isLoading = false;
         });
-        _animationController.forward();
+        _animationController.forward(from: 0.0);
       }
     } catch (e) {
       if (mounted) {
@@ -133,13 +134,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 1: DUE CARD PRINCIPALI (Entry Points)
+
                         // ══════════════════════════════════════════════════════
-                        _buildTwoMainCards(),
+                        // SEZIONE 1: IL TUO PIANO (Entry Point)
+                        // ══════════════════════════════════════════════════════
+                        _buildPlanEntryCard(),
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 2: TRACCIA CALORIE (compatta, sotto le main cards)
+                        // SEZIONE 2: SCAN AI (Calculator Mode)
                         // ══════════════════════════════════════════════════════
                         _buildTrackCaloriesCompact(),
                         const SizedBox(height: 16),
@@ -148,6 +151,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         // SEZIONE 3: CHEF AI (sempre visibile)
                         // ══════════════════════════════════════════════════════
                         _buildChefAiCard(),
+                        const SizedBox(height: 16),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 3.5: OBIETTIVI (Wizard + Manuale)
+                        // ══════════════════════════════════════════════════════
+                        _buildGoalSetupCards(),
                         const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
@@ -158,25 +167,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         _buildMacroProgressCard(),
                         const SizedBox(height: 24),
 
-                        // ══════════════════════════════════════════════════════
-                        // SEZIONE 5: WATER TRACKER
-                        // ══════════════════════════════════════════════════════
-                        _buildWaterTracker(),
-                        const SizedBox(height: 24),
 
                         // ══════════════════════════════════════════════════════
-                        // SEZIONE 6: SUGGERIMENTI SMART
-                        // ══════════════════════════════════════════════════════
-                        if (_suggestions != null &&
-                            _suggestions!['suggestions'] != null &&
-                            (_suggestions!['suggestions'] as List).isNotEmpty)
-                          _buildSmartSuggestions(),
-                        const SizedBox(height: 24),
-
-                        // ══════════════════════════════════════════════════════
-                        // SEZIONE 7: PASTI DI OGGI
+                        // SEZIONE 6: PASTI DI OGGI
                         // ══════════════════════════════════════════════════════
                         _buildMealsSection(),
+                        const SizedBox(height: 32),
+
+                        // ══════════════════════════════════════════════════════
+                        // SEZIONE 7: AZIONI FINALI (Aggiungi Pasto)
+                        // ══════════════════════════════════════════════════════
+                        _buildFinalActionButtons(),
                         const SizedBox(height: 100),
                       ]),
                     ),
@@ -186,51 +187,110 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             ),
     );
   }
-  // ════════════════════════════════════════════════════════════════════════════
-  // DUE CARD PRINCIPALI - Entry Points
-  // ════════════════════════════════════════════════════════════════════════════
 
-  /// Due card principali per separare i due use case: Piano vs Tracking
-  Widget _buildTwoMainCards() {
+  Widget _buildFinalActionButtons() {
     return Column(
       children: [
-        // Card 1: Il Tuo Piano (Black)
-        _buildMainEntryCard(
-          emoji: '📋',
-          title: 'Il Tuo Piano',
-          subtitle: _hasActiveDiet
-              ? 'Visualizza la tua dieta'
-              : 'Carica la dieta dal nutrizionista',
-          gradientColors: const [CleanTheme.steelMid, CleanTheme.steelDark],
-          onTap: () => _hasActiveDiet
-              ? Navigator.pushNamed(context, '/nutrition/coach/plan')
-              : Navigator.pushNamed(context, '/nutrition/coach/upload'),
-          badge: _hasActiveDiet ? '✓ Attivo' : null,
-          textColor: CleanTheme.textOnDark,
+        ElevatedButton(
+          onPressed: () async {
+            HapticService.lightTap();
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    const MealLoggingScreen(isCalculatorMode: false),
+              ),
+            );
+            if (result == true) _loadData();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: CleanTheme.primaryColor,
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                AppLocalizations.of(context)!.addMeal,
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        
+      ],
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ENTRY POINTS & NAVIGATION
+  // ════════════════════════════════════════════════════════════════════════════
+
+  /// Card principale: Il Tuo Piano (Black)
+  Widget _buildPlanEntryCard() {
+    return _buildMainEntryCard(
+      emoji: '📋',
+      title: 'Percorso Elite',
+      subtitle: _hasActiveDiet
+          ? 'La tua strada verso il successo'
+          : 'Ottimizza i tuoi risultati ora',
+      gradientColors: const [CleanTheme.steelMid, CleanTheme.steelDark],
+      onTap: () => _hasActiveDiet
+          ? Navigator.pushNamed(context, '/nutrition/coach/plan')
+          : Navigator.pushNamed(context, '/nutrition/coach/upload'),
+      badge: _hasActiveDiet ? '✓ Attivo' : null,
+      textColor: CleanTheme.textOnDark,
+    );
+  }
+
+  /// Card secondarie per impostazione obiettivi (Wizard + Manuale)
+  Widget _buildGoalSetupCards() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: double.infinity),
+        Center(
+          child: CleanSectionHeader(
+            title: AppLocalizations.of(context)!.setupGoals,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GigiCoachMessage(
+          message: AppLocalizations.of(context)!.gigiStrategySuggestion,
+          emotion: GigiEmotion.expert,
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
-            // Card 2: Wizard (Grey)
+            // Card: Wizard (AI - Prominent)
             Expanded(
               child: _buildSmallEntryCard(
-                emoji: '🎯',
-                title: 'Wizard',
-                subtitle: 'Calcola obiettivi',
+                emoji: '🤖',
+                title: AppLocalizations.of(context)!.calculateForMe,
+                subtitle: AppLocalizations.of(context)!.calculateForMeSubtitle,
                 onTap: _navigateToGoalSetup,
-                textColor: CleanTheme.textPrimary,
+                textColor: CleanTheme.primaryColor,
+                isAI: true,
               ),
             ),
             const SizedBox(width: 12),
-            // Card 3: Manual (Grey)
+            // Card: Manual (Standard)
             Expanded(
               child: _buildSmallEntryCard(
                 emoji: '✏️',
-                title: 'Manuale',
-                subtitle: 'Imposta macro',
+                title: AppLocalizations.of(context)!.customGoal,
+                subtitle: AppLocalizations.of(context)!.customGoalSubtitle,
                 onTap: _navigateToManualGoalEntry,
                 textColor: CleanTheme.textPrimary,
+                isAI: false,
               ),
             ),
           ],
@@ -260,6 +320,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     required String subtitle,
     required VoidCallback onTap,
     required Color textColor,
+    bool isAI = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -269,36 +330,45 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           color: CleanTheme.surfaceColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: textColor.withValues(alpha: 0.1),
-            width: 1,
+            color:
+                isAI
+                    ? CleanTheme.primaryColor.withValues(alpha: 0.5)
+                    : textColor.withValues(alpha: 0.1),
+            width: isAI ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color:
+                  isAI
+                      ? CleanTheme.primaryColor.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(emoji, style: const TextStyle(fontSize: 24)),
             const SizedBox(height: 12),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: textColor,
+                color: isAI ? CleanTheme.primaryColor : textColor,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 4),
             Text(
               subtitle,
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 11,
                 color: textColor.withValues(alpha: 0.6),
+                height: 1.2,
               ),
             ),
           ],
@@ -328,10 +398,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             colors: gradientColors,
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: textColor.withValues(alpha: 0.1),
-            width: 1,
-          ),
+          border: Border.all(color: textColor.withValues(alpha: 0.1), width: 1),
           boxShadow: [
             BoxShadow(
               color: CleanTheme.primaryColor.withValues(alpha: 0.1),
@@ -454,7 +521,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '👨‍🍳 Chef AI',
+                      '👨‍🍳 Genius Chef AI',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -483,14 +550,17 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  /// Compact version of Traccia Calorie - same style as Chef AI card
+  /// Compact version of Traccia Calorie - Now Calculator Mode
   Widget _buildTrackCaloriesCompact() {
     return GestureDetector(
       onTap: () async {
         HapticService.lightTap();
         final result = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MealLoggingScreen()),
+          MaterialPageRoute(
+            builder: (context) =>
+                const MealLoggingScreen(isCalculatorMode: true),
+          ),
         );
         if (result == true) _loadData();
       },
@@ -529,7 +599,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   ),
                 ),
                 child: const Icon(
-                  Icons.camera_alt_rounded,
+                  Icons.calculate_rounded,
                   color: CleanTheme.textPrimary,
                   size: 24,
                 ),
@@ -540,7 +610,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '📸 Scan AI',
+                      '📸 Snap & Track AI',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -548,7 +618,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     Text(
-                      'Scansiona pasto con Intelligenza Artificiale',
+                      AppLocalizations.of(context)!.snapAndTrackAiSubtitle,
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: CleanTheme.textPrimary.withValues(alpha: 0.8),
@@ -571,14 +641,32 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
   Widget _buildCalorieRingCard() {
     final consumed = _dailyLog?.totalCalories ?? 0;
-    final target = _goal?.dailyCalories ?? 2000;
-    final remaining = target - consumed;
-    final progress = (consumed / target).clamp(0.0, 1.2);
+    final target = _goal?.dailyCalories;
+    final remaining = target != null ? target - consumed : 0;
+    final progress = target != null && target > 0
+        ? (consumed / target).clamp(0.0, 1.2)
+        : 0.0;
 
     return CleanCard(
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (_goal != null)
+                GestureDetector(
+                  onTap: _showDeleteGoalDialog,
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: CleanTheme.accentRed,
+                    size: 20,
+                  ),
+                )
+              else
+                _buildAddGoalButton(),
+            ],
+          ),
           Row(
             children: [
               // Animated Circular Progress
@@ -661,7 +749,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     Text(
-                      '$target kcal',
+                      target != null ? '$target kcal' : '--- kcal',
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -669,36 +757,130 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.chromeSubtle,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        remaining > 0
-                            ? AppLocalizations.of(
-                                context,
-                              )!.kcalRemaining(remaining.abs())
-                            : AppLocalizations.of(
-                                context,
-                              )!.kcalExcess(remaining.abs()),
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.textPrimary,
+                    if (target != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.chromeSubtle,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          remaining > 0
+                              ? AppLocalizations.of(
+                                  context,
+                                )!.kcalRemaining(remaining.abs())
+                              : AppLocalizations.of(
+                                  context,
+                                )!.kcalExcess(remaining.abs()),
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.chromeSubtle,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.noGoalsSet,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: CleanTheme.textSecondary,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddGoalButton() {
+    final l10n = AppLocalizations.of(context)!;
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'manual') {
+          _navigateToManualGoalEntry();
+        } else if (value == 'wizard') {
+          _navigateToGoalSetup();
+        }
+      },
+      position: PopupMenuPosition.under,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'manual',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.edit_note_rounded,
+                color: CleanTheme.textPrimary,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(l10n.customGoal, style: GoogleFonts.inter(fontSize: 14)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'wizard',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.auto_awesome_rounded,
+                color: CleanTheme.primaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(l10n.calculateForMe, style: GoogleFonts.inter(fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.add_circle_outline_rounded,
+              size: 16,
+              color: CleanTheme.primaryColor,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              l10n.addNutritionalGoal,
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -710,7 +892,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           child: _buildMacroItem(
             AppLocalizations.of(context)!.protein,
             _dailyLog?.totalProtein ?? 0,
-            (_goal?.proteinGrams ?? 150).toDouble(),
+            _goal?.proteinGrams.toDouble(),
             CleanTheme.steelDark,
             '🥩',
           ),
@@ -720,7 +902,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           child: _buildMacroItem(
             AppLocalizations.of(context)!.carbs,
             _dailyLog?.totalCarbs ?? 0,
-            (_goal?.carbsGrams ?? 200).toDouble(),
+            _goal?.carbsGrams.toDouble(),
             CleanTheme.steelDark,
             '🍞',
           ),
@@ -730,7 +912,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           child: _buildMacroItem(
             AppLocalizations.of(context)!.fats,
             _dailyLog?.totalFat ?? 0,
-            (_goal?.fatGrams ?? 70).toDouble(),
+            _goal?.fatGrams.toDouble(),
             CleanTheme.steelDark,
             '🥑',
           ),
@@ -742,11 +924,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   Widget _buildMacroItem(
     String label,
     double current,
-    double target,
+    double? target,
     Color color,
     String emoji,
   ) {
-    final progress = target > 0 ? (current / target).clamp(0.0, 1.0) : 0.0;
+    final progress = target != null && target > 0
+        ? (current / target).clamp(0.0, 1.0)
+        : 0.0;
 
     return CleanCard(
       padding: const EdgeInsets.all(16),
@@ -763,7 +947,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           ),
           const SizedBox(height: 4),
           Text(
-            '${current.toInt()}/${target.toInt()}g',
+            target != null
+                ? '${current.toInt()}/${target.toInt()}g'
+                : '${current.toInt()}/---g',
             style: GoogleFonts.outfit(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -778,139 +964,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               backgroundColor: CleanTheme.chromeSubtle,
               valueColor: const AlwaysStoppedAnimation(CleanTheme.steelDark),
               minHeight: 6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWaterTracker() {
-    final waterMl = _dailyLog?.waterMl ?? 0;
-    const waterGoal = 2500;
-    final progress = (waterMl / waterGoal).clamp(0.0, 1.0);
-    final glasses = (waterMl / 250).floor();
-
-    return CleanCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CleanTheme.chromeSubtle,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: CleanTheme.borderPrimary),
-                ),
-                child: const Text('💧', style: TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.water,
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.waterGlassesCount(waterMl, waterGoal, glasses),
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: _showAddWaterDialog,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: CleanTheme.steelDark,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.add, color: CleanTheme.textOnPrimary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: CleanTheme.chromeSubtle,
-              valueColor: const AlwaysStoppedAnimation(CleanTheme.steelLight),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmartSuggestions() {
-    final suggestions = _suggestions!['suggestions'] as List;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CleanSectionHeader(
-          title: AppLocalizations.of(context)!.smartSuggestions,
-        ),
-        const SizedBox(height: 12),
-        ...suggestions.map((suggestion) => _buildSuggestionCard(suggestion)),
-      ],
-    );
-  }
-
-  Widget _buildSuggestionCard(Map<String, dynamic> suggestion) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Row(
-        children: [
-          Text(
-            suggestion['icon'] ?? '💡',
-            style: const TextStyle(fontSize: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  suggestion['title'] ?? '',
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-                Text(
-                  suggestion['description'] ?? '',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textSecondary,
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -998,105 +1051,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  void _showAddWaterDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: CleanTheme.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.addWater,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildWaterButton(150, '🥤'),
-                _buildWaterButton(250, '🥛'),
-                _buildWaterButton(500, '🍶'),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildWaterButton(750, '🫗'),
-                _buildWaterButton(1000, '🧴'),
-              ],
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWaterButton(int ml, String emoji) {
-    return GestureDetector(
-      onTap: () async {
-        Navigator.pop(context);
-        await _addWater(ml);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: CleanTheme.chromeSubtle,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CleanTheme.chromeSilver),
-        ),
-        child: Column(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(height: 8),
-            Text(
-              '${ml}ml',
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.steelDark,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _addWater(int ml) async {
-    try {
-      final success = await _nutritionService.updateWater(waterMl: ml);
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('💧 +${ml}ml aggiunto!'),
-            backgroundColor: CleanTheme.steelDark,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-        _loadData();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
-            backgroundColor: CleanTheme.accentRed,
-          ),
-        );
-      }
-    }
-  }
 
   void _navigateToGoalSetup() async {
     final result = await Navigator.push(
@@ -1104,5 +1058,76 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       MaterialPageRoute(builder: (context) => const GoalSetupWizardScreen()),
     );
     if (result == true) _loadData();
+  }
+
+  void _showDeleteGoalDialog() {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        title: Text(
+          '${l10n.delete} ${l10n.goal}',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Sei sicuro di voler eliminare il tuo obiettivo nutrizionale? Questa azione non può essere annullata.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              l10n.cancel,
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _deleteGoal();
+            },
+            child: Text(
+              l10n.delete,
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentRed,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteGoal() async {
+    setState(() => _isLoading = true);
+    try {
+      final success = await _nutritionService.deleteGoals();
+      if (success) {
+        if (mounted) {
+          setState(() {
+            _goal = null;
+            // Note: keeping dailyLog and meals as they are tracking what was eaten
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Obiettivo eliminato correttamente'),
+              backgroundColor: CleanTheme.steelDark,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore durante l\'eliminazione: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
+    } finally {
+      _loadData();
+    }
   }
 }

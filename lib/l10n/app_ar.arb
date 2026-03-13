@@ -44,7 +44,7 @@
   "registrationFailed": "فشل التسجيل. يرجى المحاولة مرة أخرى لاحقاً.",
   "emailAlreadyExists": "هذا البريد الإلكتروني مسجل بالفعل. حاول تسجيل الدخول.",
   "connectionError": "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت.",
-  "unexpectedError": "حدث خطأ غير متوقع",
+  "unexpectedError": "خطأ غير متوقع",
   "googleSignInError": "خطأ في تسجيل الدخول بواسطة جوجل",
   "appleSignInError": "خطأ في تسجيل الدخول بواسطة أبل",
   "mustAcceptConsents": "يجب قبول جميع الموافقات للتسجيل.",
@@ -60,7 +60,7 @@
   "rateApp": "تقييم التطبيق",
   "share": "مشاركة",
   "version": "الإصدار",
-  "cancel": "إلغاء",
+  "cancel": "Cancel",
   "save": "حفظ",
   "delete": "حذف",
   "confirm": "تأكيد",
@@ -87,7 +87,7 @@
   "startWorkout": "بدء التمرين",
   "completeWorkout": "إكمال التمرين",
   "restDay": "يوم راحة",
-  "exercises": "التمارين",
+  "exercises": "تمارين",
   "sets": "مجموعات",
   "reps": "تكرارات",
   "weight": "الوزن",
@@ -99,7 +99,7 @@
   "kg": "كغ",
   "lbs": "رطل",
   "userDefaultName": "User",
-  "heightLabel": "Height",
+  "heightLabel": "الطول (سم)",
   "weightLabel": "Weight",
   "ageLabel": "Age",
   "currentPlan": "Current Plan",
@@ -119,7 +119,7 @@
   "inviteFriendsSubtitle": "Get Premium for free",
   "transformation": "Transformation",
   "transformationSubtitle": "Before/After tracking",
-  "personalInfo": "Personal Info",
+  "personalInfo": "المعلومات الشخصية",
   "fitnessGoals": "Fitness Goals",
   "privacySecurity": "Privacy & Security",
   "healthFitness": "Health & Fitness",
@@ -146,10 +146,10 @@
   "locationGymLabel": "Gym",
   "locationHomeLabel": "Home",
   "locationOutdoorLabel": "Outdoor",
-  "injuryMuscular": "Strains, contractures",
-  "injuryArticular": "Sprains, inflammation",
-  "injuryBone": "Fractures",
-  "myWorkoutsTitle": "My Workouts",
+  "injuryMuscular": "عضلي",
+  "injuryArticular": "مفصلي",
+  "injuryBone": "عظمي",
+  "myWorkoutsTitle": "تماريني",
   "aiAnalyzingProfile": "🧠 Gigi is analyzing your profile",
   "aiGeneratingPlanDescription": "Generating plan...\nPlease wait while Gigi creates your personalized workout.",
   "noWorkoutsTitle": "No Workouts",
@@ -217,7 +217,6 @@
   "exitWorkoutTitle": "Exit Workout?",
   "exitWorkoutMessage": "Your progress will be lost. Are you sure you want to exit?",
   "confirmExit": "Exit",
-  "cancel": "Cancel",
   "finishWorkoutTitle": "Complete Workout",
   "finishWorkoutMessage": "Are you sure you want to finish the workout? All progress will be saved.",
   "nextBadge": "NEXT",
@@ -263,8 +262,8 @@
   "nutritionNoneDesc": "I eat whatever happens",
   "questionFrequencyTitle": "Weekly Frequency",
   "questionFrequencySubtitle": "How many times a week do you want to train?",
-  "days": "days",
-  "continueButton": "Continue",
+  "days": "أيام",
+  "continueButton": "متابعة",
   "questionWorkoutTypeTitle": "Workout Type",
   "questionWorkoutTypeSubtitle": "How do you prefer to train?",
   "questionGenderTitle": "Who are you?",
@@ -295,7 +294,7 @@
   "equipmentFreeWeights": "Free Weights",
   "injuryAddedTitle": "Injury Added",
   "injuryAddedSubtitle": "Do you have other injuries to report?",
-  "addAnotherInjury": "Yes, Add More",
+  "addAnotherInjury": "أضف إصابة أخرى",
   "continueNoInjury": "لا، استمر",
   "nutritionCoachTitle": "مدرب التغذية",
   "logMeal": "تسجيل وجبة",
@@ -320,9 +319,15 @@
   "profileDataSummary": "بيانات الملف الشخصي: {height} سم • {weight} كجم • {age} سنوات",
   "@profileDataSummary": {
     "placeholders": {
-      "height": { "type": "int" },
-      "weight": { "type": "int" },
-      "age": { "type": "int" }
+      "height": {
+        "type": "int"
+      },
+      "weight": {
+        "type": "int"
+      },
+      "age": {
+        "type": "int"
+      }
     }
   },
   "goalStepTitle": "🎯 ما هو هدفك؟",
@@ -491,8 +496,6 @@
   "saveErrorGeneric": "خطأ أثناء الحفظ",
   "yourProgress": "تقدمك",
   "overview": "نظرة عامة",
-  "nutrition": "التغذية",
-  "thisWeek": "هذا الأسبوع",
   "recentActivity": "النشاط الأخير",
   "weeklySummary": "الملخص الأسبوعي",
   "timeLabel": "الوقت",
@@ -540,11 +543,9 @@
   "introButton": "لنبدأ!",
   "sectionAboutYou": "أخبرنا عن نفسك",
   "sectionAboutYouSubtitle": "تساعدنا هذه المعلومات في حساب احتياجاتك.",
-  "heightLabel": "الطول (سم)",
   "equipmentTitle": "المعدات",
   "equipmentSubtitleGym": "اختر أنماط التدريب المفضلة لديك.",
   "equipmentSubtitleHome": "ماذا لديك في مساحتك؟",
-  "continueButton": "متابعة",
   "machinesTitle": "أي الآلات؟",
   "machinesSubtitle": "حدد المتاح منها.",
   "bodyweightTypeTitle": "نوع وزن الجسم",
@@ -553,7 +554,6 @@
   "injuriesSubtitleEmpty": "هل لديك أي إصابات حالية أو سابقة؟\n\n💡 أدخل الإصابات السابقة أيضًا إذا كانت قد تؤثر على تدريبك.",
   "injuriesSubtitleFilled": "لقد أضفت {count} إصابات. هل تريد إضافة المزيد؟",
   "yesInjury": "نعم، لدي إصابة للإبلاغ عنها",
-  "addAnotherInjury": "أضف إصابة أخرى",
   "noInjury": "لا، أنا بصحة جيدة",
   "noMoreInjuries": "لا، انتهيت",
   "injuryCategoryTitle": "نوع الإصابة",
@@ -647,7 +647,7 @@
   "hintWeight": "مثال: 70",
   "injuryStatusOvercome": "معافى",
   "injuryStatusOvercomeDesc": "لم تعد مشكلة، ولكن من الجيد معرفتها",
-  "injuryStatusActive": "لا تزال موجودة",
+  "injuryStatusActive": "نشط",
   "injuryStatusActiveDesc": "لا أزال أعاني من آلام أو قيود",
   "bwEquipmentFunctionalTitle": "المعدات الوظيفية المتاحة",
   "bwEquipmentCalisthenicsTitle": "معدات الكاليسثينيكس المتاحة",
@@ -673,7 +673,6 @@
   "filterHiit": "هيت",
   "homeNextWorkoutTitle": "تمرينك القادم",
   "homeProgressTitle": "تقدمك",
-  "viewAll": "عرض الكل",
   "streakStart": "ابدأ تتابعك",
   "streakKeepGoing": "لا تتوقف الآن! اقتربت من المستوى التالي.",
   "streakStartToday": "أكمل تمريناً اليوم لإشعال الشعلة.",
@@ -693,7 +692,7 @@
   "insightsTitle": "رؤى خاصة بك",
   "viewReport": "عرض التقرير",
   "connectHealth": "ربط Apple Health",
-  "connectHealthDesc": "لرؤية رؤى مخصصة بناءً على بياناتك الصحية",
+  "connectHealthDesc": "اربط Apple Health للحصول على تقرير أسبوعي مخصص",
   "discoveredPatterns": "الأنماط المكتشفة",
   "aiCreatingPlanDesc": "سيستغرق الأمر بضع دقائق فقط...",
   "aiPlanBadge": "خطة ذكية",
@@ -735,16 +734,13 @@
   "moderate": "متوسطة",
   "add": "إضافة",
   "numberLabel": "رقم",
-  
   "voiceModeTitle": "وضع الصوت",
   "voiceModeSubtitle": "جيجي يرشدك\nفي كل تكرار",
   "musicModeTitle": "وضع الموسيقى",
   "musicModeSubtitle": "موسيقاك\n+ إشارات بسيطة",
   "discreteMode": "الوضع المنفصل",
-  
   "unlockedCount": "مفتوح ({count})",
   "toUnlockCount": "للفتح ({count})",
-  
   "howToMeasureTitle": "📏 كيفية أخذ القياسات",
   "howToMeasureDesc": "اتبع هذه النصائح للحصول على قياسات دقيقة",
   "armsSection": "💪 الذراعين",
@@ -753,47 +749,38 @@
   "torsoSectionDesc": "الصدر والخصر والأرداف",
   "legsSection": "🦵 الأرجل",
   "legsSectionDesc": "الفخذين والسمانة",
-  
   "frontPhoto": "أمامي",
   "sidePhoto": "جانبي",
   "backPhoto": "خلفي",
   "cameraOption": "الكاميرا",
   "galleryOption": "المعرض",
-  
   "noPhotosYetTitle": "لا توجد صور بعد",
   "noPhotosYetDesc": "أضف صوراً لرؤية تحولك",
   "noMeasurementsYetTitle": "لا توجد قياسات بعد",
   "noMeasurementsYetDesc": "أضف قياساتك لتتبع التقدم",
-  
   "newMeasurementAction": "قياس جديد",
   "progressPhotoAction": "صورة التقدم",
   "compareAction": "مقارنة",
-  
   "weightStat": "الوزن",
   "bodyFatStat": "دهون الجسم",
   "daysStat": "أيام",
-  
   "streakStat": "التتابع",
   "measurementsStat": "القياسات",
   "waistStat": "الخصر",
   "bicepStat": "البايسبس",
-  
   "exercisesLabel": "التمارين",
   "durationLabel": "المدة",
   "caloriesLabel": "السعرات",
   "totalSetsLabel": "إجمالي المجموعات",
   "minutesLabel": "دقائق",
   "seriesLabel": "مجموعات",
-  
   "startButton": "ابدأ",
   "completeButton": "إكمال",
   "completedButton": "مكتمل 🎉",
-  
   "trialWorkoutTitle": "تمرين تجريبي",
   "recommendedLabel": "موصى به",
   "skipTrialTitle": "تخطي التجربة",
   "generateNowLabel": "إنشاء الآن",
-  
   "exampleTen": "مثال: 10",
   "exampleWeight": "مثال: 20.5",
   "confirmButton": "تأكيد",
@@ -801,26 +788,20 @@
   "setTimeLabel": "وقت المجموعة",
   "minutesLabelWithValue": "{value} دقائق",
   "exampleDifficultyHint": "مثال: وجدت التمرين X صعباً...",
-  
   "instructionsSection": "التعليمات",
   "videoDemoSection": "فيديو توضيحي",
   "intensityLabel": "الشدة",
   "heartRateZone": "منطقة نبض القلب",
-  
   "basicInfoSection": "معلومات أساسية",
   "goalsSection": "الأهداف",
   "workoutPreferencesSection": "تفضيلات التمرين",
-  
   "editButton": "تعديل",
-  
   "introPhase": "مقدمة",
   "duringPhase": "أثناء",
   "finalPhase": "نهائي",
   "stopButton": "إيقاف",
-  
   "repsLabel": "التكرارات",
   "weightKgLabel": "الوزن (كغ)",
-  
   "consentManagementSection": "إدارة الموافقات",
   "pushNotificationsTitle": "الإشعارات",
   "pushNotificationsDesc": "تذكيرات التمرين والتقدم",
@@ -834,7 +815,6 @@
   "exportDataDesc": "تنزيل جميع بياناتك بصيغة JSON",
   "deleteAccountTitle": "حذف الحساب",
   "deleteAccountDesc": "حذف بياناتك نهائياً",
-  
   "goalLabel": "الهدف",
   "experienceLevelLabel": "مستوى الخبرة",
   "weeklyFrequencyLabel": "التردد الأسبوعي",
@@ -844,53 +824,35 @@
   "sessionDurationLabel": "مدة الجلسة",
   "cardioPreferenceLabel": "تفضيل الكارديو",
   "mobilityPreferenceLabel": "تفضيل المرونة",
-  
   "trialWorkoutLabel": "تمرين تجريبي",
   "heightWeightLabel": "الطول والوزن",
-  
   "defaultWorkoutName": "تمرين",
-  
   "goToWorkoutButton": "اذهب للتمرين",
-  
   "startText": "ابدأ",
   "nextText": "التالي",
-  
   "yourNameHint": "اسمك",
   "detailsLabel": "التفاصيل",
-  
   "whatsappShare": "واتساب",
   "instagramShare": "إنستغرام",
   "otherShare": "آخر",
   "totalReferrals": "الإجمالي",
   "pendingReferrals": "قيد الانتظار",
   "convertedReferrals": "محولة",
-  
   "instructionsLabel": "التعليمات",
   "videoDemoLabel": "عرض الفيديو",
   "pause": "إيقاف مؤقت",
   "resume": "استئناف",
-  "close": "إغلاق",
   "savedLabel": "تم الحفظ!",
-  "confirmButton": "تأكيد",
-  "myWorkoutsTitle": "تماريني",
   "deleteWorkoutTitle": "حذف التمرين",
-  "delete": "حذف",
   "reviewPreferences": "مراجعة التفضيلات",
   "edit": "تعديل",
-  "generatePlan": "إنشاء خطة",
   "workoutCompleted": "اكتمل التمرين! 🎉",
   "greatJobKeepItUp": "عمل رائع! استمر.",
-  "minutes": "دقائق",
-  "exercises": "تمارين",
-  "sets": "مجموعات",
-  "calories": "سعرات حرارية",
   "greatJob": "عمل رائع!",
   "completedFirstWorkout": "لقد أكملت تمرينك الأول",
   "didYouLikeGigi": "هل أعجبتك جيجي؟",
   "workoutSession": "جلسة تمرين",
-  "duration": "المدة",
   "volume": "الحجم",
-
   "cancelButton": "إلغاء",
   "paywallTitle": "اختر خطتك",
   "paywallSubtitle": "تذرب دائما مع مدرب",
@@ -919,20 +881,16 @@
   "mealLunch": "الغداء",
   "mealDinner": "العشاء",
   "mealSnack": "وجبة خفيفة",
-  "mealPreWorkout": "قبل التمرين",
-  "mealPostWorkout": "بعد التمرين",
   "categoryAll": "الكل",
   "categoryStrength": "القوة",
   "categoryCardio": "كارديو",
   "categoryMobility": "المرونة",
-
   "challengesTitle": "التحديات",
   "challengesTabActive": "نشطة",
   "challengesTabDaily": "يومية",
   "challengesTabWeekly": "أسبوعية",
   "challengesTabCommunity": "المجتمع",
   "challengesActiveTitle": "تحدياتك النشطة",
-
   "progressTitle": "تقدمي",
   "progressStatsTitle": "إحصائيات التدريب",
   "progressWorkouts": "تمارين",
@@ -942,21 +900,15 @@
   "progressBodyMapTitle": "خريطة الجسم",
   "progressBodyMapHint": "انقر على منطقة لرؤية التفاصيل",
   "progressChangesTitle": "التغييرات",
-  "viewAll": "عرض الكل",
   "progressTrendTitle": "اتجاه القياسات",
   "progressAddMoreData": "أضف المزيد من القياسات لرؤية الاتجاه",
   "progressGoalsTitle": "الأهداف",
   "progressSetGoal": "تحديد هدف",
   "progressGoalHint": "مثال: الخصر عند 80 سم أو العضلة ذات الرأسين عند 40 سم",
   "weeks": "أسابيع",
-  "consecutiveMeasurements": "من القياسات المتتالية",
   "measurements": "قياسات",
   "lastMeasurement": "الأخيرة",
-
   "errorSavingProfile": "خطأ في حفظ الملف الشخصي",
-  "unexpectedError": "خطأ غير متوقع",
-
-  "days": "أيام",
   "xpBonus": "مكافأة XP",
   "nextBonus": "المكافأة التالية: {multiplier} XP",
   "freezeTokens": "رموز التجميد",
@@ -972,17 +924,10 @@
   "challengeCommunity": "مجتمع",
   "challengeOneVsOne": "1 ضد 1",
   "deleteButton": "حذف",
-  
   "searchExercisesHint": "البحث عن تمارين...",
   "searchWorkoutsHint": "البحث عن تمرين، تمارين...",
-  
   "ingredientsHint": "مثال: دجاج، أرز، بروكلي...",
   "exerciseHint": "مثال: قرفصاء، ضغط صدر، رفعة ميتة...",
-
-  "injuryMuscular": "عضلي",
-  "injuryArticular": "مفصلي",
-  "injuryBone": "عظمي",
-
   "injuryAreaNeck": "رقبة",
   "injuryAreaTrapezius": "عضلة شبه منحرفة",
   "injuryAreaDeltoids": "عضلات دالية",
@@ -1003,7 +948,6 @@
   "injuryAreaAdductors": "عضلات مقربة",
   "injuryAreaAbductors": "عضلات مبعدة",
   "injuryAreaRotatorCuff": "الكفة المدورة",
-
   "injuryAreaCervicalSpine": "العمود الفقري العنقي",
   "injuryAreaShoulder": "كتف",
   "injuryAreaElbow": "مرفق",
@@ -1017,7 +961,6 @@
   "injuryAreaToes": "أصابع القدم",
   "injuryAreaSacroiliac": "العجز الحرقفي",
   "injuryAreaTemporomandibular": "الفك الصدغي",
-
   "injuryAreaSkull": "جمجمة",
   "injuryAreaClavicle": "ترقوة",
   "injuryAreaScapula": "لوح الكتف",
@@ -1038,15 +981,11 @@
   "injuryAreaTarsals": "عظام الكاحل",
   "injuryAreaMetatarsals": "عظام المشط (القدم)",
   "injuryAreaPhalangesFoot": "السلاميات (القدم)",
-
   "injurySeverityMild": "خفيف",
   "injurySeverityModerate": "متوسط",
   "injurySeveritySevere": "شديد",
-
   "injuryTimingCurrent": "حالي",
   "injuryTimingPast": "سابق",
-
-  "injuryStatusActive": "نشط",
   "injuryStatusRecovering": "في طور الشفاء",
   "injuryStatusResolved": "تم الشفاء",
   "activity": "نشاط",
@@ -1063,7 +1002,13 @@
   "avgSleep": "متوسط النوم",
   "barbell": "بار",
   "basedOnDataPoints": "بناءً على {count} أيام من البيانات",
-  "@basedOnDataPoints": { "placeholders": { "count": { "type": "int" } } },
+  "@basedOnDataPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "beginner": "مبتدئ",
   "bench": "مقعد",
   "bicepPositionDesc": "الذراع مثنية بزاوية 90 درجة، قبضة مغلقة",
@@ -1118,9 +1063,21 @@
   "kcal": "سعرة",
   "legsParts": "الأرجل",
   "limitReachedDesc": "لقد وصلت إلى الحد اليومي البالغ {limit} تحليلات.\n\nقم بالترقية إلى بريميوم للحصول على تحليلات غير محدودة!",
-  "@limitReachedDesc": { "placeholders": { "limit": { "type": "int" } } },
+  "@limitReachedDesc": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "loadingProgress": "جارٍ التحميل... {progress}%",
-  "@loadingProgress": { "placeholders": { "progress": { "type": "int" } } },
+  "@loadingProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
   "machines": "أجهزة",
   "male": "ذكر",
   "max15Seconds": "حد أقصى 15 ثانية",
@@ -1154,7 +1111,16 @@
   "recordVideo": "تسجيل فيديو",
   "relaxNoContracting": "مسترخٍ، بدون شد",
   "remainingToday": "{count}/{total} متبقية اليوم",
-  "@remainingToday": { "placeholders": { "count": { "type": "int" }, "total": { "type": "int" } } },
+  "@remainingToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "remove": "إزالة",
   "repeatTwice": "كرر كل قياس مرتين",
   "resistanceBands": "أحزمة المقاومة",
@@ -1215,9 +1181,24 @@
   "yourReferralCode": "رمز الإحالة الخاص بك",
   "yourStartingPoint": "نقطة انطلاقك",
   "yourWorkout": "تمرينك",
-  "connectHealthDesc": "اربط Apple Health للحصول على تقرير أسبوعي مخصص",
   "age": "العمر",
   "height": "الطول",
-  "personalInfo": "المعلومات الشخصية",
-  "lean": "Lean"
+  "lean": "Lean",
+  "noGoalsSet": "لم يتم تحديد أهداف غذائية",
+  "setupGoalsCallToAction": "قم بإعداد أهداف السعرات الحرارية والمغذيات الكبيرة لتتبع تقدمك.",
+  "suggestedMeal": "وجبة مقترحة",
+  "change": "تغيير",
+  "gigiMealMessage": "أهلاً! التقط صورة واضحة لطبقك. سأحدد المكونات وأحسب السعرات الحرارية والمغذيات الكبيرة لك! 🍎",
+  "insertManually": "أدخل يدوياً",
+  "addNutritionalGoal": "ارسم مساراً جديداً",
+  "customGoal": "Precision Pro",
+  "calculateForMe": "Goal Architect",
+  "setupGoals": "صمم رؤيتك",
+  "gigiGoalSetupMessage": "خطوة رائعة! دعنا نحدد معاً العناصر الغذائية الكبرى لتحقيق أقصى قدر من النتائج. 🚀",
+  "gigiNutritionDashboardMessage": "التغذية تمثل 70% من النتيجة. إليك كيف يسير يومك اليوم. 🍎",
+  "gigiStrategySuggestion": "أطلق العنان لإمكانيات تغذيتك! 🚀\n\n🎯 حدد هدفك: اختر 'حساب AI التلقائي' ليقوم جيجي بحساب السعرات الحرارية والماكرو اليومية المثالية لك.\n📸 Snap & Track AI: أسرع من أي مذكرات. التقط صورة لطبقك وسيقوم جيجي بتحديد العناصر الغذائية والسعرات الحرارية بدلاً منك.",
+  "calculateForMeSubtitle": "جيجي يحسب السعرات الحرارية والماكرو اليومية لك",
+  "customGoalSubtitle": "حدد السعرات الحرارية والماكرو اليومية يدويًا",
+  "snapAndTrackAiSubtitle": "حدد العناصر الغذائية بصورة",
+  "mealCustom": "مخصص"
 }

@@ -1005,6 +1005,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get gigiGoalSetupMessage =>
+      'خطوة رائعة! دعنا نحدد معاً العناصر الغذائية الكبرى لتحقيق أقصى قدر من النتائج. 🚀';
+
+  @override
+  String get gigiNutritionDashboardMessage =>
+      'التغذية تمثل 70% من النتيجة. إليك كيف يسير يومك اليوم. 🍎';
+
+  @override
   String get goalStepTitle => '🎯 ما هو هدفك؟';
 
   @override
@@ -2809,12 +2817,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mealSnack => 'وجبة خفيفة';
 
   @override
-  String get mealPreWorkout => 'قبل التمرين';
-
-  @override
-  String get mealPostWorkout => 'بعد التمرين';
-
-  @override
   String get categoryAll => 'الكل';
 
   @override
@@ -3632,4 +3634,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get current => 'حالي';
+
+  @override
+  String get noGoalsSet => 'لم يتم تحديد أهداف غذائية';
+
+  @override
+  String get setupGoalsCallToAction =>
+      'قم بإعداد أهداف السعرات الحرارية والمغذيات الكبيرة لتتبع تقدمك.';
+
+  @override
+  String get suggestedMeal => 'وجبة مقترحة';
+
+  @override
+  String get change => 'تغيير';
+
+  @override
+  String get gigiMealMessage =>
+      'أهلاً! التقط صورة واضحة لطبقك. سأحدد المكونات وأحسب السعرات الحرارية والمغذيات الكبيرة لك! 🍎';
+
+  @override
+  String get insertManually => 'أدخل يدوياً';
+
+  @override
+  String get addNutritionalGoal => 'ارسم مساراً جديداً';
+
+  @override
+  String get customGoal => 'Precision Pro';
+
+  @override
+  String get calculateForMe => 'Goal Architect';
+
+  @override
+  String get setupGoals => 'صمم رؤيتك';
+
+  @override
+  String get gigiStrategySuggestion =>
+      'أطلق العنان لإمكانيات تغذيتك! 🚀\n\n🎯 حدد هدفك: اختر \'حساب AI التلقائي\' ليقوم جيجي بحساب السعرات الحرارية والماكرو اليومية المثالية لك.\n📸 Snap & Track AI: أسرع من أي مذكرات. التقط صورة لطبقك وسيقوم جيجي بتحديد العناصر الغذائية والسعرات الحرارية بدلاً منك.';
+
+  @override
+  String get calculateForMeSubtitle =>
+      'جيجي يحسب السعرات الحرارية والماكرو اليومية لك';
+
+  @override
+  String get customGoalSubtitle =>
+      'حدد السعرات الحرارية والماكرو اليومية يدويًا';
+
+  @override
+  String get snapAndTrackAiSubtitle => 'حدد العناصر الغذائية بصورة';
+
+  @override
+  String get mealCustom => 'مخصص';
 }

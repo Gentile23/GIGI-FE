@@ -1011,6 +1011,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get gigiGoalSetupMessage =>
+      'Superbe étape ! Définissons ensemble vos macronutriments pour maximiser vos résultats. 🚀';
+
+  @override
+  String get gigiNutritionDashboardMessage =>
+      'La nutrition représente 70 % du résultat. Voici votre bilan aujourd\'hui. 🍎';
+
+  @override
   String get goalStepTitle => '🎯 Quel est votre objectif ?';
 
   @override
@@ -2849,12 +2857,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mealSnack => 'Snack';
 
   @override
-  String get mealPreWorkout => 'Pré-séance';
-
-  @override
-  String get mealPostWorkout => 'Après-séance';
-
-  @override
   String get categoryAll => 'Tous';
 
   @override
@@ -3683,4 +3685,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get current => 'Actuel';
+
+  @override
+  String get noGoalsSet => 'Aucun objectif nutritionnel défini';
+
+  @override
+  String get setupGoalsCallToAction =>
+      'Définissez vos objectifs de calories et de macros pour suivre vos progrès.';
+
+  @override
+  String get suggestedMeal => 'Repas suggéré';
+
+  @override
+  String get change => 'Modifier';
+
+  @override
+  String get gigiMealMessage =>
+      'Bonjour ! Prenez une photo claire de votre plat. J\'identifierai les ingrédients et calculerai les calories et les macros pour vous ! 🍎';
+
+  @override
+  String get insertManually => 'Insérer manuellement';
+
+  @override
+  String get addNutritionalGoal => 'Tracer un Nouveau Cap';
+
+  @override
+  String get customGoal => 'Precision Pro';
+
+  @override
+  String get calculateForMe => 'Goal Architect';
+
+  @override
+  String get setupGoals => 'Créez Votre Vision';
+
+  @override
+  String get gigiStrategySuggestion =>
+      'Libérez tout le potentiel de votre nutrition ! 🚀\n\n🎯 Fixez votre Objectif : Choisissez \'Calcul Automatique AI\' pour que Gigi calcule vos calories et macros quotidiennes idéales.\n📸 Snap & Track AI : Plus rapide qu\'un journal. Prenez une photo de votre plat et Gigi identifiera les nutriments et les calories pour vous.';
+
+  @override
+  String get calculateForMeSubtitle =>
+      'Gigi calcule les calories et les macros quotidiennes pour vous';
+
+  @override
+  String get customGoalSubtitle =>
+      'Définissez vos calories et macros quotidiennes manuellement';
+
+  @override
+  String get snapAndTrackAiSubtitle =>
+      'Identifiez les nutriments avec une photo';
+
+  @override
+  String get mealCustom => 'Personnalisé';
 }

@@ -857,26 +857,32 @@ class CleanSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Stack(
+      alignment: Alignment.center,
       children: [
+        // Title - Centered
         Text(
           title,
+          textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
           ),
         ),
+        // Action - Right aligned
         if (actionText != null)
-          GestureDetector(
-            onTap: onAction,
-            child: Text(
-              actionText!,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: CleanTheme.textSecondary,
+          Positioned(
+            right: 0,
+            child: GestureDetector(
+              onTap: onAction,
+              child: Text(
+                actionText!,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
             ),
           ),

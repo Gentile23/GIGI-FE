@@ -44,7 +44,7 @@
   "registrationFailed": "Registrierung fehlgeschlagen. Bitte später erneut versuchen.",
   "emailAlreadyExists": "Diese E-Mail ist bereits registriert. Versuche dich anzumelden.",
   "connectionError": "Verbindung zum Server nicht möglich. Überprüfe deine Internetverbindung.",
-  "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten",
+  "unexpectedError": "Unerwarteter Fehler",
   "googleSignInError": "Fehler bei der Anmeldung mit Google",
   "appleSignInError": "Fehler bei der Anmeldung mit Apple",
   "mustAcceptConsents": "Du musst alle Zustimmungen akzeptieren, um dich zu registrieren.",
@@ -60,7 +60,7 @@
   "rateApp": "App bewerten",
   "share": "Teilen",
   "version": "Version",
-  "cancel": "Abbrechen",
+  "cancel": "Cancel",
   "save": "Speichern",
   "delete": "Löschen",
   "confirm": "Bestätigen",
@@ -99,7 +99,7 @@
   "kg": "kg",
   "lbs": "lbs",
   "userDefaultName": "User",
-  "heightLabel": "Height",
+  "heightLabel": "Größe (cm)",
   "weightLabel": "Weight",
   "ageLabel": "Age",
   "currentPlan": "Current Plan",
@@ -119,7 +119,7 @@
   "inviteFriendsSubtitle": "Get Premium for free",
   "transformation": "Transformation",
   "transformationSubtitle": "Before/After tracking",
-  "personalInfo": "Personal Info",
+  "personalInfo": "Persönliche Daten",
   "fitnessGoals": "Fitness Goals",
   "privacySecurity": "Privacy & Security",
   "healthFitness": "Health & Fitness",
@@ -146,10 +146,10 @@
   "locationGymLabel": "Gym",
   "locationHomeLabel": "Home",
   "locationOutdoorLabel": "Outdoor",
-  "injuryMuscular": "Strains, contractures",
-  "injuryArticular": "Sprains, inflammation",
-  "injuryBone": "Fractures",
-  "myWorkoutsTitle": "My Workouts",
+  "injuryMuscular": "Muskulär",
+  "injuryArticular": "Gelenk",
+  "injuryBone": "Knochen",
+  "myWorkoutsTitle": "Meine Workouts",
   "aiAnalyzingProfile": "🧠 Gigi is analyzing your profile",
   "aiGeneratingPlanDescription": "Generating plan...\nPlease wait while Gigi creates your personalized workout.",
   "noWorkoutsTitle": "No Workouts",
@@ -217,7 +217,6 @@
   "exitWorkoutTitle": "Exit Workout?",
   "exitWorkoutMessage": "Your progress will be lost. Are you sure you want to exit?",
   "confirmExit": "Exit",
-  "cancel": "Cancel",
   "finishWorkoutTitle": "Complete Workout",
   "finishWorkoutMessage": "Are you sure you want to finish the workout? All progress will be saved.",
   "nextBadge": "NEXT",
@@ -263,8 +262,8 @@
   "nutritionNoneDesc": "I eat whatever happens",
   "questionFrequencyTitle": "Weekly Frequency",
   "questionFrequencySubtitle": "How many times a week do you want to train?",
-  "days": "days",
-  "continueButton": "Continue",
+  "days": "Tage",
+  "continueButton": "Weiter",
   "questionWorkoutTypeTitle": "Workout Type",
   "questionWorkoutTypeSubtitle": "How do you prefer to train?",
   "questionGenderTitle": "Who are you?",
@@ -295,7 +294,7 @@
   "equipmentFreeWeights": "Free Weights",
   "injuryAddedTitle": "Injury Added",
   "injuryAddedSubtitle": "Do you have other injuries to report?",
-  "addAnotherInjury": "Yes, Add More",
+  "addAnotherInjury": "Weitere Verletzung hinzufügen",
   "continueNoInjury": "Nein, Weiter",
   "nutritionCoachTitle": "Ernährungs-Coach",
   "logMeal": "Mahlzeit erfassen",
@@ -320,9 +319,15 @@
   "profileDataSummary": "Profildaten: {height} cm • {weight} kg • {age} Jahre",
   "@profileDataSummary": {
     "placeholders": {
-      "height": { "type": "int" },
-      "weight": { "type": "int" },
-      "age": { "type": "int" }
+      "height": {
+        "type": "int"
+      },
+      "weight": {
+        "type": "int"
+      },
+      "age": {
+        "type": "int"
+      }
     }
   },
   "goalStepTitle": "🎯 Was ist dein Ziel?",
@@ -361,7 +366,7 @@
   "newRecord": "Neuer Rekord!",
   "activeChallengesTitle": "Aktive Herausforderungen",
   "availableChallengesTitle": "Verfügbare Herausforderungen",
-  "viewAll": "Alle ansehen",
+  "viewAll": "Alle anzeigen",
   "noActiveChallenges": "Im Moment keine aktiven Herausforderungen",
   "percentCompleted": "{percent}% abgeschlossen",
   "daysRemaining": "Noch {days} Tage",
@@ -491,8 +496,6 @@
   "saveErrorGeneric": "Fehler beim Speichern",
   "yourProgress": "Deine Fortschritte",
   "overview": "Übersicht",
-  "nutrition": "Ernährung",
-  "thisWeek": "Diese Woche",
   "recentActivity": "Letzte Aktivität",
   "weeklySummary": "WOCHENÜBERSICHT",
   "timeLabel": "Zeit",
@@ -540,11 +543,9 @@
   "introButton": "LOS GEHT'S!",
   "sectionAboutYou": "Erzähl uns von dir",
   "sectionAboutYouSubtitle": "Diese Informationen helfen uns, deinen Bedarf zu berechnen.",
-  "heightLabel": "Größe (cm)",
   "equipmentTitle": "Ausrüstung",
   "equipmentSubtitleGym": "Wähle deine bevorzugten Trainingsstile.",
   "equipmentSubtitleHome": "Was hast du zur Verfügung?",
-  "continueButton": "Weiter",
   "machinesTitle": "Welche Maschinen?",
   "machinesSubtitle": "Wähle die verfügbaren aus.",
   "bodyweightTypeTitle": "Körpergewichts-Typ",
@@ -553,7 +554,6 @@
   "injuriesSubtitleEmpty": "Hast du aktuelle oder vergangene Verletzungen?\n\n💡 Gib auch VERGANGENE Verletzungen an, wenn sie dein Training beeinflussen könnten.",
   "injuriesSubtitleFilled": "Du hast {count} Verletzungen hinzugefügt. Willst du weitere hinzufügen?",
   "yesInjury": "Ja, ich habe eine Verletzung zu melden",
-  "addAnotherInjury": "Weitere Verletzung hinzufügen",
   "noInjury": "Nein, ich bin gesund",
   "noMoreInjuries": "Nein, ich bin fertig",
   "injuryCategoryTitle": "Verletzungsart",
@@ -647,7 +647,7 @@
   "hintWeight": "Z.B. 70",
   "injuryStatusOvercome": "Geheilt",
   "injuryStatusOvercomeDesc": "Kein Problem mehr, aber gut zu wissen",
-  "injuryStatusActive": "Noch vorhanden",
+  "injuryStatusActive": "Aktiv",
   "injuryStatusActiveDesc": "Ich habe noch Beschwerden oder Einschränkungen",
   "bwEquipmentFunctionalTitle": "Verfügbares funktionales Equipment",
   "bwEquipmentCalisthenicsTitle": "Verfügbares Calisthenics-Equipment",
@@ -673,7 +673,6 @@
   "filterHiit": "HIIT",
   "homeNextWorkoutTitle": "Dein nächstes Workout",
   "homeProgressTitle": "Deine Fortschritte",
-  "viewAll": "Alle ansehen",
   "streakStart": "STARTE DEINE SERIE",
   "streakKeepGoing": "Hör jetzt nicht auf! Fast das nächste Level erreicht.",
   "streakStartToday": "Absolviere heute ein Workout, um die Flamme zu entzünden.",
@@ -693,7 +692,7 @@
   "insightsTitle": "Deine Insights",
   "viewReport": "Bericht ansehen",
   "connectHealth": "Apple Health verbinden",
-  "connectHealthDesc": "Für personalisierte Einblicke basierend auf deinen Gesundheitsdaten",
+  "connectHealthDesc": "Verbinde Apple Health für personalisierten Wochenbericht",
   "discoveredPatterns": "Entdeckte Muster",
   "aiCreatingPlanDesc": "Es dauert nur ein paar Minuten...",
   "aiPlanBadge": "KI PLAN",
@@ -735,16 +734,13 @@
   "moderate": "Moderat",
   "add": "Hinzufügen",
   "numberLabel": "Nummer",
-  
   "voiceModeTitle": "VOICE MODE",
   "voiceModeSubtitle": "Gigi begleitet dich\nbei jeder Wiederholung",
   "musicModeTitle": "MUSIC MODE",
   "musicModeSubtitle": "Deine Musik\n+ minimale Hinweise",
   "discreteMode": "Diskreter Modus",
-  
   "unlockedCount": "Freigeschaltet ({count})",
   "toUnlockCount": "Freizuschalten ({count})",
-  
   "howToMeasureTitle": "📏 So nimmst du Maße",
   "howToMeasureDesc": "Befolge diese Tipps für genaue Messungen",
   "armsSection": "💪 Arme",
@@ -753,74 +749,59 @@
   "torsoSectionDesc": "Brust, Taille und Hüfte",
   "legsSection": "🦵 Beine",
   "legsSectionDesc": "Oberschenkel und Waden",
-  
   "frontPhoto": "Vorne",
   "sidePhoto": "Seite",
   "backPhoto": "Hinten",
   "cameraOption": "Kamera",
   "galleryOption": "Galerie",
-  
   "noPhotosYetTitle": "Noch keine Fotos",
   "noPhotosYetDesc": "Füge Fotos hinzu, um deine Transformation zu sehen",
   "noMeasurementsYetTitle": "Noch keine Maße",
   "noMeasurementsYetDesc": "Füge deine Maße hinzu, um Fortschritte zu verfolgen",
-  
   "newMeasurementAction": "Neue Messung",
   "progressPhotoAction": "Fortschrittsfoto",
   "compareAction": "Vergleichen",
-  
   "weightStat": "Gewicht",
   "bodyFatStat": "Körperfett",
   "daysStat": "Tage",
-  
   "streakStat": "Serie",
   "measurementsStat": "Maße",
   "waistStat": "Taille",
   "bicepStat": "Bizeps",
-  
   "exercisesLabel": "Übungen",
   "durationLabel": "Dauer",
   "caloriesLabel": "Kalorien",
   "totalSetsLabel": "Sätze gesamt",
   "minutesLabel": "Minuten",
   "seriesLabel": "Sätze",
-  
   "startButton": "Starten",
   "completeButton": "Abschließen",
   "completedButton": "Abgeschlossen 🎉",
-  
   "trialWorkoutTitle": "Probe-Workout",
   "recommendedLabel": "Empfohlen",
   "skipTrialTitle": "Probe überspringen",
   "generateNowLabel": "Jetzt generieren",
-  
   "exampleTen": "Z.B. 10",
   "exampleWeight": "Z.B. 20.5",
-  "confirmButton": "Bestätigen",
+  "confirmButton": "BESTÄTIGEN",
   "errorTitle": "Fehler",
   "setTimeLabel": "Satzzeit",
   "minutesLabelWithValue": "{value} Minuten",
   "exampleDifficultyHint": "Z.B. Ich fand die Übung X schwierig...",
-  
   "instructionsSection": "Anleitung",
   "videoDemoSection": "Video-Demo",
   "intensityLabel": "Intensität",
   "heartRateZone": "HF-Zone",
-  
   "basicInfoSection": "Grundlegende Infos",
   "goalsSection": "Ziele",
   "workoutPreferencesSection": "Trainingseinstellungen",
-  
   "editButton": "Bearbeiten",
-  
   "introPhase": "Intro",
   "duringPhase": "Während",
   "finalPhase": "Ende",
   "stopButton": "Stop",
-  
   "repsLabel": "WIEDERHOLUNGEN",
   "weightKgLabel": "GEWICHT (KG)",
-  
   "consentManagementSection": "Einwilligungsverwaltung",
   "pushNotificationsTitle": "Push-Benachrichtigungen",
   "pushNotificationsDesc": "Trainingserinnerungen und Fortschritte",
@@ -834,7 +815,6 @@
   "exportDataDesc": "Lade alle deine Daten als JSON herunter",
   "deleteAccountTitle": "Konto löschen",
   "deleteAccountDesc": "Lösche deine Daten dauerhaft",
-  
   "goalLabel": "Ziel",
   "experienceLevelLabel": "Erfahrungsstufe",
   "weeklyFrequencyLabel": "Wöchentliche Frequenz",
@@ -844,53 +824,35 @@
   "sessionDurationLabel": "Sitzungsdauer",
   "cardioPreferenceLabel": "Cardio-Präferenz",
   "mobilityPreferenceLabel": "Mobilitäts-Präferenz",
-  
   "trialWorkoutLabel": "Probe-Workout",
   "heightWeightLabel": "Größe und Gewicht",
-  
   "defaultWorkoutName": "Training",
-  
   "goToWorkoutButton": "Zum Training",
-  
   "startText": "Start",
   "nextText": "Weiter",
-  
   "yourNameHint": "Dein Name",
   "detailsLabel": "Details",
-  
   "whatsappShare": "WhatsApp",
   "instagramShare": "Instagram",
   "otherShare": "Andere",
   "totalReferrals": "Gesamt",
   "pendingReferrals": "Ausstehend",
   "convertedReferrals": "Konvertiert",
-  
   "instructionsLabel": "Anweisungen",
   "videoDemoLabel": "Video-Demonstration",
   "pause": "Pause",
   "resume": "Fortsetzen",
-  "close": "Schließen",
   "savedLabel": "GESPEICHERT!",
-  "confirmButton": "BESTÄTIGEN",
-  "myWorkoutsTitle": "Meine Workouts",
   "deleteWorkoutTitle": "Workout löschen",
-  "delete": "Löschen",
-  "reviewPreferences": "Einstellungen überprüfen",
+  "reviewPreferences": "Präferenzen überprüfen",
   "edit": "Bearbeiten",
-  "generatePlan": "Plan erstellen",
   "workoutCompleted": "Training abgeschlossen! 🎉",
   "greatJobKeepItUp": "Super gemacht! Weiter so.",
-  "minutes": "Minuten",
-  "exercises": "Übungen",
-  "sets": "Sätze",
-  "calories": "Kalorien",
   "greatJob": "Super gemacht!",
   "completedFirstWorkout": "Du hast dein erstes Training abgeschlossen",
   "didYouLikeGigi": "Hat dir Gigi gefallen?",
   "workoutSession": "Trainingseinheit",
-  "duration": "Dauer",
   "volume": "Volumen",
-
   "cancelButton": "Abbrechen",
   "paywallTitle": "Wähle deinen Plan",
   "paywallSubtitle": "Trainiere immer mit einem Coach",
@@ -919,20 +881,16 @@
   "mealLunch": "Mittagessen",
   "mealDinner": "Abendessen",
   "mealSnack": "Snack",
-  "mealPreWorkout": "Pre-Workout",
-  "mealPostWorkout": "Post-Workout",
   "categoryAll": "Alle",
   "categoryStrength": "Kraft",
   "categoryCardio": "Cardio",
   "categoryMobility": "Mobilität",
-
   "challengesTitle": "Herausforderungen",
   "challengesTabActive": "Aktiv",
   "challengesTabDaily": "Täglich",
   "challengesTabWeekly": "Wöchentlich",
   "challengesTabCommunity": "Community",
   "challengesActiveTitle": "Deine aktiven Herausforderungen",
-
   "progressTitle": "Mein Fortschritt",
   "progressStatsTitle": "Trainingsstatistiken",
   "progressWorkouts": "Workouts",
@@ -942,21 +900,15 @@
   "progressBodyMapTitle": "Körperkarte",
   "progressBodyMapHint": "Tippe auf eine Zone für Details",
   "progressChangesTitle": "Veränderungen",
-  "viewAll": "Alle anzeigen",
   "progressTrendTitle": "Messtrend",
   "progressAddMoreData": "Füge mehr Messungen hinzu, um den Trend zu sehen",
   "progressGoalsTitle": "Ziele",
-  "add": "Hinzufügen",
   "progressSetGoal": "Ziel setzen",
   "progressGoalHint": "Z.B. Taille bei 80cm oder Bizeps bei 40cm",
   "weeks": "Wochen",
-  "consecutiveMeasurements": "aufeinanderfolgende Messungen",
   "measurements": "Messungen",
   "lastMeasurement": "letzte",
-
   "errorSavingProfile": "Fehler beim Speichern des Profils",
-  "unexpectedError": "Unerwarteter Fehler",
-  "days": "Tage",
   "xpBonus": "XP BONUS",
   "nextBonus": "Nächster Bonus: {multiplier} XP",
   "freezeTokens": "Freeze Token",
@@ -972,17 +924,10 @@
   "challengeCommunity": "COMMUNITY",
   "challengeOneVsOne": "1v1",
   "deleteButton": "Löschen",
-  
   "searchExercisesHint": "Übungen suchen...",
   "searchWorkoutsHint": "Workout, Übungen suchen...",
-  
   "ingredientsHint": "Z.B. Hähnchen, Reis, Brokkoli...",
   "exerciseHint": "Z.B. Kniebeuge, Bankdrücken, Kreuzheben...",
-
-  "injuryMuscular": "Muskulär",
-  "injuryArticular": "Gelenk",
-  "injuryBone": "Knochen",
-
   "injuryAreaNeck": "Nacken",
   "injuryAreaTrapezius": "Trapezmuskel",
   "injuryAreaDeltoids": "Deltamuskeln",
@@ -1003,7 +948,6 @@
   "injuryAreaAdductors": "Adduktoren",
   "injuryAreaAbductors": "Abduktoren",
   "injuryAreaRotatorCuff": "Rotatorenmanschette",
-
   "injuryAreaCervicalSpine": "Halswirbelsäule",
   "injuryAreaShoulder": "Schulter",
   "injuryAreaElbow": "Ellbogen",
@@ -1017,7 +961,6 @@
   "injuryAreaToes": "Zehen",
   "injuryAreaSacroiliac": "Iliosakralgelenk",
   "injuryAreaTemporomandibular": "Kiefergelenk",
-
   "injuryAreaSkull": "Schädel",
   "injuryAreaClavicle": "Schlüsselbein",
   "injuryAreaScapula": "Schulterblatt",
@@ -1038,15 +981,11 @@
   "injuryAreaTarsals": "Fußwurzelknochen",
   "injuryAreaMetatarsals": "Mittelfußknochen",
   "injuryAreaPhalangesFoot": "Zehenknochen",
-
   "injurySeverityMild": "Leicht",
   "injurySeverityModerate": "Mittel",
   "injurySeveritySevere": "Schwer",
-
   "injuryTimingCurrent": "Aktuell",
   "injuryTimingPast": "Vergangen",
-
-  "injuryStatusActive": "Aktiv",
   "injuryStatusRecovering": "In Erholung",
   "injuryStatusResolved": "Geheilt",
   "activity": "Aktivität",
@@ -1063,7 +1002,13 @@
   "avgSleep": "Ø Schlaf",
   "barbell": "Langhantel",
   "basedOnDataPoints": "Basierend auf {count} Tagen Daten",
-  "@basedOnDataPoints": { "placeholders": { "count": { "type": "int" } } },
+  "@basedOnDataPoints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "beginner": "Anfänger",
   "bench": "Bank",
   "bicepPositionDesc": "Arm 90° gebeugt, geschlossene Faust",
@@ -1118,9 +1063,21 @@
   "kcal": "kcal",
   "legsParts": "Beine",
   "limitReachedDesc": "Du hast dein Tageslimit von {limit} Analysen erreicht.\n\nUpgrade auf Premium für unbegrenzte Analysen!",
-  "@limitReachedDesc": { "placeholders": { "limit": { "type": "int" } } },
+  "@limitReachedDesc": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "loadingProgress": "Laden... {progress}%",
-  "@loadingProgress": { "placeholders": { "progress": { "type": "int" } } },
+  "@loadingProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
   "machines": "Maschinen",
   "male": "Männlich",
   "max15Seconds": "Max 15 Sekunden",
@@ -1154,7 +1111,16 @@
   "recordVideo": "Video aufnehmen",
   "relaxNoContracting": "Entspannt, nicht anspannen",
   "remainingToday": "{count}/{total} heute übrig",
-  "@remainingToday": { "placeholders": { "count": { "type": "int" }, "total": { "type": "int" } } },
+  "@remainingToday": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "remove": "Entfernen",
   "repeatTwice": "Jede Messung zweimal wiederholen",
   "resistanceBands": "Widerstandsbänder",
@@ -1215,10 +1181,18 @@
   "yourReferralCode": "Dein Empfehlungscode",
   "yourStartingPoint": "Dein Ausgangspunkt",
   "yourWorkout": "Dein Workout",
-  "connectHealthDesc": "Verbinde Apple Health für personalisierten Wochenbericht",
   "age": "Alter",
   "height": "Größe",
-  "personalInfo": "Persönliche Daten",
-  "reviewPreferences": "Präferenzen überprüfen",
-  "lean": "Lean"
+  "lean": "Lean",
+  "noGoalsSet": "Keine Ernährungsziele festgelegt",
+  "setupGoalsCallToAction": "Richten Sie Ihre Kalorien- und Makroziele ein, um Ihren Fortschritt zu verfolgen.",
+  "suggestedMeal": "Vorgeschlagene Mahlzeit",
+  "change": "Ändern",
+  "gigiMealMessage": "Hallo! Machen Sie ein klares Foto von Ihrem Gericht. Ich werde die Zutaten identifizieren und Kalorien und Makros für Sie berechnen! 🍎",
+  "gigiStrategySuggestion": "Entfessle dein Ernährungspotenzial! 🚀\n\n🎯 Setze dein Ziel: Wähle 'Automatische KI-Berechnung', damit Gigi deine idealen täglichen Kalorien und Makros berechnet.\n📸 Snap & Track KI: Schneller als jedes Tagebuch. Fotografiere dein Gericht und Gigi identifiziert Nährstoffe und Kalorien für dich.",
+  "gigiNutritionDashboardMessage": "Ernährung macht 70% des Ergebnisses aus. So sieht dein Tag heute aus. 🍎",
+  "calculateForMeSubtitle": "Gigi berechnet tägliche Kalorien und Makros für dich",
+  "customGoalSubtitle": "Tägliche Kalorien und Makros manuell festlegen",
+  "snapAndTrackAiSubtitle": "Nährstoffe mit einem Foto identifizieren",
+  "mealCustom": "Benutzerdefiniert"
 }

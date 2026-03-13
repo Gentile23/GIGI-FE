@@ -9,9 +9,15 @@ import '../../../data/services/quota_service.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 
 class MealLoggingScreen extends StatefulWidget {
-  const MealLoggingScreen({super.key});
+  final bool isCalculatorMode;
+
+  const MealLoggingScreen({
+    super.key,
+    this.isCalculatorMode = false,
+  });
 
   @override
   State<MealLoggingScreen> createState() => _MealLoggingScreenState();
@@ -19,6 +25,7 @@ class MealLoggingScreen extends StatefulWidget {
 
 class _MealLoggingScreenState extends State<MealLoggingScreen> {
   final _fatController = TextEditingController();
+  final _customMealNameController = TextEditingController();
 
   // Services
   late final NutritionService _nutritionService;
@@ -32,7 +39,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
-  // _fatController is already defined at top
 
   // Valori base per 100g (usati per ricalcolo)
   double _baseCaloriesPer100g = 0;
@@ -41,6 +47,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   double _baseFatPer100g = 0;
 
   bool _isSubmitting = false;
+  bool _hasResult = false;
+  bool _isMealTypeConfirmed = false;
   XFile? _imageFile;
   Uint8List? _imageBytes; // For web display
   final ImagePicker _picker = ImagePicker();
@@ -53,17 +61,26 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       'lunch': l10n.mealLunch,
       'dinner': l10n.mealDinner,
       'snack': l10n.mealSnack,
-      'pre_workout': l10n.mealPreWorkout,
-      'post_workout': l10n.mealPostWorkout,
+      'custom': l10n.mealCustom,
     };
   }
 
   @override
   void initState() {
     super.initState();
+    _selectedMealType = _getSuggestedMealType();
     _nutritionService = NutritionService(ApiClient());
-    _quotaService = QuotaService(); // Initialize QuotaService
+    _quotaService = QuotaService(); 
     _gramsController.addListener(_recalculateMacros);
+  }
+
+  String _getSuggestedMealType() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) return 'breakfast';
+    if (hour >= 11 && hour < 15) return 'lunch';
+    if (hour >= 15 && hour < 18) return 'snack';
+    if (hour >= 18 && hour < 23) return 'dinner';
+    return 'snack'; // Late night snack
   }
 
   void _recalculateMacros() {
@@ -90,11 +107,11 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     _proteinController.dispose();
     _carbsController.dispose();
     _fatController.dispose();
+    _customMealNameController.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    // 1. Check Quota
     final check = await _quotaService.canPerformAction(
       QuotaAction.mealAnalysis,
     );
@@ -135,26 +152,30 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       );
 
       if (pickedFile != null) {
-        // Read bytes for web display
         final bytes = await pickedFile.readAsBytes();
 
         setState(() {
           _imageFile = pickedFile;
           _imageBytes = bytes;
+          _hasResult = false;
         });
 
-        // Chiedi i grammi PRIMA di inviare all'AI
         final grams = await _showGramsInputDialog();
-        if (grams == null) return; // Utente ha annullato
+        if (grams == null) return; 
 
-        // 2. Record Usage (only if user confirms action)
         await _quotaService.recordUsage(QuotaAction.mealAnalysis);
 
         setState(() => _isSubmitting = true);
 
+        final finalMealType = _selectedMealType == 'custom' 
+            ? _customMealNameController.text.trim().isEmpty 
+                ? 'Custom' 
+                : _customMealNameController.text.trim()
+            : _selectedMealType;
+
         final result = await _nutritionService.quickLog(
           imageFile: pickedFile,
-          mealType: _selectedMealType,
+          mealType: finalMealType,
           grams: grams,
         );
 
@@ -167,6 +188,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
             setState(() {
               _createdMealId = meal['id'];
+              _hasResult = true;
 
               if (analysis != null &&
                   analysis['food_items'] != null &&
@@ -176,8 +198,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     firstItem['food_name'] ?? 'Pasto Rilevato';
               }
 
-              // Salva valori base per 100g (per ricalcolo)
-              // Helper per parsare sia numeri che stringhe
               double parseValue(dynamic value) {
                 if (value == null) return 0.0;
                 if (value is num) return value.toDouble();
@@ -207,25 +227,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 SnackBar(
                   content: Text(
                     analysis != null
-                        ? 'Pasto analizzato! Verifica i dettagli.'
+                        ? 'Pasto analizzato!'
                         : 'Analisi parziale. Verifica i dati.',
                   ),
                   backgroundColor: analysis != null
                       ? CleanTheme.accentGreen
                       : CleanTheme.accentOrange,
-                ),
-              );
-            }
-          } else {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    result?['warning'] ??
-                        result?['message'] ??
-                        'Analisi fallita. Inserisci manualmente.',
-                  ),
-                  backgroundColor: CleanTheme.accentOrange,
                 ),
               );
             }
@@ -249,7 +256,10 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
     try {
       final foodItem = {
-        'food_name': _foodNameController.text,
+        'food_name': _selectedMealType == 'custom' &&
+                _customMealNameController.text.trim().isNotEmpty
+            ? _customMealNameController.text.trim()
+            : _foodNameController.text,
         'quantity': 1,
         'unit': 'serving',
         'calories': int.parse(_caloriesController.text),
@@ -259,12 +269,18 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         'source': _imageFile != null ? 'photo' : 'manual',
       };
 
+      final finalMealType = _selectedMealType == 'custom'
+          ? _customMealNameController.text.trim().isEmpty
+              ? 'Custom'
+              : _customMealNameController.text.trim()
+          : _selectedMealType;
+
       bool success = false;
 
       if (_createdMealId != null) {
         success = await _nutritionService.updateMeal(
           mealId: _createdMealId!,
-          mealType: _selectedMealType,
+          mealType: finalMealType,
           totalCalories: int.parse(_caloriesController.text),
           proteinGrams: double.parse(_proteinController.text),
           carbsGrams: double.parse(_carbsController.text),
@@ -273,7 +289,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         );
       } else {
         final meal = await _nutritionService.logMeal(
-          mealType: _selectedMealType,
+          mealType: finalMealType,
           totalCalories: int.parse(_caloriesController.text),
           proteinGrams: double.parse(_proteinController.text),
           carbsGrams: double.parse(_carbsController.text),
@@ -337,8 +353,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
                 child: const Icon(
                   Icons.camera_alt,
-                  color: CleanTheme
-                      .accentBlue, // Legacy alias mapped to chromeSilver
+                  color: CleanTheme.accentBlue,
                 ),
               ),
               title: Text(
@@ -359,8 +374,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
                 child: const Icon(
                   Icons.photo_library,
-                  color: CleanTheme
-                      .accentPurple, // Legacy alias mapped to steelLight
+                  color: CleanTheme.accentPurple,
                 ),
               ),
               title: Text(
@@ -484,7 +498,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: Text(
-          'Registra Pasto',
+          widget.isCalculatorMode ? 'Calcolatore AI' : 'Registra Pasto',
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             color: CleanTheme.textPrimary,
@@ -502,8 +516,15 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildMealTypeSelector(),
+              GigiCoachMessage(
+                message: AppLocalizations.of(context)!.gigiMealMessage,
+                emotion: GigiEmotion.expert,
+              ),
               const SizedBox(height: 24),
+              if (!widget.isCalculatorMode) ...[
+                _buildMealTypeSelector(),
+                const SizedBox(height: 24),
+              ],
 
               if (_imageBytes != null)
                 Stack(
@@ -526,6 +547,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                           _imageFile = null;
                           _imageBytes = null;
                           _createdMealId = null;
+                          _hasResult = false;
                           _foodNameController.clear();
                           _caloriesController.clear();
                           _proteinController.clear();
@@ -665,24 +687,27 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     ],
                   ),
                 )
-              else ...[
-                CleanSectionHeader(title: 'Inserimento Manuale'),
+              else if (!widget.isCalculatorMode || _hasResult) ...[
+                CleanSectionHeader(
+                  title: AppLocalizations.of(context)!.insertManually,
+                ),
                 const SizedBox(height: 16),
 
                 _buildTextField(
                   controller: _foodNameController,
                   label: 'Nome Alimento',
                   icon: Icons.restaurant_menu_outlined,
+                  readOnly: widget.isCalculatorMode,
                 ),
                 const SizedBox(height: 16),
 
-                // Campo Grammi
                 _buildTextField(
                   controller: _gramsController,
                   label: 'Quantità (g)',
                   icon: Icons.scale_outlined,
                   keyboardType: TextInputType.number,
                   helperText: 'I macro si ricalcolano automaticamente',
+                  readOnly: widget.isCalculatorMode,
                 ),
                 const SizedBox(height: 16),
 
@@ -694,6 +719,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         label: 'Calorie',
                         icon: Icons.local_fire_department_outlined,
                         keyboardType: TextInputType.number,
+                        readOnly: widget.isCalculatorMode,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -703,6 +729,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         label: 'Proteine (g)',
                         icon: Icons.fitness_center_outlined,
                         keyboardType: TextInputType.number,
+                        readOnly: widget.isCalculatorMode,
                       ),
                     ),
                   ],
@@ -717,6 +744,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         label: 'Carbo (g)',
                         icon: Icons.grain_outlined,
                         keyboardType: TextInputType.number,
+                        readOnly: widget.isCalculatorMode,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -726,6 +754,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                         label: 'Grassi (g)',
                         icon: Icons.opacity_outlined,
                         keyboardType: TextInputType.number,
+                        readOnly: widget.isCalculatorMode,
                       ),
                     ),
                   ],
@@ -733,14 +762,56 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
                 const SizedBox(height: 32),
 
-                CleanButton(
-                  text: _createdMealId != null
-                      ? 'Aggiorna Pasto'
-                      : 'Salva Pasto',
-                  icon: Icons.check,
-                  width: double.infinity,
-                  onPressed: _isSubmitting ? null : _submitMeal,
-                ),
+                if (widget.isCalculatorMode) ...[
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CleanTheme.steelDark,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      'Chiudi',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _isSubmitting ? null : _submitMeal,
+                    child: Text(
+                      'Salva nel Diario',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: CleanTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                ] else
+                  ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitMeal,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CleanTheme.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      _createdMealId != null ? 'Aggiorna Pasto' : 'Salva Pasto',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
               ],
               const SizedBox(height: 24),
             ],
@@ -751,39 +822,186 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   }
 
   Widget _buildMealTypeSelector() {
-    return SizedBox(
-      height: 50,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: _mealTypes.entries.map((entry) {
-          final isSelected = _selectedMealType == entry.key;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(entry.value),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() => _selectedMealType = entry.key);
-                }
-              },
-              selectedColor: CleanTheme.primaryColor,
-              labelStyle: GoogleFonts.inter(
-                color: isSelected
-                    ? CleanTheme.textOnPrimary
-                    : CleanTheme.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-              backgroundColor: CleanTheme.surfaceColor,
-              side: BorderSide(
-                color: isSelected
-                    ? CleanTheme.primaryColor
-                    : CleanTheme.borderPrimary,
+    final l10n = AppLocalizations.of(context)!;
+    final suggestedName = _mealTypes[_selectedMealType]!;
+
+    if (!_isMealTypeConfirmed) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: CleanTheme.primaryColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.suggestedMeal,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: CleanTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        suggestedName,
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => setState(() => _isMealTypeConfirmed = true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    l10n.confirmButton,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => setState(() => _isMealTypeConfirmed = true),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  '${l10n.change} ✏️',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: CleanTheme.textSecondary,
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
             ),
-          );
-        }).toList(),
-      ),
+          ],
+        ),
+      );
+    }
+
+    // Se confermato o si vuole cambiare, mostra il selettore completo
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Tipo di Pasto',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: CleanTheme.accentGreen,
+              size: 20,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Column(
+          children: _mealTypes.entries.map((entry) {
+            final isSelected = _selectedMealType == entry.key;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: InkWell(
+                onTap: () => setState(() => _selectedMealType = entry.key),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        isSelected
+                            ? CleanTheme.primaryColor
+                            : CleanTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color:
+                          isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.borderPrimary,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: isSelected ? Colors.white : CleanTheme.textTertiary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        entry.value,
+                        style: GoogleFonts.inter(
+                          color:
+                              isSelected ? Colors.white : CleanTheme.textPrimary,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        if (_selectedMealType == 'custom') ...[
+          const SizedBox(height: 12),
+          _buildTextField(
+            controller: _customMealNameController,
+            label: 'Nome Pasto Personalizzato',
+            icon: Icons.edit_note_rounded,
+          ),
+        ],
+      ],
     );
   }
 
@@ -793,10 +1011,12 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     String? helperText,
+    bool readOnly = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      readOnly: readOnly,
       style: GoogleFonts.inter(color: CleanTheme.textPrimary),
       decoration: InputDecoration(
         labelText: label,
