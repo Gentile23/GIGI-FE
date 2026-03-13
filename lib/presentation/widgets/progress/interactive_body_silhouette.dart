@@ -62,18 +62,7 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     return Column(
       children: [
         // Toggle front/back
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              widget.showFront ? '👤 Vista Frontale' : '👤 Vista Posteriore',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
+        Row(mainAxisAlignment: MainAxisAlignment.center),
         const SizedBox(height: 16),
 
         // Body silhouette
@@ -249,7 +238,61 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
   }
 
   List<Widget> _buildMeasurementLabels() {
-    return [];
+    return [
+      // Upper Body
+      _buildHotspot(top: 40, left: 185, size: 30, partId: 'neck_cm'),
+      _buildHotspot(top: 70, left: 140, width: 120, height: 40, partId: 'shoulders_cm'),
+      _buildHotspot(top: 100, left: 160, width: 80, height: 50, partId: 'chest_cm'),
+      
+      // Arms
+      _buildHotspot(top: 110, left: 125, size: 40, partId: 'bicep_left_cm'),
+      _buildHotspot(top: 110, left: 235, size: 40, partId: 'bicep_right_cm'),
+      
+      // Mid Section
+      _buildHotspot(top: 155, left: 165, width: 70, height: 60, partId: 'waist_cm'),
+      _buildHotspot(top: 215, left: 165, width: 70, height: 40, partId: 'hips_cm'),
+      
+      // Legs
+      _buildHotspot(top: 260, left: 150, width: 45, height: 80, partId: 'thigh_left_cm'),
+      _buildHotspot(top: 260, left: 205, width: 45, height: 80, partId: 'thigh_right_cm'),
+      _buildHotspot(top: 350, left: 155, width: 40, height: 30, partId: 'calf_left_cm'),
+      _buildHotspot(top: 350, left: 205, width: 40, height: 30, partId: 'calf_right_cm'),
+    ];
+  }
+
+  Widget _buildHotspot({
+    required double top,
+    required double left,
+    double? size,
+    double? width,
+    double? height,
+    required String partId,
+  }) {
+    final isSelected = _selectedPart == partId;
+    return Positioned(
+      top: top,
+      left: left,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {
+            _selectedPart = (_selectedPart == partId) ? null : partId;
+          });
+          if (_selectedPart != null) {
+            widget.onBodyPartTap?.call(partId);
+          }
+        },
+        child: Container(
+          width: size ?? width,
+          height: size ?? height,
+          decoration: BoxDecoration(
+            color: isSelected ? CleanTheme.primaryColor.withValues(alpha: 0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(size != null ? size / 2 : 8),
+            border: isSelected ? Border.all(color: CleanTheme.primaryColor, width: 2) : null,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildLegend() {
@@ -262,10 +305,10 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildLegendItem('📈 Crescita', CleanTheme.accentGreen),
-          _buildLegendItem('➡️ Stabile', CleanTheme.accentBlue),
-          _buildLegendItem('📉 Riduzione', CleanTheme.accentRed),
-          _buildLegendItem('❓ No dati', CleanTheme.borderSecondary),
+          _buildLegendItem('Crescita', CleanTheme.accentGreen),
+          _buildLegendItem('Stabile', CleanTheme.accentBlue),
+          _buildLegendItem('Riduzione', CleanTheme.accentRed),
+          _buildLegendItem('No dati', CleanTheme.borderSecondary),
         ],
       ),
     );
@@ -297,19 +340,19 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
   Widget _buildSelectedPartInfo() {
     final partLabels = {
       'head': ('Testa', null),
-      'neck_cm': ('Collo', '🦒'),
-      'shoulders_cm': ('Spalle', '🏋️'),
-      'chest_cm': ('Petto', '👕'),
-      'bicep_left_cm': ('Bicipite SX', '💪'),
-      'bicep_right_cm': ('Bicipite DX', '💪'),
-      'forearm_left_cm': ('Avambraccio SX', '💪'),
-      'forearm_right_cm': ('Avambraccio DX', '💪'),
-      'waist_cm': ('Vita', '⭕'),
-      'hips_cm': ('Fianchi', '🍑'),
-      'thigh_left_cm': ('Coscia SX', '🦵'),
-      'thigh_right_cm': ('Coscia DX', '🦵'),
-      'calf_left_cm': ('Polpaccio SX', '🦶'),
-      'calf_right_cm': ('Polpaccio DX', '🦶'),
+      'neck_cm': ('Collo', null),
+      'shoulders_cm': ('Spalle', null),
+      'chest_cm': ('Petto', null),
+      'bicep_left_cm': ('Bicipite SX', null),
+      'bicep_right_cm': ('Bicipite DX', null),
+      'forearm_left_cm': ('Avambraccio SX', null),
+      'forearm_right_cm': ('Avambraccio DX', null),
+      'waist_cm': ('Vita', null),
+      'hips_cm': ('Fianchi', null),
+      'thigh_left_cm': ('Coscia SX', null),
+      'thigh_right_cm': ('Coscia DX', null),
+      'calf_left_cm': ('Polpaccio SX', null),
+      'calf_right_cm': ('Polpaccio DX', null),
     };
 
     final partInfo = partLabels[_selectedPart];
@@ -330,9 +373,6 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (partInfo.$2 != null)
-                Text(partInfo.$2!, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 8),
               Text(
                 partInfo.$1,
                 style: GoogleFonts.outfit(
