@@ -379,23 +379,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 end: Alignment.bottomRight,
               ),
             ),
-            child: CircleAvatar(
-              radius: 24,
+          child: Consumer<AuthProvider>(
+            builder: (context, auth, _) => CleanAvatar(
+              size: 48,
+              imageUrl: auth.user?.avatarUrl,
+              initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
               backgroundColor: CleanTheme.surfaceColor,
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : 'A',
-                style: const TextStyle(
-                  color: CleanTheme.textPrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
             ),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;

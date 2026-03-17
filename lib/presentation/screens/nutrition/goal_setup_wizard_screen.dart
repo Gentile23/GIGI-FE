@@ -605,8 +605,8 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
+          const SnackBar(
+            content: Text('Errore durante il calcolo dei fabbisogni'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -651,8 +651,8 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
+          const SnackBar(
+            content: Text('Errore durante il salvataggio degli obiettivi'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

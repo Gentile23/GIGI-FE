@@ -230,8 +230,8 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Errore durante la generazione della ricetta'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

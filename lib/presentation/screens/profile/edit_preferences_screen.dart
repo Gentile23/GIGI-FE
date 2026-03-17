@@ -7,6 +7,8 @@ import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/training_preferences_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/clean_widgets.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../../core/services/haptic_service.dart';
 
 class EditPreferencesScreen extends StatefulWidget {
   final bool showGenerateButton;
@@ -225,8 +227,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore durante il salvataggio. Riprova.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -242,216 +244,641 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
-      appBar: AppBar(
-        title: Text(
-          widget.showGenerateButton
-              ? AppLocalizations.of(context)!.reviewPreferences
-              : AppLocalizations.of(context)!.editPreferences,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        backgroundColor: CleanTheme.surfaceColor,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            if (widget.showGenerateButton) ...[
-              CleanCard(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverToBoxAdapter(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.info_outline,
-                      color: CleanTheme.primaryColor,
+                    if (widget.showGenerateButton) _buildInstructionsCard(),
+                    
+                    _buildGigiHeader(
+                      AppLocalizations.of(context)!.personalInfo,
+                      AppLocalizations.of(context)!.sectionAboutYouSubtitle,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.reviewPreferencesDesc,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: CleanTheme.textSecondary,
-                        ),
-                      ),
+                    _buildPersonalInfoCard(),
+                    const SizedBox(height: 24),
+                    _buildBodyFatSelector(),
+                    
+                    const SizedBox(height: 32),
+                    _buildGigiHeader(
+                      AppLocalizations.of(context)!.trainingGoals,
+                      AppLocalizations.of(context)!.questionGoalSubtitle,
                     ),
+                    _buildGoalsSelector(),
+                    const SizedBox(height: 24),
+                    _buildExperienceLevelSelector(),
+                    const SizedBox(height: 24),
+                    _buildFrequencySlider(),
+
+                    const SizedBox(height: 32),
+                    _buildGigiHeader(
+                      AppLocalizations.of(context)!.trainingLocation,
+                      AppLocalizations.of(context)!.questionLocationSubtitle,
+                    ),
+                    _buildLocationSelector(),
+                    const SizedBox(height: 24),
+                    _buildEquipmentSelector(),
+
+                    const SizedBox(height: 32),
+                    _buildGigiHeader(
+                      AppLocalizations.of(context)!.trainingPreferences,
+                      'Personalizza il tuo stile di allenamento',
+                    ),
+                    _buildSplitSelector(),
+                    const SizedBox(height: 24),
+                    _buildDurationSlider(),
+                    const SizedBox(height: 24),
+                    _buildCardioMobilitySelectors(),
+
+                    const SizedBox(height: 48),
+                    _buildActionButtons(),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Personal Info Section
-            _buildSectionTitle(AppLocalizations.of(context)!.personalInfo),
-            CleanCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildInfoRow(
-                    AppLocalizations.of(context)!.height,
-                    '${_height?.toStringAsFixed(0) ?? '-'} cm',
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 0,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: CleanTheme.surfaceColor,
+      title: Text(
+        widget.showGenerateButton
+            ? AppLocalizations.of(context)!.reviewPreferences
+            : AppLocalizations.of(context)!.fitnessGoals,
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w700,
+          color: CleanTheme.textPrimary,
+        ),
+      ),
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new, color: CleanTheme.textPrimary, size: 20),
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  Widget _buildGigiHeader(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: CleanTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructionsCard() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: LiquidSteelContainer(
+        borderRadius: 20,
+        enableShine: true,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: CleanTheme.textOnDark),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context)!.reviewPreferencesDesc,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: CleanTheme.textOnDark,
+                    fontWeight: FontWeight.w500,
                   ),
-                  _buildInfoRow(
-                    AppLocalizations.of(context)!.weight,
-                    '${_weight?.toStringAsFixed(0) ?? '-'} kg',
-                  ),
-                  _buildInfoRow(
-                    AppLocalizations.of(context)!.age,
-                    '${_age ?? '-'} ${AppLocalizations.of(context)!.years}',
-                  ),
-                  _buildInfoRow(
-                    AppLocalizations.of(context)!.gender,
-                    _getGenderLabel(_gender),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildDropdown<BodyFatPercentage>(
-              label: AppLocalizations.of(context)!.bodyShape,
-              value: _bodyFatPercentage,
-              items: BodyFatPercentage.values,
-              itemLabel: _getBodyFatLabel,
-              onChanged: (value) => setState(() => _bodyFatPercentage = value),
-            ),
-            const SizedBox(height: 24),
-
-            // Training Goals Section
-            _buildSectionTitle(AppLocalizations.of(context)!.trainingGoals),
-            _buildGoalsSelector(), // NEW: Multi-select
-            _buildDropdown<ExperienceLevel>(
-              label: AppLocalizations.of(context)!.experienceLevel,
-              value: _level,
-              items: ExperienceLevel.values,
-              itemLabel: _getLevelLabel,
-              onChanged: (value) => setState(() => _level = value),
-            ),
-            _buildSlider(
-              label: AppLocalizations.of(context)!.weeklyFrequency,
-              value: _weeklyFrequency?.toDouble() ?? 3,
-              min: 1,
-              max: 7,
-              divisions: 6,
-              suffix: AppLocalizations.of(context)!.daysPerWeek,
-              onChanged: (value) =>
-                  setState(() => _weeklyFrequency = value.toInt()),
-            ),
-            const SizedBox(height: 24),
-
-            // Training Location Section
-            _buildSectionTitle(AppLocalizations.of(context)!.trainingLocation),
-            _buildDropdown<TrainingLocation>(
-              label: AppLocalizations.of(context)!.whereDoYouTrain,
-              value: _location,
-              items: TrainingLocation.values,
-              itemLabel: _getLocationLabel,
-              onChanged: (value) => setState(() => _location = value),
-            ),
-            _buildEquipmentSelector(),
-            const SizedBox(height: 24),
-
-            // Training Preferences Section
-            _buildSectionTitle(
-              AppLocalizations.of(context)!.trainingPreferences,
-            ),
-            _buildDropdown<TrainingSplit>(
-              label: AppLocalizations.of(context)!.trainingSplit,
-              value: _trainingSplit,
-              items: TrainingSplit.values,
-              itemLabel: (split) => '${split.icon} ${split.displayName}',
-              onChanged: (value) => setState(() => _trainingSplit = value),
-            ),
-            _buildSlider(
-              label: AppLocalizations.of(context)!.sessionDuration,
-              value: _sessionDuration?.toDouble() ?? 60,
-              min: 30,
-              max: 120,
-              divisions: 9,
-              suffix: AppLocalizations.of(context)!.minutes,
-              onChanged: (value) =>
-                  setState(() => _sessionDuration = value.toInt()),
-            ),
-            _buildDropdown<CardioPreference>(
-              label: AppLocalizations.of(context)!.cardioPreference,
-              value: _cardioPreference,
-              items: CardioPreference.values
-                  .where((p) => p != CardioPreference.separateSession)
-                  .toList(),
-              itemLabel: (pref) => pref.displayName,
-              onChanged: (value) => setState(() => _cardioPreference = value),
-            ),
-            _buildDropdown<MobilityPreference>(
-              label: AppLocalizations.of(context)!.mobilityPreference,
-              value: _mobilityPreference,
-              items: MobilityPreference.values
-                  .where((p) => p != MobilityPreference.dedicatedSession)
-                  .toList(),
-              itemLabel: (pref) => pref.displayName,
-              onChanged: (value) => setState(() => _mobilityPreference = value),
-            ),
-            const SizedBox(height: 32),
-
-            // Action Buttons
-            if (widget.showGenerateButton) ...[
-              CleanButton(
-                text: AppLocalizations.of(context)!.generatePlanWithPrefs,
-                width: double.infinity,
-                onPressed: _isLoading ? null : widget.onGenerate,
-              ),
-              const SizedBox(height: 12),
-              CleanButton(
-                text: AppLocalizations.of(context)!.saveChanges,
-                width: double.infinity,
-                isOutlined: true,
-                onPressed: _isLoading ? null : _savePreferences,
-              ),
-            ] else ...[
-              CleanButton(
-                text: AppLocalizations.of(context)!.savePreferences,
-                width: double.infinity,
-                onPressed: _isLoading ? null : _savePreferences,
+                ),
               ),
             ],
-            const SizedBox(height: 24),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPersonalInfoCard() {
+    return CleanCard(
+      padding: const EdgeInsets.all(0),
+      child: Column(
+        children: [
+          _buildInfoTile(
+            AppLocalizations.of(context)!.height,
+            '${_height?.toStringAsFixed(0) ?? '-'} cm',
+            Icons.height,
+            onTap: () => _showNumberPicker(
+              AppLocalizations.of(context)!.height,
+              _height?.toInt() ?? 170,
+              100,
+              250,
+              'cm',
+              (v) => setState(() => _height = v.toDouble()),
+            ),
+          ),
+          _buildDivider(),
+          _buildInfoTile(
+            AppLocalizations.of(context)!.weight,
+            '${_weight?.toStringAsFixed(0) ?? '-'} kg',
+            Icons.monitor_weight_outlined,
+            onTap: () => _showNumberPicker(
+              AppLocalizations.of(context)!.weight,
+              _weight?.toInt() ?? 70,
+              30,
+              200,
+              'kg',
+              (v) => setState(() => _weight = v.toDouble()),
+            ),
+          ),
+          _buildDivider(),
+          _buildInfoTile(
+            AppLocalizations.of(context)!.age,
+            '${_age ?? '-'} ${AppLocalizations.of(context)!.years}',
+            Icons.cake_outlined,
+            onTap: () => _showNumberPicker(
+              AppLocalizations.of(context)!.age,
+              _age ?? 25,
+              14,
+              100,
+              AppLocalizations.of(context)!.years,
+              (v) => setState(() => _age = v),
+            ),
+          ),
+          _buildDivider(),
+          _buildInfoTile(
+            AppLocalizations.of(context)!.gender,
+            _getGenderLabel(_gender),
+            Icons.person_pin_outlined,
+            onTap: () => _showPrefPicker<Gender>(
+              AppLocalizations.of(context)!.gender,
+              Gender.values,
+              _gender,
+              (v) => setState(() => _gender = v),
+              itemLabel: (g) => _getGenderLabel(g),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile(String label, String value, IconData icon, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: CleanTheme.textSecondary),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 12),
+              const Icon(Icons.chevron_right, size: 18, color: CleanTheme.textTertiary),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildDivider() {
+    return const Divider(
+      height: 1,
+      thickness: 1,
+      color: CleanTheme.borderSecondary,
+      indent: 52,
+    );
+  }
+
+  Widget _buildBodyFatSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.bodyShape,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            runSpacing: 10,
+            children: BodyFatPercentage.values.map((bf) {
+              final isSelected = _bodyFatPercentage == bf;
+              return CleanChip(
+                label: _getBodyFatLabel(bf),
+                isSelected: isSelected,
+                onTap: () {
+                  HapticService.lightTap();
+                  setState(() => _bodyFatPercentage = bf);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExperienceLevelSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.experienceLevel,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: ExperienceLevel.values.map((lvl) {
+              final isSelected = _level == lvl;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SizedBox(
+                  width: 100, // Fixed width for centering
+                  child: CleanCard(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    isSelected: isSelected,
+                    onTap: () {
+                      HapticService.selectionClick();
+                      setState(() => _level = lvl);
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getLevelIcon(lvl),
+                          color: isSelected ? CleanTheme.primaryColor : CleanTheme.textTertiary,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _getLevelLabel(lvl),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getLevelIcon(ExperienceLevel lvl) {
+    switch (lvl) {
+      case ExperienceLevel.beginner: return Icons.spoke_outlined;
+      case ExperienceLevel.intermediate: return Icons.trending_up;
+      case ExperienceLevel.advanced: return Icons.workspace_premium;
+    }
+  }
+
+  Widget _buildFrequencySlider() {
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.weeklyFrequency,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_weeklyFrequency ?? 3} GIORNI',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: CleanTheme.primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 6,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+              activeTrackColor: CleanTheme.primaryColor,
+              inactiveTrackColor: CleanTheme.borderSecondary,
+              thumbColor: CleanTheme.textPrimary,
+              overlayColor: CleanTheme.primaryColor.withValues(alpha: 0.2),
+            ),
+            child: Slider(
+              value: _weeklyFrequency?.toDouble() ?? 3,
+              min: 1,
+              max: 7,
+              divisions: 6,
+              onChanged: (value) {
+                HapticService.lightTap();
+                setState(() => _weeklyFrequency = value.toInt());
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationSelector() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Text(
-        title,
-        style: GoogleFonts.outfit(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: CleanTheme.primaryColor,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: TrainingLocation.values.map((loc) {
+          final isSelected = _location == loc;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: SizedBox(
+              width: 100, // Fixed width for centering
+              child: CleanCard(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                isSelected: isSelected,
+                onTap: () {
+                  HapticService.selectionClick();
+                  setState(() => _location = loc);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getLocationIcon(loc),
+                      size: 28,
+                      color: isSelected ? CleanTheme.primaryColor : CleanTheme.textTertiary,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _getLocationLabel(loc),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  IconData _getLocationIcon(TrainingLocation loc) {
+    switch (loc) {
+      case TrainingLocation.gym: return Icons.fitness_center;
+      case TrainingLocation.home: return Icons.home_filled;
+      case TrainingLocation.outdoor: return Icons.forest;
+    }
+  }
+
+  Widget _buildSplitSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.trainingSplit,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildCustomDropdown<TrainingSplit>(
+          value: _trainingSplit,
+          items: TrainingSplit.values,
+          itemLabel: (split) => split.displayName,
+          iconBuilder: (split) => split.icon,
+          onChanged: (value) => setState(() => _trainingSplit = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomDropdown<T>({
+    required T? value,
+    required List<T> items,
+    required String Function(T) itemLabel,
+    required String Function(T) iconBuilder,
+    required void Function(T?) onChanged,
+  }) {
+    return CleanCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<T>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: CleanTheme.textSecondary),
+          dropdownColor: CleanTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          items: items.map((item) {
+            return DropdownMenuItem<T>(
+              value: item,
+              child: Row(
+                children: [
+                  Text(iconBuilder(item), style: const TextStyle(fontSize: 18)),
+                  const SizedBox(width: 12),
+                  Text(
+                    itemLabel(item),
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: CleanTheme.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            HapticService.selectionClick();
+            onChanged(val);
+          },
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildDurationSlider() {
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: CleanTheme.textSecondary,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.sessionDuration,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+              Text(
+                '${_sessionDuration ?? 60} MIN',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 6,
+              activeTrackColor: CleanTheme.primaryColor,
+              inactiveTrackColor: CleanTheme.borderSecondary,
+              thumbColor: CleanTheme.textPrimary,
+            ),
+            child: Slider(
+              value: _sessionDuration?.toDouble() ?? 60,
+              min: 30,
+              max: 120,
+              divisions: 9,
+              onChanged: (value) {
+                HapticService.lightTap();
+                setState(() => _sessionDuration = value.toInt());
+              },
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardioMobilitySelectors() {
+    return Column(
+      children: [
+        _buildPrefRow(
+          AppLocalizations.of(context)!.cardioPreference,
+          _cardioPreference?.displayName ?? '-',
+          Icons.directions_run,
+          () => _showPrefPicker<CardioPreference>(
+            AppLocalizations.of(context)!.cardioPreference,
+            CardioPreference.values.where((p) => p != CardioPreference.separateSession).toList(),
+            _cardioPreference,
+            (v) => setState(() => _cardioPreference = v),
+            itemLabel: (p) => p.displayName,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildPrefRow(
+          AppLocalizations.of(context)!.mobilityPreference,
+          _mobilityPreference?.displayName ?? '-',
+          Icons.accessibility_new,
+          () => _showPrefPicker<MobilityPreference>(
+            AppLocalizations.of(context)!.mobilityPreference,
+            MobilityPreference.values.where((p) => p != MobilityPreference.dedicatedSession).toList(),
+            _mobilityPreference,
+            (v) => setState(() => _mobilityPreference = v),
+            itemLabel: (p) => p.displayName,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrefRow(String label, String value, IconData icon, VoidCallback onTap) {
+    return CleanCard(
+      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, color: CleanTheme.textSecondary, size: 20),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: GoogleFonts.inter(fontSize: 15, color: CleanTheme.textSecondary),
+          ),
+          const Spacer(),
           Text(
             value,
             style: GoogleFonts.inter(
@@ -460,221 +887,230 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
               color: CleanTheme.textPrimary,
             ),
           ),
+          const SizedBox(width: 8),
+          const Icon(Icons.keyboard_arrow_down, size: 18, color: CleanTheme.textTertiary),
         ],
       ),
     );
   }
 
-  Widget _buildDropdown<T>({
-    required String label,
-    required T? value,
-    required List<T> items,
-    required String Function(T) itemLabel,
-    required void Function(T?) onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: DropdownButtonFormField<T>(
-        key: ValueKey(value),
-        initialValue: value,
-        style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
-          filled: true,
-          fillColor: CleanTheme.surfaceColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: CleanTheme.primaryColor,
-              width: 2,
-            ),
-          ),
-        ),
-        dropdownColor: CleanTheme.surfaceColor,
-        items: items
-            .map(
-              (item) =>
-                  DropdownMenuItem(value: item, child: Text(itemLabel(item))),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildSlider({
-    required String label,
-    required double value,
-    required double min,
-    required double max,
-    required int divisions,
-    required String suffix,
-    required void Function(double) onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  void _showNumberPicker(
+    String title,
+    int initialValue,
+    int min,
+    int max,
+    String unit,
+    Function(int) onPick,
+  ) {
+    int currentValue = initialValue;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CleanTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: CleanTheme.textSecondary,
+                title,
+                style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                '$currentValue $unit',
+                style: GoogleFonts.outfit(fontSize: 48, fontWeight: FontWeight.w800, color: CleanTheme.primaryColor),
+              ),
+              const SizedBox(height: 24),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: CleanTheme.primaryColor,
+                  inactiveTrackColor: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  thumbColor: CleanTheme.primaryColor,
+                  overlayColor: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                ),
+                child: Slider(
+                  value: currentValue.toDouble(),
+                  min: min.toDouble(),
+                  max: max.toDouble(),
+                  divisions: max - min,
+                  onChanged: (value) {
+                    HapticService.selectionClick();
+                    setModalState(() => currentValue = value.toInt());
+                  },
                 ),
               ),
-              Text(
-                '${value.toInt()} $suffix',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.primaryColor,
-                ),
+              const SizedBox(height: 32),
+              CleanButton(
+                text: 'Conferma',
+                width: double.infinity,
+                onPressed: () {
+                  onPick(currentValue);
+                  Navigator.pop(context);
+                },
               ),
             ],
           ),
-          Slider(
-            value: value,
-            min: min,
-            max: max,
-            divisions: divisions,
-            activeColor: CleanTheme.primaryColor,
-            inactiveColor: CleanTheme.borderSecondary,
-            onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  void _showPrefPicker<T>(
+    String title,
+    List<T> items,
+    T? current,
+    Function(T) onPick, {
+    required String Function(T) itemLabel,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: CleanTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+            ),
+            const SizedBox(height: 24),
+            ...items.map((item) {
+              final label = itemLabel(item);
+              final isSelected = item == current;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: CleanCard(
+                  padding: const EdgeInsets.all(20),
+                  isSelected: isSelected,
+                  onTap: () {
+                    HapticService.selectionClick();
+                    onPick(item);
+                    Navigator.pop(context);
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        label,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (isSelected) const Icon(Icons.check_circle, color: CleanTheme.primaryColor),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        if (widget.showGenerateButton) ...[
+          CleanButton(
+            text: AppLocalizations.of(context)!.generatePlanWithPrefs,
+            width: double.infinity,
+            onPressed: _isLoading ? null : widget.onGenerate,
+          ),
+          const SizedBox(height: 12),
+          CleanButton(
+            text: AppLocalizations.of(context)!.saveChanges,
+            width: double.infinity,
+            isOutlined: true,
+            onPressed: _isLoading ? null : _savePreferences,
+          ),
+        ] else ...[
+          CleanButton(
+            text: AppLocalizations.of(context)!.savePreferences,
+            width: double.infinity,
+            onPressed: _isLoading ? null : _savePreferences,
           ),
         ],
-      ),
+      ],
     );
   }
 
   Widget _buildGoalsSelector() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.goal,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((
-              goal,
-            ) {
-              final isSelected = _goals.contains(goal);
-              return FilterChip(
-                label: Text(
-                  _getGoalLabel(goal),
-                  style: GoogleFonts.inter(
-                    color: isSelected
-                        ? CleanTheme.textOnDark
-                        : CleanTheme.textPrimary,
-                  ),
-                ),
-                selected: isSelected,
-                selectedColor: CleanTheme.primaryColor,
-                checkmarkColor: CleanTheme.textOnDark,
-                backgroundColor: CleanTheme.surfaceColor,
-                side: BorderSide(
-                  color: isSelected
-                      ? CleanTheme.primaryColor
-                      : CleanTheme.borderPrimary,
-                ),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      // Exclusive logic if needed (e.g. WeightLoss vs MuscleGain)
-                      // For now, mirroring unified_questionnaire logic if desired,
-                      // or allowing full multi-select.
-                      // UnifiedQuestionnaire enforces some exclusivity:
-                      if (goal == FitnessGoal.weightLoss) {
-                        _goals.remove(FitnessGoal.muscleGain);
-                      } else if (goal == FitnessGoal.muscleGain) {
-                        _goals.remove(FitnessGoal.weightLoss);
-                      }
-                      _goals.add(goal);
-                    } else {
-                      _goals.remove(goal);
-                    }
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ],
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((goal) {
+          final isSelected = _goals.contains(goal);
+          return CleanChip(
+            label: _getGoalLabel(goal),
+            isSelected: isSelected,
+            onTap: () {
+              HapticService.selectionClick();
+              setState(() {
+                if (isSelected) {
+                  _goals.remove(goal);
+                } else {
+                  if (goal == FitnessGoal.weightLoss) {
+                    _goals.remove(FitnessGoal.muscleGain);
+                  } else if (goal == FitnessGoal.muscleGain) {
+                    _goals.remove(FitnessGoal.weightLoss);
+                  }
+                  _goals.add(goal);
+                }
+              });
+            },
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildEquipmentSelector() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context)!.availableEquipment,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: CleanTheme.textSecondary,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.availableEquipment,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textSecondary,
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: Equipment.values.map((eq) {
-              final isSelected = _equipment.contains(eq);
-              return FilterChip(
-                label: Text(
-                  _getEquipmentLabel(eq),
-                  style: GoogleFonts.inter(
-                    color: isSelected
-                        ? CleanTheme.textOnDark
-                        : CleanTheme.textPrimary,
-                  ),
-                ),
-                selected: isSelected,
-                selectedColor: CleanTheme.primaryColor,
-                checkmarkColor: CleanTheme.textOnDark,
-                backgroundColor: CleanTheme.surfaceColor,
-                side: BorderSide(
-                  color: isSelected
-                      ? CleanTheme.primaryColor
-                      : CleanTheme.borderPrimary,
-                ),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _equipment.add(eq);
-                    } else {
-                      _equipment.remove(eq);
-                    }
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: Equipment.values.map((eq) {
+            final isSelected = _equipment.contains(eq);
+            return CleanChip(
+              label: _getEquipmentLabel(eq),
+              isSelected: isSelected,
+              onTap: () {
+                HapticService.selectionClick();
+                setState(() {
+                  if (isSelected) {
+                    _equipment.remove(eq);
+                  } else {
+                    _equipment.add(eq);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

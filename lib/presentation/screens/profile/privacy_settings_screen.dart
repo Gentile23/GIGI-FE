@@ -357,7 +357,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     setState(() => _isExporting = true);
 
     try {
-      final response = await _apiClient.get('/gdpr/export');
+      final response = await _apiClient.get('gdpr/export');
 
       if (response['success'] == true) {
         if (mounted) {
@@ -379,8 +379,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore durante l\'esportazione: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore durante l\'esportazione dei dati. Riprova.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -468,7 +468,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     setState(() => _isDeleting = true);
 
     try {
-      final response = await _apiClient.delete('/gdpr/account');
+      final response = await _apiClient.delete('gdpr/account');
 
       if (response['success'] == true) {
         if (!mounted) return;
@@ -488,8 +488,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore durante l\'eliminazione: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore durante l\'eliminazione dell\'account. Riprova.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

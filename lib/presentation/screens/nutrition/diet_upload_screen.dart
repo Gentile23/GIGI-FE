@@ -59,8 +59,8 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(provider.error ?? 'Upload failed'),
+              const SnackBar(
+                content: Text('Errore durante l\'upload della dieta'),
                 backgroundColor: CleanTheme.accentRed,
               ),
             );
@@ -70,8 +70,8 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
+          const SnackBar(
+            content: Text('Si è verificato un errore durante l\'upload'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

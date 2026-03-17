@@ -103,7 +103,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Register Error: $e');
       _isLoading = false;
-      _error = 'Si è verificato un errore inatteso: $e';
+      _error = 'Impossibile completare la registrazione. Riprova più tardi.';
       notifyListeners();
       return false;
     }
@@ -131,7 +131,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Login Error: $e');
       _isLoading = false;
-      _error = 'Si è verificato un errore inatteso: $e';
+      _error = 'Impossibile effettuare l\'accesso. Controlla la tua connessione.';
       notifyListeners();
       return false;
     }
@@ -161,7 +161,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Google Sign In Error: $e');
       _isLoading = false;
-      _error = 'Errore durante l\'accesso con Google: $e';
+      _error = 'Accesso con Google non riuscito.';
       notifyListeners();
       return false;
     }
@@ -182,7 +182,7 @@ class AuthProvider with ChangeNotifier {
         provider: 'google',
         token: googleUser.id,
         email: googleUser.email,
-        name: googleUser.displayName,
+        name: googleUser.displayName ?? '',
       );
       debugPrint('AuthService result: $result');
 
@@ -203,7 +203,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Handle Google Auth Error: $e');
       _isLoading = false;
-      _error = 'Errore durante l\'accesso con Google: $e';
+      _error = 'Errore durante l\'autenticazione con Google.';
       notifyListeners();
     }
   }
@@ -263,7 +263,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Apple Sign In Error: $e');
       _isLoading = false;
-      _error = 'Errore durante l\'accesso con Apple: $e';
+      _error = 'Accesso con Apple non riuscito.';
       notifyListeners();
       return false;
     }
@@ -299,6 +299,8 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> updateProfile({
+    String? name,
+    String? email,
     String? gender,
     int? age,
     double? height,
@@ -339,6 +341,8 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final result = await _userService.updateProfile(
+        name: name,
+        email: email,
         gender: gender,
         age: age,
         height: height,
@@ -374,7 +378,22 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        _user = result['user'];
+        final newUser = result['user'] as UserModel;
+        
+        // Preserve avatar cache-busting timestamp if path is identical
+        if (_user != null && _user!.avatarUrl != null && newUser.avatarUrl != null) {
+          final oldUrl = _user!.avatarUrl!;
+          final newUrl = newUser.avatarUrl!;
+          
+          if (oldUrl.contains('?') && oldUrl.split('?').first == newUrl.split('?').first) {
+            _user = newUser.copyWith(avatarUrl: oldUrl);
+          } else {
+            _user = newUser;
+          }
+        } else {
+          _user = newUser;
+        }
+        
         notifyListeners();
         return true;
       } else {
@@ -403,9 +422,18 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        // Update user with new avatar URL
+        // Update user with new avatar URL, appending a timestamp to force refresh
         if (_user != null) {
-          _user = _user!.copyWith(avatarUrl: result['avatar_url']);
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final avatarUrl = result['avatar_url'];
+          
+          if (avatarUrl != null && avatarUrl.toString().isNotEmpty) {
+            final separator = avatarUrl.contains('?') ? '&' : '?';
+            _user = _user!.copyWith(avatarUrl: '$avatarUrl${separator}t=$timestamp');
+          } else {
+            // Re-fetch user to get the updated avatar URL from backend
+            await fetchUser();
+          }
         }
         notifyListeners();
         return true;

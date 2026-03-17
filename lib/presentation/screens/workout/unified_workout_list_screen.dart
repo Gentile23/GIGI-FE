@@ -826,7 +826,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: $e'),
+            content: const Text('Si è verificato un errore.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

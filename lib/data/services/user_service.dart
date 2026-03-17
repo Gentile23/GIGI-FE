@@ -18,16 +18,18 @@ class UserService {
         return {'success': true, 'user': UserModel.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Failed to fetch user'};
+      return {'success': false, 'message': 'Impossibile recuperare i dati utente'};
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Failed to fetch user',
+        'message': e.response?.data['message'] ?? 'Errore di connessione al profilo',
       };
     }
   }
 
   Future<Map<String, dynamic>> updateProfile({
+    String? name,
+    String? email,
     String? gender,
     int? age,
     double? height,
@@ -62,6 +64,8 @@ class UserService {
     try {
       final data = <String, dynamic>{};
 
+      if (name != null) data['name'] = name;
+      if (email != null) data['email'] = email;
       if (gender != null) data['gender'] = gender;
       // Convert age to date_of_birth for backend compatibility
       if (age != null) {
@@ -128,11 +132,11 @@ class UserService {
         return {'success': true, 'user': UserModel.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Failed to update profile'};
+      return {'success': false, 'message': 'Aggiornamento del profilo non riuscito'};
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Failed to update profile',
+        'message': e.response?.data['message'] ?? 'Errore durante l\'aggiornamento dei dati',
       };
     }
   }
@@ -165,11 +169,11 @@ class UserService {
         return {'success': true, 'avatar_url': response.data['avatar_url']};
       }
 
-      return {'success': false, 'message': 'Failed to upload avatar'};
+      return {'success': false, 'message': 'Caricamento immagine non riuscito'};
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Failed to upload avatar',
+        'message': e.response?.data['message'] ?? 'Errore durante il caricamento della foto',
       };
     }
   }

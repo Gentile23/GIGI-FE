@@ -55,8 +55,8 @@ class ExerciseService {
       return {
         'success': false,
         'message': e is DioException
-            ? (e.response?.data['message'] ?? 'Failed to fetch exercises')
-            : 'Error parsing exercises data: $e',
+            ? (e.response?.data['message'] ?? 'Errore durante il recupero degli esercizi')
+            : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
   }
@@ -72,13 +72,13 @@ class ExerciseService {
         return {'success': true, 'exercise': Exercise.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Failed to fetch exercise'};
+      return {'success': false, 'message': 'Impossibile recuperare l\'esercizio'};
     } catch (e) {
       return {
         'success': false,
         'message': e is DioException
-            ? (e.response?.data['message'] ?? 'Failed to fetch exercise')
-            : 'Error parsing exercise data',
+            ? (e.response?.data['message'] ?? 'Errore durante il recupero dell\'esercizio')
+            : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
   }
@@ -97,14 +97,14 @@ class ExerciseService {
         return {'success': true, 'exercises': exercises};
       }
 
-      return {'success': false, 'message': 'Failed to fetch similar exercises'};
+      return {'success': false, 'message': 'Impossibile recuperare esercizi simili'};
     } catch (e) {
       return {
         'success': false,
         'message': e is DioException
             ? (e.response?.data['message'] ??
-                  'Failed to fetch similar exercises')
-            : 'Error parsing similar exercises',
+                  'Errore durante il recupero esercizi simili')
+            : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
   }
@@ -136,15 +136,15 @@ class ExerciseService {
 
       return {
         'success': false,
-        'message': 'Failed to fetch alternative exercises',
+        'message': 'Impossibile recuperare esercizi alternativi',
       };
     } catch (e) {
       return {
         'success': false,
         'message': e is DioException
             ? (e.response?.data['message'] ??
-                  'Failed to fetch alternative exercises')
-            : 'Error parsing alternative exercises',
+                  'Errore durante il recupero esercizi alternativi')
+            : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
   }

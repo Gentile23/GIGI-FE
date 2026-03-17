@@ -84,9 +84,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Si è verificato un errore. Riprova.')),
+        );
       }
     }
   }

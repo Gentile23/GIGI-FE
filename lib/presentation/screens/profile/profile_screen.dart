@@ -8,18 +8,14 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/gamification_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
 import '../paywall/paywall_screen.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../providers/engagement_provider.dart';
-import '../challenges/challenges_screen.dart';
 import '../referral/referral_screen.dart';
 import '../progress/transformation_tracker_screen.dart';
-import '../leaderboard/leaderboard_screen.dart';
-import '../gamification/gamification_screen.dart';
 import '../settings/health_settings_screen.dart';
 import 'edit_preferences_screen.dart';
 import 'privacy_settings_screen.dart';
@@ -112,6 +108,10 @@ class ProfileScreen extends StatelessWidget {
 
                               if (context.mounted) {
                                 if (success) {
+                                  // Clear image cache to ensure new avatar loads
+                                  PaintingBinding.instance.imageCache.clear();
+                                  PaintingBinding.instance.imageCache.clearLiveImages();
+                                  
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -230,178 +230,6 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 24),
 
           // ═══════════════════════════════════════════
-          // REWARDS & LEVEL SECTION
-          // ═══════════════════════════════════════════
-          CleanSectionHeader(
-            title: AppLocalizations.of(context)!.levelAndRewards,
-            actionText: AppLocalizations.of(context)!.seeAll,
-            onAction: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GamificationScreen(),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-
-          Consumer<GamificationProvider>(
-            builder: (context, gamificationProvider, _) {
-              final stats = gamificationProvider.stats;
-              final xp = stats?.totalXp ?? 0;
-              final level = (xp / 1000).floor() + 1;
-              final xpForNextLevel = (level * 1000) - xp;
-              final achievementsCount =
-                  gamificationProvider.unlockedAchievements.length;
-
-              return Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      CleanTheme.primaryColor.withValues(alpha: 0.15),
-                      CleanTheme.primaryLight,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    // Level header
-                    Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                CleanTheme.primaryColor,
-                                CleanTheme.primaryLight,
-                              ],
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: CleanTheme.primaryColor.withValues(
-                                  alpha: 0.4,
-                                ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              '$level',
-                              style: GoogleFonts.outfit(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: CleanTheme.textOnDark,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Livello $level',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: CleanTheme.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                '$xpForNextLevel ${AppLocalizations.of(context)!.xpForNextLevel}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: CleanTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.accentGreen.withValues(
-                              alpha: 0.2,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                color: CleanTheme.accentGreen,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$xp',
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.bold,
-                                  color: CleanTheme.accentGreen,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // XP Progress bar
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: ((xp % 1000) / 1000).clamp(0.0, 1.0),
-                        backgroundColor: CleanTheme.borderSecondary,
-                        valueColor: AlwaysStoppedAnimation(
-                          CleanTheme.primaryColor,
-                        ),
-                        minHeight: 10,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Stats row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildRewardStat('🏆', '$achievementsCount', 'Badge'),
-                        _buildRewardStat(
-                          '🔥',
-                          '${stats?.currentStreak ?? 0}',
-                          'Streak',
-                        ),
-                        _buildRewardStat(
-                          '💪',
-                          '${stats?.totalWorkouts ?? 0}',
-                          'Workout',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 24),
-
-          // ═══════════════════════════════════════════
           // NEW: Quick Actions Section
           // ═══════════════════════════════════════════
           CleanSectionHeader(title: AppLocalizations.of(context)!.features),
@@ -411,36 +239,6 @@ class ProfileScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                _buildSettingsTile(
-                  icon: Icons.emoji_events_outlined,
-                  title: AppLocalizations.of(context)!.challenges,
-                  subtitle: AppLocalizations.of(context)!.challengesSubtitle,
-                  color: CleanTheme.accentOrange,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ChallengesScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.leaderboard_outlined,
-                  title: AppLocalizations.of(context)!.leaderboard,
-                  subtitle: AppLocalizations.of(context)!.leaderboardSubtitle,
-                  color: CleanTheme.accentBlue,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LeaderboardScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.card_giftcard_outlined,
                   title: AppLocalizations.of(context)!.inviteFriends,
@@ -930,7 +728,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSocialProof(BuildContext context) {
     // Semi-dynamic social proof (mocked for demo effectiveness)
-    final userCount = 10 + (DateTime.now().minute % 20);
+    final userCount = 3100 + (DateTime.now().minute * 5) + (DateTime.now().second % 10);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1084,35 +882,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRewardStat(String emoji, String value, String label) {
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 18)),
-            const SizedBox(width: 6),
-            Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -1172,8 +941,8 @@ class ProfileScreen extends StatelessWidget {
                 if (context.mounted) {
                   navigator.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Errore durante il logout: $e'),
+                    const SnackBar(
+                      content: Text('Si è verificato un errore durante il logout.'),
                       backgroundColor: CleanTheme.accentRed,
                     ),
                   );
@@ -1254,6 +1023,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
 
       if (success) {
+        // Clear image cache to ensure new avatar loads
+        PaintingBinding.instance.imageCache.clear();
+        PaintingBinding.instance.imageCache.clearLiveImages();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess),
@@ -1471,6 +1244,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       try {
         final success = await authProvider.updateProfile(
+          name: _nameController.text.trim(),
+          email: _emailController.text.trim(),
           height: double.tryParse(_heightController.text),
           weight: double.tryParse(_weightController.text),
         );
@@ -1503,8 +1278,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (!mounted) return;
         Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore durante il salvataggio del profilo.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

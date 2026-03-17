@@ -244,7 +244,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ).showSnackBar(const SnackBar(content: Text('Errore durante l\'analisi dell\'immagine')));
       }
     }
   }
@@ -321,7 +321,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Errore: $e')));
+        ).showSnackBar(const SnackBar(content: Text('Errore durante il salvataggio del pasto')));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

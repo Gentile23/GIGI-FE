@@ -109,6 +109,18 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
 
   /// Maps a SINGLE group to its SVG elements
   List<String> _mapMuscleGroupToElements(String group) {
+    // Check for side suffixes
+    String suffix = '';
+    String normalizedGroup = group.toUpperCase().trim();
+    
+    if (normalizedGroup.endsWith('_LEFT')) {
+      suffix = '_LEFT';
+      normalizedGroup = normalizedGroup.substring(0, normalizedGroup.length - 5);
+    } else if (normalizedGroup.endsWith('_RIGHT')) {
+      suffix = '_RIGHT';
+      normalizedGroup = normalizedGroup.substring(0, normalizedGroup.length - 6);
+    }
+
     // Strict mapping using the defined constants
     // This allows us to support the "Fixed Names" requested by the user
     // while maintaining some backward compatibility with common variations if needed.
@@ -189,21 +201,24 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       'burpee': ['CHEST', 'QUADRICEPS', 'SHOULDERS', 'ABDOMINALS'],
     };
 
-    final normalizedGroup = group.toLowerCase().trim();
+    final query = normalizedGroup.toLowerCase();
+    List<String> results = [];
 
     // 1. Try Exact Match
-    if (muscleMap.containsKey(normalizedGroup)) {
-      return muscleMap[normalizedGroup]!;
-    }
-
-    // 2. Partial match fallback
-    for (final key in muscleMap.keys) {
-      if (normalizedGroup.contains(key)) {
-        return muscleMap[key]!;
+    if (muscleMap.containsKey(query)) {
+      results = muscleMap[query]!;
+    } else {
+      // 2. Partial match fallback
+      for (final key in muscleMap.keys) {
+        if (query.contains(key)) {
+          results = muscleMap[key]!;
+          break;
+        }
       }
     }
 
-    return [];
+    if (suffix.isEmpty) return results;
+    return results.map((e) => e + suffix).toList();
   }
 
   /// Modifies XML document to highlight specific muscle groups with specific colors
@@ -213,6 +228,7 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   ) {
     // Find all elements with data-elem attribute
     final allElements = document.findAllElements('*');
+    const double svgCenter = 535 / 2; // Fixed width of body.svg is 535
 
     for (final element in allElements) {
       final dataElem = element.getAttribute('data-elem');
@@ -224,13 +240,54 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
         element.setAttribute('stroke-width', '1');
         element.setAttribute('opacity', '1');
 
-        // Then, if this muscle should be highlighted, apply the highlight color
-        if (elementColors.containsKey(dataElem)) {
-          final color = elementColors[dataElem]!;
-          final hex = '#${color.toARGB32().toRadixString(16).substring(2, 8)}';
+        // Determine the side of the path based on its coordinates
+        final pathData = element.getAttribute('d') ?? '';
+        bool isLeft = false;
+        bool isRight = false;
+        
+        // Heuristic: determine side based on view (Front/Back) and midline
+        final match = RegExp(r'[Mm]\s+([\d.]+)').firstMatch(pathData);
+        if (match != null) {
+          final x = double.tryParse(match.group(1)!) ?? svgCenter;
+          
+          if (x < svgCenter) {
+            // Front View: 
+            // Viewer Left (x > frontMidline) is Anatomical Right
+            // Viewer Right (x < frontMidline) is Anatomical Left
+            const double frontMidline = 115.0;
+            if (x < frontMidline - 5) {
+              isLeft = true;
+            } else if (x > frontMidline + 5) {
+              isRight = true;
+            }
+          } else {
+            // Back View:
+            // Viewer Left (x < backMidline) is Anatomical Left
+            // Viewer Right (x > backMidline) is Anatomical Right
+            const double backMidline = 411.0;
+            if (x < backMidline - 5) {
+              isLeft = true;
+            } else if (x > backMidline + 5) {
+              isRight = true;
+            }
+          }
+        }
+
+        // Selection logic for colors
+        Color? selectedColor;
+        
+        if (isLeft && elementColors.containsKey('${dataElem}_LEFT')) {
+          selectedColor = elementColors['${dataElem}_LEFT'];
+        } else if (isRight && elementColors.containsKey('${dataElem}_RIGHT')) {
+          selectedColor = elementColors['${dataElem}_RIGHT'];
+        } else if (elementColors.containsKey(dataElem)) {
+          selectedColor = elementColors[dataElem];
+        }
+
+        if (selectedColor != null) {
+          final hex = '#${selectedColor.toARGB32().toRadixString(16).substring(2, 8)}';
           element.setAttribute('fill', hex);
-          // Use the actual color opacity instead of a hardcoded value
-          element.setAttribute('opacity', color.a.toString());
+          element.setAttribute('opacity', selectedColor.a.toString());
         }
       }
     }

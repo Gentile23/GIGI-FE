@@ -84,8 +84,8 @@ class _ManualGoalEntryScreenState extends State<ManualGoalEntryScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Errore durante il salvataggio degli obiettivi'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -133,7 +133,7 @@ class _ManualGoalEntryScreenState extends State<ManualGoalEntryScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e'), backgroundColor: CleanTheme.accentRed),
+          const SnackBar(content: Text('Errore durante l\'eliminazione degli obiettivi'), backgroundColor: CleanTheme.accentRed),
         );
       }
     }

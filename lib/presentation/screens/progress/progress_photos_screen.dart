@@ -504,8 +504,8 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -573,8 +573,8 @@ class _ProgressPhotosScreenState extends State<ProgressPhotosScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

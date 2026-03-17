@@ -389,8 +389,8 @@ class PreferencesReviewScreen extends StatelessWidget {
         Navigator.pop(context);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Si è verificato un errore.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

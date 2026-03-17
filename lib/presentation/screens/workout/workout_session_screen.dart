@@ -349,9 +349,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       try {
         await provider.startWorkout(workoutDayId: widget.workoutDay.id);
         if (provider.currentWorkoutLog != null) {
-          debugPrint(
-            'DEBUG: Workout log created with ID: ${provider.currentWorkoutLog!.id}',
-          );
           if (mounted) {
             setState(() {
               _sessionRegistered = true;
@@ -361,9 +358,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           return; // Success
         }
       } catch (e) {
-        debugPrint(
-          'DEBUG: Error starting workout session (attempt $attempt): $e',
-        );
+        debugPrint('Session registration failed (attempt $attempt)');
       }
       // Exponential backoff
       if (attempt < 3 && mounted) {
@@ -376,9 +371,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       setState(() {
         _registrationInProgress = false;
       });
-      debugPrint(
-        'DEBUG: Session registration failed after 3 attempts — starting background retry',
-      );
       _startRegistrationRetryLoop();
     }
   }
@@ -400,9 +392,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         );
         await provider.startWorkout(workoutDayId: widget.workoutDay.id);
         if (provider.currentWorkoutLog != null) {
-          debugPrint(
-            'DEBUG: Background retry succeeded! Log ID: ${provider.currentWorkoutLog!.id}',
-          );
           if (mounted) {
             setState(() {
               _sessionRegistered = true;
@@ -411,7 +400,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           timer.cancel();
         }
       } catch (e) {
-        debugPrint('DEBUG: Background retry failed: $e');
+        // Silent background fail
       }
     });
   }
@@ -2248,7 +2237,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     // ignore: use_build_context_synchronously
-                    content: Text(AppLocalizations.of(context)!.saveError(e)),
+                    content: Text(AppLocalizations.of(context)!.saveErrorGeneric),
                     backgroundColor: CleanTheme.accentRed,
                   ),
                 );
@@ -2340,7 +2329,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       Navigator.pop(context); // Pop loading
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Errore salvataggio valutazione: $e"),
+          content: const Text("Si è verificato un errore durante il salvataggio della valutazione."),
           backgroundColor: CleanTheme.accentRed,
         ),
       );

@@ -550,7 +550,7 @@ class _UnifiedQuestionnaireScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${AppLocalizations.of(context)!.unexpectedError}: $e',
+              AppLocalizations.of(context)!.unexpectedError,
             ),
             backgroundColor: CleanTheme.accentRed,
           ),

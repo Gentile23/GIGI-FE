@@ -11,7 +11,7 @@ class QuotaService {
   /// Ottiene lo stato completo delle quote utente
   Future<QuotaStatus> getQuotaStatus() async {
     try {
-      final response = await _apiClient.get('/quota/status');
+      final response = await _apiClient.get('quota/status');
 
       if (response['success'] == true) {
         return QuotaStatus.fromJson(response);

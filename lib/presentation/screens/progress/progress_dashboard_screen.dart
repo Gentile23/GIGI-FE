@@ -7,7 +7,10 @@ import '../../../core/services/haptic_service.dart';
 import '../../widgets/progress/interactive_body_silhouette.dart';
 import '../../../data/services/api_client.dart';
 import 'body_measurements_screen.dart';
+import '../../widgets/progress/body_part_detail_sheet.dart';
 
+import 'package:provider/provider.dart';
+import '../../../providers/gamification_provider.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
@@ -26,12 +29,6 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   // Data
   Map<String, dynamic>? _latestMeasurements;
   Map<String, dynamic>? _changes;
-
-  // Workout History Stats
-  int _totalWorkouts = 0;
-  int _totalSeries = 0;
-  int _totalCalories = 0;
-  Duration _totalWorkoutTime = Duration.zero;
 
   @override
   void initState() {
@@ -61,8 +58,8 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           _isLoading = false;
         });
 
-        // Load workout history stats
-        _loadWorkoutStats();
+        // Load workout history stats from provider
+        Provider.of<GamificationProvider>(context, listen: false).loadStats();
       }
     } catch (e) {
       if (mounted) {
@@ -75,122 +72,125 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
 
 
 
-  Future<void> _loadWorkoutStats() async {
-    try {
-      final response = await _apiClient.dio.get('/workout-logs');
-      if (response.statusCode == 200 && mounted) {
-        final logs = response.data['logs'] as List<dynamic>? ?? [];
-        int totalWorkouts = logs.length;
-        int totalSeries = 0;
-        int totalCalories = 0;
-        int totalMinutes = 0;
-
-        for (final log in logs) {
-          final logData = log as Map<String, dynamic>;
-          totalSeries += (logData['total_sets'] as int?) ?? 0;
-          totalCalories += (logData['calories_burned'] as int?) ?? 0;
-          totalMinutes += (logData['duration_minutes'] as int?) ?? 0;
-        }
-
-        setState(() {
-          _totalWorkouts = totalWorkouts;
-          _totalSeries = totalSeries;
-          _totalCalories = totalCalories;
-          _totalWorkoutTime = Duration(minutes: totalMinutes);
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading workout stats: $e');
-    }
-  }
 
   Widget _buildWorkoutStatsSection() {
-    final hours = _totalWorkoutTime.inHours;
-    final minutes = _totalWorkoutTime.inMinutes.remainder(60);
+    return Consumer<GamificationProvider>(
+      builder: (context, provider, _) {
+        final stats = provider.stats;
+        final totalWorkouts = stats?.totalWorkouts ?? 0;
+        final totalSets = stats?.totalSetsCompleted ?? 0;
+        final totalMinutes = stats?.totalMinutesTrained ?? 0;
+        final totalWeight = stats?.totalWeightLifted ?? 0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.progressStatsTitle,
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: CleanTheme.textPrimary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        CleanCard(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Row(
+        final hours = totalMinutes ~/ 60;
+        final mins = totalMinutes % 60;
+        final timeStr = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.progressStatsTitle,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            CleanCard(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                 children: [
-                  Expanded(
-                    child: _buildWorkoutStatItem(
-                      '$_totalWorkouts',
-                      AppLocalizations.of(context)!.progressWorkouts,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildWorkoutStatItem(
+                          '$totalWorkouts',
+                          AppLocalizations.of(context)!.progressWorkouts,
+                          Icons.fitness_center_outlined,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildWorkoutStatItem(
+                          '$totalSets',
+                          AppLocalizations.of(context)!.progressTotalSets,
+                          Icons.layers_outlined,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: _buildWorkoutStatItem(
-                      '$_totalSeries',
-                      AppLocalizations.of(context)!.progressTotalSets,
-                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildWorkoutStatItem(
+                          '${totalWeight.toStringAsFixed(0)}kg',
+                          'Peso Totale',
+                          Icons.monitor_weight_outlined,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildWorkoutStatItem(
+                          timeStr,
+                          AppLocalizations.of(context)!.progressTotalTime,
+                          Icons.timer_outlined,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildWorkoutStatItem(
-                      '$_totalCalories',
-                      AppLocalizations.of(context)!.progressCalories,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildWorkoutStatItem(
-                      hours > 0 ? '${hours}h ${minutes}m' : '${minutes}m',
-                      AppLocalizations.of(context)!.progressTotalTime,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildWorkoutStatItem(
     String value,
     String label,
+    IconData icon,
   ) {
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: CleanTheme.primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
+        color: CleanTheme.primaryColor.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CleanTheme.borderSecondary.withValues(alpha: 0.5)),
       ),
       child: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: CleanTheme.primaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 16,
+              color: CleanTheme.textOnPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             value,
             style: GoogleFonts.outfit(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: CleanTheme.primaryColor,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
               color: CleanTheme.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -282,11 +282,25 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             measurements: _latestMeasurements,
             changes: _changes,
             onBodyPartTap: (partId) {
-              debugPrint('Tapped body part: $partId');
+              _showBodyPartDetail(partId);
             },
           ),
         ),
       ],
+    );
+  }
+
+  void _showBodyPartDetail(String partId) {
+    HapticService.mediumTap();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BodyPartDetailSheet(
+        partId: partId,
+        currentValue: _latestMeasurements?[partId],
+        change: _changes?[partId],
+      ),
     );
   }
 
@@ -368,7 +382,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     return const Center(
       child: GigiCoachMessage(
         message:
-            'Monitorare le tue misure mi permette di capire esattamente come il tuo corpo sta reagendo agli allenamenti e alla dieta. In questo modo posso calibrare perfettamente i tuoi piani futuri!',
+            'Tocca i diversi muscoli sulla sagoma qui sotto per vedere lo storico dettagliato e i grafici dei tuoi progressi. Monitorare le tue misure mi permette di calibrare perfettamente i tuoi piani futuri!',
         emotion: GigiEmotion.expert,
       ),
     );

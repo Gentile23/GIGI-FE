@@ -577,7 +577,7 @@ class _TrialWorkoutScreenState extends State<TrialWorkoutScreen> {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore imprevisto: $e'),
+            content: const Text('Si è verificato un errore imprevisto.'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:gigi/core/theme/clean_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/api_config.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// CLEAN BUTTON - Rounded & Modern
@@ -597,7 +598,9 @@ class CleanAvatar extends StatelessWidget {
         child: ClipOval(
           child: imageUrl != null
               ? Image.network(
-                  '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}', // Cache bust
+                  imageUrl!.startsWith('http')
+                      ? imageUrl!
+                      : _buildFullImageUrl(imageUrl!),
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => _buildInitials(),
                 )
@@ -605,6 +608,19 @@ class CleanAvatar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _buildFullImageUrl(String path) {
+    // Rimuove '/api/' o 'api/' dalla fine di baseUrl per ottenere la root del dominio
+    String root = ApiConfig.baseUrl.replaceAll('/api/', '').replaceAll('api/', '');
+    if (root.endsWith('/')) {
+      root = root.substring(0, root.length - 1);
+    }
+    
+    // Assicura che il path inizi con / se la root non finisce con /
+    String cleanedPath = path.startsWith('/') ? path : '/$path';
+    
+    return '$root$cleanedPath';
   }
 
   Widget _buildInitials() {

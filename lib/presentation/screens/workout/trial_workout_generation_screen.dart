@@ -89,7 +89,7 @@ class _TrialWorkoutGenerationScreenState
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Errore: $e';
+          _error = 'Si è verificato un errore durante la generazione.';
           _isGenerating = false;
         });
       }

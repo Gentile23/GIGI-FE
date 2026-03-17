@@ -70,7 +70,7 @@ class SocialProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.get('/social/challenges');
+      final response = await _apiClient.get('social/challenges');
 
       if (response['success'] == true) {
         final data = response['data'];

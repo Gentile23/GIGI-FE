@@ -913,42 +913,55 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   String _translateError(String? error) {
-    if (error == null) {
+    if (error == null || error.isEmpty) {
       return _isLogin
-          ? 'Credenziali non valide. Controlla email e password.'
-          : 'Registrazione fallita. Riprova più tardi.';
+          ? 'Accesso fallito. Controlla le tue credenziali.'
+          : 'Registrazione non riuscita. Riprova più tardi.';
     }
 
-    // Translate common error messages to Italian
     final lowerError = error.toLowerCase();
 
-    if (lowerError.contains('invalid credentials') ||
-        lowerError.contains('unauthorized')) {
-      return 'Credenziali non valide. Controlla email e password.';
+    // Specific mapping for common auth errors
+    if (lowerError.contains('invalid credentials') || 
+        lowerError.contains('unauthorized') ||
+        lowerError.contains('401')) {
+      return 'Email o password non corretti. Riprova.';
     }
-    if (lowerError.contains('email already') ||
-        lowerError.contains('email has already')) {
-      return 'Questa email è già registrata. Prova ad accedere.';
-    }
-    if (lowerError.contains('connection') ||
-        lowerError.contains('connect to server')) {
-      return 'Impossibile connettersi al server. Controlla la connessione internet.';
-    }
-    if (lowerError.contains('timeout')) {
-      return 'Connessione scaduta. Riprova più tardi.';
-    }
-    if (lowerError.contains('password') && lowerError.contains('short')) {
-      return 'La password è troppo corta. Usa almeno 6 caratteri.';
-    }
-    if (lowerError.contains('user not found')) {
-      return 'Utente non trovato. Verifica l\'email inserita.';
-    }
-    if (lowerError.contains('too many')) {
-      return 'Troppi tentativi. Riprova tra qualche minuto.';
+    
+    if (lowerError.contains('email already') || 
+        lowerError.contains('taken') ||
+        lowerError.contains('already registered')) {
+      return 'Questa email è già in uso. Prova ad accedere o usa un\'altra email.';
     }
 
-    // Return the original error if no translation found
-    return error;
+    if (lowerError.contains('connection') || 
+        lowerError.contains('network') ||
+        lowerError.contains('socketexception')) {
+      return 'Problema di connessione. Controlla la tua rete.';
+    }
+
+    if (lowerError.contains('timeout')) {
+      return 'Il server ha impiegato troppo tempo a rispondere. Riprova.';
+    }
+
+    if (lowerError.contains('password') && lowerError.contains('short')) {
+      return 'La password deve contenere almeno 6 caratteri.';
+    }
+
+    if (lowerError.contains('user not found')) {
+      return 'Non abbiamo trovato un account con questa email.';
+    }
+
+    if (lowerError.contains('too many attempts')) {
+      return 'Troppi tentativi di accesso. Riprova tra qualche minuto.';
+    }
+
+    if (lowerError.contains('server error') || lowerError.contains('500')) {
+      return 'C\'è un problema tecnico sui nostri server. Stiamo lavorando per risolverlo.';
+    }
+
+    // Default clean message for any other error
+    return 'Si è verificato un errore. Per favore, riprova.';
   }
 
   Future<void> _handleGoogleSignIn() async {

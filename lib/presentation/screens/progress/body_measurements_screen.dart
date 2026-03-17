@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dio/dio.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../../data/services/api_client.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/services/haptic_service.dart';
 
 class BodyMeasurementsScreen extends StatefulWidget {
   final bool isOnboarding;
@@ -22,11 +26,43 @@ class BodyMeasurementsScreen extends StatefulWidget {
 
 class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   final _apiClient = ApiClient();
-  final PageController _pageController = PageController();
-  int _currentStep = 0;
   bool _isLoading = false;
+  bool _showTips = false;
+  Map<String, dynamic>? _latestMeasurements;
+  final Map<String, String?> _validationErrors = {};
 
-  // Controllers for measurements
+  final Map<String, (double, double)> _validRanges = {
+    'bicep_right_cm': (15.0, 70.0),
+    'bicep_left_cm': (15.0, 70.0),
+    'chest_cm': (50.0, 180.0),
+    'waist_cm': (40.0, 180.0),
+    'hips_cm': (50.0, 200.0),
+    'thigh_right_cm': (20.0, 110.0),
+    'thigh_left_cm': (20.0, 110.0),
+    'calf_cm': (15.0, 70.0),
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLatestMeasurements();
+  }
+
+  Future<void> _fetchLatestMeasurements() async {
+    try {
+      final response = await _apiClient.get('progress/measurements');
+      if (response['latest'] != null) {
+        setState(() {
+          _latestMeasurements = response['latest'] is Map<String, dynamic> 
+              ? response['latest'] 
+              : null;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching latest measurements: $e');
+    }
+  }
+
   final _bicepRightController = TextEditingController();
   final _bicepLeftController = TextEditingController();
   final _chestController = TextEditingController();
@@ -36,98 +72,8 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   final _thighLeftController = TextEditingController();
   final _calfController = TextEditingController();
 
-  List<_MeasurementGuide> _getGuides(BuildContext context) {
-    return [
-      _MeasurementGuide(
-        title: '📏 ${AppLocalizations.of(context)!.howToTakeMeasurements}',
-        subtitle: AppLocalizations.of(context)!.followTips,
-        tips: [
-          (
-            '⏰',
-            AppLocalizations.of(context)!.measureSameTime,
-            AppLocalizations.of(context)!.morningsFasting,
-          ),
-          (
-            '📐',
-            AppLocalizations.of(context)!.flexibleTape,
-            AppLocalizations.of(context)!.noRigidRulers,
-          ),
-          (
-            '🔄',
-            AppLocalizations.of(context)!.repeatTwice,
-            AppLocalizations.of(context)!.ensureCorrect,
-          ),
-          (
-            '💨',
-            AppLocalizations.of(context)!.relaxNoContracting,
-            AppLocalizations.of(context)!.naturalPosition,
-          ),
-        ],
-      ),
-      _MeasurementGuide(
-        title: '💪 ${AppLocalizations.of(context)!.arms}',
-        subtitle: AppLocalizations.of(context)!.measureBiceps,
-        tips: [
-          (
-            '📍',
-            AppLocalizations.of(context)!.position,
-            AppLocalizations.of(context)!.bicepPositionDesc,
-          ),
-          (
-            '📐',
-            AppLocalizations.of(context)!.whereToMeasure,
-            AppLocalizations.of(context)!.whereToMeasureDesc,
-          ),
-          (
-            '🔄',
-            AppLocalizations.of(context)!.repeatBoth,
-            AppLocalizations.of(context)!.slightlyDifferent,
-          ),
-        ],
-      ),
-      _MeasurementGuide(
-        title: '🫁 ${AppLocalizations.of(context)!.torso}',
-        subtitle: AppLocalizations.of(context)!.torsoParts,
-        tips: [
-          (
-            '👕',
-            AppLocalizations.of(context)!.chest,
-            AppLocalizations.of(context)!.chestDesc,
-          ),
-          (
-            '⭕',
-            AppLocalizations.of(context)!.waist,
-            AppLocalizations.of(context)!.waistDesc,
-          ),
-          (
-            '🍑',
-            AppLocalizations.of(context)!.hips,
-            AppLocalizations.of(context)!.hipsDesc,
-          ),
-        ],
-      ),
-      _MeasurementGuide(
-        title: '🦵 ${AppLocalizations.of(context)!.legs}',
-        subtitle: AppLocalizations.of(context)!.legsParts,
-        tips: [
-          (
-            '📍',
-            AppLocalizations.of(context)!.thigh,
-            AppLocalizations.of(context)!.thighDesc,
-          ),
-          (
-            '🦶',
-            AppLocalizations.of(context)!.calf,
-            AppLocalizations.of(context)!.calfDesc,
-          ),
-        ],
-      ),
-    ];
-  }
-
   @override
   void dispose() {
-    _pageController.dispose();
     _bicepRightController.dispose();
     _bicepLeftController.dispose();
     _chestController.dispose();
@@ -141,434 +87,429 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
-      appBar: widget.isOnboarding
-          ? null
-          : AppBar(
-              title: Text(
-                AppLocalizations.of(context)!.bodyMeasurements,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
+      appBar: widget.isOnboarding 
+        ? null 
+        : AppBar(
+            title: Text(
+              l10n.bodyMeasurements,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+                fontSize: 20,
               ),
-              backgroundColor: CleanTheme.surfaceColor,
-              iconTheme: const IconThemeData(color: CleanTheme.textPrimary),
             ),
+            centerTitle: true,
+            backgroundColor: CleanTheme.surfaceColor,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Progress indicator
-            _buildProgressIndicator(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // SEZIONE 1: GIGI COACH HEADER
+              _buildCoachHeader(l10n),
+              const SizedBox(height: 24),
 
-            // Content
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (index) => setState(() => _currentStep = index),
+              // SEZIONE 2: TIPS (Collapsible)
+              _buildTipsSection(l10n),
+              const SizedBox(height: 24),
+
+              // SEZIONE 3: INPUT GROUPS
+              _buildModernGroupHeader(l10n.arms, Icons.fitness_center),
+              const SizedBox(height: 12),
+              Row(
                 children: [
-                  _buildIntroPage(),
-                  _buildArmsPage(),
-                  _buildTorsoPage(),
-                  _buildLegsPage(),
-                  _buildSummaryPage(),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.bicepRight,
+                      controller: _bicepRightController,
+                      apiKey: 'bicep_right_cm',
+                      icon: Icons.rotate_right,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.bicepLeft,
+                      controller: _bicepLeftController,
+                      apiKey: 'bicep_left_cm',
+                      icon: Icons.rotate_left,
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ],
+              
+              const SizedBox(height: 24),
+              _buildModernGroupHeader(l10n.torso, Icons.accessibility),
+              const SizedBox(height: 12),
+              _buildModernInputCard(
+                label: l10n.chest,
+                controller: _chestController,
+                apiKey: 'chest_cm',
+                icon: Icons.straighten,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.waist,
+                      controller: _waistController,
+                      apiKey: 'waist_cm',
+                      icon: Icons.circle_outlined,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.hips,
+                      controller: _hipsController,
+                      apiKey: 'hips_cm',
+                      icon: Icons.wc,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              _buildModernGroupHeader(l10n.legs, Icons.directions_walk),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.thighRight,
+                      controller: _thighRightController,
+                      apiKey: 'thigh_right_cm',
+                      icon: Icons.airline_stops,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.thighLeft,
+                      controller: _thighLeftController,
+                      apiKey: 'thigh_left_cm',
+                      icon: Icons.airline_stops,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildModernInputCard(
+                label: l10n.calf,
+                controller: _calfController,
+                apiKey: 'calf_cm',
+                icon: Icons.run_circle_outlined,
+              ),
+              const SizedBox(height: 32),
+
+              // SEZIONE 4: ACTION BUTTON
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: CleanButton(
+                  text: _isLoading ? l10n.saving : l10n.saveAndContinue,
+                  onPressed: _isLoading ? null : _saveMeasurements,
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildProgressIndicator() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+  Widget _buildModernGroupHeader(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
-        children: List.generate(5, (index) {
-          final isActive = index <= _currentStep;
-          final isCurrent = index == _currentStep;
-          return Expanded(
-            child: Container(
-              height: isCurrent ? 6 : 4,
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color: isActive
-                    ? CleanTheme.primaryColor
-                    : CleanTheme.borderSecondary,
-                borderRadius: BorderRadius.circular(3),
-              ),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
             ),
-          );
-        }),
+            child: Icon(icon, size: 16, color: CleanTheme.primaryColor),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title.toUpperCase(),
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildIntroPage() {
-    final guide = _getGuides(context)[0];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+  Widget _buildModernInputCard({
+    required String label,
+    required TextEditingController controller,
+    required String apiKey,
+    IconData? icon,
+    bool isRequired = false,
+  }) {
+    final previousValue = _latestMeasurements?[apiKey];
+
+    return CleanCard(
+      padding: const EdgeInsets.all(12),
+      enableGlass: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: Text('📏', style: const TextStyle(fontSize: 64))),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.yourStartingPoint,
-              style: GoogleFonts.outfit(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.measurementsHelpDesc,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: CleanTheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Tips card
-          CleanCard(
-            backgroundColor: CleanTheme.primaryLight,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  guide.title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 18, color: CleanTheme.textPrimary),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: CleanTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 16),
-                ...guide.tips.map(
-                  (tip) => _buildTipRow(tip.$1, tip.$2, tip.$3),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-          CleanButton(
-            text: AppLocalizations.of(context)!.startMeasurements,
-            onPressed: _nextPage,
-            icon: Icons.arrow_forward,
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton(
-              onPressed: _skipMeasurements,
-              child: Text(
-                'Salta per ora',
-                style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArmsPage() {
-    final guide = _getGuides(context)[1];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            guide.title,
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
+              if (isRequired)
+                const Text(' *',
+                    style: TextStyle(color: CleanTheme.accentRed)),
+            ],
           ),
           const SizedBox(height: 8),
-          Text(
-            guide.subtitle,
-            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-          ),
-          const SizedBox(height: 24),
-
-          // Instruction card
-          _buildInstructionCard(guide.tips),
-
-          const SizedBox(height: 24),
-
-          // Inputs
-          _buildMeasurementInput(
-            controller: _bicepRightController,
-            label: AppLocalizations.of(context)!.bicepRight,
-            emoji: '💪',
-            hint: 'es. 35',
-          ),
-          const SizedBox(height: 16),
-          _buildMeasurementInput(
-            controller: _bicepLeftController,
-            label: AppLocalizations.of(context)!.bicepLeft,
-            emoji: '💪',
-            hint: 'es. 34.5',
-          ),
-
-          const SizedBox(height: 32),
-          _buildNavigationButtons(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTorsoPage() {
-    final guide = _getGuides(context)[2];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            guide.title,
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            guide.subtitle,
-            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-          ),
-          const SizedBox(height: 24),
-
-          _buildInstructionCard(guide.tips),
-
-          const SizedBox(height: 24),
-
-          _buildMeasurementInput(
-            controller: _chestController,
-            label: AppLocalizations.of(context)!.chest,
-            emoji: '👕',
-            hint: 'es. 100',
-          ),
-          const SizedBox(height: 16),
-          _buildMeasurementInput(
-            controller: _waistController,
-            label: AppLocalizations.of(context)!.waist,
-            emoji: '⭕',
-            hint: 'es. 80',
-            isRequired: true,
-          ),
-          const SizedBox(height: 16),
-          _buildMeasurementInput(
-            controller: _hipsController,
-            label: AppLocalizations.of(context)!.hips,
-            emoji: '🍑',
-            hint: 'es. 95',
-          ),
-
-          const SizedBox(height: 32),
-          _buildNavigationButtons(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLegsPage() {
-    final guide = _getGuides(context)[3];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            guide.title,
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            guide.subtitle,
-            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-          ),
-          const SizedBox(height: 24),
-
-          _buildInstructionCard(guide.tips),
-
-          const SizedBox(height: 24),
-
-          _buildMeasurementInput(
-            controller: _thighRightController,
-            label: AppLocalizations.of(context)!.thighRight,
-            emoji: '🦵',
-            hint: 'es. 55',
-          ),
-          const SizedBox(height: 16),
-          _buildMeasurementInput(
-            controller: _thighLeftController,
-            label: AppLocalizations.of(context)!.thighLeft,
-            emoji: '🦵',
-            hint: 'es. 54.5',
-          ),
-          const SizedBox(height: 16),
-          _buildMeasurementInput(
-            controller: _calfController,
-            label: AppLocalizations.of(context)!.calf,
-            emoji: '🦶',
-            hint: 'es. 38',
-          ),
-
-          const SizedBox(height: 32),
-          _buildNavigationButtons(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryPage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(child: Text('✅', style: const TextStyle(fontSize: 64))),
-          const SizedBox(height: 16),
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.measurementsSummary,
-              style: GoogleFonts.outfit(
-                fontSize: 24,
+          if (previousValue != null)
+            Text(
+              'PREC: $previousValue cm',
+              style: GoogleFonts.inter(
+                fontSize: 9,
                 fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
+                color: CleanTheme.accentBlue,
+              ),
+            )
+          else
+            Text(
+              'No dati',
+              style: GoogleFonts.inter(
+                fontSize: 9,
+                color: CleanTheme.textTertiary,
               ),
             ),
-          ),
           const SizedBox(height: 8),
-          Center(
-            child: Text(
-              AppLocalizations.of(context)!.startingMeasurementsDesc,
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Summary cards
-          _buildSummaryCard('💪 ${AppLocalizations.of(context)!.arms}', [
-            (
-              AppLocalizations.of(context)!.bicepRight,
-              _bicepRightController.text,
-            ),
-            (
-              AppLocalizations.of(context)!.bicepLeft,
-              _bicepLeftController.text,
-            ),
-          ]),
-          const SizedBox(height: 16),
-          _buildSummaryCard('🫁 ${AppLocalizations.of(context)!.torso}', [
-            (AppLocalizations.of(context)!.chest, _chestController.text),
-            (AppLocalizations.of(context)!.waist, _waistController.text),
-            (AppLocalizations.of(context)!.hips, _hipsController.text),
-          ]),
-          const SizedBox(height: 16),
-          _buildSummaryCard('🦵 ${AppLocalizations.of(context)!.legs}', [
-            (
-              AppLocalizations.of(context)!.thighRight,
-              _thighRightController.text,
-            ),
-            (
-              AppLocalizations.of(context)!.thighLeft,
-              _thighLeftController.text,
-            ),
-            (AppLocalizations.of(context)!.calf, _calfController.text),
-          ]),
-
-          const SizedBox(height: 32),
-
-          // Info box
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: CleanTheme.accentBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: CleanTheme.accentBlue.withValues(alpha: 0.3),
-              ),
+              color: CleanTheme.primaryLight.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: CleanTheme.borderSecondary),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
               children: [
-                const Icon(Icons.info_outline, color: CleanTheme.accentBlue),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    AppLocalizations.of(context)!.updateWeeklyDesc,
-                    style: GoogleFonts.inter(
-                      color: CleanTheme.accentBlue,
-                      fontSize: 13,
+                  child: TextField(
+                    controller: controller,
+                    textAlign: TextAlign.center,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*')),
+                    ],
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: CleanTheme.primaryColor,
                     ),
+                    decoration: const InputDecoration(
+                      hintText: '0.0',
+                      hintStyle: TextStyle(color: CleanTheme.textTertiary),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      filled: false,
+                    ),
+                    onChanged: (value) {
+                      final val = double.tryParse(value);
+                      final range = _validRanges[apiKey];
+                      setState(() {
+                        if (val != null && range != null) {
+                          if (val < range.$1 || val > range.$2) {
+                                _validationErrors[apiKey] = 'Valore insolito?';
+                          } else {
+                            _validationErrors[apiKey] = null;
+                          }
+                        } else {
+                          _validationErrors[apiKey] = null;
+                        }
+                      });
+                    },
+                  ),
+                ),
+                Text(
+                  'cm',
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: CleanTheme.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 32),
-          CleanButton(
-            text: _isLoading
-                ? AppLocalizations.of(context)!.saving
-                : AppLocalizations.of(context)!.saveAndContinue,
-            onPressed: _isLoading ? null : _saveMeasurements,
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () => _goToStep(_currentStep - 1),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
-              side: const BorderSide(color: CleanTheme.borderPrimary),
-            ),
-            child: Text(
-              AppLocalizations.of(context)!.edit,
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton(
-              onPressed: _skipMeasurements,
+          if (_validationErrors[apiKey] != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'Salta per ora',
-                style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                _validationErrors[apiKey]!,
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.accentGold,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildTipRow(String emoji, String title, String description) {
+  Widget _buildCoachHeader(AppLocalizations l10n) {
+    return Column(
+      children: [
+        LiquidSteelContainer(
+          borderRadius: 20,
+          enableShine: true,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Monitora i tuoi progressi',
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: CleanTheme.textOnPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Inserisci le tue misure per vedere come cambia il tuo fisico.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textOnPrimary.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.straighten,
+                  size: 44,
+                  color: CleanTheme.textOnPrimary,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const GigiCoachMessage(
+          message: 'Le misure sono fondamentali per capire la tua trasformazione, specialmente quando la bilancia non si muove!',
+          emotion: GigiEmotion.expert,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTipsSection(AppLocalizations l10n) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            HapticService.lightTap();
+            setState(() => _showTips = !_showTips);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: CleanTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: CleanTheme.borderSecondary),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lightbulb_outline, color: CleanTheme.accentGold, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.howToTakeMeasurements,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _showTips ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  color: CleanTheme.textSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_showTips) ...[
+          const SizedBox(height: 8),
+          CleanCard(
+            padding: const EdgeInsets.all(16),
+            backgroundColor: CleanTheme.primaryLight.withValues(alpha: 0.5),
+            child: Column(
+              children: [
+                _buildTipRow(Icons.access_time, l10n.measureSameTime, l10n.morningsFasting),
+                _buildTipRow(Icons.square_foot, l10n.flexibleTape, l10n.noRigidRulers),
+                _buildTipRow(Icons.refresh, l10n.repeatTwice, l10n.ensureCorrect),
+                _buildTipRow(Icons.air, l10n.relaxNoContracting, l10n.naturalPosition),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTipRow(IconData icon, String title, String desc) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 24)),
+          Icon(icon, size: 18, color: CleanTheme.textPrimary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -577,14 +518,15 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                 Text(
                   title,
                   style: GoogleFonts.inter(
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: CleanTheme.textPrimary,
                   ),
                 ),
                 Text(
-                  description,
+                  desc,
                   style: GoogleFonts.inter(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: CleanTheme.textSecondary,
                   ),
                 ),
@@ -596,279 +538,34 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     );
   }
 
-  Widget _buildInstructionCard(List<(String, String, String)> tips) {
-    return CleanCard(
-      backgroundColor: CleanTheme.surfaceColor,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.lightbulb_outline,
-                color: CleanTheme.accentYellow,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.of(context)!.howToMeasure,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...tips.map(
-            (tip) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(tip.$1, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: RichText(
-                      text: TextSpan(
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textPrimary,
-                          fontSize: 14,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: '${tip.$2}: ',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          TextSpan(
-                            text: tip.$3,
-                            style: TextStyle(color: CleanTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMeasurementInput({
-    required TextEditingController controller,
-    required String label,
-    required String emoji,
-    required String hint,
-    bool isRequired = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Row(
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 28)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      label,
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    if (isRequired)
-                      Text(' *', style: TextStyle(color: CleanTheme.accentRed)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                TextField(
-                  controller: controller,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                  ],
-                  style: GoogleFonts.outfit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: CleanTheme.primaryColor,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: hint,
-                    hintStyle: GoogleFonts.outfit(
-                      color: CleanTheme.textTertiary,
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            'cm',
-            style: GoogleFonts.inter(
-              color: CleanTheme.textSecondary,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavigationButtons() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _goToStep(_currentStep - 1),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: CleanTheme.borderPrimary),
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.back,
-                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: CleanButton(
-                text: AppLocalizations.of(context)!.next,
-                onPressed: _nextPage,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: TextButton(
-            onPressed: _skipMeasurements,
-            child: Text(
-              'Salta per ora',
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard(String title, List<(String, String)> measurements) {
-    final validMeasurements = measurements
-        .where((m) => m.$2.isNotEmpty)
-        .toList();
-    if (validMeasurements.isEmpty) return const SizedBox.shrink();
-
-    return CleanCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.outfit(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...validMeasurements.map(
-            (m) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    m.$1,
-                    style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-                  ),
-                  Text(
-                    '${m.$2} cm',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.bold,
-                      color: CleanTheme.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _nextPage() {
-    if (_currentStep < 4) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _goToStep(int step) {
-    if (step >= 0 && step <= 4) {
-      _pageController.animateToPage(
-        step,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _skipMeasurements() {
-    if (widget.onComplete != null) {
-      widget.onComplete!();
-    } else {
-      Navigator.pop(context);
-    }
-  }
 
   Future<void> _saveMeasurements() async {
+    HapticService.mediumTap();
     setState(() => _isLoading = true);
+
+    double? parseValue(String text, String apiKey) {
+      if (text.isNotEmpty) return double.tryParse(text);
+      // Se il campo è vuoto, usa l'ultimo valore salvato (se esiste) per evitare lo 0
+      final prev = _latestMeasurements?[apiKey];
+      if (prev != null) return double.tryParse(prev.toString());
+      return null;
+    }
 
     try {
       final data = {
         'measurement_date': DateTime.now().toIso8601String().split('T')[0],
-        if (_bicepRightController.text.isNotEmpty)
-          'bicep_right_cm': double.parse(_bicepRightController.text),
-        if (_bicepLeftController.text.isNotEmpty)
-          'bicep_left_cm': double.parse(_bicepLeftController.text),
-        if (_chestController.text.isNotEmpty)
-          'chest_cm': double.parse(_chestController.text),
-        if (_waistController.text.isNotEmpty)
-          'waist_cm': double.parse(_waistController.text),
-        if (_hipsController.text.isNotEmpty)
-          'hips_cm': double.parse(_hipsController.text),
-        if (_thighRightController.text.isNotEmpty)
-          'thigh_right_cm': double.parse(_thighRightController.text),
-        if (_thighLeftController.text.isNotEmpty)
-          'thigh_left_cm': double.parse(_thighLeftController.text),
-        if (_calfController.text.isNotEmpty)
-          'calf_cm': double.parse(_calfController.text),
+        'bicep_right_cm': parseValue(_bicepRightController.text, 'bicep_right_cm'),
+        'bicep_left_cm': parseValue(_bicepLeftController.text, 'bicep_left_cm'),
+        'chest_cm': parseValue(_chestController.text, 'chest_cm'),
+        'waist_cm': parseValue(_waistController.text, 'waist_cm'),
+        'hips_cm': parseValue(_hipsController.text, 'hips_cm'),
+        'thigh_right_cm': parseValue(_thighRightController.text, 'thigh_right_cm'),
+        'thigh_left_cm': parseValue(_thighLeftController.text, 'thigh_left_cm'),
+        'calf_cm': parseValue(_calfController.text, 'calf_cm'),
       };
+
+      // Rimuovi chiavi con valore null
+      data.removeWhere((key, value) => value == null);
 
       await _apiClient.dio.post('/progress/measurements', data: data);
 
@@ -877,8 +574,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           SnackBar(
             content: Text(
               '🎉 ${AppLocalizations.of(context)!.measurementsSummary}',
-            ), // Reusing summary for now or adding a new one
+            ),
             backgroundColor: CleanTheme.accentGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
 
@@ -891,25 +590,67 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
+        
+        String errorMessage = 'Ops! Qualcosa è andato storto durante il salvataggio.';
+        
+        if (e is DioException) {
+          if (e.response?.statusCode == 422) {
+            final errors = e.response?.data['errors'] as Map<String, dynamic>?;
+            if (errors != null && errors.isNotEmpty) {
+              // Prendi il primo errore e rendilo leggibile
+              String field = errors.keys.first;
+              String rawMessage = errors.values.first[0].toString();
+              
+              // Traduzione dei nomi dei campi per l'utente
+              final fieldTranslations = {
+                'bicep_right_cm': 'Bicipite destro',
+                'bicep_left_cm': 'Bicipite sinistro',
+                'chest_cm': 'Petto',
+                'waist_cm': 'Vita',
+                'hips_cm': 'Fianchi',
+                'thigh_right_cm': 'Coscia destra',
+                'thigh_left_cm': 'Coscia sinistra',
+                'calf_cm': 'Polpaccio',
+                'measurement_date': 'Data misurazione',
+              };
+
+              String cleanField = fieldTranslations[field] ?? field;
+              
+              if (rawMessage.contains('greater than')) {
+                errorMessage = 'Il valore per $cleanField è troppo alto. Controlla di aver inserito i dati corretti.';
+              } else if (rawMessage.contains('less than')) {
+                errorMessage = 'Il valore per $cleanField è troppo basso.';
+              } else {
+                errorMessage = 'Dati non validi per $cleanField. Riprova.';
+              }
+            } else {
+              errorMessage = 'I dati inseriti non sono validi. Controlla i valori e riprova.';
+            }
+          } else if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
+            errorMessage = 'Problema di connessione. Verifica la tua rete e riprova.';
+          } else if (e.response?.statusCode == 401) {
+            errorMessage = 'Sessione scaduta. Per favore, effettua di nuovo l\'accesso.';
+          } else {
+            errorMessage = 'Impossibile raggiungere il server al momento. Riprova più tardi.';
+          }
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Errore: $e'),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
             backgroundColor: CleanTheme.accentRed,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
     }
   }
-}
-
-class _MeasurementGuide {
-  final String title;
-  final String subtitle;
-  final List<(String, String, String)> tips;
-
-  const _MeasurementGuide({
-    required this.title,
-    required this.subtitle,
-    required this.tips,
-  });
 }

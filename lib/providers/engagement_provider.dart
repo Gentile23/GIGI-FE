@@ -55,7 +55,7 @@ class EngagementProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.get('/engagement/home');
+      final response = await _apiClient.get('engagement/home');
 
       if (response['success'] != false) {
         _homeData = response;
@@ -96,7 +96,7 @@ class EngagementProvider extends ChangeNotifier {
   /// Roll reward dopo workout
   Future<Map<String, dynamic>?> rollReward() async {
     try {
-      final response = await _apiClient.post('/engagement/roll-reward');
+      final response = await _apiClient.post('engagement/roll-reward');
 
       if (response['success'] == true) {
         _lastReward = response['reward'];
@@ -112,7 +112,7 @@ class EngagementProvider extends ChangeNotifier {
   /// Carica story achievements
   Future<void> loadStoryAchievements() async {
     try {
-      final response = await _apiClient.get('/engagement/story-achievements');
+      final response = await _apiClient.get('engagement/story-achievements');
 
       _storyAchievements = List<Map<String, dynamic>>.from(
         response['achievements'] ?? [],

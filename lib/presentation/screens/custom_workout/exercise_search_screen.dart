@@ -131,7 +131,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Errore inatteso: $e';
+          _error = 'Si è verificato un errore inatteso. Riprova.';
         });
       }
     } finally {

@@ -45,13 +45,13 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     mapChange('neck_cm', ['TRAPS']);
     mapChange('shoulders_cm', ['SHOULDERS']);
     mapChange('chest_cm', ['CHEST']);
-    mapChange('bicep_left_cm', ['BICEPS']);
-    mapChange('bicep_right_cm', ['BICEPS']);
+    mapChange('bicep_left_cm', ['BICEPS_LEFT']);
+    mapChange('bicep_right_cm', ['BICEPS_RIGHT']);
     mapChange('forearm_cm', ['FOREARMS']);
     mapChange('waist_cm', ['ABDOMINALS', 'OBLIQUES'], isWaist: true);
     mapChange('hips_cm', ['GLUTES']); // Approx
-    mapChange('thigh_left_cm', ['QUADRICEPS', 'HAMSTRINGS']);
-    mapChange('thigh_right_cm', ['QUADRICEPS', 'HAMSTRINGS']);
+    mapChange('thigh_left_cm', ['QUADRICEPS_LEFT', 'HAMSTRINGS_LEFT']);
+    mapChange('thigh_right_cm', ['QUADRICEPS_RIGHT', 'HAMSTRINGS_RIGHT']);
     mapChange('calf_cm', ['CALVES']);
 
     return colorMap;
@@ -71,7 +71,6 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Body outline
               // Body SVG with highlighting
               AnatomicalMuscleView(
                 height: 380,
@@ -90,12 +89,6 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
         // Legend
         const SizedBox(height: 16),
         _buildLegend(),
-
-        // Selected part info
-        if (_selectedPart != null) ...[
-          const SizedBox(height: 16),
-          _buildSelectedPartInfo(),
-        ],
       ],
     );
   }
@@ -219,22 +212,17 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
   }) {
     if (isHead) return CleanTheme.textSecondary;
     if (change == null) return CleanTheme.borderSecondary;
+    if (change == 0) return CleanTheme.accentBlue;
 
     // For waist, decrease is good
     if (isWaist) {
-      if (change < -2) return CleanTheme.accentGreen;
-      if (change < 0) return CleanTheme.accentGreen.withValues(alpha: 0.7);
-      if (change > 2) return CleanTheme.accentRed;
-      if (change > 0) return CleanTheme.accentRed.withValues(alpha: 0.7);
-      return CleanTheme.accentBlue;
+      if (change < 0) return CleanTheme.accentGreen;
+      return CleanTheme.accentRed;
     }
 
     // For muscles, increase is good
-    if (change > 1) return CleanTheme.accentGreen;
-    if (change > 0) return CleanTheme.accentGreen.withValues(alpha: 0.7);
-    if (change < -1) return CleanTheme.accentRed;
-    if (change < 0) return CleanTheme.accentRed.withValues(alpha: 0.7);
-    return CleanTheme.accentBlue;
+    if (change > 0) return CleanTheme.accentGreen;
+    return CleanTheme.accentRed;
   }
 
   List<Widget> _buildMeasurementLabels() {
@@ -255,8 +243,8 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
       // Legs
       _buildHotspot(top: 260, left: 150, width: 45, height: 80, partId: 'thigh_left_cm'),
       _buildHotspot(top: 260, left: 205, width: 45, height: 80, partId: 'thigh_right_cm'),
-      _buildHotspot(top: 350, left: 155, width: 40, height: 30, partId: 'calf_left_cm'),
-      _buildHotspot(top: 350, left: 205, width: 40, height: 30, partId: 'calf_right_cm'),
+      _buildHotspot(top: 350, left: 155, width: 40, height: 30, partId: 'calf_cm'),
+      _buildHotspot(top: 350, left: 205, width: 40, height: 30, partId: 'calf_cm'),
     ];
   }
 
@@ -275,12 +263,30 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
+          debugPrint('Tapped hotspot: $partId');
+          final hasData = widget.measurements?[partId] != null || 
+                         (widget.changes != null && widget.changes![partId] != null);
+
+          if (!hasData) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Non abbiamo ancora dati per questo gruppo muscolare. Inserisci una misura per iniziare!',
+                  style: GoogleFonts.inter(fontSize: 13),
+                ),
+                backgroundColor: CleanTheme.primaryColor,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+            return;
+          }
+
           setState(() {
             _selectedPart = (_selectedPart == partId) ? null : partId;
           });
-          if (_selectedPart != null) {
-            widget.onBodyPartTap?.call(partId);
-          }
+          widget.onBodyPartTap?.call(partId);
         },
         child: Container(
           width: size ?? width,
@@ -331,97 +337,6 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
           style: GoogleFonts.inter(
             fontSize: 11,
             color: CleanTheme.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSelectedPartInfo() {
-    final partLabels = {
-      'head': ('Testa', null),
-      'neck_cm': ('Collo', null),
-      'shoulders_cm': ('Spalle', null),
-      'chest_cm': ('Petto', null),
-      'bicep_left_cm': ('Bicipite SX', null),
-      'bicep_right_cm': ('Bicipite DX', null),
-      'forearm_left_cm': ('Avambraccio SX', null),
-      'forearm_right_cm': ('Avambraccio DX', null),
-      'waist_cm': ('Vita', null),
-      'hips_cm': ('Fianchi', null),
-      'thigh_left_cm': ('Coscia SX', null),
-      'thigh_right_cm': ('Coscia DX', null),
-      'calf_left_cm': ('Polpaccio SX', null),
-      'calf_right_cm': ('Polpaccio DX', null),
-    };
-
-    final partInfo = partLabels[_selectedPart];
-    if (partInfo == null) return const SizedBox.shrink();
-
-    final measurement = widget.measurements?[_selectedPart];
-    final change = widget.changes?[_selectedPart] as num?;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                partInfo.$1,
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildInfoItem(
-                'Attuale',
-                measurement != null ? '$measurement cm' : '-',
-                CleanTheme.primaryColor,
-              ),
-              if (change != null)
-                _buildInfoItem(
-                  'Variazione',
-                  '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)} cm',
-                  change > 0 ? CleanTheme.accentGreen : CleanTheme.accentRed,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
           ),
         ),
       ],

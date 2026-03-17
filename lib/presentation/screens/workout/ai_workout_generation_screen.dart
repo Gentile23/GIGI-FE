@@ -63,7 +63,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Errore durante la generazione: $e';
+        _errorMessage = 'Si è verificato un errore durante la generazione dell\'allenamento.';
       });
     } finally {
       setState(() {

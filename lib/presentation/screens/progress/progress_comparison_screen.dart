@@ -422,19 +422,31 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
         final isPositive = value > 0;
         final isGoodChange = _isGoodChange(entry.key, value);
 
+        Color backgroundColor;
+        Color borderColor;
+        Color textColor;
+
+        if (isGoodChange == null) {
+          backgroundColor = CleanTheme.textSecondary.withValues(alpha: 0.05);
+          borderColor = CleanTheme.borderSecondary;
+          textColor = CleanTheme.textSecondary;
+        } else if (isGoodChange == true) {
+          backgroundColor = CleanTheme.accentGreen.withValues(alpha: 0.1);
+          borderColor = CleanTheme.accentGreen.withValues(alpha: 0.3);
+          textColor = CleanTheme.accentGreen;
+        } else {
+          backgroundColor = CleanTheme.accentRed.withValues(alpha: 0.1);
+          borderColor = CleanTheme.accentRed.withValues(alpha: 0.3);
+          textColor = CleanTheme.accentRed;
+        }
+
         return Container(
           width: (MediaQuery.of(context).size.width - 60) / 2,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isGoodChange
-                ? CleanTheme.accentGreen.withValues(alpha: 0.1)
-                : CleanTheme.accentRed.withValues(alpha: 0.1),
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isGoodChange
-                  ? CleanTheme.accentGreen.withValues(alpha: 0.3)
-                  : CleanTheme.accentRed.withValues(alpha: 0.3),
-            ),
+            border: Border.all(color: borderColor),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,21 +467,18 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(
-                    isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                    color: isGoodChange
-                        ? CleanTheme.accentGreen
-                        : CleanTheme.accentRed,
-                    size: 20,
-                  ),
+                  if (value != 0)
+                    Icon(
+                      isPositive ? Icons.arrow_upward : Icons.arrow_downward,
+                      color: textColor,
+                      size: 20,
+                    ),
                   Text(
-                    '${isPositive ? '+' : ''}${value.toStringAsFixed(1)} cm',
+                    value == 0 ? 'Stabile' : '${isPositive ? '+' : ''}${value.toStringAsFixed(1)} cm',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: isGoodChange
-                          ? CleanTheme.accentGreen
-                          : CleanTheme.accentRed,
+                      color: textColor,
                     ),
                   ),
                 ],
@@ -481,13 +490,15 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
     );
   }
 
-  bool _isGoodChange(String field, num value) {
+  bool? _isGoodChange(String field, num value) {
+    if (value == 0) return null; // Stable
+    
     // For biceps/chest - increase is good
-    if (field.contains('bicep') || field == 'chest_cm') {
+    if (field.contains('bicep') || field == 'chest_cm' || field.contains('thigh') || field.contains('calf')) {
       return value > 0;
     }
-    // For waist - decrease is good
-    if (field == 'waist_cm') {
+    // For waist/hips - decrease is good
+    if (field == 'waist_cm' || field == 'hips_cm' || field == 'weight_kg') {
       return value < 0;
     }
     // Default: increase is good (muscle gain focus)
@@ -607,7 +618,7 @@ class _ProgressComparisonScreenState extends State<ProgressComparisonScreen>
                         ? Text(
                             '${change > 0 ? '+' : ''}${change.toStringAsFixed(1)}',
                             style: GoogleFonts.outfit(
-                              color: _isGoodChange(m.$2, change)
+                              color: _isGoodChange(m.$2, change) == true
                                   ? CleanTheme.accentGreen
                                   : CleanTheme.accentRed,
                               fontWeight: FontWeight.bold,

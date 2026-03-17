@@ -141,8 +141,8 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore: $e'),
+          const SnackBar(
+            content: Text('Errore durante il salvataggio del profilo'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

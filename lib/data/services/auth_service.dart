@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 import '../../core/constants/api_config.dart';
 import '../models/user_model.dart';
@@ -37,26 +36,18 @@ class AuthService {
         };
       }
 
-      return {'success': false, 'message': 'Registration failed'};
+      return {'success': false, 'message': 'Registrazione non riuscita'};
     } on DioException catch (e) {
-      String message = 'Registration failed';
+      String message = 'Registrazione non riuscita';
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
-        message =
-            'Connection timed out. Check your internet connection or server URL.';
+        message = 'Il server non risponde. Controlla la tua connessione.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message =
-            'Cannot connect to server. Check if server is running and accessible at ${ApiConfig.baseUrl}';
+        message = 'Impossibile connettersi al server. Riprova più tardi.';
       } else if (e.response != null) {
-        message =
-            e.response?.data['message'] ??
-            'Server error: ${e.response?.statusCode}';
+        message = e.response?.data['message'] ?? 'Errore durante la registrazione';
       }
-
-      debugPrint('Registration Error: ${e.message}');
-      debugPrint('Error Type: ${e.type}');
-      debugPrint('Response: ${e.response?.data}');
 
       return {'success': false, 'message': message};
     }
@@ -67,19 +58,14 @@ class AuthService {
     required String password,
   }) async {
     try {
-      debugPrint('AuthService: Attempting login for $email');
       final response = await _apiClient.dio.post(
         ApiConfig.login,
         data: {'email': email, 'password': password},
       );
 
-      debugPrint('AuthService: Response status: ${response.statusCode}');
-      debugPrint('AuthService: Response data: ${response.data}');
-
       if (response.statusCode == 200) {
         final data = response.data;
         await _apiClient.saveToken(data['token']);
-        debugPrint('AuthService: Token saved, returning success');
         return {
           'success': true,
           'user': UserModel.fromJson(data['user']),
@@ -87,29 +73,19 @@ class AuthService {
         };
       }
 
-      debugPrint('AuthService: Unexpected status code ${response.statusCode}');
-      return {'success': false, 'message': 'Login failed'};
+      return {'success': false, 'message': 'Accesso non riuscito'};
     } on DioException catch (e) {
-      String message = 'Login failed';
-      debugPrint('AuthService: DioException caught');
-      debugPrint('AuthService: Error type: ${e.type}');
-      debugPrint('AuthService: Error message: ${e.message}');
-      debugPrint('AuthService: Response status: ${e.response?.statusCode}');
-      debugPrint('AuthService: Response data: ${e.response?.data}');
-
+      String message = 'Accesso non riuscito';
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
-        message =
-            'Connection timed out. Check your internet connection or server URL.';
+        message = 'Il server non risponde. Controlla la tua connessione.';
       } else if (e.type == DioExceptionType.connectionError) {
-        message =
-            'Cannot connect to server. Check if server is running and accessible at ${ApiConfig.baseUrl}';
+        message = 'Impossibile connettersi al server. Riprova più tardi.';
       } else if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Invalid credentials';
+        message = e.response?.data['message'] ?? 'Email o password non corretti';
       }
 
-      debugPrint('AuthService: Returning error: $message');
       return {'success': false, 'message': message};
     }
   }
@@ -141,11 +117,11 @@ class AuthService {
         };
       }
 
-      return {'success': false, 'message': 'Social login failed'};
+      return {'success': false, 'message': 'Accesso social non riuscito'};
     } on DioException catch (e) {
-      String message = 'Social login failed';
+      String message = 'Accesso social non riuscito';
       if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Social login error';
+        message = e.response?.data['message'] ?? 'Errore durante l\'accesso social';
       }
       return {'success': false, 'message': message};
     }

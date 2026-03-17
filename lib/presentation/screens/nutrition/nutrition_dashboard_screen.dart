@@ -1120,8 +1120,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Errore durante l\'eliminazione: $e'),
+          const SnackBar(
+            content: Text('Errore durante l\'eliminazione dell\'obiettivo'),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

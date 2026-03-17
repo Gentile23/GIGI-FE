@@ -118,7 +118,7 @@ class _AIWorkoutGenerationExampleState
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Errore: $e';
+        _errorMessage = 'Si è verificato un errore.';
       });
     } finally {
       setState(() {

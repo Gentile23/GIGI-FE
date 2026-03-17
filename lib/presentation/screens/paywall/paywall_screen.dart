@@ -348,21 +348,28 @@ class _PaywallScreenState extends State<PaywallScreen> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: CleanTheme.surfaceColor,
+              color: isSelected ? CleanTheme.primaryColor.withValues(alpha: 0.02) : CleanTheme.surfaceColor,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isSelected ? accentColor : CleanTheme.borderPrimary,
-                width: isSelected ? 2 : 1,
+                width: isSelected ? 2.5 : 1,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: accentColor.withValues(alpha: 0.15),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: accentColor.withValues(alpha: 0.2),
+                        blurRadius: 40,
+                        offset: const Offset(0, 12),
+                        spreadRadius: -4,
                       ),
                     ]
-                  : null,
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -450,7 +457,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  ...config.features.take(4).map((feature) {
+                  ...config.features.map((feature) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
@@ -483,18 +490,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                     );
                   }),
-                  if (config.features.length > 4)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '+${config.features.length - 4} altre funzionalità',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: accentColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -509,19 +504,31 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: CleanTheme.primaryColor,
+                  gradient: LinearGradient(
+                    colors: [
+                      CleanTheme.primaryColor,
+                      CleanTheme.primaryLight,
+                    ],
+                  ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(12),
                     bottomRight: Radius.circular(12),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Text(
-                  'CONSIGLIATO',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                  'PIÙ VANTAGGIOSO',
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    letterSpacing: 0.5,
+                    letterSpacing: 1.0,
                   ),
                 ),
               ),

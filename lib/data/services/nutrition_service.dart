@@ -53,7 +53,7 @@ class NutritionService {
   /// Get nutrition goals
   Future<NutritionGoal?> getGoals() async {
     try {
-      final response = await _apiClient.get('/nutrition/goals');
+      final response = await _apiClient.get('nutrition/goals');
       if (response['goal'] != null) {
         return NutritionGoal.fromJson(response['goal']);
       }
@@ -147,7 +147,7 @@ class NutritionService {
   /// Get meal details
   Future<Meal?> getMeal(int mealId) async {
     try {
-      final response = await _apiClient.get('/nutrition/meals/$mealId');
+      final response = await _apiClient.get('nutrition/meals/$mealId');
       if (response['success'] == true && response['meal'] != null) {
         return Meal.fromJson(response['meal']);
       }
@@ -194,7 +194,7 @@ class NutritionService {
   /// Delete meal
   Future<bool> deleteMeal(int mealId) async {
     try {
-      final response = await _apiClient.delete('/nutrition/meals/$mealId');
+      final response = await _apiClient.delete('nutrition/meals/$mealId');
       return response['success'] == true;
     } catch (e) {
       debugPrint('Error deleting meal: $e');
@@ -230,7 +230,7 @@ class NutritionService {
   /// Get weekly summary
   Future<Map<String, dynamic>?> getWeeklySummary() async {
     try {
-      final response = await _apiClient.get('/nutrition/weekly-summary');
+      final response = await _apiClient.get('nutrition/weekly-summary');
       return response['success'] == true ? response['summary'] : null;
     } catch (e) {
       debugPrint('Error fetching weekly summary: $e');
@@ -241,7 +241,7 @@ class NutritionService {
   /// Get insights
   Future<List<NutritionInsight>?> getInsights() async {
     try {
-      final response = await _apiClient.get('/nutrition/insights');
+      final response = await _apiClient.get('nutrition/insights');
       if (response['success'] == true && response['insights'] != null) {
         return (response['insights'] as List)
             .map((json) => NutritionInsight.fromJson(json))
@@ -286,7 +286,7 @@ class NutritionService {
   /// Get recipe details
   Future<Recipe?> getRecipe(int recipeId) async {
     try {
-      final response = await _apiClient.get('/nutrition/recipes/$recipeId');
+      final response = await _apiClient.get('nutrition/recipes/$recipeId');
       if (response['success'] == true && response['recipe'] != null) {
         return Recipe.fromJson(response['recipe']);
       }
@@ -313,7 +313,7 @@ class NutritionService {
   /// Get saved recipes
   Future<List<Recipe>?> getSavedRecipes() async {
     try {
-      final response = await _apiClient.get('/nutrition/saved-recipes');
+      final response = await _apiClient.get('nutrition/saved-recipes');
       if (response['success'] == true && response['recipes'] != null) {
         return (response['recipes']['data'] as List)
             .map((json) => Recipe.fromJson(json))
@@ -399,7 +399,7 @@ class NutritionService {
   /// Delete user's nutrition goals
   Future<bool> deleteGoals() async {
     try {
-      final response = await _apiClient.delete('/nutrition/goals');
+      final response = await _apiClient.delete('nutrition/goals');
       return response['success'] == true;
     } catch (e) {
       debugPrint('Error deleting nutrition goals: $e');
@@ -410,7 +410,7 @@ class NutritionService {
   /// Get smart meal suggestions based on remaining macros
   Future<Map<String, dynamic>?> getSmartSuggestions() async {
     try {
-      final response = await _apiClient.get('/nutrition/suggestions');
+      final response = await _apiClient.get('nutrition/suggestions');
       return response['success'] == true ? response : null;
     } catch (e) {
       debugPrint('Error getting smart suggestions: $e');
@@ -468,7 +468,7 @@ class NutritionService {
   /// Get recent foods logged by user
   Future<List<Map<String, dynamic>>?> getRecentFoods() async {
     try {
-      final response = await _apiClient.get('/nutrition/foods/recent');
+      final response = await _apiClient.get('nutrition/foods/recent');
       if (response['success'] == true && response['recent_foods'] != null) {
         return List<Map<String, dynamic>>.from(response['recent_foods']);
       }
