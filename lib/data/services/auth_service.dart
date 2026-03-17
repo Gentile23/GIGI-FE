@@ -28,10 +28,23 @@ class AuthService {
 
       if (response.statusCode == 201) {
         final data = response.data;
-        await _apiClient.saveToken(data['token']);
+        
+        if (data['requires_verification'] == true) {
+          return {
+            'success': true,
+            'verification_required': true,
+            'email': data['email'],
+            'message': data['message'],
+          };
+        }
+
+        if (data['token'] != null) {
+          await _apiClient.saveToken(data['token']);
+        }
+        
         return {
           'success': true,
-          'user': UserModel.fromJson(data['user']),
+          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
           'token': data['token'],
         };
       }
@@ -50,6 +63,60 @@ class AuthService {
       }
 
       return {'success': false, 'message': message};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyRegistrationOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/verify-otp',
+        data: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data['token'] != null) {
+          await _apiClient.saveToken(data['token']);
+        }
+        return {
+          'success': true,
+          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
+          'token': data['token'],
+        };
+      }
+      return {'success': false, 'message': 'Verifica fallita'};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Errore durante la verifica',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> resendRegistrationOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/resend-otp',
+        data: {'email': email},
+      );
+
+      return {
+        'success': response.statusCode == 200,
+        'message': response.data['message'],
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Errore durante l\'invio dell\'OTP',
+      };
     }
   }
 

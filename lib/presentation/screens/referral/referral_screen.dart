@@ -156,6 +156,8 @@ class _ReferralScreenState extends State<ReferralScreen> {
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text('🎁', style: TextStyle(fontSize: 48)),
             const SizedBox(height: 16),

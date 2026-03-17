@@ -34,6 +34,7 @@ class _AuthScreenState extends State<AuthScreen>
   final _nameController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _referralCodeController = TextEditingController();
+  final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -117,6 +118,7 @@ class _AuthScreenState extends State<AuthScreen>
     _nameController.dispose();
     _confirmPasswordController.dispose();
     _referralCodeController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -149,376 +151,384 @@ class _AuthScreenState extends State<AuthScreen>
 
             SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 40),
+              child: Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  if (authProvider.registrationVerificationRequired) {
+                    return _buildOtpVerificationUI(authProvider);
+                  }
+                  
+                  return Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 40),
 
-                    // 2. Animated Logo (Hero)
-                    const Center(
-                      child: AnimatedLogo(
-                        size: 180,
-                        heroTag: 'gigi_logo',
-                        enableBreathing: true,
-                        enableShimmer: true,
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Title
-                    Text(
-                          _isLogin
-                              ? AppLocalizations.of(context)!.welcomeBack
-                              : AppLocalizations.of(context)!.createAccount,
-                          style: GoogleFonts.outfit(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                            color: CleanTheme.textPrimary,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.1, end: 0),
-
-                    const SizedBox(height: 8),
-
-                    Text(
-                          _isLogin
-                              ? AppLocalizations.of(context)!.loginSubtitle
-                              : AppLocalizations.of(context)!.registerSubtitle,
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            color: CleanTheme.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                        .animate()
-                        .fadeIn(duration: 400.ms, delay: 100.ms)
-                        .slideY(begin: 0.1, end: 0),
-
-                    const SizedBox(height: 40),
-
-                    // Name field (only for register)
-                    if (!_isLogin) ...[
-                      _buildTextField(
-                            controller: _nameController,
-                            label: AppLocalizations.of(context)!.fullName,
-                            icon: Icons.person_outline,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppLocalizations.of(
-                                  context,
-                                )!.enterYourName;
-                              }
-                              return null;
-                            },
-                          )
-                          .animate()
-                          .fadeIn(duration: 400.ms, delay: 200.ms)
-                          .slideX(begin: -0.1, end: 0),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Email field
-                    _buildTextField(
-                          controller: _emailController,
-                          label: AppLocalizations.of(context)!.email,
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(
-                                context,
-                              )!.enterYourEmail;
-                            }
-                            if (!value.contains('@')) {
-                              return AppLocalizations.of(
-                                context,
-                              )!.enterValidEmail;
-                            }
-                            return null;
-                          },
-                        )
-                        .animate()
-                        .fadeIn(
-                          duration: 400.ms,
-                          delay: _isLogin ? 200.ms : 300.ms,
-                        )
-                        .slideX(begin: -0.1, end: 0),
-
-                    const SizedBox(height: 16),
-
-                    // Password field
-                    _buildTextField(
-                          controller: _passwordController,
-                          label: AppLocalizations.of(context)!.password,
-                          icon: Icons.lock_outline,
-                          obscureText: _obscurePassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              color: CleanTheme.textTertiary,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return AppLocalizations.of(
-                                context,
-                              )!.enterPassword;
-                            }
-                            if (value.length < 6) {
-                              return AppLocalizations.of(
-                                context,
-                              )!.passwordTooShort;
-                            }
-                            return null;
-                          },
-                        )
-                        .animate()
-                        .fadeIn(
-                          duration: 400.ms,
-                          delay: _isLogin ? 300.ms : 400.ms,
-                        )
-                        .slideX(begin: -0.1, end: 0),
-
-                    // Confirm Password field (only for register)
-                    if (!_isLogin) ...[
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                            controller: _confirmPasswordController,
-                            label: AppLocalizations.of(
-                              context,
-                            )!.confirmPassword,
-                            icon: Icons.lock_outline,
-                            obscureText: _obscureConfirmPassword,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureConfirmPassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: CleanTheme.textTertiary,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscureConfirmPassword =
-                                      !_obscureConfirmPassword;
-                                });
-                              },
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppLocalizations.of(
-                                  context,
-                                )!.enterConfirmPassword;
-                              }
-                              if (value != _passwordController.text) {
-                                return AppLocalizations.of(
-                                  context,
-                                )!.passwordsDoNotMatch;
-                              }
-                              return null;
-                            },
-                          )
-                          .animate()
-                          .fadeIn(duration: 400.ms, delay: 500.ms)
-                          .slideX(begin: -0.1, end: 0),
-
-                      // Referral Code (Optional)
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                            controller: _referralCodeController,
-                            label: 'Codice Referral (Opzionale)',
-                            icon: Icons.confirmation_number_outlined,
-                            validator: (value) => null, // Optional
-                          )
-                          .animate()
-                          .fadeIn(duration: 400.ms, delay: 600.ms)
-                          .slideX(begin: -0.1, end: 0),
-                    ],
-
-                    // GDPR Consent checkboxes (only for registration)
-                    if (!_isLogin) ...[
-                      const SizedBox(height: 24),
-                      _buildConsentSection().animate().fadeIn(
-                        duration: 400.ms,
-                        delay: 700.ms,
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
-
-                    // Error message
-                    if (_errorMessage != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.accentRed.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: CleanTheme.accentRed.withValues(alpha: 0.3),
+                        // 2. Animated Logo (Hero)
+                        const Center(
+                          child: AnimatedLogo(
+                            size: 180,
+                            heroTag: 'gigi_logo',
+                            enableBreathing: true,
+                            enableShimmer: true,
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              color: CleanTheme.accentRed,
-                              size: 24,
+
+                        const SizedBox(height: 32),
+
+                        // Title
+                        Text(
+                              _isLogin
+                                  ? AppLocalizations.of(context)!.welcomeBack
+                                  : AppLocalizations.of(context)!.createAccount,
+                              style: GoogleFonts.outfit(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                color: CleanTheme.textPrimary,
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                            .animate()
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.1, end: 0),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                              _isLogin
+                                  ? AppLocalizations.of(context)!.loginSubtitle
+                                  : AppLocalizations.of(context)!.registerSubtitle,
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                color: CleanTheme.textSecondary,
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                            .animate()
+                            .fadeIn(duration: 400.ms, delay: 100.ms)
+                            .slideY(begin: 0.1, end: 0),
+
+                        const SizedBox(height: 40),
+
+                        // Name field (only for register)
+                        if (!_isLogin) ...[
+                          _buildTextField(
+                                controller: _nameController,
+                                label: AppLocalizations.of(context)!.fullName,
+                                icon: Icons.person_outline,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.enterYourName;
+                                  }
+                                  return null;
+                                },
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms, delay: 200.ms)
+                              .slideX(begin: -0.1, end: 0),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Email field
+                        _buildTextField(
+                              controller: _emailController,
+                              label: AppLocalizations.of(context)!.email,
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterYourEmail;
+                                }
+                                if (!value.contains('@')) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterValidEmail;
+                                }
+                                return null;
+                              },
+                            )
+                            .animate()
+                            .fadeIn(
+                              duration: 400.ms,
+                              delay: _isLogin ? 200.ms : 300.ms,
+                            )
+                            .slideX(begin: -0.1, end: 0),
+
+                        const SizedBox(height: 16),
+
+                        // Password field
+                        _buildTextField(
+                              controller: _passwordController,
+                              label: AppLocalizations.of(context)!.password,
+                              icon: Icons.lock_outline,
+                              obscureText: _obscurePassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: CleanTheme.textTertiary,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.enterPassword;
+                                }
+                                if (value.length < 6) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  )!.passwordTooShort;
+                                }
+                                return null;
+                              },
+                            )
+                            .animate()
+                            .fadeIn(
+                              duration: 400.ms,
+                              delay: _isLogin ? 300.ms : 400.ms,
+                            )
+                            .slideX(begin: -0.1, end: 0),
+
+                        // Confirm Password field (only for register)
+                        if (!_isLogin) ...[
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                                controller: _confirmPasswordController,
+                                label: AppLocalizations.of(
+                                  context,
+                                )!.confirmPassword,
+                                icon: Icons.lock_outline,
+                                obscureText: _obscureConfirmPassword,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    color: CleanTheme.textTertiary,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
+                                    });
+                                  },
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.enterConfirmPassword;
+                                  }
+                                  if (value != _passwordController.text) {
+                                    return AppLocalizations.of(
+                                      context,
+                                    )!.passwordsDoNotMatch;
+                                  }
+                                  return null;
+                                },
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms, delay: 500.ms)
+                              .slideX(begin: -0.1, end: 0),
+
+                          // Referral Code (Optional)
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                                controller: _referralCodeController,
+                                label: 'Codice Referral (Opzionale)',
+                                icon: Icons.confirmation_number_outlined,
+                                validator: (value) => null, // Optional
+                              )
+                              .animate()
+                              .fadeIn(duration: 400.ms, delay: 600.ms)
+                              .slideX(begin: -0.1, end: 0),
+                        ],
+
+                        // GDPR Consent checkboxes (only for registration)
+                        if (!_isLogin) ...[
+                          const SizedBox(height: 24),
+                          _buildConsentSection().animate().fadeIn(
+                            duration: 400.ms,
+                            delay: 700.ms,
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // Error message
+                        if (_errorMessage != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: CleanTheme.accentRed.withValues(alpha: 0.3),
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _errorMessage!,
-                                style: GoogleFonts.inter(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
                                   color: CleanTheme.accentRed,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: GoogleFonts.inter(
+                                      color: CleanTheme.accentRed,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: CleanTheme.accentRed,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _errorMessage = null;
+                                    });
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn().shake(),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Submit button
+                        CleanButton(
+                              text: _isLogin
+                                  ? AppLocalizations.of(context)!.login
+                                  : AppLocalizations.of(context)!.register,
+                              onPressed: _isLoading
+                                  ? null
+                                  : (_isLogin || _allConsentsAccepted)
+                                  ? _handleSubmit
+                                  : null,
+                              width: double.infinity,
+                            )
+                            .animate()
+                            .fadeIn(
+                              duration: 400.ms,
+                              delay: _isLogin ? 400.ms : 800.ms,
+                            )
+                            .scale(),
+
+                        // Consent reminder for registration
+                        if (!_isLogin && !_allConsentsAccepted) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            AppLocalizations.of(context)!.acceptAllConsents,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: CleanTheme.accentOrange,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+
+                        const SizedBox(height: 24),
+
+                        // Divider
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Divider(color: CleanTheme.borderPrimary),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                AppLocalizations.of(context)!.or,
+                                style: GoogleFonts.inter(
+                                  color: CleanTheme.textTertiary,
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: CleanTheme.accentRed,
-                                size: 20,
+                            const Expanded(
+                              child: Divider(color: CleanTheme.borderPrimary),
+                            ),
+                          ],
+                        ).animate().fadeIn(
+                          duration: 400.ms,
+                          delay: _isLogin ? 500.ms : 900.ms,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Google Sign In
+                        // Custom styled Google button (localized) for Mobile
+                        // Native GSI button for Web
+                        if (kIsWeb)
+                          Center(child: getGoogleSignInButton())
+                        else
+                          _buildGoogleButton(
+                            onPressed: _handleGoogleSignIn,
+                          ).animate().fadeIn(
+                            duration: 400.ms,
+                            delay: _isLogin ? 600.ms : 1000.ms,
+                          ),
+
+                        const SizedBox(height: 32),
+
+                        // Toggle login/register
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _isLogin
+                                  ? AppLocalizations.of(context)!.noAccount
+                                  : AppLocalizations.of(context)!.haveAccount,
+                              style: GoogleFonts.inter(
+                                color: CleanTheme.textSecondary,
                               ),
-                              onPressed: () {
+                            ),
+                            GestureDetector(
+                              onTap: () {
                                 setState(() {
+                                  _isLogin = !_isLogin;
                                   _errorMessage = null;
                                 });
                               },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                              child: Text(
+                                _isLogin
+                                    ? AppLocalizations.of(context)!.register
+                                    : AppLocalizations.of(context)!.login,
+                                style: GoogleFonts.inter(
+                                  color: CleanTheme.primaryColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
-                        ),
-                      ).animate().fadeIn().shake(),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // Submit button
-                    CleanButton(
-                          text: _isLogin
-                              ? AppLocalizations.of(context)!.login
-                              : AppLocalizations.of(context)!.register,
-                          onPressed: _isLoading
-                              ? null
-                              : (_isLogin || _allConsentsAccepted)
-                              ? _handleSubmit
-                              : null,
-                          width: double.infinity,
-                        )
-                        .animate()
-                        .fadeIn(
+                        ).animate().fadeIn(
                           duration: 400.ms,
-                          delay: _isLogin ? 400.ms : 800.ms,
-                        )
-                        .scale(),
-
-                    // Consent reminder for registration
-                    if (!_isLogin && !_allConsentsAccepted) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        AppLocalizations.of(context)!.acceptAllConsents,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: CleanTheme.accentOrange,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
-
-                    // Divider
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Divider(color: CleanTheme.borderPrimary),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            AppLocalizations.of(context)!.or,
-                            style: GoogleFonts.inter(
-                              color: CleanTheme.textTertiary,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const Expanded(
-                          child: Divider(color: CleanTheme.borderPrimary),
+                          delay: _isLogin ? 700.ms : 1100.ms,
                         ),
                       ],
-                    ).animate().fadeIn(
-                      duration: 400.ms,
-                      delay: _isLogin ? 500.ms : 900.ms,
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // Google Sign In
-                    // Custom styled Google button (localized) for Mobile
-                    // Native GSI button for Web
-                    if (kIsWeb)
-                      Center(child: getGoogleSignInButton())
-                    else
-                      _buildGoogleButton(
-                        onPressed: _handleGoogleSignIn,
-                      ).animate().fadeIn(
-                        duration: 400.ms,
-                        delay: _isLogin ? 600.ms : 1000.ms,
-                      ),
-
-                    const SizedBox(height: 32),
-
-                    // Toggle login/register
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isLogin
-                              ? AppLocalizations.of(context)!.noAccount
-                              : AppLocalizations.of(context)!.haveAccount,
-                          style: GoogleFonts.inter(
-                            color: CleanTheme.textSecondary,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isLogin = !_isLogin;
-                              _errorMessage = null;
-                            });
-                          },
-                          child: Text(
-                            _isLogin
-                                ? AppLocalizations.of(context)!.register
-                                : AppLocalizations.of(context)!.login,
-                            style: GoogleFonts.inter(
-                              color: CleanTheme.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ).animate().fadeIn(
-                      duration: 400.ms,
-                      delay: _isLogin ? 700.ms : 1100.ms,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
 
@@ -984,5 +994,104 @@ class _AuthScreenState extends State<AuthScreen>
         widget.onComplete?.call();
       }
     }
+  }
+
+  Widget _buildOtpVerificationUI(AuthProvider authProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 40),
+        const Center(
+          child: AnimatedLogo(
+            size: 150,
+            heroTag: 'gigi_logo_otp',
+            enableBreathing: true,
+          ),
+        ),
+        const SizedBox(height: 32),
+        Text(
+          'Verifica la tua email',
+          style: GoogleFonts.outfit(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: CleanTheme.textPrimary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Abbiamo inviato un codice a\n${authProvider.pendingVerificationEmail}',
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: CleanTheme.textSecondary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 40),
+        
+        _buildTextField(
+          controller: _otpController,
+          label: 'Codice di verifica',
+          icon: Icons.vpn_key_outlined,
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Inserisci il codice';
+            if (value.length != 6) return 'Il codice deve essere di 6 cifre';
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        if (authProvider.error != null) ...[
+          Text(
+            authProvider.error!,
+            style: GoogleFonts.inter(
+              color: CleanTheme.accentRed,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+        ],
+        
+        CleanButton(
+          text: 'Verifica',
+          onPressed: _isLoading ? null : () async {
+            if (_otpController.text.length == 6) {
+              setState(() => _isLoading = true);
+              final success = await authProvider.verifyRegistrationOtp(_otpController.text);
+              setState(() => _isLoading = false);
+              if (success) {
+                // _onAuthChanged will handle navigation
+              }
+            }
+          },
+          width: double.infinity,
+        ),
+        
+        const SizedBox(height: 24),
+        
+        TextButton(
+          onPressed: _isLoading ? null : () async {
+            final success = await authProvider.resendRegistrationOtp();
+            if (success && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Nuovo codice inviato!'))
+              );
+            }
+          },
+          child: Text(
+            'Non hai ricevuto il codice? Inviamene un altro',
+            style: GoogleFonts.inter(
+              color: CleanTheme.primaryColor,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

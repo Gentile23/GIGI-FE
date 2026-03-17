@@ -8,6 +8,7 @@ import '../../../data/services/api_client.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
   const PrivacySettingsScreen({super.key});
@@ -360,16 +361,24 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       final response = await _apiClient.get('gdpr/export');
 
       if (response['success'] == true) {
+        final downloadUrl = response['download_url'];
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                response['message'] ??
-                    'I tuoi dati verranno inviati via email entro 24 ore.',
+                response['message'] ?? 'Esportazione completata con successo.',
               ),
               backgroundColor: CleanTheme.primaryColor,
             ),
           );
+
+          if (downloadUrl != null) {
+            final uri = Uri.parse(downloadUrl);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          }
         }
       } else {
         throw Exception(

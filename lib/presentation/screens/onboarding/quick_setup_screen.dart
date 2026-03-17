@@ -115,6 +115,13 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
         age = int.tryParse(_ageController.text);
       }
 
+      String? dateOfBirth;
+      if (age != null) {
+        final now = DateTime.now();
+        final birthDate = DateTime(now.year - age, 1, 1);
+        dateOfBirth = birthDate.toIso8601String().split('T').first;
+      }
+
       // Save profile with all data
       await authProvider.updateProfile(
         goal: _selectedGoal?.name,
@@ -123,7 +130,7 @@ class _QuickSetupScreenState extends State<QuickSetupScreen> {
         equipment: _selectedEquipment.toList(),
         height: height,
         weight: weight,
-        age: age,
+        dateOfBirth: dateOfBirth,
         gender: _selectedGender?.name,
         location: _selectedLocation?.name,
         additionalNotes: _notesController.text.trim().isNotEmpty

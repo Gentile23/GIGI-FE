@@ -42,6 +42,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   double? _weight;
   Gender? _gender;
   int? _age;
+  DateTime? _dateOfBirth;
   BodyFatPercentage? _bodyFatPercentage;
 
   @override
@@ -58,11 +59,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         _weight = user.weight;
 
         if (user.dateOfBirth != null) {
+          _dateOfBirth = user.dateOfBirth;
           final now = DateTime.now();
-          _age = now.year - user.dateOfBirth!.year;
-          if (now.month < user.dateOfBirth!.month ||
-              (now.month == user.dateOfBirth!.month &&
-                  now.day < user.dateOfBirth!.day)) {
+          _age = now.year - _dateOfBirth!.year;
+          if (now.month < _dateOfBirth!.month ||
+              (now.month == _dateOfBirth!.month &&
+                  now.day < _dateOfBirth!.day)) {
             _age = _age! - 1;
           }
         }
@@ -179,7 +181,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       final success = await authProvider.updateProfile(
         height: _height,
         weight: _weight,
-        age: _age,
+        dateOfBirth: _dateOfBirth?.toIso8601String().split('T')[0],
         gender: _gender?.toString().split('.').last,
         bodyFatPercentage: _camelToSnake(
           _bodyFatPercentage?.toString().split('.').last,
@@ -425,16 +427,11 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           _buildDivider(),
           _buildInfoTile(
             AppLocalizations.of(context)!.age,
-            '${_age ?? '-'} ${AppLocalizations.of(context)!.years}',
+            _dateOfBirth != null 
+              ? '${_age ?? '-'} ${AppLocalizations.of(context)!.years}'
+              : 'Seleziona data',
             Icons.cake_outlined,
-            onTap: () => _showNumberPicker(
-              AppLocalizations.of(context)!.age,
-              _age ?? 25,
-              14,
-              100,
-              AppLocalizations.of(context)!.years,
-              (v) => setState(() => _age = v),
-            ),
+            onTap: _showDatePicker,
           ),
           _buildDivider(),
           _buildInfoTile(
@@ -1013,6 +1010,41 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         ),
       ),
     );
+  }
+
+  void _showDatePicker() {
+    final now = DateTime.now();
+    showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 25, 1, 1),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: CleanTheme.primaryColor,
+              onPrimary: Colors.white,
+              surface: CleanTheme.surfaceColor,
+              onSurface: CleanTheme.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    ).then((picked) {
+      if (picked != null) {
+        setState(() {
+          _dateOfBirth = picked;
+          final now = DateTime.now();
+          _age = now.year - picked.year;
+          if (now.month < picked.month ||
+              (now.month == picked.month && now.day < picked.day)) {
+            _age = _age! - 1;
+          }
+        });
+      }
+    });
   }
 
   Widget _buildActionButtons() {

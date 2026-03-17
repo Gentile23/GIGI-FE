@@ -31,7 +31,7 @@ class UserService {
     String? name,
     String? email,
     String? gender,
-    int? age,
+    String? dateOfBirth,
     double? height,
     double? weight,
     String? bodyShape,
@@ -51,7 +51,6 @@ class UserService {
     List<String>? specificMachines,
     String? bodyweightType,
     List<String>? bodyweightEquipment,
-    // Professional Trainer Fields
     String? trainingHistory,
     List<String>? preferredDays,
     String? timePreference,
@@ -67,13 +66,7 @@ class UserService {
       if (name != null) data['name'] = name;
       if (email != null) data['email'] = email;
       if (gender != null) data['gender'] = gender;
-      // Convert age to date_of_birth for backend compatibility
-      if (age != null) {
-        final now = DateTime.now();
-        final birthYear = now.year - age;
-        final dateOfBirth = DateTime(birthYear, 1, 1);
-        data['date_of_birth'] = dateOfBirth.toIso8601String().split('T').first;
-      }
+      if (dateOfBirth != null) data['date_of_birth'] = dateOfBirth;
       if (height != null) data['height'] = height;
       if (weight != null) data['weight'] = weight;
       if (bodyShape != null) data['body_shape'] = bodyShape;
@@ -174,6 +167,50 @@ class UserService {
       return {
         'success': false,
         'message': e.response?.data['message'] ?? 'Errore durante il caricamento della foto',
+      };
+    }
+  }
+
+  /// Request email change (triggers OTP)
+  Future<Map<String, dynamic>> requestEmailChange(String newEmail) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/user/request-email-change',
+        data: {'email': newEmail},
+      );
+
+      return {
+        'success': response.statusCode == 200,
+        'message': response.data['message'],
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Errore durante la richiesta di cambio email',
+      };
+    }
+  }
+
+  /// Verify email change with OTP
+  Future<Map<String, dynamic>> verifyEmailChange(String otp) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/user/verify-email-change',
+        data: {'otp': otp},
+      );
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': response.data['message'],
+        };
+      }
+
+      return {'success': false, 'message': 'Verifica fallita'};
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message': e.response?.data['message'] ?? 'Errore durante la verifica dell\'OTP',
       };
     }
   }

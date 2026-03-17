@@ -496,7 +496,9 @@ class _UnifiedQuestionnaireScreenState
         height: _height,
         weight: _weight,
         gender: _selectedGender?.toString().split('.').last,
-        age: _age,
+        dateOfBirth: _age != null 
+            ? DateTime(DateTime.now().year - _age!, 1, 1).toIso8601String().split('T').first 
+            : null,
         bodyShape: _selectedBodyShape?.toString().split('.').last,
         workoutType: _selectedWorkoutType?.toString().split('.').last,
         specificMachines: _selectedMachines.toList(),

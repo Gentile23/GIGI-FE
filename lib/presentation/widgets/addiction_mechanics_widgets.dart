@@ -871,10 +871,10 @@ class ReferralWidget extends StatelessWidget {
     return CleanCard(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Header
-          Row(
+          Column(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
@@ -888,27 +888,22 @@ class ReferralWidget extends StatelessWidget {
                   size: 28,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Invita Amici',
-                      style: GoogleFonts.outfit(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Guadagna Premium gratis!',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 16),
+              Text(
+                'Invita Amici',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              Text(
+                'Guadagna Premium gratis!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: CleanTheme.textSecondary,
                 ),
               ),
             ],
@@ -928,10 +923,11 @@ class ReferralWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'Il tuo codice',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           color: CleanTheme.textTertiary,
@@ -940,6 +936,7 @@ class ReferralWidget extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         referralData.referralCode,
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,

@@ -23,6 +23,8 @@ class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   bool _isInitializing = true;
   String? _error;
+  bool _registrationVerificationRequired = false;
+  String? _pendingVerificationEmail;
 
   AuthProvider(this._apiClient) {
     _authService = AuthService(_apiClient);
@@ -38,6 +40,8 @@ class AuthProvider with ChangeNotifier {
   bool get isInitializing => _isInitializing;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
+  bool get registrationVerificationRequired => _registrationVerificationRequired;
+  String? get pendingVerificationEmail => _pendingVerificationEmail;
 
   Future<void> _checkAuthStatus() async {
     try {
@@ -79,6 +83,8 @@ class AuthProvider with ChangeNotifier {
   }) async {
     _isLoading = true;
     _error = null;
+    _registrationVerificationRequired = false;
+    _pendingVerificationEmail = null;
     notifyListeners();
 
     try {
@@ -92,6 +98,13 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
+        if (result['verification_required'] == true) {
+          _registrationVerificationRequired = true;
+          _pendingVerificationEmail = result['email'];
+          notifyListeners();
+          return true; // Success in starting the process
+        }
+
         _user = result['user'];
         notifyListeners();
         return true;
@@ -104,6 +117,70 @@ class AuthProvider with ChangeNotifier {
       debugPrint('AuthProvider Register Error: $e');
       _isLoading = false;
       _error = 'Impossibile completare la registrazione. Riprova più tardi.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> verifyRegistrationOtp(String otp) async {
+    if (_pendingVerificationEmail == null) return false;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _authService.verifyRegistrationOtp(
+        email: _pendingVerificationEmail!,
+        otp: otp,
+      );
+
+      _isLoading = false;
+
+      if (result['success']) {
+        _user = result['user'];
+        _registrationVerificationRequired = false;
+        _pendingVerificationEmail = null;
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Errore durante la verifica.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> resendRegistrationOtp() async {
+    if (_pendingVerificationEmail == null) return false;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _authService.resendRegistrationOtp(
+        email: _pendingVerificationEmail!,
+      );
+
+      _isLoading = false;
+
+      if (result['success']) {
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Errore nell\'invio dell\'OTP.';
       notifyListeners();
       return false;
     }
@@ -302,7 +379,7 @@ class AuthProvider with ChangeNotifier {
     String? name,
     String? email,
     String? gender,
-    int? age,
+    String? dateOfBirth,
     double? height,
     double? weight,
     String? bodyShape,
@@ -344,7 +421,7 @@ class AuthProvider with ChangeNotifier {
         name: name,
         email: email,
         gender: gender,
-        age: age,
+        dateOfBirth: dateOfBirth,
         height: height,
         weight: weight,
         bodyShape: bodyShape,
@@ -446,6 +523,58 @@ class AuthProvider with ChangeNotifier {
       debugPrint('AuthProvider UploadAvatar Error: $e');
       _isLoading = false;
       _error = 'Errore durante il caricamento dell\'immagine';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> requestEmailChange(String newEmail) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _userService.requestEmailChange(newEmail);
+      _isLoading = false;
+
+      if (result['success']) {
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Errore durante la richiesta di cambio email.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> verifyEmailChange(String otp) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _userService.verifyEmailChange(otp);
+      _isLoading = false;
+
+      if (result['success']) {
+        // Refresh user data from backend since email was changed
+        await fetchUser();
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Errore durante la verifica dell\'email.';
       notifyListeners();
       return false;
     }

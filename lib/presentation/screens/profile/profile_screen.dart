@@ -635,6 +635,7 @@ class ProfileScreen extends StatelessWidget {
   }) {
     // Content of the card
     final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (badge != null) ...[
           Container(
@@ -645,6 +646,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             child: Text(
               badge,
+              textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 8,
                 fontWeight: FontWeight.w900,
@@ -658,6 +660,7 @@ class ProfileScreen extends StatelessWidget {
         ],
         Text(
           title,
+          textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 11,
             fontWeight: FontWeight.bold,
@@ -669,6 +672,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           price,
+          textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -680,6 +684,7 @@ class ProfileScreen extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subPrice,
+          textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 10,
             color: isHighlighted
@@ -1232,6 +1237,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final oldEmail = authProvider.user?.email ?? '';
+      final newEmail = _emailController.text.trim();
+      final hasEmailChanged = newEmail != oldEmail;
 
       // Show loading indicator
       showDialog(
@@ -1242,33 +1250,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
 
+      final messenger = ScaffoldMessenger.of(context);
+      final l10n = AppLocalizations.of(context)!;
+      final navigator = Navigator.of(context);
+
       try {
+        // 1. Update other profile info first
         final success = await authProvider.updateProfile(
           name: _nameController.text.trim(),
-          email: _emailController.text.trim(),
           height: double.tryParse(_heightController.text),
           weight: double.tryParse(_weightController.text),
+          // We don't send the email here if it changed, to avoid backend triggering logic twice
+          // or if the backend doesn't handle it. We'll use the specific email flow.
+          email: hasEmailChanged ? null : oldEmail,
         );
 
         if (!mounted) return;
-        Navigator.pop(context); // Close loading dialog
+        navigator.pop(); // Close loading dialog
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.profileUpdatedSuccess,
+          if (hasEmailChanged) {
+            // 2. Trigger email change flow
+            _requestEmailChange(newEmail);
+          } else {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(l10n.profileUpdatedSuccess),
+                backgroundColor: CleanTheme.primaryColor,
               ),
-              backgroundColor: CleanTheme.primaryColor,
-            ),
-          );
-          Navigator.pop(context); // Return to profile screen
+            );
+            navigator.pop(); // Return to profile screen
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             SnackBar(
               content: Text(
-                authProvider.error ??
-                    AppLocalizations.of(context)!.saveErrorGeneric,
+                authProvider.error ?? l10n.saveErrorGeneric,
               ),
               backgroundColor: CleanTheme.accentRed,
             ),
@@ -1279,12 +1296,119 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Navigator.pop(context); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Si è verificato un errore durante il salvataggio del profilo.'),
+            content: Text(
+              'Si è verificato un errore durante il salvataggio del profilo.',
+            ),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
       }
     }
+  }
+
+  Future<void> _requestEmailChange(String newEmail) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+      ),
+    );
+
+    final success = await authProvider.requestEmailChange(newEmail);
+    
+    if (!mounted) return;
+    navigator.pop(); // Close loading dialog
+
+    if (success) {
+      _showEmailOtpDialog(newEmail);
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(authProvider.error ?? 'Errore nel cambio email'),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+    }
+  }
+
+  void _showEmailOtpDialog(String newEmail) {
+    final otpController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final auth = Provider.of<AuthProvider>(context);
+          return AlertDialog(
+            backgroundColor: CleanTheme.surfaceColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Text(
+              'Verifica nuova email',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Codice inviato a: $newEmail',
+                  style: GoogleFonts.inter(fontSize: 14, color: CleanTheme.textSecondary),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'Codice a 6 cifre',
+                    filled: true,
+                    fillColor: CleanTheme.backgroundColor,
+                  ),
+                ),
+                if (auth.error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    auth.error!,
+                    style: GoogleFonts.inter(color: CleanTheme.accentRed, fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annulla'),
+              ),
+              CleanButton(
+                text: 'Verifica',
+                onPressed: auth.isLoading ? null : () async {
+                  if (otpController.text.length == 6) {
+                    final success = await auth.verifyEmailChange(otpController.text);
+                    if (!context.mounted) return;
+                    
+                    if (success) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context); // Close EditProfile
+                      messenger.showSnackBar(
+                        const SnackBar(
+                          content: Text('Email aggiornata con successo!'),
+                          backgroundColor: CleanTheme.accentGreen,
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+            ],
+          );
+        }
+      ),
+    );
   }
 }
 
