@@ -48,6 +48,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passwordTooShort => 'A senha deve ter pelo menos 6 caracteres';
 
   @override
+  String get passwordRequirementUppercase =>
+      'Deve contenere almeno una lettera maiuscola';
+
+  @override
+  String get passwordRequirementNumber => 'Deve contenere almeno un numero';
+
+  @override
   String get confirmPassword => 'Confirmar Senha';
 
   @override

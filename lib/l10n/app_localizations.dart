@@ -181,8 +181,20 @@ abstract class AppLocalizations {
   /// No description provided for @passwordTooShort.
   ///
   /// In it, this message translates to:
-  /// **'La password deve essere di almeno 6 caratteri'**
+  /// **'La password deve essere di almeno 8 caratteri'**
   String get passwordTooShort;
+
+  /// No description provided for @passwordRequirementUppercase.
+  ///
+  /// In it, this message translates to:
+  /// **'Deve contenere almeno una lettera maiuscola'**
+  String get passwordRequirementUppercase;
+
+  /// No description provided for @passwordRequirementNumber.
+  ///
+  /// In it, this message translates to:
+  /// **'Deve contenere almeno un numero'**
+  String get passwordRequirementNumber;
 
   /// No description provided for @confirmPassword.
   ///

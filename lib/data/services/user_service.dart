@@ -18,11 +18,15 @@ class UserService {
         return {'success': true, 'user': UserModel.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Impossibile recuperare i dati utente'};
+      return {
+        'success': false,
+        'message': 'Impossibile recuperare i dati utente',
+      };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore di connessione al profilo',
+        'message':
+            e.response?.data['message'] ?? 'Errore di connessione al profilo',
       };
     }
   }
@@ -125,11 +129,16 @@ class UserService {
         return {'success': true, 'user': UserModel.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Aggiornamento del profilo non riuscito'};
+      return {
+        'success': false,
+        'message': 'Aggiornamento del profilo non riuscito',
+      };
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante l\'aggiornamento dei dati',
+        'message':
+            e.response?.data['message'] ??
+            'Errore durante l\'aggiornamento dei dati',
       };
     }
   }
@@ -166,17 +175,25 @@ class UserService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante il caricamento della foto',
+        'message':
+            e.response?.data['message'] ??
+            'Errore durante il caricamento della foto',
       };
     }
   }
 
   /// Request email change (triggers OTP)
-  Future<Map<String, dynamic>> requestEmailChange(String newEmail) async {
+  Future<Map<String, dynamic>> requestEmailChange({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
     try {
       final response = await _apiClient.dio.post(
-        '/user/request-email-change',
-        data: {'email': newEmail},
+        ApiConfig.requestEmailChange,
+        data: {
+          'email': newEmail,
+          'current_password': currentPassword,
+        },
       );
 
       return {
@@ -186,7 +203,9 @@ class UserService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante la richiesta di cambio email',
+        'message':
+            e.response?.data['message'] ??
+            'Errore durante la richiesta di cambio email',
       };
     }
   }
@@ -195,22 +214,68 @@ class UserService {
   Future<Map<String, dynamic>> verifyEmailChange(String otp) async {
     try {
       final response = await _apiClient.dio.post(
-        '/user/verify-email-change',
+        ApiConfig.verifyEmailChange,
         data: {'otp': otp},
       );
 
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'message': response.data['message'],
-        };
+        return {'success': true, 'message': response.data['message']};
       }
 
       return {'success': false, 'message': 'Verifica fallita'};
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante la verifica dell\'OTP',
+        'message':
+            e.response?.data['message'] ??
+            'Errore durante la verifica dell\'OTP',
+      };
+    }
+  }
+
+  /// Change user password
+  Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await _apiClient.dio.post(
+        ApiConfig.changePassword,
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'new_password_confirmation': confirmPassword,
+        },
+      );
+
+      return {
+        'success': response.statusCode == 200,
+        'message': response.data['message'],
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message':
+            e.response?.data['message'] ?? 'Errore durante il cambio password',
+      };
+    }
+  }
+
+  /// Delete user account
+  Future<Map<String, dynamic>> deleteAccount() async {
+    try {
+      final response = await _apiClient.dio.delete('/gdpr/account');
+      return {
+        'success': response.statusCode == 200,
+        'message': response.data['message'],
+      };
+    } on DioException catch (e) {
+      return {
+        'success': false,
+        'message':
+            e.response?.data['message'] ??
+            'Errore durante l\'eliminazione dell\'account',
       };
     }
   }

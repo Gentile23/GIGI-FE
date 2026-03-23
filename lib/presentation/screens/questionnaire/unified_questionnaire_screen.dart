@@ -2605,6 +2605,7 @@ class _UnifiedQuestionnaireScreenState
                   TextField(
                     controller: _prefNotesController,
                     maxLines: 4,
+                    maxLength: 500,
                     onChanged: (text) => setState(() {}),
                     style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
                     decoration: InputDecoration(
@@ -2669,12 +2670,12 @@ class _UnifiedQuestionnaireScreenState
                     children: [
                       Expanded(
                         child: CleanButton(
-                          text: "Genera senza dettagli",
+                          text: "Procedi senza dettagli",
                           onPressed: _isLoading
                               ? null
                               : () async {
                                   debugPrint(
-                                    "DEBUG: Genera senza dettagli clicked",
+                                    "DEBUG: Procedi senza dettagli clicked",
                                   );
                                   // Ignore text input when proceeding without details
                                   _prefNotesController.clear();
@@ -2690,14 +2691,14 @@ class _UnifiedQuestionnaireScreenState
                         child: CleanButton(
                           text: _isLoading
                               ? AppLocalizations.of(context)!.savingButton
-                              : (widget.isOnboarding ? "Procedi" : "Genera"),
+                              : "Procedi",
                           onPressed:
                               (_isLoading ||
                                   _prefNotesController.text.trim().isEmpty)
                               ? null
                               : () async {
                                   debugPrint(
-                                    "DEBUG: Genera with details clicked",
+                                    "DEBUG: Procedi with details clicked",
                                   );
                                   await _finish();
                                 },

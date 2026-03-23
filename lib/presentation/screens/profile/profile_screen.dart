@@ -15,10 +15,10 @@ import '../paywall/paywall_screen.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../providers/engagement_provider.dart';
 import '../referral/referral_screen.dart';
-import '../progress/transformation_tracker_screen.dart';
 import '../settings/health_settings_screen.dart';
 import 'edit_preferences_screen.dart';
 import 'privacy_settings_screen.dart';
+import 'security_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -110,8 +110,9 @@ class ProfileScreen extends StatelessWidget {
                                 if (success) {
                                   // Clear image cache to ensure new avatar loads
                                   PaintingBinding.instance.imageCache.clear();
-                                  PaintingBinding.instance.imageCache.clearLiveImages();
-                                  
+                                  PaintingBinding.instance.imageCache
+                                      .clearLiveImages();
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text(
@@ -253,24 +254,6 @@ class ProfileScreen extends StatelessWidget {
                     );
                   },
                 ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.photo_library_outlined,
-                  title: AppLocalizations.of(context)!.transformation,
-                  subtitle: AppLocalizations.of(
-                    context,
-                  )!.transformationSubtitle,
-                  color: CleanTheme.accentGreen,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const TransformationTrackerScreen(),
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -288,11 +271,26 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsTile(
                   icon: Icons.person_outline,
                   title: AppLocalizations.of(context)!.personalInfo,
+                  subtitle: 'Nome, Altezza, Peso',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const EditProfileScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.lock_outline,
+                  title: 'Sicurezza Account',
+                  subtitle: 'Email e Password',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SecuritySettingsScreen(),
                       ),
                     );
                   },
@@ -733,7 +731,8 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSocialProof(BuildContext context) {
     // Semi-dynamic social proof (mocked for demo effectiveness)
-    final userCount = 3100 + (DateTime.now().minute * 5) + (DateTime.now().second % 10);
+    final userCount =
+        3100 + (DateTime.now().minute * 5) + (DateTime.now().second % 10);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -887,7 +886,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -947,7 +945,9 @@ class ProfileScreen extends StatelessWidget {
                   navigator.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Si è verificato un errore durante il logout.'),
+                      content: Text(
+                        'Si è verificato un errore durante il logout.',
+                      ),
                       backgroundColor: CleanTheme.accentRed,
                     ),
                   );
@@ -978,7 +978,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -990,7 +989,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user != null) {
       _nameController.text = user.name;
-      _emailController.text = user.email;
       _heightController.text = user.height?.toString() ?? '';
       _weightController.text = user.weight?.toString() ?? '';
     }
@@ -999,7 +997,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     super.dispose();
@@ -1148,25 +1145,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               const SizedBox(height: 16),
 
-              // Email
-              _buildTextField(
-                controller: _emailController,
-                label: AppLocalizations.of(context)!.email,
-                icon: Icons.email_outlined,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return AppLocalizations.of(context)!.enterYourEmail;
-                  }
-                  if (!value.contains('@')) {
-                    return AppLocalizations.of(context)!.enterValidEmail;
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
-
               // Height
               _buildTextField(
                 controller: _heightController,
@@ -1237,9 +1215,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final oldEmail = authProvider.user?.email ?? '';
-      final newEmail = _emailController.text.trim();
-      final hasEmailChanged = newEmail != oldEmail;
 
       // Show loading indicator
       showDialog(
@@ -1255,38 +1230,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final navigator = Navigator.of(context);
 
       try {
-        // 1. Update other profile info first
         final success = await authProvider.updateProfile(
           name: _nameController.text.trim(),
           height: double.tryParse(_heightController.text),
           weight: double.tryParse(_weightController.text),
-          // We don't send the email here if it changed, to avoid backend triggering logic twice
-          // or if the backend doesn't handle it. We'll use the specific email flow.
-          email: hasEmailChanged ? null : oldEmail,
         );
 
         if (!mounted) return;
         navigator.pop(); // Close loading dialog
 
         if (success) {
-          if (hasEmailChanged) {
-            // 2. Trigger email change flow
-            _requestEmailChange(newEmail);
-          } else {
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(l10n.profileUpdatedSuccess),
-                backgroundColor: CleanTheme.primaryColor,
-              ),
-            );
-            navigator.pop(); // Return to profile screen
-          }
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(l10n.profileUpdatedSuccess),
+              backgroundColor: CleanTheme.primaryColor,
+            ),
+          );
+          navigator.pop(); // Return to profile screen
         } else {
           messenger.showSnackBar(
             SnackBar(
-              content: Text(
-                authProvider.error ?? l10n.saveErrorGeneric,
-              ),
+              content: Text(authProvider.error ?? l10n.saveErrorGeneric),
               backgroundColor: CleanTheme.accentRed,
             ),
           );
@@ -1304,111 +1268,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     }
-  }
-
-  Future<void> _requestEmailChange(String newEmail) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
-      ),
-    );
-
-    final success = await authProvider.requestEmailChange(newEmail);
-    
-    if (!mounted) return;
-    navigator.pop(); // Close loading dialog
-
-    if (success) {
-      _showEmailOtpDialog(newEmail);
-    } else {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Errore nel cambio email'),
-          backgroundColor: CleanTheme.accentRed,
-        ),
-      );
-    }
-  }
-
-  void _showEmailOtpDialog(String newEmail) {
-    final otpController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          final auth = Provider.of<AuthProvider>(context);
-          return AlertDialog(
-            backgroundColor: CleanTheme.surfaceColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: Text(
-              'Verifica nuova email',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Codice inviato a: $newEmail',
-                  style: GoogleFonts.inter(fontSize: 14, color: CleanTheme.textSecondary),
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: otpController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: 'Codice a 6 cifre',
-                    filled: true,
-                    fillColor: CleanTheme.backgroundColor,
-                  ),
-                ),
-                if (auth.error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    auth.error!,
-                    style: GoogleFonts.inter(color: CleanTheme.accentRed, fontSize: 12),
-                  ),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Annulla'),
-              ),
-              CleanButton(
-                text: 'Verifica',
-                onPressed: auth.isLoading ? null : () async {
-                  if (otpController.text.length == 6) {
-                    final success = await auth.verifyEmailChange(otpController.text);
-                    if (!context.mounted) return;
-                    
-                    if (success) {
-                      final messenger = ScaffoldMessenger.of(context);
-                      Navigator.pop(context); // Close dialog
-                      Navigator.pop(context); // Close EditProfile
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Email aggiornata con successo!'),
-                          backgroundColor: CleanTheme.accentGreen,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            ],
-          );
-        }
-      ),
-    );
   }
 }
 

@@ -1,5 +1,7 @@
 {
   "ar": [
+    "passwordRequirementUppercase",
+    "passwordRequirementNumber",
     "introTitleUpdate",
     "introDescriptionUpdate",
     "introButtonUpdate",
@@ -15,6 +17,8 @@
   ],
 
   "de": [
+    "passwordRequirementUppercase",
+    "passwordRequirementNumber",
     "gigiGoalSetupMessage",
     "introTitleUpdate",
     "introDescriptionUpdate",
@@ -51,6 +55,8 @@
   ],
 
   "fr": [
+    "passwordRequirementUppercase",
+    "passwordRequirementNumber",
     "introTitleUpdate",
     "introDescriptionUpdate",
     "introButtonUpdate",
@@ -66,6 +72,8 @@
   ],
 
   "pt": [
+    "passwordRequirementUppercase",
+    "passwordRequirementNumber",
     "introTitleUpdate",
     "introDescriptionUpdate",
     "introButtonUpdate",

@@ -10,6 +10,9 @@ class ApiConfig {
   static const String logout = 'logout';
   static const String user = 'user';
   static const String userProfile = 'user/profile';
+  static const String changePassword = 'user/change-password';
+  static const String requestEmailChange = 'user/request-email-change';
+  static const String verifyEmailChange = 'user/verify-email-change';
   static const String exercises = 'exercises';
   static const String workoutPlans = 'workout-plans';
   static const String workoutPlansCurrent = 'workout-plans/current';

@@ -26,7 +26,7 @@ class AuthService {
         },
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data;
         
         if (data['requires_verification'] == true) {
@@ -49,7 +49,7 @@ class AuthService {
         };
       }
 
-      return {'success': false, 'message': 'Registrazione non riuscita'};
+      return {'success': false, 'message': 'Registrazione non riuscita (Status: ${response.statusCode})'};
     } on DioException catch (e) {
       String message = 'Registrazione non riuscita';
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -59,7 +59,7 @@ class AuthService {
       } else if (e.type == DioExceptionType.connectionError) {
         message = 'Impossibile connettersi al server. Riprova più tardi.';
       } else if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Errore durante la registrazione';
+        message = e.response?.data['message'] ?? 'Errore ${e.response?.statusCode}: ${e.response?.data.toString()}';
       }
 
       return {'success': false, 'message': message};
@@ -132,10 +132,23 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        await _apiClient.saveToken(data['token']);
+        
+        if (data['requires_verification'] == true) {
+          return {
+            'success': true,
+            'verification_required': true,
+            'email': data['email'],
+            'message': data['message'],
+          };
+        }
+
+        if (data['token'] != null) {
+          await _apiClient.saveToken(data['token']);
+        }
+
         return {
           'success': true,
-          'user': UserModel.fromJson(data['user']),
+          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
           'token': data['token'],
         };
       }

@@ -1,53 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart'; 
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
-
-/// ═══════════════════════════════════════════════════════════
-/// TRANSFORMATION TRACKER SCREEN
-/// Before/After Photo Comparison for Viral Sharing
-/// ═══════════════════════════════════════════════════════════
+import '../../widgets/animations/liquid_steel_container.dart';
 
 class TransformationTrackerScreen extends StatefulWidget {
   const TransformationTrackerScreen({super.key});
 
   @override
-  State<TransformationTrackerScreen> createState() =>
-      _TransformationTrackerScreenState();
+  State<TransformationTrackerScreen> createState() => _TransformationTrackerScreenState();
 }
 
-class _TransformationTrackerScreenState
-    extends State<TransformationTrackerScreen> {
+class _TransformationTrackerScreenState extends State<TransformationTrackerScreen> {
   final List<TransformationEntry> _entries = [];
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    // Load sample entries for demo
     _loadSampleEntries();
   }
 
   void _loadSampleEntries() {
-    // In production, load from database
+    // Simuliamo un utente che ha appena iniziato o è a metà percorso
     _entries.addAll([
       TransformationEntry(
         id: '1',
         date: DateTime.now().subtract(const Duration(days: 90)),
         weight: 85.0,
-        bodyFat: 22.0,
-        measurements: {'chest': 102, 'waist': 88, 'arms': 35},
-        notes: 'Inizio del percorso',
+        notes: 'Giorno 1: La mia promessa.',
       ),
+      // Decommenta per vedere lo stato "Dopo"
       TransformationEntry(
-        id: '2',
-        date: DateTime.now().subtract(const Duration(days: 30)),
-        weight: 80.0,
-        bodyFat: 18.0,
-        measurements: {'chest': 104, 'waist': 82, 'arms': 37},
-        notes: 'Dopo 2 mesi di allenamento',
-      ),
+         id: '2',
+         date: DateTime.now(),
+         weight: 78.0,
+         notes: '90 Giorni dopo. Non ci credo!',
+         imagePath: 'assets/after_placeholder.png' // Simulato
+       ),
     ]);
   }
 
@@ -55,218 +48,340 @@ class _TransformationTrackerScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: CleanTheme.backgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CleanTheme.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Trasformazione',
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share, color: CleanTheme.primaryColor),
-            onPressed: _shareTransformation,
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. IL CONSIGLIO DI GIGI (Psicologia & Motivazione)
+                  _buildGigiAdviceCard(),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // 2. LO STATO ATTUALE (La Sfida)
+                  _buildChallengeStatus(),
+
+                  const SizedBox(height: 32),
+
+                  // 3. GUIDA ALLO SCATTO PERFETTO (Qualità = Condivisione)
+                  if (_entries.isNotEmpty) _buildPhotoTipsSection(),
+
+                  const SizedBox(height: 32),
+                  
+                  // 4. TIMELINE
+                  Text(
+                    'LA TUA STORIA',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTimeline(),
+                  
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress Summary
-            _buildProgressSummary(),
-
-            const SizedBox(height: 24),
-
-            // Before/After Comparison
-            if (_entries.length >= 2) ...[
-              _buildBeforeAfterSection(),
-              const SizedBox(height: 24),
-            ],
-
-            // Timeline
-            _buildTimelineSection(),
-
-            const SizedBox(height: 24),
-
-            // Add New Entry Button
-            CleanButton(
-              text: 'Aggiungi Foto',
-              icon: Icons.add_a_photo,
-              width: double.infinity,
-              onPressed: _addNewEntry,
-            ),
-
-            const SizedBox(height: 40),
-          ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addNewEntry,
+        backgroundColor: CleanTheme.primaryColor,
+        elevation: 4,
+        icon: const Icon(Icons.camera_alt, color: Colors.white),
+        label: Text(
+          _entries.isEmpty ? 'INIZIA LA SFIDA' : 'AGGIORNA PROGRESSO',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget _buildProgressSummary() {
-    if (_entries.length < 2) {
-      return _buildEmptyState();
-    }
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: true,
+      backgroundColor: CleanTheme.surfaceColor,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: CleanTheme.textPrimary),
+        onPressed: () => Navigator.pop(context),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          'Transformation Challenge',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: CleanTheme.textPrimary,
+            fontSize: 18
+          ),
+        ),
+        centerTitle: true,
+      ),
+      actions: [
+        if (_entries.length >= 2)
+          IconButton(
+            icon: const Icon(Icons.ios_share, color: CleanTheme.primaryColor),
+            onPressed: _generateAndShareContent,
+          ),
+      ],
+    );
+  }
 
-    final first = _entries.first;
-    final last = _entries.last;
-    final weightDiff = last.weight! - first.weight!;
-    final bodyFatDiff = last.bodyFat! - first.bodyFat!;
-
+  // ════════════════════════════════════════════════════════════════
+  // 1. SEZIONE MOTIVAZIONALE "CONSIGLIO DI GIGI"
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildGigiAdviceCard() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
+          colors: [CleanTheme.accentOrange.withValues(alpha: 0.15), CleanTheme.surfaceColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            CleanTheme.accentGreen.withValues(alpha: 0.1),
-            CleanTheme.primaryColor.withValues(alpha: 0.1),
-          ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: CleanTheme.accentGreen.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: CleanTheme.accentOrange.withValues(alpha: 0.3)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '🎉 I Tuoi Progressi',
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildProgressMetric(
-                label: 'Peso',
-                value: '${weightDiff.abs().toStringAsFixed(1)} kg',
-                isPositive: weightDiff < 0,
-                icon: Icons.monitor_weight_outlined,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: CleanTheme.accentOrange,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
               ),
-              Container(width: 1, height: 50, color: CleanTheme.borderPrimary),
-              _buildProgressMetric(
-                label: 'Body Fat',
-                value: '${bodyFatDiff.abs().toStringAsFixed(1)}%',
-                isPositive: bodyFatDiff < 0,
-                icon: Icons.percent,
-              ),
-              Container(width: 1, height: 50, color: CleanTheme.borderPrimary),
-              _buildProgressMetric(
-                label: 'Giorni',
-                value: '${last.date.difference(first.date).inDays}',
-                isPositive: true,
-                icon: Icons.calendar_today,
+              const SizedBox(width: 12),
+              Text(
+                'IL CONSIGLIO DI GIGI',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.accentOrange,
+                  letterSpacing: 1.0,
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '"Il tuo specchio mente, le foto no."',
+            style: GoogleFonts.outfit(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.textPrimary,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Il cambiamento avviene lentamente e poi tutto in una volta. Scatta una foto oggi e una tra 90 giorni. In quel lasso di tempo, io mi occuperò della tua nutrizione e del tuo allenamento. Tu devi solo presentarti. Questa foto sarà il trofeo della tua disciplina.',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              height: 1.5,
+              color: CleanTheme.textSecondary,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProgressMetric({
-    required String label,
-    required String value,
-    required bool isPositive,
-    required IconData icon,
-  }) {
+  // ════════════════════════════════════════════════════════════════
+  // 2. STATO DELLA SFIDA (PRIMA / DOPO)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildChallengeStatus() {
+    // Caso 1: Utente nuovo (Nessuna foto)
+    if (_entries.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    // Caso 2: Utente con almeno 2 foto (Challenge Completata/In corso)
+    if (_entries.length >= 2) {
+      return _buildBeforeAfterComparison();
+    }
+
+    // Caso 3: Utente con 1 foto (In attesa del risultato)
+    return _buildInProgressState();
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Icon(Icons.photo_camera_front, size: 64, color: CleanTheme.textTertiary.withValues(alpha: 0.5)),
+          const SizedBox(height: 16),
+          Text(
+            'Nessuna foto... ancora.',
+            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+          ),
+          Text(
+            'Il momento migliore per iniziare era ieri.\nIl secondo migliore è adesso.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInProgressState() {
+    final daysPassed = DateTime.now().difference(_entries.first.date).inDays;
+    final progress = (daysPassed / 90).clamp(0.0, 1.0);
+
     return Column(
       children: [
-        Icon(
-          icon,
-          color: isPositive ? CleanTheme.accentGreen : CleanTheme.textSecondary,
-          size: 24,
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (label != 'Giorni')
-              Icon(
-                isPositive ? Icons.arrow_downward : Icons.arrow_upward,
-                color: isPositive
-                    ? CleanTheme.accentGreen
-                    : CleanTheme.accentRed,
-                size: 16,
-              ),
-            Text(
-              value,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textPrimary,
-              ),
+        LiquidSteelContainer(
+          borderRadius: 20,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                // Miniatura Prima Foto
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 100,
+                    height: 120,
+                    color: Colors.black26,
+                    child: _entries.first.imagePath != null 
+                      ? Image.asset(_entries.first.imagePath!, fit: BoxFit.cover) // In prod: FileImage
+                      : const Icon(Icons.person, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'IN CORSO...',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: CleanTheme.accentOrange, letterSpacing: 1),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Giorno $daysPassed di 90',
+                        style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: Colors.white24,
+                        valueColor: const AlwaysStoppedAnimation<Color>(CleanTheme.accentOrange),
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Mancano ${90 - daysPassed} giorni alla rivelazione.',
+                        style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ),
-          ],
-        ),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: CleanTheme.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildBeforeAfterSection() {
+  Widget _buildBeforeAfterComparison() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Branding Header per lo screenshot
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: CleanTheme.primaryColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'MY GIGI TRANSFORMATION',
+            style: GoogleFonts.outfit(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Prima & Dopo',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
+            Expanded(
+              child: Column(
+                children: [
+                  _buildPhotoFrame(_entries.first, 'PRIMA'),
+                  const SizedBox(height: 8),
+                  Text(
+                    DateFormat('dd MMM').format(_entries.first.date),
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
-            TextButton.icon(
-              onPressed: _shareTransformation,
-              icon: const Icon(Icons.share, size: 18),
-              label: Text(
-                'Condividi',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: CleanTheme.surfaceColor,
+                shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              ),
+              child: const Icon(Icons.arrow_forward, size: 20, color: CleanTheme.primaryColor),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  _buildPhotoFrame(_entries.last, 'DOPO'),
+                  const SizedBox(height: 8),
+                  Text(
+                    DateFormat('dd MMM').format(_entries.last.date),
+                    style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        // Before/After Slider
-        _buildComparisonSlider(),
+        const SizedBox(height: 24),
+        CleanButton(
+          text: 'CONDIVIDI IL SUCCESSO 🚀',
+          onPressed: _generateAndShareContent,
+          backgroundColor: CleanTheme.accentGreen,
+          icon: Icons.share,
+          width: double.infinity,
+        ),
       ],
     );
   }
 
-  Widget _buildComparisonSlider() {
+  Widget _buildPhotoFrame(TransformationEntry entry, String label) {
     return Container(
-      height: 300,
+      height: 220,
       decoration: BoxDecoration(
-        color: CleanTheme.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -276,94 +391,26 @@ class _TransformationTrackerScreenState
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            // Placeholder for before/after images
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    color: CleanTheme.textSecondary.withValues(alpha: 0.1),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.photo_camera,
-                          size: 48,
-                          color: CleanTheme.textTertiary,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'PRIMA',
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: CleanTheme.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          _entries.first.date.toString().split(' ')[0],
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: CleanTheme.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(width: 2, color: CleanTheme.borderPrimary),
-                Expanded(
-                  child: Container(
-                    color: CleanTheme.accentGreen.withValues(alpha: 0.1),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.photo_camera,
-                          size: 48,
-                          color: CleanTheme.accentGreen,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'DOPO',
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: CleanTheme.accentGreen,
-                          ),
-                        ),
-                        Text(
-                          _entries.last.date.toString().split(' ')[0],
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: CleanTheme.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            // Watermark
+            entry.imagePath != null
+                ? Image.asset(entry.imagePath!, fit: BoxFit.cover) // In prod: FileImage
+                : Container(color: CleanTheme.primaryLight.withValues(alpha: 0.3), child: const Icon(Icons.person)),
+            
             Positioned(
-              bottom: 12,
-              right: 12,
+              top: 12,
+              left: 12,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Powered by GIGI',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: CleanTheme.textOnDark,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  label,
+                  style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
                 ),
               ),
             ),
@@ -373,423 +420,217 @@ class _TransformationTrackerScreenState
     );
   }
 
-  Widget _buildTimelineSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Timeline',
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ..._entries.reversed.map((entry) => _buildTimelineEntry(entry)),
-      ],
-    );
-  }
-
-  Widget _buildTimelineEntry(TransformationEntry entry) {
-    final isFirst = entry == _entries.first;
-
+  // ════════════════════════════════════════════════════════════════
+  // 3. GUIDA ALLO SCATTO PERFETTO (Tips)
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildPhotoTipsSection() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline indicator
-          Column(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: isFirst
-                      ? CleanTheme.textSecondary
-                      : CleanTheme.accentGreen,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              Container(width: 2, height: 60, color: CleanTheme.borderPrimary),
-            ],
-          ),
-          const SizedBox(width: 16),
-          // Entry card
-          Expanded(
-            child: CleanCard(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _formatDate(entry.date),
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.textPrimary,
-                        ),
-                      ),
-                      if (isFirst)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.textSecondary.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'INIZIO',
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: CleanTheme.textSecondary,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      _buildMiniStat('Peso', '${entry.weight} kg'),
-                      const SizedBox(width: 16),
-                      _buildMiniStat('BF', '${entry.bodyFat}%'),
-                    ],
-                  ),
-                  if (entry.notes != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      entry.notes!,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniStat(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            color: CleanTheme.textTertiary,
-          ),
-        ),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: CleanTheme.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: CleanTheme.borderPrimary),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('📸', style: TextStyle(fontSize: 48)),
-          const SizedBox(height: 16),
           Text(
-            'Inizia il tuo percorso',
+            'COME SCATTARE IL "DOPO" PERFETTO',
             style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Scatta la tua prima foto per tracciare i progressi',
-            style: GoogleFonts.inter(
-              fontSize: 14,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: CleanTheme.textSecondary,
+              letterSpacing: 1.0,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          _buildTipRow(Icons.wb_sunny_outlined, 'Luce', 'Usa luce naturale frontale. Evita ombre dure.'),
+          const SizedBox(height: 12),
+          _buildTipRow(Icons.accessibility_new, 'Posa', 'Rilassato/a, braccia lungo i fianchi. Non trattenere il respiro.'),
+          const SizedBox(height: 12),
+          _buildTipRow(Icons.checkroom, 'Abbigliamento', 'Indossa abbigliamento simile alla prima foto (o intimo).'),
+          const SizedBox(height: 12),
+          _buildTipRow(Icons.photo_camera_back, 'Angolazione', 'Fotocamera all\'altezza del petto, non dall\'alto.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipRow(IconData icon, String title, String desc) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: CleanTheme.primaryColor),
+        const SizedBox(width: 12),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.inter(fontSize: 13, color: CleanTheme.textSecondary, height: 1.4),
+              children: [
+                TextSpan(text: '$title: ', style: const TextStyle(fontWeight: FontWeight.bold, color: CleanTheme.textPrimary)),
+                TextSpan(text: desc),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // 4. TIMELINE
+  // ════════════════════════════════════════════════════════════════
+  Widget _buildTimeline() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _entries.length,
+      itemBuilder: (context, index) {
+        final entry = _entries.reversed.toList()[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
+            children: [
+              Text(
+                DateFormat('dd/MM').format(entry.date),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: CleanTheme.borderPrimary),
+                  ),
+                  child: Row(
+                    children: [
+                      if (entry.weight != null) ...[
+                        Text(
+                          '${entry.weight} kg',
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      Expanded(
+                        child: Text(
+                          entry.notes ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // ACTIONS
+  // ════════════════════════════════════════════════════════════════
+  Future<void> _addNewEntry() async {
+    // 1. Mostra le linee guida prima di aprire la camera
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Pronto per lo scatto?', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_entries.isNotEmpty) ...[
+              Container(
+                height: 150,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: AssetImage(_entries.first.imagePath ?? ''), // In prod: FileImage
+                    fit: BoxFit.cover,
+                    opacity: 0.5, // GHOST EFFECT
+                  ),
+                  color: Colors.black,
+                ),
+                child: const Center(
+                  child: Text(
+                    'Usa la foto precedente come guida',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            const Text('Mantieni la stessa distanza e luce per un confronto valido.'),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annulla')),
           CleanButton(
-            text: 'Scatta Foto',
-            icon: Icons.camera_alt,
-            onPressed: _addNewEntry,
+            text: 'Apri Fotocamera', 
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage();
+            },
+            width: 160,
           ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Gen',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mag',
-      'Giu',
-      'Lug',
-      'Ago',
-      'Set',
-      'Ott',
-      'Nov',
-      'Dic',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
-
-  Future<void> _addNewEntry() async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: CleanTheme.cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Scegli sorgente',
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSourceOption(
-                    icon: Icons.camera_alt,
-                    label: 'Fotocamera',
-                    onTap: () => Navigator.pop(context, ImageSource.camera),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildSourceOption(
-                    icon: Icons.photo_library,
-                    label: 'Galleria',
-                    onTap: () => Navigator.pop(context, ImageSource.gallery),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-
-    if (source != null) {
-      try {
-        final XFile? image = await _picker.pickImage(source: source);
-        if (image != null) {
-          // Show entry form dialog
-          _showEntryFormDialog(image.path);
-        }
-      } catch (e) {
-        debugPrint('Error picking image: $e');
-      }
+  Future<void> _pickImage() async {
+    final image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      // Qui salveremmo la foto. Per ora aggiungiamo una entry fittizia
+      setState(() {
+        _entries.add(TransformationEntry(
+          id: DateTime.now().toString(),
+          date: DateTime.now(),
+          weight: 78.0,
+          notes: 'Nuovo progresso!',
+          imagePath: image.path,
+        ));
+      });
     }
   }
 
-  Widget _buildSourceOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: CleanTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CleanTheme.borderPrimary),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: CleanTheme.primaryColor),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  void _generateAndShareContent() {
+    // 1. Testo Promozionale Virale
+    const String promoText = 
+      "Ho accettato la sfida dei 90 giorni con GiGi! 🚀\n"
+      "Guarda il mio cambiamento. La costanza paga sempre.\n\n"
+      "Vuoi trasformare il tuo corpo? Scarica l'app qui: [LINK_STORE]\n"
+      "#GigiApp #Transformation #FitnessJourney #90DaysChallenge";
 
-  void _showEntryFormDialog(String imagePath) {
-    final weightController = TextEditingController();
-    final bodyFatController = TextEditingController();
-    final notesController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: CleanTheme.cardColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Aggiungi Dettagli',
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: weightController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Peso (kg)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: bodyFatController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Body Fat (%)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: notesController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Note (opzionale)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              CleanButton(
-                text: 'Salva',
-                width: double.infinity,
-                onPressed: () {
-                  final entry = TransformationEntry(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    date: DateTime.now(),
-                    imagePath: imagePath,
-                    weight: double.tryParse(weightController.text),
-                    bodyFat: double.tryParse(bodyFatController.text),
-                    notes: notesController.text.isNotEmpty
-                        ? notesController.text
-                        : null,
-                  );
-                  setState(() => _entries.add(entry));
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Foto aggiunta! 📸'),
-                      backgroundColor: CleanTheme.accentGreen,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _shareTransformation() {
+    // 2. Simulazione Generazione Immagine Branding
+    // In produzione useremmo il package 'screenshot' o 'image' per unire le foto e aggiungere il logo.
+    
+    // 3. Trigger Share
+    SharePlus.instance.share(ShareParams(text: promoText));
+    
+    // Feedback Utente
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Condivisione in arrivo... 📤'),
+        content: Text('Generazione post social in corso... ✨'),
         backgroundColor: CleanTheme.primaryColor,
       ),
     );
-    // In production: generate comparison image and share
   }
 }
 
-/// Model for transformation entries
 class TransformationEntry {
   final String id;
   final DateTime date;
   final String? imagePath;
   final double? weight;
-  final double? bodyFat;
-  final Map<String, double>? measurements;
   final String? notes;
 
-  TransformationEntry({
-    required this.id,
-    required this.date,
-    this.imagePath,
-    this.weight,
-    this.bodyFat,
-    this.measurements,
-    this.notes,
-  });
+  TransformationEntry({required this.id, required this.date, this.imagePath, this.weight, this.notes});
 }

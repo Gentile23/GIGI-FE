@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/workout_log_provider.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import 'transformation_tracker_screen.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// PROGRESS SCREEN - Unified dashboard for all progress metrics
@@ -201,8 +203,122 @@ class _ProgressScreenState extends State<ProgressScreen>
           ),
           const SizedBox(height: 12),
           _buildRecentActivity(),
+          const SizedBox(height: 32),
+
+          // Visual Journey Section
+          _buildVisualJourneySection(),
+          const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildVisualJourneySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Il Tuo Percorso Visivo',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TransformationTrackerScreen()),
+                );
+              },
+              child: Text(
+                'Vedi Tutto',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TransformationTrackerScreen()),
+            );
+          },
+          child: LiquidSteelContainer(
+            borderRadius: 20,
+            child: Container(
+              height: 160,
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  // Preview Photo Placeholder
+                  Container(
+                    width: 100,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    child: const Icon(Icons.photo_library, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Guarda come sei cambiato',
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Hai perso 5.2kg negli ultimi 90 giorni. Continua così!',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'AGGIORNA FOTO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: CleanTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

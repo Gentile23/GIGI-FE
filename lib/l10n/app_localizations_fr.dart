@@ -51,6 +51,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le mot de passe doit contenir au moins 6 caractères';
 
   @override
+  String get passwordRequirementUppercase =>
+      'Deve contenere almeno una lettera maiuscola';
+
+  @override
+  String get passwordRequirementNumber => 'Deve contenere almeno un numero';
+
+  @override
   String get confirmPassword => 'Confirmer le mot de passe';
 
   @override

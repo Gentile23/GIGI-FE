@@ -49,6 +49,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passwordTooShort => 'Das Passwort muss mindestens 6 Zeichen haben';
 
   @override
+  String get passwordRequirementUppercase =>
+      'Deve contenere almeno una lettera maiuscola';
+
+  @override
+  String get passwordRequirementNumber => 'Deve contenere almeno un numero';
+
+  @override
   String get confirmPassword => 'Passwort bestätigen';
 
   @override

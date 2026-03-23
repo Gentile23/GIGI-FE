@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -14,6 +15,7 @@ import '../legal/terms_of_service_screen.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'google_sign_in_button_stub.dart'
     if (dart.library.html) 'google_sign_in_button_web.dart';
+import '../../../core/utils/validation_utils.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -35,6 +37,7 @@ class _AuthScreenState extends State<AuthScreen>
   final _confirmPasswordController = TextEditingController();
   final _referralCodeController = TextEditingController();
   final _otpController = TextEditingController();
+  final _otpFormKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -64,28 +67,26 @@ class _AuthScreenState extends State<AuthScreen>
   // Flag to prevent multiple navigation attempts
   bool _hasNavigated = false;
 
+  // OTP Resend Cooldown
+  Timer? _resendCooldownTimer;
+  int _resendCooldownSeconds = 0;
+
   void _onAuthChanged() {
     if (!mounted || _hasNavigated) return;
 
     final isAuthenticated = _authProvider?.isAuthenticated ?? false;
-    final isLoading = _isLoading; // Ensure we use the local state correctly
+    final isLoading = _isLoading; 
 
     if (isAuthenticated && !isLoading) {
-      // User just authenticated (likely from Web GSI button)
-      debugPrint('AuthScreen: User authenticated, scheduling navigation...');
       _hasNavigated = true;
 
-      // Schedule navigation for next frame to ensure state is fully updated
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        debugPrint('AuthScreen: Executing navigation logic...');
 
         final navigator = Navigator.of(context);
-        debugPrint('AuthScreen: navigator.canPop() = ${navigator.canPop()}');
 
         if (widget.onComplete != null) {
           try {
-            debugPrint('AuthScreen: Calling onComplete callback...');
             widget.onComplete!.call();
             return;
           } catch (e) {
@@ -93,15 +94,9 @@ class _AuthScreenState extends State<AuthScreen>
           }
         }
 
-        // Default behavior: pop back to root where AppNavigator handles the view
         if (navigator.canPop()) {
-          debugPrint('AuthScreen: Popping until first route...');
           navigator.popUntil((route) => route.isFirst);
         } else {
-          debugPrint('AuthScreen: Cannot pop, pushing replacement named /...');
-          // On Web, if we can't pop, we might be the only route.
-          // Pushing '/' ensures the root navigator rebuilds and AppNavigator
-          // picks up the authenticated state.
           navigator.pushReplacementNamed('/');
         }
       });
@@ -110,9 +105,8 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   void dispose() {
-    // Remove listener using stored reference (safe for dispose)
     _authProvider?.removeListener(_onAuthChanged);
-
+    _resendCooldownTimer?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     _nameController.dispose();
@@ -127,7 +121,6 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Wait for auth initialization to prevent Google Sign-In plugin errors on web
     final isInitializing = context.select<AuthProvider, bool>(
       (p) => p.isInitializing,
     );
@@ -144,16 +137,15 @@ class _AuthScreenState extends State<AuthScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            // 1. Background Motion (Subtle)
             const Positioned.fill(
-              child: Opacity(opacity: 0.5, child: BackgroundMotion()),
+              child: Opacity(opacity: 0.3, child: BackgroundMotion()),
             ),
 
             SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {
-                  if (authProvider.registrationVerificationRequired) {
+                  if (!_isLogin && authProvider.registrationVerificationRequired) {
                     return _buildOtpVerificationUI(authProvider);
                   }
                   
@@ -164,10 +156,9 @@ class _AuthScreenState extends State<AuthScreen>
                       children: [
                         const SizedBox(height: 40),
 
-                        // 2. Animated Logo (Hero)
                         const Center(
                           child: AnimatedLogo(
-                            size: 180,
+                            size: 160,
                             heroTag: 'gigi_logo',
                             enableBreathing: true,
                             enableShimmer: true,
@@ -176,298 +167,250 @@ class _AuthScreenState extends State<AuthScreen>
 
                         const SizedBox(height: 32),
 
-                        // Title
                         Text(
-                              _isLogin
-                                  ? AppLocalizations.of(context)!.welcomeBack
-                                  : AppLocalizations.of(context)!.createAccount,
-                              style: GoogleFonts.outfit(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: CleanTheme.textPrimary,
-                              ),
-                              textAlign: TextAlign.center,
-                            )
-                            .animate()
-                            .fadeIn(duration: 400.ms)
-                            .slideY(begin: 0.1, end: 0),
+                          _isLogin
+                              ? AppLocalizations.of(context)!.welcomeBack
+                              : AppLocalizations.of(context)!.createAccount,
+                          style: GoogleFonts.lexend(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.textPrimary,
+                            letterSpacing: -1.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
 
                         Text(
-                              _isLogin
-                                  ? AppLocalizations.of(context)!.loginSubtitle
-                                  : AppLocalizations.of(context)!.registerSubtitle,
-                              style: GoogleFonts.inter(
-                                fontSize: 15,
-                                color: CleanTheme.textSecondary,
-                              ),
-                              textAlign: TextAlign.center,
-                            )
-                            .animate()
-                            .fadeIn(duration: 400.ms, delay: 100.ms)
-                            .slideY(begin: 0.1, end: 0),
+                          _isLogin
+                              ? AppLocalizations.of(context)!.loginSubtitle
+                              : AppLocalizations.of(context)!.registerSubtitle,
+                          style: GoogleFonts.lexend(
+                            fontSize: 16,
+                            color: CleanTheme.textSecondary,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
 
                         const SizedBox(height: 40),
 
-                        // Name field (only for register)
-                        if (!_isLogin) ...[
-                          _buildTextField(
-                                controller: _nameController,
-                                label: AppLocalizations.of(context)!.fullName,
-                                icon: Icons.person_outline,
+                        CleanCard(
+                          borderRadius: 32,
+                          enableGlass: true,
+                          hasShadow: true,
+                          backgroundColor: CleanTheme.surfaceColor.withValues(alpha: 0.8),
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (!_isLogin) ...[
+                                _buildTextField(
+                                  controller: _nameController,
+                                  label: AppLocalizations.of(context)!.fullName,
+                                  icon: Icons.person_outline,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppLocalizations.of(context)!.enterYourName;
+                                    }
+                                    return null;
+                                  },
+                                ).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideX(begin: -0.1, end: 0),
+                                const SizedBox(height: 16),
+                              ],
+
+                              _buildTextField(
+                                controller: _emailController,
+                                label: AppLocalizations.of(context)!.email,
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return AppLocalizations.of(
-                                      context,
-                                    )!.enterYourName;
+                                    return AppLocalizations.of(context)!.enterYourEmail;
+                                  }
+                                  if (!value.contains('@')) {
+                                    return AppLocalizations.of(context)!.enterValidEmail;
                                   }
                                   return null;
                                 },
-                              )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 200.ms)
-                              .slideX(begin: -0.1, end: 0),
-                          const SizedBox(height: 16),
-                        ],
+                              ).animate().fadeIn(
+                                duration: 400.ms,
+                                delay: _isLogin ? 200.ms : 300.ms,
+                              ).slideX(begin: -0.1, end: 0),
 
-                        // Email field
-                        _buildTextField(
-                              controller: _emailController,
-                              label: AppLocalizations.of(context)!.email,
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return AppLocalizations.of(
-                                    context,
-                                  )!.enterYourEmail;
-                                }
-                                if (!value.contains('@')) {
-                                  return AppLocalizations.of(
-                                    context,
-                                  )!.enterValidEmail;
-                                }
-                                return null;
-                              },
-                            )
-                            .animate()
-                            .fadeIn(
-                              duration: 400.ms,
-                              delay: _isLogin ? 200.ms : 300.ms,
-                            )
-                            .slideX(begin: -0.1, end: 0),
+                              const SizedBox(height: 16),
 
-                        const SizedBox(height: 16),
-
-                        // Password field
-                        _buildTextField(
-                              controller: _passwordController,
-                              label: AppLocalizations.of(context)!.password,
-                              icon: Icons.lock_outline,
-                              obscureText: _obscurePassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: CleanTheme.textTertiary,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return AppLocalizations.of(
-                                    context,
-                                  )!.enterPassword;
-                                }
-                                if (value.length < 6) {
-                                  return AppLocalizations.of(
-                                    context,
-                                  )!.passwordTooShort;
-                                }
-                                return null;
-                              },
-                            )
-                            .animate()
-                            .fadeIn(
-                              duration: 400.ms,
-                              delay: _isLogin ? 300.ms : 400.ms,
-                            )
-                            .slideX(begin: -0.1, end: 0),
-
-                        // Confirm Password field (only for register)
-                        if (!_isLogin) ...[
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                                controller: _confirmPasswordController,
-                                label: AppLocalizations.of(
-                                  context,
-                                )!.confirmPassword,
+                              _buildTextField(
+                                controller: _passwordController,
+                                label: AppLocalizations.of(context)!.password,
                                 icon: Icons.lock_outline,
-                                obscureText: _obscureConfirmPassword,
+                                obscureText: _obscurePassword,
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscureConfirmPassword
+                                    _obscurePassword
                                         ? Icons.visibility_off
                                         : Icons.visibility,
                                     color: CleanTheme.textTertiary,
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _obscureConfirmPassword =
-                                          !_obscureConfirmPassword;
+                                      _obscurePassword = !_obscurePassword;
                                     });
                                   },
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return AppLocalizations.of(
-                                      context,
-                                    )!.enterConfirmPassword;
+                                 validator: (value) {
+                                  if (_isLogin) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppLocalizations.of(context)!.enterPassword;
+                                    }
+                                    return null;
                                   }
-                                  if (value != _passwordController.text) {
-                                    return AppLocalizations.of(
-                                      context,
-                                    )!.passwordsDoNotMatch;
-                                  }
-                                  return null;
+                                  return ValidationUtils.validatePassword(
+                                    value,
+                                    enterPasswordMsg: AppLocalizations.of(context)!.enterPassword,
+                                    tooShortMsg: AppLocalizations.of(context)!.passwordTooShort,
+                                    uppercaseMsg: AppLocalizations.of(context)!.passwordRequirementUppercase,
+                                    numberMsg: AppLocalizations.of(context)!.passwordRequirementNumber,
+                                  );
                                 },
-                              )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 500.ms)
-                              .slideX(begin: -0.1, end: 0),
+                              ).animate().fadeIn(
+                                duration: 400.ms,
+                                delay: _isLogin ? 300.ms : 400.ms,
+                              ).slideX(begin: -0.1, end: 0),
 
-                          // Referral Code (Optional)
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                                controller: _referralCodeController,
-                                label: 'Codice Referral (Opzionale)',
-                                icon: Icons.confirmation_number_outlined,
-                                validator: (value) => null, // Optional
-                              )
-                              .animate()
-                              .fadeIn(duration: 400.ms, delay: 600.ms)
-                              .slideX(begin: -0.1, end: 0),
-                        ],
+                              if (!_isLogin) ...[
+                                const SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: _confirmPasswordController,
+                                  label: AppLocalizations.of(context)!.confirmPassword,
+                                  icon: Icons.lock_outline,
+                                  obscureText: _obscureConfirmPassword,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscureConfirmPassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                      color: CleanTheme.textTertiary,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                                      });
+                                    },
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return AppLocalizations.of(context)!.enterConfirmPassword;
+                                    }
+                                    if (value != _passwordController.text) {
+                                      return AppLocalizations.of(context)!.passwordsDoNotMatch;
+                                    }
+                                    return null;
+                                  },
+                                ).animate().fadeIn(duration: 400.ms, delay: 500.ms).slideX(begin: -0.1, end: 0),
 
-                        // GDPR Consent checkboxes (only for registration)
-                        if (!_isLogin) ...[
-                          const SizedBox(height: 24),
-                          _buildConsentSection().animate().fadeIn(
-                            duration: 400.ms,
-                            delay: 700.ms,
-                          ),
-                        ],
+                                const SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: _referralCodeController,
+                                  label: 'Codice Referral (Opzionale)',
+                                  icon: Icons.confirmation_number_outlined,
+                                  validator: (value) => null,
+                                ).animate().fadeIn(duration: 400.ms, delay: 600.ms).slideX(begin: -0.1, end: 0),
+                              ],
 
-                        const SizedBox(height: 24),
+                              if (!_isLogin) ...[
+                                const SizedBox(height: 24),
+                                _buildConsentSection().animate().fadeIn(duration: 400.ms, delay: 700.ms),
+                              ],
 
-                        // Error message
-                        if (_errorMessage != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: CleanTheme.accentRed.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: CleanTheme.accentRed.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  color: CleanTheme.accentRed,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: GoogleFonts.inter(
-                                      color: CleanTheme.accentRed,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                              const SizedBox(height: 32),
+
+                              if (_errorMessage != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: CleanTheme.accentRed.withValues(alpha: 0.3),
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: CleanTheme.accentRed,
-                                    size: 20,
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.error_outline, color: CleanTheme.accentRed, size: 24),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _errorMessage!,
+                                          style: GoogleFonts.lexend(
+                                            color: CleanTheme.accentRed,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, color: CleanTheme.accentRed, size: 20),
+                                        onPressed: () => setState(() => _errorMessage = null),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _errorMessage = null;
-                                    });
-                                  },
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
+                                ).animate().fadeIn().shake(),
+                                const SizedBox(height: 16),
+                              ],
+
+                              CleanButton(
+                                text: _isLogin
+                                    ? AppLocalizations.of(context)!.login
+                                    : AppLocalizations.of(context)!.register,
+                                onPressed: _isLoading
+                                    ? null
+                                    : (_isLogin || _allConsentsAccepted)
+                                    ? _handleSubmit
+                                    : null,
+                                width: double.infinity,
+                                isPrimary: true,
+                              ).animate().fadeIn(
+                                duration: 400.ms,
+                                delay: _isLogin ? 400.ms : 800.ms,
+                              ).scale(),
+
+                              if (!_isLogin && !_allConsentsAccepted) ...[
+                                const SizedBox(height: 12),
+                                Text(
+                                  AppLocalizations.of(context)!.acceptAllConsents,
+                                  style: GoogleFonts.lexend(
+                                    fontSize: 12,
+                                    color: CleanTheme.accentOrange,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ],
-                            ),
-                          ).animate().fadeIn().shake(),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Submit button
-                        CleanButton(
-                              text: _isLogin
-                                  ? AppLocalizations.of(context)!.login
-                                  : AppLocalizations.of(context)!.register,
-                              onPressed: _isLoading
-                                  ? null
-                                  : (_isLogin || _allConsentsAccepted)
-                                  ? _handleSubmit
-                                  : null,
-                              width: double.infinity,
-                            )
-                            .animate()
-                            .fadeIn(
-                              duration: 400.ms,
-                              delay: _isLogin ? 400.ms : 800.ms,
-                            )
-                            .scale(),
-
-                        // Consent reminder for registration
-                        if (!_isLogin && !_allConsentsAccepted) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            AppLocalizations.of(context)!.acceptAllConsents,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: CleanTheme.accentOrange,
-                            ),
-                            textAlign: TextAlign.center,
+                            ],
                           ),
-                        ],
+                        ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
-                        // Divider
                         Row(
                           children: [
-                            const Expanded(
-                              child: Divider(color: CleanTheme.borderPrimary),
-                            ),
+                            const Expanded(child: Divider(color: CleanTheme.borderSecondary)),
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
                                 AppLocalizations.of(context)!.or,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.lexend(
                                   color: CleanTheme.textTertiary,
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            const Expanded(
-                              child: Divider(color: CleanTheme.borderPrimary),
-                            ),
+                            const Expanded(child: Divider(color: CleanTheme.borderSecondary)),
                           ],
                         ).animate().fadeIn(
                           duration: 400.ms,
@@ -476,9 +419,6 @@ class _AuthScreenState extends State<AuthScreen>
 
                         const SizedBox(height: 24),
 
-                        // Google Sign In
-                        // Custom styled Google button (localized) for Mobile
-                        // Native GSI button for Web
                         if (kIsWeb)
                           Center(child: getGoogleSignInButton())
                         else
@@ -491,7 +431,6 @@ class _AuthScreenState extends State<AuthScreen>
 
                         const SizedBox(height: 32),
 
-                        // Toggle login/register
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -499,10 +438,12 @@ class _AuthScreenState extends State<AuthScreen>
                               _isLogin
                                   ? AppLocalizations.of(context)!.noAccount
                                   : AppLocalizations.of(context)!.haveAccount,
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.lexend(
                                 color: CleanTheme.textSecondary,
+                                fontSize: 15,
                               ),
                             ),
+                            const SizedBox(width: 4),
                             GestureDetector(
                               onTap: () {
                                 setState(() {
@@ -514,9 +455,10 @@ class _AuthScreenState extends State<AuthScreen>
                                 _isLogin
                                     ? AppLocalizations.of(context)!.register
                                     : AppLocalizations.of(context)!.login,
-                                style: GoogleFonts.inter(
+                                style: GoogleFonts.lexend(
                                   color: CleanTheme.primaryColor,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
                                 ),
                               ),
                             ),
@@ -532,7 +474,6 @@ class _AuthScreenState extends State<AuthScreen>
               ),
             ),
 
-            // Back button (Moved to end of Stack to be on top)
             if (Navigator.canPop(context))
               PositionedDirectional(
                 start: 8,
@@ -553,24 +494,20 @@ class _AuthScreenState extends State<AuthScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
+        color: CleanTheme.textPrimary.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderPrimary),
+        border: Border.all(color: CleanTheme.textPrimary.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.shield_outlined,
-                color: CleanTheme.primaryColor,
-                size: 20,
-              ),
+              const Icon(Icons.shield_outlined, color: CleanTheme.textPrimary, size: 20),
               const SizedBox(width: 8),
               Text(
                 AppLocalizations.of(context)!.consentsRequired,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.lexend(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: CleanTheme.textPrimary,
@@ -579,8 +516,6 @@ class _AuthScreenState extends State<AuthScreen>
             ],
           ),
           const SizedBox(height: 16),
-
-          // Privacy Policy
           _buildConsentCheckbox(
             value: _acceptedPrivacyPolicy,
             onChanged: (val) => setState(() => _acceptedPrivacyPolicy = val!),
@@ -592,10 +527,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             required: true,
           ),
-
           const SizedBox(height: 12),
-
-          // Terms of Service
           _buildConsentCheckbox(
             value: _acceptedTerms,
             onChanged: (val) => setState(() => _acceptedTerms = val!),
@@ -607,10 +539,7 @@ class _AuthScreenState extends State<AuthScreen>
             ),
             required: true,
           ),
-
           const SizedBox(height: 12),
-
-          // Health Data Consent (Art. 9 GDPR)
           _buildConsentCheckbox(
             value: _acceptedHealthData,
             onChanged: (val) => setState(() => _acceptedHealthData = val!),
@@ -649,9 +578,7 @@ class _AuthScreenState extends State<AuthScreen>
             value: value,
             onChanged: onChanged,
             activeColor: CleanTheme.primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
         const SizedBox(width: 8),
@@ -663,27 +590,28 @@ class _AuthScreenState extends State<AuthScreen>
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.lexend(
                       fontSize: 13,
-                      color: CleanTheme.textSecondary,
+                      color: CleanTheme.textSecondary.withValues(alpha: 0.8),
                     ),
                   ),
                   GestureDetector(
                     onTap: onLinkTap,
                     child: Text(
                       linkText,
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.lexend(
                         fontSize: 13,
-                        color: CleanTheme.primaryColor,
+                        color: CleanTheme.textPrimary,
                         fontWeight: FontWeight.w600,
                         decoration: TextDecoration.underline,
+                        decorationColor: CleanTheme.textPrimary,
                       ),
                     ),
                   ),
                   if (required)
                     Text(
                       ' *',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.lexend(
                         fontSize: 13,
                         color: CleanTheme.accentRed,
                         fontWeight: FontWeight.w600,
@@ -695,9 +623,10 @@ class _AuthScreenState extends State<AuthScreen>
                 const SizedBox(height: 2),
                 Text(
                   sublabel,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.lexend(
                     fontSize: 11,
                     color: CleanTheme.textTertiary,
+                    height: 1.3,
                   ),
                 ),
               ],
@@ -717,96 +646,86 @@ class _AuthScreenState extends State<AuthScreen>
     Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
-        prefixIcon: Icon(icon, color: CleanTheme.textSecondary),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: CleanTheme.surfaceColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: CleanTheme.borderPrimary),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-            color: CleanTheme.primaryColor,
-            width: 2,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(),
+            style: GoogleFonts.lexend(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textSecondary.withValues(alpha: 0.8),
+              letterSpacing: 1.5,
+            ),
           ),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: CleanTheme.accentRed),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          style: GoogleFonts.lexend(
+            color: CleanTheme.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            prefixIcon: Icon(
+              icon,
+              color: CleanTheme.textSecondary.withValues(alpha: 0.6),
+            ),
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: CleanTheme.textPrimary.withValues(alpha: 0.04),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: CleanTheme.textPrimary.withValues(alpha: 0.05)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: CleanTheme.textPrimary.withValues(alpha: 0.05)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: CleanTheme.textPrimary.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: CleanTheme.accentRed),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+          validator: validator,
         ),
-      ),
-      validator: validator,
+      ],
     );
   }
 
-  // ignore: unused_element
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: CleanTheme.textPrimary,
-        side: const BorderSide(color: CleanTheme.borderPrimary),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Google Sign-In button styled like Apple (black, premium look)
   Widget _buildGoogleButton({required VoidCallback onPressed}) {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+        elevation: 2,
+        shadowColor: Colors.black12,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Google "G" logo
           Container(
             width: 24,
             height: 24,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
             child: Center(
               child: Text(
                 'G',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.lexend(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.black,
@@ -817,10 +736,10 @@ class _AuthScreenState extends State<AuthScreen>
           const SizedBox(width: 12),
           Text(
             AppLocalizations.of(context)!.continueWithGoogle,
-            style: GoogleFonts.inter(
+            style: GoogleFonts.lexend(
               fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -829,31 +748,19 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _handleSubmit() async {
-    // Clear previous error
-    setState(() {
-      _errorMessage = null;
-    });
+    setState(() => _errorMessage = null);
 
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    // Check consents for registration
     if (!_isLogin && !_allConsentsAccepted) {
-      setState(() {
-        _errorMessage = AppLocalizations.of(context)!.mustAcceptConsents;
-      });
+      setState(() => _errorMessage = AppLocalizations.of(context)!.mustAcceptConsents);
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     bool success;
-
-    debugPrint('AuthScreen: Attempting ${_isLogin ? "login" : "register"}...');
 
     if (_isLogin) {
       success = await authProvider.login(
@@ -865,9 +772,7 @@ class _AuthScreenState extends State<AuthScreen>
         name: _nameController.text,
         email: _emailController.text,
         password: _passwordController.text,
-        referralCode: _referralCodeController.text.isNotEmpty
-            ? _referralCodeController.text
-            : null,
+        referralCode: _referralCodeController.text.isNotEmpty ? _referralCodeController.text : null,
       );
 
       if (success && _referralCodeController.text.isNotEmpty && mounted) {
@@ -875,42 +780,31 @@ class _AuthScreenState extends State<AuthScreen>
           SnackBar(
             content: Text(
               'Codice referral applicato! Hai 1 mese di Premium gratis! 🎉',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              style: GoogleFonts.lexend(fontWeight: FontWeight.w600),
             ),
             backgroundColor: CleanTheme.accentGreen,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.all(16),
           ),
         );
       }
     }
 
-    debugPrint(
-      'AuthScreen: Auth result: success=$success, error=${authProvider.error}',
-    );
-
     if (mounted) {
       setState(() {
         _isLoading = false;
         if (!success) {
           _errorMessage = _translateError(authProvider.error);
-          debugPrint('AuthScreen: Error message set to: $_errorMessage');
         }
       });
 
       if (success) {
-        debugPrint('AuthScreen: Login/Register successful, navigating...');
+        if (authProvider.registrationVerificationRequired) return;
         _hasNavigated = true;
-
         if (widget.onComplete != null) {
-          debugPrint('AuthScreen: Calling onComplete callback');
           widget.onComplete!.call();
         } else {
-          // Navigate to home when no onComplete is provided
-          debugPrint('AuthScreen: No onComplete, navigating to root...');
           final navigator = Navigator.of(context);
           if (navigator.canPop()) {
             navigator.popUntil((route) => route.isFirst);
@@ -930,58 +824,39 @@ class _AuthScreenState extends State<AuthScreen>
     }
 
     final lowerError = error.toLowerCase();
-
-    // Specific mapping for common auth errors
-    if (lowerError.contains('invalid credentials') || 
-        lowerError.contains('unauthorized') ||
-        lowerError.contains('401')) {
+    if (lowerError.contains('invalid credentials') || lowerError.contains('unauthorized') || lowerError.contains('401')) {
       return 'Email o password non corretti. Riprova.';
     }
-    
-    if (lowerError.contains('email already') || 
-        lowerError.contains('taken') ||
-        lowerError.contains('already registered')) {
+    if (lowerError.contains('email already') || lowerError.contains('taken') || lowerError.contains('already registered')) {
       return 'Questa email è già in uso. Prova ad accedere o usa un\'altra email.';
     }
-
-    if (lowerError.contains('connection') || 
-        lowerError.contains('network') ||
-        lowerError.contains('socketexception')) {
+    if (lowerError.contains('connection') || lowerError.contains('network') || lowerError.contains('socketexception')) {
       return 'Problema di connessione. Controlla la tua rete.';
     }
-
     if (lowerError.contains('timeout')) {
       return 'Il server ha impiegato troppo tempo a rispondere. Riprova.';
     }
-
     if (lowerError.contains('password') && lowerError.contains('short')) {
       return 'La password deve contenere almeno 6 caratteri.';
     }
-
     if (lowerError.contains('user not found')) {
       return 'Non abbiamo trovato un account con questa email.';
     }
-
     if (lowerError.contains('too many attempts')) {
       return 'Troppi tentativi di accesso. Riprova tra qualche minuto.';
     }
-
     if (lowerError.contains('server error') || lowerError.contains('500')) {
       return 'C\'è un problema tecnico sui nostri server. Stiamo lavorando per risolverlo.';
     }
-
-    // Default clean message for any other error
-    return 'Si è verificato un errore. Per favore, riprova.';
+    
+    // If no specific translation matches, but we have a technical error from AuthService, show it
+    return error;
   }
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final success = await authProvider.signInWithGoogle();
-
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -989,10 +864,7 @@ class _AuthScreenState extends State<AuthScreen>
           _errorMessage = _translateError(authProvider.error);
         }
       });
-
-      if (success) {
-        widget.onComplete?.call();
-      }
+      if (success) widget.onComplete?.call();
     }
   }
 
@@ -1000,98 +872,167 @@ class _AuthScreenState extends State<AuthScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 40),
+        const SizedBox(height: 24),
         const Center(
           child: AnimatedLogo(
-            size: 150,
+            size: 140,
             heroTag: 'gigi_logo_otp',
             enableBreathing: true,
           ),
         ),
         const SizedBox(height: 32),
-        Text(
-          'Verifica la tua email',
-          style: GoogleFonts.outfit(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: CleanTheme.textPrimary,
+        
+        CleanCard(
+          borderRadius: 32,
+          enableGlass: true,
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _otpFormKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Verifica Email',
+                style: GoogleFonts.lexend(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.textPrimary,
+                  letterSpacing: -1.0,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Abbiamo inviato un codice a\n${authProvider.pendingVerificationEmail}',
+                style: GoogleFonts.lexend(
+                  fontSize: 15,
+                  color: CleanTheme.textSecondary,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              
+              _buildTextField(
+                controller: _otpController,
+                label: 'Codice di verifica',
+                icon: Icons.vpn_key_outlined,
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Inserisci il codice';
+                  if (value.length != 6) return 'Il codice deve essere di 6 cifre';
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 24),
+              
+              if (authProvider.error != null) ...[
+                Text(
+                  _translateError(authProvider.error),
+                  style: GoogleFonts.lexend(
+                    color: CleanTheme.accentRed,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              CleanButton(
+                text: 'Verifica',
+                onPressed: _isLoading ? null : () async {
+                  if (_otpFormKey.currentState!.validate()) {
+                    setState(() => _isLoading = true);
+                    final success = await authProvider.verifyRegistrationOtp(_otpController.text);
+                    if (mounted) {
+                      setState(() => _isLoading = false);
+                    }
+                    if (success) {
+                      if (!mounted) return;
+                      _hasNavigated = true;
+                      if (widget.onComplete != null) {
+                        widget.onComplete!.call();
+                      } else {
+                        final navigator = Navigator.of(context);
+                        if (navigator.canPop()) {
+                          navigator.popUntil((route) => route.isFirst);
+                        } else {
+                          navigator.pushReplacementNamed('/');
+                        }
+                      }
+                    }
+                  }
+                },
+                width: double.infinity,
+                isPrimary: true,
+              ),
+              
+              const SizedBox(height: 24),
+              
+              TextButton(
+                onPressed: (_isLoading || _resendCooldownSeconds > 0) ? null : () async {
+                  final success = await authProvider.resendRegistrationOtp();
+                  if (success && mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Nuovo codice inviato!'))
+                    );
+                    setState(() => _resendCooldownSeconds = 60);
+                    _resendCooldownTimer?.cancel();
+                    _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                      if (!mounted) {
+                        timer.cancel();
+                        return;
+                      }
+                      setState(() {
+                        if (_resendCooldownSeconds > 0) {
+                          _resendCooldownSeconds--;
+                        } else {
+                          timer.cancel();
+                        }
+                      });
+                    });
+                  }
+                },
+                child: Text(
+                  _resendCooldownSeconds > 0 
+                      ? 'Attendi $_resendCooldownSeconds s per reinviare' 
+                      : 'Non hai ricevuto il codice? Reinvia',
+                  style: GoogleFonts.lexend(
+                    color: _resendCooldownSeconds > 0 ? CleanTheme.textTertiary : CleanTheme.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              
+              TextButton(
+                onPressed: () {
+                  authProvider.resetRegistrationVerification();
+                  setState(() {
+                    _isLogin = true;
+                    _otpController.clear();
+                  });
+                },
+                child: Text(
+                  'Torna al Login',
+                  style: GoogleFonts.lexend(
+                    color: CleanTheme.primaryColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
           ),
-          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Abbiamo inviato un codice a\n${authProvider.pendingVerificationEmail}',
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            color: CleanTheme.textSecondary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40),
-        
-        _buildTextField(
-          controller: _otpController,
-          label: 'Codice di verifica',
-          icon: Icons.vpn_key_outlined,
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'Inserisci il codice';
-            if (value.length != 6) return 'Il codice deve essere di 6 cifre';
-            return null;
-          },
-        ),
-        
-        const SizedBox(height: 16),
-        
-        if (authProvider.error != null) ...[
-          Text(
-            authProvider.error!,
-            style: GoogleFonts.inter(
-              color: CleanTheme.accentRed,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-        ],
-        
-        CleanButton(
-          text: 'Verifica',
-          onPressed: _isLoading ? null : () async {
-            if (_otpController.text.length == 6) {
-              setState(() => _isLoading = true);
-              final success = await authProvider.verifyRegistrationOtp(_otpController.text);
-              setState(() => _isLoading = false);
-              if (success) {
-                // _onAuthChanged will handle navigation
-              }
-            }
-          },
-          width: double.infinity,
-        ),
-        
-        const SizedBox(height: 24),
-        
-        TextButton(
-          onPressed: _isLoading ? null : () async {
-            final success = await authProvider.resendRegistrationOtp();
-            if (success && mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Nuovo codice inviato!'))
-              );
-            }
-          },
-          child: Text(
-            'Non hai ricevuto il codice? Inviamene un altro',
-            style: GoogleFonts.inter(
-              color: CleanTheme.primaryColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

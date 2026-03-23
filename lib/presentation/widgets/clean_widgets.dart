@@ -18,6 +18,7 @@ class CleanButton extends StatelessWidget {
   final Color? textColor;
   final double? width;
   final EdgeInsetsGeometry? padding;
+  final bool isLoading;
 
   const CleanButton({
     super.key,
@@ -31,6 +32,7 @@ class CleanButton extends StatelessWidget {
     this.textColor,
     this.width,
     this.padding,
+    this.isLoading = false,
   });
 
   @override
@@ -83,6 +85,16 @@ class CleanButton extends StatelessWidget {
   }
 
   Widget _buildContent(Color color) {
+    if (isLoading) {
+      return SizedBox(
+        height: 20,
+        width: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+      );
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -91,12 +103,16 @@ class CleanButton extends StatelessWidget {
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 8),
         ],
-        Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: color,
+        Flexible(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
           ),
         ),
         if (trailingIcon != null) ...[

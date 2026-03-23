@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -32,22 +33,18 @@ class AuthProvider with ChangeNotifier {
     _checkAuthStatus();
   }
 
-  // ... (previous code) ...
-
-  // NOTE: Helper accessors to reduce code duplication in replacement
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   bool get isInitializing => _isInitializing;
   String? get error => _error;
   bool get isAuthenticated => _user != null;
-  bool get registrationVerificationRequired => _registrationVerificationRequired;
+  bool get registrationVerificationRequired =>
+      _registrationVerificationRequired;
   String? get pendingVerificationEmail => _pendingVerificationEmail;
 
   Future<void> _checkAuthStatus() async {
     try {
       if (kIsWeb) {
-        // This triggers initialization of the web plugin
-        // Awaiting it allows us to handle the silent sign-in before finishing initialization
         final account = await _googleSignIn.signInSilently();
         if (account != null) {
           await _handleGoogleAuth(account);
@@ -58,7 +55,6 @@ class AuthProvider with ChangeNotifier {
         GoogleSignInAccount? account,
       ) async {
         if (account != null) {
-          // If we haven't already handled this account or if it's a new one
           await _handleGoogleAuth(account);
         }
       });
@@ -71,7 +67,7 @@ class AuthProvider with ChangeNotifier {
       await fetchUser();
     }
     _isInitializing = false;
-    _isLoading = false; // Ensure loading is also reset
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -102,7 +98,7 @@ class AuthProvider with ChangeNotifier {
           _registrationVerificationRequired = true;
           _pendingVerificationEmail = result['email'];
           notifyListeners();
-          return true; // Success in starting the process
+          return true;
         }
 
         _user = result['user'];
@@ -197,6 +193,13 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
+        if (result['verification_required'] == true) {
+          _registrationVerificationRequired = true;
+          _pendingVerificationEmail = result['email'];
+          notifyListeners();
+          return true;
+        }
+
         _user = result['user'];
         notifyListeners();
         return true;
@@ -208,7 +211,8 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('AuthProvider Login Error: $e');
       _isLoading = false;
-      _error = 'Impossibile effettuare l\'accesso. Controlla la tua connessione.';
+      _error =
+          'Impossibile effettuare l\'accesso. Controlla la tua connessione.';
       notifyListeners();
       return false;
     }
@@ -222,9 +226,6 @@ class AuthProvider with ChangeNotifier {
     try {
       GoogleSignInAccount? googleUser;
       if (kIsWeb) {
-        // On Web, the button handles the sign-in flow.
-        // We just return false here as the listener will handle the success case.
-        // The UI should show the Google button which triggers the flow.
         return false;
       } else {
         googleUser = await _googleSignIn.signIn();
@@ -251,10 +252,6 @@ class AuthProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      // Note: Removed the early return check that blocked existing users
-      // This was causing issues on Web where users couldn't re-login
-
-      debugPrint('Calling AuthService.socialLogin...');
       final result = await _authService.socialLogin(
         provider: 'google',
         token: googleUser.id,
@@ -266,14 +263,9 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        debugPrint('Social Login Success. Setting user and notifying...');
         _user = result['user'];
         notifyListeners();
-        debugPrint(
-          'User set: ${_user?.email}, isAuthenticated: $isAuthenticated',
-        );
       } else {
-        debugPrint('Social Login Failed: ${result['message']}');
         _error = result['message'];
         notifyListeners();
       }
@@ -298,25 +290,10 @@ class AuthProvider with ChangeNotifier {
         ],
       );
 
-      // credential.userIdentifier is the detailed Apple User ID
-
       String email = credential.email ?? '';
       String? name;
       if (credential.givenName != null) {
         name = '${credential.givenName} ${credential.familyName}';
-      }
-
-      // If email is hidden/null (subsequent logins), we might need to handle logic differently
-      // But for MVP we assume we interpret what we get.
-      // Note: Apple only returns email/name on FIRST login.
-      // Backend logic requires email. If missing, this might fail unless we store it locally or use JWT decoding on backend.
-      // For now, we pass what we have, understanding 'email' is required by backend validation.
-      // If email is empty, we might need to decode identityToken on client or backend.
-      // Let's assume for this step we catch obvious errors.
-
-      if (email.isEmpty) {
-        // Fallback or error - simplistic handling for now
-        // In robust apps we decode identityToken to get email if available in claims
       }
 
       final result = await _authService.socialLogin(
@@ -399,7 +376,6 @@ class AuthProvider with ChangeNotifier {
     List<String>? specificMachines,
     String? bodyweightType,
     List<String>? bodyweightEquipment,
-    // Professional Trainer Fields
     String? trainingHistory,
     List<String>? preferredDays,
     String? timePreference,
@@ -441,7 +417,6 @@ class AuthProvider with ChangeNotifier {
         specificMachines: specificMachines,
         bodyweightType: bodyweightType,
         bodyweightEquipment: bodyweightEquipment,
-        // Professional Trainer Fields
         trainingHistory: trainingHistory,
         preferredDays: preferredDays,
         timePreference: timePreference,
@@ -456,13 +431,15 @@ class AuthProvider with ChangeNotifier {
 
       if (result['success']) {
         final newUser = result['user'] as UserModel;
-        
-        // Preserve avatar cache-busting timestamp if path is identical
-        if (_user != null && _user!.avatarUrl != null && newUser.avatarUrl != null) {
+
+        if (_user != null &&
+            _user!.avatarUrl != null &&
+            newUser.avatarUrl != null) {
           final oldUrl = _user!.avatarUrl!;
           final newUrl = newUser.avatarUrl!;
-          
-          if (oldUrl.contains('?') && oldUrl.split('?').first == newUrl.split('?').first) {
+
+          if (oldUrl.contains('?') &&
+              oldUrl.split('?').first == newUrl.split('?').first) {
             _user = newUser.copyWith(avatarUrl: oldUrl);
           } else {
             _user = newUser;
@@ -470,7 +447,7 @@ class AuthProvider with ChangeNotifier {
         } else {
           _user = newUser;
         }
-        
+
         notifyListeners();
         return true;
       } else {
@@ -487,7 +464,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Upload user avatar
   Future<bool> uploadAvatar(XFile imageFile) async {
     _isLoading = true;
     _error = null;
@@ -499,16 +475,16 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        // Update user with new avatar URL, appending a timestamp to force refresh
         if (_user != null) {
           final timestamp = DateTime.now().millisecondsSinceEpoch;
           final avatarUrl = result['avatar_url'];
-          
+
           if (avatarUrl != null && avatarUrl.toString().isNotEmpty) {
             final separator = avatarUrl.contains('?') ? '&' : '?';
-            _user = _user!.copyWith(avatarUrl: '$avatarUrl${separator}t=$timestamp');
+            _user = _user!.copyWith(
+              avatarUrl: '$avatarUrl${separator}t=$timestamp',
+            );
           } else {
-            // Re-fetch user to get the updated avatar URL from backend
             await fetchUser();
           }
         }
@@ -528,13 +504,19 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> requestEmailChange(String newEmail) async {
+  Future<bool> requestEmailChange({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      final result = await _userService.requestEmailChange(newEmail);
+      final result = await _userService.requestEmailChange(
+        newEmail: newEmail,
+        currentPassword: currentPassword,
+      );
       _isLoading = false;
 
       if (result['success']) {
@@ -563,7 +545,6 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        // Refresh user data from backend since email was changed
         await fetchUser();
         notifyListeners();
         return true;
@@ -578,6 +559,70 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _userService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+      _isLoading = false;
+
+      if (result['success']) {
+        notifyListeners();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } on DioException catch (_) {
+      _isLoading = false;
+      _error = 'Errore durante il cambio password.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _userService.deleteAccount();
+      _isLoading = false;
+
+      if (result['success']) {
+        await logout();
+        return true;
+      } else {
+        _error = result['message'];
+        notifyListeners();
+        return false;
+      }
+    } catch (_) {
+      _isLoading = false;
+      _error = 'Errore durante l\'eliminazione dell\'account.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void resetRegistrationVerification() {
+    _registrationVerificationRequired = false;
+    _pendingVerificationEmail = null;
+    notifyListeners();
   }
 
   void clearError() {
