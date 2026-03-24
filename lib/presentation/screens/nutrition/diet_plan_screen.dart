@@ -21,6 +21,7 @@ class DietPlanScreen extends StatefulWidget {
 class _DietPlanScreenState extends State<DietPlanScreen>
     with TickerProviderStateMixin {
   TabController? _tabController;
+  int _currentWeekIndex = 0;
 
   @override
   void initState() {
@@ -271,7 +272,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           );
         }
 
-        final days = weeks[0]['days'] as List;
+        final currentWeek = weeks[_currentWeekIndex];
+        final days = currentWeek['days'] as List;
         final todayIndex = DateTime.now().weekday - 1; // 0=Mon, 6=Sun
 
         // Ensure controller is valid
@@ -350,6 +352,48 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           ),
           body: Column(
             children: [
+              // Week Selector (if multiple)
+              if (weeks.length > 1)
+                Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: weeks.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = _currentWeekIndex == index;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _currentWeekIndex = index;
+                            _tabController?.animateTo(0);
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: isSelected ? CleanTheme.steelDark : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected ? CleanTheme.steelDark : CleanTheme.borderPrimary,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'SETTIMANA ${index + 1}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : CleanTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               // Day Selector Pills
               Container(
                 height: 56,
@@ -473,6 +517,10 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       children: [
         // Daily Macros Summary Card
         _buildDayMacrosCard(day),
+        if (day['day_type'] != null) ...[
+          const SizedBox(height: 8),
+          _buildDayTypeBadge(day['day_type']),
+        ],
         const SizedBox(height: 12),
         // Meals
         ...meals.asMap().entries.map((entry) {
@@ -492,7 +540,18 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     final meals = day['meals'] as List? ?? [];
     for (var meal in meals) {
       final foods = meal['foods'] as List? ?? [];
+      final Set<String> countedGroups = {};
+
       for (var food in foods) {
+        final isAlternative = food['is_alternative'] == true;
+        final groupId = food['alternative_group_id']?.toString();
+
+        // If it's an alternative, only count it if we haven't counted this group yet
+        if (isAlternative && groupId != null) {
+          if (countedGroups.contains(groupId)) continue;
+          countedGroups.add(groupId);
+        }
+
         totalKcal += (food['calories'] as num?)?.toInt() ?? 0;
         totalProteins += (food['proteins'] as num?)?.toDouble() ?? 0;
         totalCarbs += (food['carbs'] as num?)?.toDouble() ?? 0;
@@ -659,30 +718,40 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                   color: CleanTheme.textSecondary,
                   onPressed: () => _shareMeal(meal),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.auto_awesome, size: 20),
-                  color: CleanTheme.accentGold,
-                  tooltip: 'Rigenera con IA',
-                  onPressed: () async {
-                    final quotaService = QuotaService();
-                    final checkResult = await quotaService.checkAndRecord(
-                      QuotaAction.changeMeal,
-                    );
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.accentGold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CleanTheme.accentGold.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.auto_awesome, size: 20),
+                    color: CleanTheme.accentGold,
+                    tooltip: 'Cambia Menù (IA)',
+                    onPressed: () async {
+                      final quotaService = QuotaService();
+                      final checkResult = await quotaService.checkAndRecord(
+                        QuotaAction.changeMeal,
+                      );
 
-                    if (!checkResult.canPerform && context.mounted) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const PaywallScreen(),
-                        ),
-                      );
-                    } else if (checkResult.canPerform && context.mounted) {
-                      _showPremiumRegenerateDialog(
-                        context,
-                        dayIndex,
-                        mealIndex,
-                      );
-                    }
-                  },
+                      if (!checkResult.canPerform && context.mounted) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const PaywallScreen(),
+                          ),
+                        );
+                      } else if (checkResult.canPerform && context.mounted) {
+                        _showPremiumRegenerateDialog(
+                          context,
+                          dayIndex,
+                          mealIndex,
+                        );
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -728,115 +797,189 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     return foods.asMap().entries.map((entry) {
       final foodIndex = entry.key;
       final food = entry.value;
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          border: entry.key < foods.length - 1
-              ? Border(
-                  bottom: BorderSide(color: CleanTheme.borderPrimary, width: 1),
-                )
-              : null,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      
+      final isAlternative = food['is_alternative'] == true;
+      final groupId = food['alternative_group_id'];
+
+      // Logic to show "OPPURE" before second alternative in a group
+      bool showOrLabel = false;
+      if (isAlternative && foodIndex > 0) {
+        final prevFood = foods[foodIndex - 1];
+        if (prevFood['is_alternative'] == true && 
+            prevFood['alternative_group_id'] != null && 
+            prevFood['alternative_group_id'] == groupId) {
+          showOrLabel = true;
+        }
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showOrLabel)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+              child: Row(
                 children: [
-                  Text(
-                    food['name'] ?? 'Alimento',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
-                      color: CleanTheme.textPrimary,
+                  const Expanded(child: Divider(height: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'OPPURE',
+                      style: GoogleFonts.outfit(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: CleanTheme.accentOrange,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      // Tappable quantity
-                      GestureDetector(
-                        onTap: () => _showEditQuantityDialog(
-                          context,
-                          food,
-                          dayIndex,
-                          mealIndex,
-                          foodIndex,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: CleanTheme.borderSecondary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${food['quantity'] ?? ''}${food['unit'] ?? ''}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: CleanTheme.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.edit_outlined,
-                                size: 14,
-                                color: CleanTheme.textSecondary,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (food['calories'] != null) ...[
-                        const SizedBox(width: 12),
-                        Text(
-                          '${food['calories']} kcal',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: CleanTheme.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                  const Expanded(child: Divider(height: 1)),
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.swap_horiz_rounded, size: 22),
-              color: CleanTheme.textPrimary,
-              tooltip: 'Sostituisci',
-              onPressed: () async {
-                final quotaService = QuotaService();
-                final checkResult = await quotaService.checkAndRecord(
-                  QuotaAction.changeFood,
-                );
-
-                if (!checkResult.canPerform && context.mounted) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const PaywallScreen(),
-                    ),
-                  );
-                } else if (checkResult.canPerform && context.mounted) {
-                  _showSubstitutionModal(
-                    context,
-                    food,
-                    dayIndex,
-                    mealIndex,
-                    foodIndex,
-                  );
-                }
-              },
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: isAlternative ? CleanTheme.accentOrange.withValues(alpha: 0.03) : null,
+              border: entry.key < foods.length - 1
+                  ? Border(
+                      bottom: BorderSide(color: CleanTheme.borderPrimary, width: 1),
+                    )
+                  : null,
             ),
-          ],
-        ),
+            child: Row(
+              children: [
+                if (isAlternative)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 12),
+                    child: Icon(
+                      Icons.alt_route_rounded,
+                      size: 18,
+                      color: CleanTheme.accentOrange,
+                    ),
+                  ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        food['name'] ?? 'Alimento',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _showEditQuantityDialog(
+                              context,
+                              food,
+                              dayIndex,
+                              mealIndex,
+                              foodIndex,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.borderSecondary,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${food['quantity'] ?? ''}${food['unit'] ?? ''}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: CleanTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.edit_outlined,
+                                    size: 14,
+                                    color: CleanTheme.textSecondary,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (food['calories'] != null) ...[
+                            const SizedBox(width: 12),
+                            Text(
+                              '${food['calories']} kcal',
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                color: CleanTheme.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(left: 12),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: CleanTheme.borderSecondary),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: () async {
+                        final quotaService = QuotaService();
+                        final checkResult = await quotaService.checkAndRecord(
+                          QuotaAction.changeFood,
+                        );
+
+                        if (!checkResult.canPerform && context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const PaywallScreen(),
+                            ),
+                          );
+                        } else if (checkResult.canPerform && context.mounted) {
+                          _showSubstitutionModal(
+                            context,
+                            food,
+                            dayIndex,
+                            mealIndex,
+                            foodIndex,
+                          );
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Icon(
+                          Icons.swap_horiz_rounded,
+                          size: 18,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       );
     }).toList();
   }
@@ -1177,6 +1320,51 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           foodIndex: foodIdx,
           scrollController: scrollController,
         ),
+      ),
+    );
+  }
+
+  Widget _buildDayTypeBadge(String type) {
+    Color color = CleanTheme.textSecondary;
+    String label = type.toUpperCase();
+    IconData icon = Icons.info_outline;
+
+    if (type.toLowerCase().contains('training')) {
+      color = CleanTheme.accentBlue;
+      label = 'ALLENAMENTO';
+      icon = Icons.fitness_center_rounded;
+    } else if (type.toLowerCase().contains('rest')) {
+      color = CleanTheme.accentGreen;
+      label = 'RIPOSO';
+      icon = Icons.bed_rounded;
+    } else if (type.toLowerCase().contains('cheat')) {
+      color = CleanTheme.accentOrange;
+      label = 'GIORNO LIBERO';
+      icon = Icons.celebration_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

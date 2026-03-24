@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../providers/nutrition_coach_provider.dart';
 import '../../../../core/theme/clean_theme.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
 
 class DietUploadScreen extends StatefulWidget {
   const DietUploadScreen({super.key});
@@ -142,16 +143,36 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
               if (isLoading)
                 Column(
                   children: [
-                    const CircularProgressIndicator(
-                      color: CleanTheme.primaryColor,
+                    const SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: LiquidSteelContainer(
+                        borderRadius: 50,
+                        enableShine: true,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     Text(
                       _loadingMessage,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
                         color: CleanTheme.textPrimary,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'L\'AI di GiGi sta elaborando la tua dieta...',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textSecondary,
                       ),
                     ),
                   ],

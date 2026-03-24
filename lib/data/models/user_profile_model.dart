@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'training_preferences_model.dart';
 import 'injury_model.dart';
 
@@ -67,14 +68,14 @@ enum BodyFatPercentage {
 }
 
 extension RecoveryCapacityExtension on RecoveryCapacity {
-  String get icon {
+  IconData get icon {
     switch (this) {
       case RecoveryCapacity.excellent:
-        return '🔋';
+        return Icons.battery_full_rounded;
       case RecoveryCapacity.good:
-        return '⚡';
+        return Icons.bolt_rounded;
       case RecoveryCapacity.poor:
-        return '🪫';
+        return Icons.battery_0_bar_rounded;
     }
   }
 }

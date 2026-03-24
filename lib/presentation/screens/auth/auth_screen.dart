@@ -145,7 +145,7 @@ class _AuthScreenState extends State<AuthScreen>
               padding: const EdgeInsets.all(24.0),
               child: Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {
-                  if (!_isLogin && authProvider.registrationVerificationRequired) {
+                  if (authProvider.registrationVerificationRequired) {
                     return _buildOtpVerificationUI(authProvider);
                   }
                   

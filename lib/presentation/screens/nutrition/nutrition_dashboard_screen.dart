@@ -234,20 +234,100 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   // ENTRY POINTS & NAVIGATION
   // ════════════════════════════════════════════════════════════════════════════
 
-  /// Card principale: Il Tuo Piano (Black)
+  /// Card principale: Il Tuo Piano (Black) - Premium Design
   Widget _buildPlanEntryCard() {
-    return _buildMainEntryCard(
-      emoji: '📋',
-      title: 'Percorso Elite',
-      subtitle: _hasActiveDiet
-          ? 'La tua strada verso il successo'
-          : 'Ottimizza i tuoi risultati ora',
-      gradientColors: const [CleanTheme.steelMid, CleanTheme.steelDark],
-      onTap: () => _hasActiveDiet
-          ? Navigator.pushNamed(context, '/nutrition/coach/plan')
-          : Navigator.pushNamed(context, '/nutrition/coach/upload'),
-      badge: _hasActiveDiet ? '✓ Attivo' : null,
-      textColor: CleanTheme.textOnDark,
+    return GestureDetector(
+      onTap: () {
+        HapticService.lightTap();
+        // Se ha una dieta attiva, andiamo alla gestione, altrimenti all'upload
+        if (_hasActiveDiet) {
+          Navigator.pushNamed(context, '/nutrition/coach/manage');
+        } else {
+          Navigator.pushNamed(context, '/nutrition/coach/upload');
+        }
+      },
+      child: LiquidSteelContainer(
+        borderRadius: 20,
+        enableShine: true,
+        colors: const [
+          CleanTheme.steelMid,
+          CleanTheme.steelDark,
+          CleanTheme.steelMid,
+        ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: CleanTheme.textOnDark,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_hasActiveDiet)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        margin: const EdgeInsets.only(bottom: 6),
+                        decoration: BoxDecoration(
+                          color: CleanTheme.accentGreen.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '✓ ATTIVO',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.accentGreen,
+                          ),
+                        ),
+                      ),
+                    Text(
+                      'Percorso Elite',
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textOnDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _hasActiveDiet
+                          ? 'Gestisci il tuo piano alimentare'
+                          : 'Carica la tua dieta e ottimizza i risultati',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.5),
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -370,104 +450,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 color: textColor.withValues(alpha: 0.6),
                 height: 1.2,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Card singola per entry point principale
-  Widget _buildMainEntryCard({
-    required String emoji,
-    required String title,
-    required String subtitle,
-    required List<Color> gradientColors,
-    required VoidCallback onTap,
-    String? badge,
-    required Color textColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: gradientColors,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: textColor.withValues(alpha: 0.1), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Emoji grande a sinistra
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: textColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Text(emoji, style: const TextStyle(fontSize: 32)),
-            ),
-            const SizedBox(width: 16),
-            // Info centrale
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (badge != null) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: textColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badge,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                  ],
-                  Text(
-                    title,
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: textColor.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: textColor.withValues(alpha: 0.6),
-              size: 18,
             ),
           ],
         ),

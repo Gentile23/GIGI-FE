@@ -207,14 +207,14 @@ extension InjuryCategoryExtension on InjuryCategory {
     }
   }
 
-  String get icon {
+  IconData get icon {
     switch (this) {
       case InjuryCategory.muscular:
-        return '💪';
+        return Icons.fitness_center_rounded;
       case InjuryCategory.articular:
-        return '🦴';
+        return Icons.join_inner_rounded;
       case InjuryCategory.bone:
-        return '🩻';
+        return Icons.settings_accessibility_rounded;
     }
   }
 }
@@ -521,14 +521,14 @@ extension InjurySeverityExtension on InjurySeverity {
     }
   }
 
-  String get icon {
+  IconData get icon {
     switch (this) {
       case InjurySeverity.mild:
-        return '🟢';
+        return Icons.info_outline_rounded;
       case InjurySeverity.moderate:
-        return '🟡';
+        return Icons.warning_amber_rounded;
       case InjurySeverity.severe:
-        return '🔴';
+        return Icons.error_outline_rounded;
     }
   }
 }
@@ -552,12 +552,12 @@ extension InjuryTimingExtension on InjuryTiming {
     }
   }
 
-  String get icon {
+  IconData get icon {
     switch (this) {
       case InjuryTiming.current:
-        return '🔴';
+        return Icons.history_toggle_off_rounded;
       case InjuryTiming.past:
-        return '🟢';
+        return Icons.history_rounded;
     }
   }
 }

@@ -1801,9 +1801,10 @@ class _UnifiedQuestionnaireScreenState
                         backgroundColor: CleanTheme.surfaceColor,
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: Text(
+                          leading: Icon(
                             injury.category.icon,
-                            style: const TextStyle(fontSize: 24),
+                            size: 24,
+                            color: CleanTheme.primaryColor,
                           ),
                           title: Text(
                             injury.area.getLocalizedName(context),
@@ -2017,7 +2018,11 @@ class _UnifiedQuestionnaireScreenState
                 }),
                 child: Row(
                   children: [
-                    Text(t.icon, style: const TextStyle(fontSize: 24)),
+                    Icon(
+                      t.icon,
+                      size: 24,
+                      color: CleanTheme.primaryColor,
+                    ),
                     const SizedBox(width: 16),
                     Text(
                       t.getLocalizedName(context),
@@ -2170,7 +2175,11 @@ class _UnifiedQuestionnaireScreenState
                 onTap: () => setState(() => _tempInjurySeverity = s),
                 child: Row(
                   children: [
-                    Text(s.icon, style: const TextStyle(fontSize: 24)),
+                    Icon(
+                      s.icon,
+                      size: 24,
+                      color: CleanTheme.primaryColor,
+                    ),
                     const SizedBox(width: 16),
                     Text(
                       s.getLocalizedName(context),
@@ -3519,9 +3528,10 @@ class _UnifiedQuestionnaireScreenState
                           padding: const EdgeInsets.all(16.0),
                           child: Row(
                             children: [
-                              Text(
+                              Icon(
                                 r.icon,
-                                style: const TextStyle(fontSize: 24),
+                                size: 24,
+                                color: CleanTheme.primaryColor,
                               ),
                               const SizedBox(width: 16),
                               Expanded(

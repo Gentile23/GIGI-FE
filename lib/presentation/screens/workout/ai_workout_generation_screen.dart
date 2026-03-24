@@ -659,9 +659,10 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Text(
+                    Icon(
                       injury.category.icon,
-                      style: const TextStyle(fontSize: 20),
+                      size: 20,
+                      color: CleanTheme.primaryColor,
                     ),
                     const SizedBox(width: 8),
                     Expanded(

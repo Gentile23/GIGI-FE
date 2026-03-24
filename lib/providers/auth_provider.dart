@@ -94,6 +94,7 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
+        debugPrint('AuthProvider: Login successful. Verification required: ${result['verification_required']}');
         if (result['verification_required'] == true) {
           _registrationVerificationRequired = true;
           _pendingVerificationEmail = result['email'];
@@ -105,6 +106,7 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
+        debugPrint('AuthProvider: Login failed. Message: ${result['message']}');
         _error = result['message'];
         notifyListeners();
         return false;
@@ -193,6 +195,7 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
+        debugPrint('AuthProvider: Login successful. Verification required: ${result['verification_required']}');
         if (result['verification_required'] == true) {
           _registrationVerificationRequired = true;
           _pendingVerificationEmail = result['email'];
@@ -204,6 +207,7 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
+        debugPrint('AuthProvider: Login failed. Message: ${result['message']}');
         _error = result['message'];
         notifyListeners();
         return false;
