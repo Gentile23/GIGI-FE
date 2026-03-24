@@ -215,9 +215,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                           newEmail: _pendingEmail!,
                           currentPassword: _passwordController.text,
                         );
-                        if (!context.mounted) return;
-
                         if (success) {
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Nuovo codice inviato!'))
                           );
@@ -237,6 +236,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                             });
                           });
                         } else {
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(authProvider.error ?? 'Errore nell\'invio'),
@@ -349,13 +349,13 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
         currentPassword: _passwordController.text,
       );
       if (success) {
-        if (!context.mounted) return;
+        if (!mounted) return;
         setState(() {
           _otpSent = true;
           _pendingEmail = newEmail;
         });
       } else {
-        if (!context.mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.error ?? 'Errore nella richiesta'),
@@ -378,7 +378,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     final success = await authProvider.verifyEmailChange(_otpController.text);
 
     if (success) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Email aggiornata con successo!'),
@@ -387,7 +387,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       );
       Navigator.pop(context);
     } else {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.error ?? 'Codice non valido'),

@@ -974,7 +974,8 @@ class _AuthScreenState extends State<AuthScreen>
               TextButton(
                 onPressed: (_isLoading || _resendCooldownSeconds > 0) ? null : () async {
                   final success = await authProvider.resendRegistrationOtp();
-                  if (success && mounted) {
+                  if (success) {
+                    if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Nuovo codice inviato!'))
                     );

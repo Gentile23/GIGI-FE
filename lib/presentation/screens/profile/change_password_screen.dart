@@ -198,7 +198,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
 
       if (success) {
-        if (!context.mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password aggiornata con successo!'),
@@ -207,7 +207,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         );
         Navigator.pop(context);
       } else {
-        if (!context.mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.error ?? 'Errore nel cambio password'),
