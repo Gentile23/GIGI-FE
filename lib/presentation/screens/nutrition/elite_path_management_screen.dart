@@ -43,9 +43,11 @@ class ElitePathManagementScreen extends StatelessWidget {
                   borderRadius: 24,
                   enableShine: true,
                   colors: const [
-                    CleanTheme.steelMid,
                     CleanTheme.steelDark,
                     CleanTheme.steelMid,
+                    CleanTheme.steelLight,
+                    CleanTheme.steelMid,
+                    CleanTheme.steelDark,
                   ],
                   child: Padding(
                     padding: const EdgeInsets.all(24),

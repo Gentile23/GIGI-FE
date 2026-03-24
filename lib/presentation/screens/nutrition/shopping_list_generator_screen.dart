@@ -15,7 +15,8 @@ class ShoppingListScreen extends StatefulWidget {
 }
 
 class _ShoppingListScreenState extends State<ShoppingListScreen> {
-  int _days = 3;
+  int _startDay = 1;
+  int _endDay = 3;
   final Set<String> _checkedItems = {};
 
   // Comprehensive Italian food categorization
@@ -260,7 +261,7 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
 
     final buffer = StringBuffer();
     buffer.writeln('🛒 Lista della Spesa (GiGi Coach)');
-    buffer.writeln('Per $_days giorni\n');
+    buffer.writeln('Dal Giorno $_startDay al Giorno $_endDay\n');
 
     final grouped = _groupItems(items);
     grouped.forEach((category, list) {
@@ -290,6 +291,21 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<NutritionCoachProvider>(context);
     final groupedItems = _groupItems(provider.shoppingList);
+    
+    // Dynamically calculate max days from plan (flatten across all weeks)
+    final weeks = provider.activePlan?['content']['weeks'] as List?;
+    int totalDays = 0;
+    if (weeks != null) {
+      for (final week in weeks) {
+        totalDays += ((week['days'] as List?)?.length ?? 0);
+      }
+    }
+    final double maxDays = (totalDays > 0 ? totalDays : 7).toDouble();
+    
+    // Ensure state is within bounds if plan changed
+    if (_startDay > maxDays) _startDay = 1;
+    if (_endDay > maxDays) _endDay = maxDays.toInt();
+    if (_startDay > _endDay) _startDay = 1;
 
     return Scaffold(
       appBar: AppBar(
@@ -338,47 +354,41 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                 ),
                 const SizedBox(height: 8),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: CleanTheme.primaryColor,
-                          inactiveTrackColor: CleanTheme.chromeSubtle,
-                          thumbColor: CleanTheme.primaryColor,
-                          overlayColor: CleanTheme.primaryColor.withValues(
-                            alpha: 0.2,
-                          ),
-                        ),
-                        child: Slider(
-                          value: _days.toDouble(),
-                          min: 1,
-                          max: 7,
-                          divisions: 6,
-                          label: '$_days Giorni',
-                          onChanged: (val) =>
-                              setState(() => _days = val.toInt()),
-                        ),
+                    Text(
+                      'Dal Giorno $_startDay al $_endDay',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.primaryColor,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '$_days Giorni',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          color: CleanTheme.primaryColor,
-                        ),
+                    Text(
+                      '${_endDay - _startDay + 1} Giorni',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textTertiary,
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
+                RangeSlider(
+                  values: RangeValues(_startDay.toDouble(), _endDay.toDouble()),
+                  min: 1,
+                  max: maxDays,
+                  divisions: maxDays > 1 ? (maxDays - 1).toInt() : 1,
+                  activeColor: CleanTheme.primaryColor,
+                  inactiveColor: CleanTheme.chromeSubtle,
+                  labels: RangeLabels('Giorno $_startDay', 'Giorno $_endDay'),
+                  onChanged: (RangeValues values) {
+                    setState(() {
+                      _startDay = values.start.round();
+                      _endDay = values.end.round();
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -397,7 +407,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                               );
                             } else if (checkResult.canPerform &&
                                 context.mounted) {
-                              provider.generateShoppingList(_days);
+                              provider.generateShoppingList(
+                                startDay: _startDay,
+                                endDay: _endDay,
+                              );
                             }
                           },
                     style: ElevatedButton.styleFrom(

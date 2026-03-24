@@ -6,6 +6,7 @@ class LiquidSteelContainer extends StatefulWidget {
   final bool enableShine;
   final Border? border;
   final List<Color>? colors;
+  final List<double>? stops;
   final List<BoxShadow>? boxShadow;
 
   const LiquidSteelContainer({
@@ -15,6 +16,7 @@ class LiquidSteelContainer extends StatefulWidget {
     this.enableShine = true,
     this.border,
     this.colors,
+    this.stops,
     this.boxShadow,
   });
 
@@ -84,7 +86,7 @@ class _LiquidSteelContainerState extends State<LiquidSteelContainer>
                       Color(0xFF3A3A3C), // Mid Steel
                       Color(0xFF2C2C2E), // Dark Steel
                     ],
-                stops: const [0.0, 0.3, 0.5, 0.7, 1.0],
+                stops: widget.stops ?? (widget.colors == null ? const [0.0, 0.3, 0.5, 0.7, 1.0] : null),
               ),
               boxShadow: widget.boxShadow ??
                   [

@@ -187,6 +187,8 @@ class AuthProvider with ChangeNotifier {
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
+    _registrationVerificationRequired = false;
+    _pendingVerificationEmail = null;
     notifyListeners();
 
     try {

@@ -139,6 +139,38 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
                   height: 1.5,
                 ),
               ),
+              const SizedBox(height: 20),
+              // 14-day limit info alert
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGold.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: CleanTheme.accentGold.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: CleanTheme.accentGold,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Supportiamo diete fino a 14 giorni (2 settimane).',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: CleanTheme.accentGold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 48),
               if (isLoading)
                 Column(

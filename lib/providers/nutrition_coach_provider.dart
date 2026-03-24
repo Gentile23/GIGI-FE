@@ -65,23 +65,47 @@ class NutritionCoachProvider extends ChangeNotifier {
     }
   }
 
-  /// Regenerate a specific meal
-  Future<bool> regenerateMeal({
+  /// Regenerate a specific meal (returns alternatives)
+  Future<List<dynamic>> regenerateMeal({
     required int dayIndex,
     required int mealIndex,
+  }) async {
+    if (_activePlan == null) return [];
+
+    _setLoading(true);
+    try {
+      final alternatives = await _service.regenerateMeal(
+        planId: _activePlan!['id'],
+        dayIndex: dayIndex,
+        mealIndex: mealIndex,
+      );
+      return alternatives;
+    } catch (e) {
+      _error = e.toString();
+      return [];
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Apply a specific regenerated meal
+  Future<bool> applyRegeneratedMeal({
+    required int dayIndex,
+    required int mealIndex,
+    required Map<String, dynamic> newMeal,
   }) async {
     if (_activePlan == null) return false;
 
     _setLoading(true);
     try {
-      final success = await _service.regenerateMeal(
+      final success = await _service.applyRegeneratedMeal(
         planId: _activePlan!['id'],
         dayIndex: dayIndex,
         mealIndex: mealIndex,
+        newMeal: newMeal,
       );
 
       if (success) {
-        // Reload to get the updated meal content
         await loadActivePlan();
         return true;
       }
@@ -174,10 +198,16 @@ class NutritionCoachProvider extends ChangeNotifier {
   }
 
   /// Generate Shopping List
-  Future<void> generateShoppingList(int days) async {
+  Future<void> generateShoppingList({
+    required int startDay,
+    required int endDay,
+  }) async {
     _setLoading(true);
     try {
-      final list = await _service.generateShoppingList(days);
+      final list = await _service.generateShoppingList(
+        startDay: startDay,
+        endDay: endDay,
+      );
       _shoppingList = list;
     } catch (e) {
       _error = e.toString();

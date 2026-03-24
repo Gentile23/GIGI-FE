@@ -90,10 +90,16 @@ class NutritionCoachService {
   }
 
   /// Generate Shopping List
-  Future<List<dynamic>> generateShoppingList(int days) async {
+  Future<List<dynamic>> generateShoppingList({
+    required int startDay,
+    required int endDay,
+  }) async {
     final response = await _client.get(
       '/nutrition/coach/shopping-list',
-      queryParams: {'days': days.toString()},
+      queryParams: {
+        'start_day': startDay.toString(),
+        'end_day': endDay.toString(),
+      },
     );
 
     if (response['success'] == true) {
@@ -102,8 +108,8 @@ class NutritionCoachService {
     throw Exception(response['message'] ?? 'Failed to generate shopping list');
   }
 
-  /// Regenerate Meal
-  Future<bool> regenerateMeal({
+  /// Regenerate Meal (Returns 3 alternatives)
+  Future<List<dynamic>> regenerateMeal({
     required int planId,
     required int dayIndex,
     required int mealIndex,
@@ -111,6 +117,28 @@ class NutritionCoachService {
     final response = await _client.post(
       '/nutrition/coach/regenerate-meal',
       body: {'plan_id': planId, 'day_index': dayIndex, 'meal_index': mealIndex},
+    );
+    if (response['success'] == true) {
+      return response['alternatives'] ?? [];
+    }
+    throw Exception(response['message'] ?? 'Failed to generate alternatives');
+  }
+
+  /// Apply Regenerated Meal
+  Future<bool> applyRegeneratedMeal({
+    required int planId,
+    required int dayIndex,
+    required int mealIndex,
+    required Map<String, dynamic> newMeal,
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/regenerate-meal/apply',
+      body: {
+        'plan_id': planId,
+        'day_index': dayIndex,
+        'meal_index': mealIndex,
+        'new_meal': newMeal,
+      },
     );
     return response['success'] == true;
   }
