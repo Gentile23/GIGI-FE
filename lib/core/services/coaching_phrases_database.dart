@@ -16,18 +16,18 @@ T _randomFrom<T>(List<T> list) => list[_random.nextInt(list.length)];
 const morningGreetings = [
   'Buongiorno {name}! Iniziamo la giornata col botto! 💪',
   'Ciao {name}! Che bello vederti di mattina! Sfruttiamo questa energia!',
-  'Buongiorno campione! Allenarsi di mattina è da veri atleti!',
+  'Buongiorno! Allenarsi di mattina è il modo migliore per iniziare la giornata!',
   '{name}, ottima scelta svegliarsi presto! Il corpo ti ringrazierà!',
   'Buongiorno! Sono Gigi, pronto a spingerti al massimo stamattina!',
   'Ehi {name}! Mattiniero oggi? Mi piace! Facciamo grandi cose!',
-  'Sveglia campione! È ora di costruire la versione migliore di te!',
+  'Sveglia! È ora di dare il massimo e superare i tuoi limiti!',
   'Buongiorno {name}! Chi si allena presto, vive meglio!',
 ];
 
 const afternoonGreetings = [
   'Ciao {name}! Pronto per spaccare questo pomeriggio?',
   'Eccoti {name}! Il momento perfetto per allenarsi!',
-  'Ciao campione! Pausa pranzo o dopo lavoro? In ogni caso, grande scelta!',
+  'Ciao! Pausa pranzo o dopo lavoro? In ogni caso, un ottimo momento per allenarsi!',
   '{name}! Bello rivederti! Facciamo una sessione memorabile!',
   'Buon pomeriggio {name}! Sono Gigi, il tuo coach! Via!',
   'Ciao {name}! Il pomeriggio è perfetto per dare il massimo!',
@@ -39,7 +39,7 @@ const eveningGreetings = [
   'Ciao {name}! Allenarsi di sera scarica tutto lo stress!',
   'Eccoti {name}! Sessione serale? I campioni non si fermano mai!',
   '{name}, che bello vederti stasera! Dai che spacchiamo!',
-  'Buonasera campione! Ultimo sforzo della giornata, poi meriti il riposo!',
+  'Buonasera! Ultimo sforzo della giornata, andiamo!',
   'Ciao {name}! Sera perfetta per costruire muscoli e determinazione!',
   'Buonasera {name}! Sono Gigi, chiudiamo questa giornata alla grande!',
 ];
@@ -151,7 +151,7 @@ const amazingCelebrations = [
 
 const lastSetCelebrations = [
   'ULTIMA SERIE completata! CE L\'HAI FATTA! 🎉',
-  'FINITO! {name} sei un campione!',
+  'FINITO! Ottimo lavoro {name}!',
   'ESERCIZIO COMPLETATO! Grande lavoro!',
   'FATTO! Questa è determinazione!',
   'BOOM! Esercizio terminato! Sei grande!',
@@ -239,7 +239,7 @@ const restEndPhrases = [
 // =====================================
 
 const workoutCompletePhrases = [
-  'WORKOUT COMPLETATO {name}! 🎉 Sei un campione!',
+  'WORKOUT COMPLETATO {name}! 🎉 Obiettivo raggiunto!',
   'FINITO! Grande sessione {name}! Sono fiero di te!',
   'MISSIONE COMPIUTA! Ottimo lavoro oggi!',
   '{name}, hai dato tutto! Ora riposa e cresci!',

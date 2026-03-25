@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'gigi_tts_service.dart';
 import 'exercise_scripts_database.dart';
 import 'coaching_phrases_database.dart' as phrases;
+import '../../data/services/voice_coaching_service.dart';
 
 // Re-export for convenience
 export 'exercise_scripts_database.dart';
@@ -38,6 +39,27 @@ enum GigiInteractionEvent {
   workoutCompleted, // Entire workout finished
 }
 
+/// Preparation card shown during audio loading
+class PreparationCard {
+  final String icon;
+  final String title;
+  final String body;
+
+  const PreparationCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  factory PreparationCard.fromJson(Map<String, dynamic> json) {
+    return PreparationCard(
+      icon: json['icon'] as String? ?? '🎯',
+      title: json['title'] as String? ?? 'Preparazione',
+      body: json['body'] as String? ?? '',
+    );
+  }
+}
+
 /// Controller for synchronized voice coaching with full features:
 /// - User personalization (name, level)
 /// - Volume control
@@ -56,10 +78,14 @@ class SynchronizedVoiceController extends ChangeNotifier {
   bool _isGuidedExecutionPlaying = false;
   bool _isSessionStarted = false;
   int _guidedExecutionClickCount = 0; // Track clicks for varied phrases
-  String? _loadingStatus; // Status message for UI反馈
+  List<PreparationCard>? _preparationCards; // Structured cards for UI
+  int _currentCardIndex = 0;
+  bool _isAudioReady = false; // True when audio URL is obtained
+  bool _allCardsShown = false; // True when overlay has shown all cards
+  Completer<void>? _skipCompleter; // Resolves when cards are dismissed
 
   // Exercise context
-  String _userName = 'Campione';
+  String _userName = '';
   String _userGoal =
       'general'; // muscleGain, weightLoss, toning, strength, wellness
   // ignore: unused_field
@@ -97,13 +123,21 @@ class SynchronizedVoiceController extends ChangeNotifier {
   UserLevel get userLevel => _userLevel;
   bool get minimalMode => _minimalMode;
   bool get isGuidedExecutionPlaying => _isGuidedExecutionPlaying;
-  String? get loadingStatus => _loadingStatus;
+  List<PreparationCard>? get preparationCards => _preparationCards;
+  int get currentCardIndex => _currentCardIndex;
+  bool get isAudioReady => _isAudioReady;
+  /// Backward-compatible getter: returns current card title or null
+  String? get loadingStatus {
+    if (_preparationCards == null || _preparationCards!.isEmpty) return null;
+    final idx = _currentCardIndex.clamp(0, _preparationCards!.length - 1);
+    return '${_preparationCards![idx].icon} ${_preparationCards![idx].title}';
+  }
 
   /// Get first name only (never full name)
   String get firstName {
-    if (_userName.isEmpty) return 'Campione';
+    if (_userName.isEmpty) return '';
     final parts = _userName.trim().split(' ');
-    return parts.first.isNotEmpty ? parts.first : 'Campione';
+    return parts.first.isNotEmpty ? parts.first : '';
   }
 
   SynchronizedVoiceController(this._ttsService);
@@ -115,7 +149,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     String? goal,
   }) async {
     // Store full name but always use firstName for greeting
-    _userName = userName.isNotEmpty ? userName : 'Campione';
+    _userName = userName.trim();
     _userLevel = _parseUserLevel(experienceLevel);
     _userGoal = goal ?? 'general';
 
@@ -517,27 +551,29 @@ class SynchronizedVoiceController extends ChangeNotifier {
         ? exerciseName.split(' ').take(3).join(' ')
         : exerciseName;
 
+    final hasName = firstName.isNotEmpty;
+
     if (isFirstClick) {
       // First click in session - more enthusiastic intro
       final firstClickPhrases = [
-        '$firstName, ottima scelta! Ti guido passo passo su $shortName...',
-        'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...',
-        '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...',
-        'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...',
+        hasName ? '$firstName, ottima scelta! Ti guido passo passo su $shortName...' : 'Ottima scelta! Ti guido passo passo su $shortName...',
+        hasName ? 'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...' : 'Perfetto! Vediamo insieme la tecnica di $shortName...',
+        hasName ? '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...' : '$shortName è un esercizio fantastico! Ecco come farlo al meglio...',
+        hasName ? 'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...' : 'Eccellente! Preparati per $shortName, ti mostro la tecnica perfetta...',
       ];
       return firstClickPhrases[DateTime.now().second %
           firstClickPhrases.length];
     } else {
       // Subsequent clicks - varied but connected phrases
       final subsequentPhrases = [
-        'Ok $firstName, $shortName! Ti ricordo i punti chiave...',
-        '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...',
-        'Certo $firstName! Ecco la guida per $shortName...',
-        '$firstName, concentrazione su $shortName... Ti accompagno io...',
-        'Ancora $shortName? Ottima dedizione $firstName! Vediamo...',
-        'Va bene $firstName, $shortName passo per passo...',
-        '$firstName pronto per $shortName? Partiamo...',
-        'Riprendiamo $shortName $firstName, segui il mio ritmo...',
+        hasName ? 'Ok $firstName, $shortName! Ti ricordo i punti chiave...' : 'Ok, $shortName! Ti ricordo i punti chiave...',
+        hasName ? '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...' : '$shortName di nuovo? Perfetto, rivediamolo insieme...',
+        hasName ? 'Certo $firstName! Ecco la guida per $shortName...' : 'Certo! Ecco la guida per $shortName...',
+        hasName ? '$firstName, concentrazione su $shortName... Ti accompagno io...' : 'Massima concentrazione su $shortName... Ti accompagno io...',
+        hasName ? 'Ancora $shortName? Ottima dedizione $firstName! Vediamo...' : 'Ancora $shortName? Ottima dedizione! Vediamo...',
+        hasName ? 'Va bene $firstName, $shortName passo per passo...' : 'Va bene, $shortName passo per passo...',
+        hasName ? '$firstName pronto per $shortName? Partiamo...' : 'Tutto pronto per $shortName? Partiamo...',
+        hasName ? 'Riprendiamo $shortName $firstName, segui il mio ritmo...' : 'Riprendiamo $shortName, segui il mio ritmo...',
       ];
       return subsequentPhrases[clickIndex];
     }
@@ -552,8 +588,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     required String exerciseName,
     String? exerciseId,
     List<String>? muscleGroups,
-    dynamic
-    voiceCoachingService, // VoiceCoachingService - optional to avoid tight coupling
+    VoiceCoachingService? voiceCoachingService,
   }) async {
     if (_isGuidedExecutionPlaying) return; // Prevent double-tap
 
@@ -575,17 +610,32 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
     String? scriptToSpeak;
 
-    // 1. Try API-generated script if exerciseId is provided
+    // 1. Show preparation cards immediately (always — user can skip with "Salta")
+    _preparationCards = _getPreparationCards(exerciseName);
+    _currentCardIndex = 0;
+    notifyListeners();
+
+    // 2. Try API-generated script and cards if exerciseId is provided
     if (exerciseId != null && voiceCoachingService != null) {
       try {
-        // Show exercise tip instead of generic "loading..." to make wait feel useful
-        _loadingStatus = _getPreparationTip(exerciseName);
-        notifyListeners();
-
-        scriptToSpeak = await voiceCoachingService.getGuidedExecutionScript(
+        final responseData = await voiceCoachingService.getGuidedExecutionScript(
           exerciseId: exerciseId,
         );
-        debugPrint('📢 Got AI-generated script from API');
+        
+        if (responseData != null) {
+          scriptToSpeak = responseData['full_script'] as String?;
+          
+          final apiCards = responseData['preparation_cards'] as List<dynamic>?;
+          if (apiCards != null && apiCards.isNotEmpty) {
+            _preparationCards = apiCards
+                .map((item) => PreparationCard.fromJson(item as Map<String, dynamic>))
+                .toList();
+            notifyListeners();
+            debugPrint('📢 Got SPECIFIC preparation cards from API');
+          }
+          
+          debugPrint('📢 Got AI-generated script from API');
+        }
       } catch (e) {
         debugPrint('⚠️ API script fetch failed: $e');
       }
@@ -598,10 +648,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
       }
     }
 
-    // 3. Final fallback generic guide
     scriptToSpeak ??=
         '''
-$firstName, eseguiamo insieme 2 ripetizioni perfette di $exerciseName.
+${firstName.isNotEmpty ? '$firstName, eseguiamo' : 'Eseguiamo'} insieme 2 ripetizioni perfette di $exerciseName.
 
 Posizionati correttamente, mantieni una postura stabile.
 
@@ -614,7 +663,7 @@ Inspira nella fase di allungamento, espira nello sforzo.
 SECONDA RIPETIZIONE:
 Stessa tecnica perfetta. Controllo totale del movimento.
 
-Perfetto $firstName! Ora sei pronto per le tue serie!
+${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo lavoro! Ora tutto è pronto'} per le tue serie!
 ''';
 
     // Attempt to use high-quality TTS (ElevenLabs) via API
@@ -622,9 +671,11 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
 
     if (voiceCoachingService != null) {
       try {
-        // Show breathing tip while generating audio — masks latency as learning
-        _loadingStatus = _getBreathingTip(exerciseName);
-        notifyListeners();
+        // Advance card index to breathing phase while generating audio
+        if (_preparationCards != null && _preparationCards!.length > 2) {
+          _currentCardIndex = 2; // Breathing card
+          notifyListeners();
+        }
 
         debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
         debugPrint(
@@ -635,19 +686,29 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
         final audioUrl = await voiceCoachingService.generateTTS(scriptToSpeak);
 
         if (audioUrl != null && audioUrl.isNotEmpty) {
-          debugPrint('🎧 Playing high-quality audio: $audioUrl');
+          debugPrint('🎧 Audio ready: $audioUrl');
 
-          _loadingStatus = "🎧 In riproduzione...";
+          // Signal that audio is ready — shows "Salta ▶" in overlay
+          _isAudioReady = true;
           notifyListeners();
+
+          // Wait for user skip OR all cards shown
+          _skipCompleter = Completer<void>();
+
+          // If all cards were already shown, resolve immediately
+          if (_allCardsShown) {
+            _preparationCards = null;
+            _isAudioReady = false;
+            notifyListeners();
+            _skipCompleter!.complete();
+          }
+
+          await _skipCompleter!.future;
+          _skipCompleter = null;
 
           // Use speak() method which waits for completion (via _playUrlAndWait internally)
           await _ttsService.speakUrl(audioUrl);
           playedWithHighQuality = true;
-
-          // Wait for audio to actually finish
-          while (_ttsService.isSpeaking) {
-            await Future.delayed(const Duration(milliseconds: 200));
-          }
           debugPrint('✅ High-quality audio finished');
         } else {
           debugPrint('⚠️ audioUrl is null or empty');
@@ -662,84 +723,98 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     // Fallback to local TTS if high-quality failed
     if (!playedWithHighQuality) {
       debugPrint('🗣️ using local TTS');
-      _loadingStatus = "🗣️ Riproduzione locale...";
+      _preparationCards = null;
+      _isAudioReady = false;
       notifyListeners();
       await _speak(scriptToSpeak);
     }
 
-    if (playedWithHighQuality) {
-      // Wait while speaking
-      while (_ttsService.isSpeaking) {
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-    }
-
-    // 4. PERSONALIZED CLOSING: Short phrase with user's name
-    // This makes the cached audio feel custom-generated for each user
-    await _speakPersonalizedClosing(voiceCoachingService);
+    // 4. PERSONALIZED CLOSING: Short phrase with user's name (local TTS only)
+    await _speakPersonalizedClosing();
 
     _isGuidedExecutionPlaying = false;
-    _loadingStatus = null;
+    _preparationCards = null;
+    _currentCardIndex = 0;
+    _isAudioReady = false;
+    _allCardsShown = false;
+    _skipCompleter = null;
     notifyListeners();
   }
 
-  /// Get a preparation tip from the exercise script to show during loading
-  /// This masks the audio generation time by showing useful exercise info
-  String _getPreparationTip(String exerciseName) {
+  /// Build structured preparation cards from exercise script data
+  /// These cards are shown during audio generation to mask latency
+  List<PreparationCard> _getPreparationCards(String exerciseName) {
     if (_currentScript != null) {
-      // Cycle through different tips each time
-      final tips = [
-        '📍 ${_currentScript!.positionSetup}',
-        '🎯 Muscoli: ${_currentScript!.muscleGroups}',
-        '💡 ${_currentScript!.getBriefTip()}',
+      return [
+        PreparationCard(
+          icon: '🎯',
+          title: 'Posizionamento',
+          body: _currentScript!.positionSetup,
+        ),
+        PreparationCard(
+          icon: '💪',
+          title: 'Muscoli Target',
+          body: _currentScript!.muscleGroups,
+        ),
+        PreparationCard(
+          icon: '🌬️',
+          title: 'Respirazione',
+          body: _currentScript!.breathingCue,
+        ),
+        PreparationCard(
+          icon: '🧠',
+          title: 'Visualizza',
+          body: _currentScript!.visualizationCue,
+        ),
+        PreparationCard(
+          icon: '⚡',
+          title: 'Focus',
+          body: _currentScript!.getRandomCue(),
+        ),
+        PreparationCard(
+          icon: '🎧',
+          title: 'Quasi pronto...',
+          body: 'Gigi sta preparando la tua guida vocale',
+        ),
       ];
-      return tips[DateTime.now().second % tips.length];
     }
-    return '🎯 Prepara la posizione per $exerciseName...';
-  }
-
-  /// Get a breathing tip to show during TTS generation (second loading phase)
-  String _getBreathingTip(String exerciseName) {
-    if (_currentScript != null) {
-      return '🌬️ ${_currentScript!.breathingCue}';
-    }
-    return '🌬️ Inspira nella discesa, espira nello sforzo';
-  }
-
-  /// Generate and speak a short personalized closing phrase
-  /// This creates the illusion that the entire audio was custom-generated
-  Future<void> _speakPersonalizedClosing(dynamic voiceCoachingService) async {
-    // Build personalized phrase with user's first name
-    final closingPhrases = [
-      'Perfetto $firstName! Ora tocca a te, dai il massimo!',
-      'Ottimo $firstName! Sei pronto, spacca tutto!',
-      'Forza $firstName! Adesso mostrami cosa sai fare!',
-      'Bravissimo $firstName! Ora inizia le tue serie!',
-      'Eccellente $firstName! Concentrati e vai!',
+    // Generic fallback cards for exercises without a local script
+    return [
+      PreparationCard(
+        icon: '🎯',
+        title: 'Preparazione',
+        body: 'Posizionati correttamente per $exerciseName',
+      ),
+      PreparationCard(
+        icon: '🌬️',
+        title: 'Respirazione',
+        body: 'Inspira nella fase di allungamento, espira nello sforzo',
+      ),
+      PreparationCard(
+        icon: '🧠',
+        title: 'Concentrazione',
+        body: 'Concentrati sul muscolo che stai allenando',
+      ),
+      PreparationCard(
+        icon: '🎧',
+        title: 'Quasi pronto...',
+        body: 'Gigi sta preparando la tua guida vocale',
+      ),
     ];
+  }
 
-    // Select based on time for variety
-    final index = DateTime.now().second % closingPhrases.length;
-    final phrase = closingPhrases[index];
-
-    // Generate TTS for this short phrase (fast because it's short)
-    if (voiceCoachingService != null) {
-      try {
-        final audioUrl = await voiceCoachingService.generateTTS(phrase);
-        if (audioUrl != null && audioUrl.isNotEmpty) {
-          await _ttsService.speakUrl(audioUrl);
-          while (_ttsService.isSpeaking) {
-            await Future.delayed(const Duration(milliseconds: 200));
-          }
-          return;
-        }
-      } catch (e) {
-        debugPrint('⚠️ Personalized closing TTS failed: $e');
-      }
-    }
-
-    // Fallback to local TTS
-    await _speak(phrase);
+  /// Speak a short personalized closing phrase using local TTS
+  Future<void> _speakPersonalizedClosing() async {
+    final hasName = firstName.isNotEmpty;
+    final closingPhrases = [
+      hasName ? 'Perfetto $firstName! Ora tocca a te, dai il massimo!' : 'Perfetto! Ora tocca a te, dai il massimo!',
+      hasName ? 'Ottimo $firstName! Sei pronto, spacca tutto!' : 'Ottimo lavoro! Tutto pronto, spacca tutto!',
+      hasName ? 'Forza $firstName! Adesso mostrami cosa sai fare!' : 'Forza! Adesso mostriamo cosa sai fare!',
+      hasName ? 'Bravissimo $firstName! Ora inizia le tue serie!' : 'Eccellente! Ora inizia le tue serie!',
+      hasName ? 'Eccellente $firstName! Concentrati e vai!' : 'Ottimo! Massima concentrazione e via!',
+    ];
+    final index = DateTime.now().millisecond % closingPhrases.length;
+    await _speak(closingPhrases[index]);
   }
 
   /// Stop guided execution if playing
@@ -747,8 +822,42 @@ Perfetto $firstName! Ora sei pronto per le tue serie!
     if (_isGuidedExecutionPlaying) {
       _ttsService.stop();
       _isGuidedExecutionPlaying = false;
-      _loadingStatus = null;
+      _preparationCards = null;
+      _currentCardIndex = 0;
+      _isAudioReady = false;
+      _allCardsShown = false;
+      // Complete any pending skip to unblock the async flow
+      if (_skipCompleter != null && !_skipCompleter!.isCompleted) {
+        _skipCompleter!.complete();
+      }
+      _skipCompleter = null;
       notifyListeners();
+    }
+  }
+
+  /// Skip preparation cards — only works when audio is ready.
+  /// Dismisses cards and triggers immediate audio playback.
+  void skipPreparationCards() {
+    _preparationCards = null;
+    _currentCardIndex = 0;
+    _isAudioReady = false;
+    _allCardsShown = false;
+    // Complete the Completer to unblock audio playback
+    if (_skipCompleter != null && !_skipCompleter!.isCompleted) {
+      _skipCompleter!.complete();
+    }
+    notifyListeners();
+  }
+
+  /// Called by the overlay when all cards have been shown.
+  /// If audio is already ready, dismisses cards and plays audio.
+  void notifyAllCardsShown() {
+    _allCardsShown = true;
+    if (_isAudioReady && _skipCompleter != null && !_skipCompleter!.isCompleted) {
+      _preparationCards = null;
+      _isAudioReady = false;
+      notifyListeners();
+      _skipCompleter!.complete();
     }
   }
 

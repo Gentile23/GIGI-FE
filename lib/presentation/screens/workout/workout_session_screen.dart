@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/utils/responsive_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +29,9 @@ import '../../../data/models/trial_workout_model.dart'; // [NEW]
 import 'package:gigi/l10n/app_localizations.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../core/services/sound_service.dart';
+import '../../../core/constants/subscription_tiers.dart';
+import '../paywall/paywall_screen.dart';
+import '../../widgets/voice_coaching/gigi_preparation_overlay.dart';
 
 class WorkoutSessionScreen extends StatefulWidget {
   final WorkoutDay workoutDay;
@@ -109,46 +113,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   void _onVoiceStatusChanged() {
-    final status = _voiceController.loadingStatus;
-
-    if (status != null) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: CleanTheme.textOnDark,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(status),
-            ],
-          ),
-          duration: const Duration(days: 1), // Persistent until cleared
-          backgroundColor: CleanTheme.primaryColor,
-          behavior: SnackBarBehavior.floating, // Better visibility
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } else {
-      // Hide snackbar if it was related to loading
-      // We don't want to hide other potential snackbars if we can help it,
-      // but simpler is to just hide current if we are transitioning out of loading.
-      // However, to be safe, we only hide if we were showing one.
-      // Since we can't easily check 'which' snackbar is showing, we just hide current.
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      }
+    // Trigger rebuild so the overlay in the Stack updates
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -603,6 +570,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 );
               },
             ),
+
+            // ── GIGI PREPARATION OVERLAY (shown during audio generation) ──
+            if (_voiceController.preparationCards != null &&
+                _voiceController.preparationCards!.isNotEmpty)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: MediaQuery.of(context).padding.bottom + 180,
+                child: GigiPreparationOverlay(
+                  cards: _voiceController.preparationCards!,
+                  isAudioReady: _voiceController.isAudioReady,
+                  onClose: () {
+                    // X button = stop everything
+                    _voiceController.stopGuidedExecution();
+                  },
+                  onSkip: () {
+                    // Salta = dismiss cards, audio continues generating
+                    _voiceController.skipPreparationCards();
+                  },
+                  onAllCardsShown: () {
+                    // All cards finished their 3s cycle
+                    _voiceController.notifyAllCardsShown();
+                  },
+                ),
+              ),
 
             // 3. Floating Action Button - Start Session or Timer Display
             if (MediaQuery.of(context).viewInsets.bottom == 0)
@@ -1556,14 +1548,26 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   /// Start guided execution with Gigi - "Esegui con Gigi" button
   /// Plays a step-by-step guide for 2 perfect reps
   Future<void> _startGuidedExecution(WorkoutExercise exercise) async {
-    // Check if already playing
+    // ── #1 PREMIUM CHECK ──────────────────────────────────────────────────────
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    if (user != null) {
+      final tier = SubscriptionTierConfig.fromTier(user.subscriptionTier);
+      if (!tier.quotas.voiceCoachingEnabled) {
+        _showGigiPaywall();
+        return;
+      }
+    }
+
+    // If already playing, stop
     if (_voiceController.isGuidedExecutionPlaying) {
-      // Stop if already playing
       _voiceController.stopGuidedExecution();
+      HapticService.lightTap();
       return;
     }
 
-    // Show snackbar that Gigi is starting
+    // Haptic feedback on tap — instant confirmation
+    HapticFeedback.mediumImpact();
 
     // Start guided execution (tries API first, then local fallback)
     await _voiceController.speakGuidedExecution(
@@ -1573,7 +1577,81 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       voiceCoachingService: _voiceCoachingService,
     );
 
-    // Clear snackbar when done
+    // ── #3 MOUNTED CHECK ─────────────────────────────────────────────────────
+    if (!mounted) return;
+  }
+
+  /// Show paywall dialog for premium Gigi feature
+  void _showGigiPaywall() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: CleanTheme.steelDark,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.record_voice_over_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Esegui con GiGi',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'La guida vocale passo-passo è disponibile con il piano Pro o Elite. Passa ora e allena ogni esercizio con un coach AI!',
+          style: GoogleFonts.inter(
+            color: CleanTheme.textSecondary,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Non ora',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaywallScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CleanTheme.steelDark,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              'Scopri Pro',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSectionHeader(String title, String emoji) {
@@ -2020,10 +2098,27 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     // ── ESEGUI CON GIGI – Premium CTA ──
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                      child: _GigiExecuteButton(
-                        onTap: () => _startGuidedExecution(exercise),
-                        label: AppLocalizations.of(context)!.executeWithGigi,
-                        isOutlined: isMobilityType,
+                      child: ListenableBuilder(
+                        listenable: _voiceController,
+                        builder: (context, _) {
+                          final isPlaying =
+                              _voiceController.isGuidedExecutionPlaying;
+                          final status = _voiceController.loadingStatus;
+                          final baseLabel = isMobilityType
+                              ? 'Guida al Movimento'
+                              : AppLocalizations.of(context)!.executeWithGigi;
+                          return _GigiExecuteButton(
+                            onTap: () => _startGuidedExecution(exercise),
+                            onPause: () => _voiceController.pauseAudio(),
+                            onResume: () => _voiceController.resumeAudio(),
+                            label: isPlaying
+                                ? (status ?? 'Ascolta...')
+                                : baseLabel,
+                            isPlaying: isPlaying,
+                            isOutlined: isMobilityType,
+                            showShimmer: isNext && !isPlaying,
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -2338,15 +2433,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 }
 
 /// Premium "Esegui con Gigi" button – full-width, black, animated shimmer.
+/// Shows play state with stop/pause controls when [isPlaying] is true.
 class _GigiExecuteButton extends StatefulWidget {
   final VoidCallback onTap;
+  final VoidCallback? onPause;
+  final VoidCallback? onResume;
   final String label;
   final bool isOutlined;
+  final bool isPlaying;
+  final bool showShimmer;
 
   const _GigiExecuteButton({
     required this.onTap,
     required this.label,
+    this.onPause,
+    this.onResume,
     this.isOutlined = false,
+    this.isPlaying = false,
+    this.showShimmer = true,
   });
 
   @override
@@ -2364,7 +2468,25 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2200),
-    )..repeat();
+    );
+    _updateShimmer();
+  }
+
+  @override
+  void didUpdateWidget(_GigiExecuteButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showShimmer != widget.showShimmer ||
+        oldWidget.isPlaying != widget.isPlaying) {
+      _updateShimmer();
+    }
+  }
+
+  void _updateShimmer() {
+    if (widget.showShimmer && !widget.isPlaying) {
+      if (!_shimmerController.isAnimating) _shimmerController.repeat();
+    } else {
+      _shimmerController.stop();
+    }
   }
 
   @override
@@ -2375,6 +2497,23 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
 
   @override
   Widget build(BuildContext context) {
+    final isPlaying = widget.isPlaying;
+    final contentColor = widget.isOutlined ? Colors.black : Colors.white;
+
+    // Border color shifts to red when playing
+    final borderColor = isPlaying
+        ? CleanTheme.accentRed.withValues(alpha: 0.8)
+        : widget.isOutlined
+        ? Colors.black.withValues(alpha: 0.8)
+        : Colors.white.withValues(alpha: 0.15);
+
+    // Background shifts to deep red tint when playing
+    final bgColor = isPlaying
+        ? const Color(0xFF1A0000)
+        : widget.isOutlined
+        ? Colors.transparent
+        : Colors.black;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -2386,71 +2525,122 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
         scale: _pressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeInOut,
-        child: AnimatedBuilder(
-          animation: _shimmerController,
-          builder: (context, child) {
-            return Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: widget.isOutlined ? Colors.transparent : Colors.black,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: widget.isOutlined
-                      ? Colors.black.withValues(alpha: 0.8)
-                      : Colors.white.withValues(alpha: 0.15),
-                  width: widget.isOutlined ? 1.5 : 1,
-                ),
-                boxShadow: widget.isOutlined
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-              ),
-              child: Stack(
-                children: [
-                  // Shimmer sweep (hidden for outlined)
-                  if (!widget.isOutlined)
-                    Positioned.fill(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: _ShimmerSweep(controller: _shimmerController),
-                      ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          height: 52,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: borderColor, width: widget.isOutlined ? 1.5 : 1),
+            boxShadow: isPlaying
+                ? [
+                    BoxShadow(
+                      color: CleanTheme.accentRed.withValues(alpha: 0.25),
+                      blurRadius: 18,
+                      offset: const Offset(0, 4),
                     ),
-                  // Content
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Pulsing mic icon
-                        _PulsingMicIcon(
-                          controller: _shimmerController,
-                          color: widget.isOutlined
-                              ? Colors.black
-                              : Colors.white,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          widget.label,
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: widget.isOutlined
-                                ? Colors.black
-                                : Colors.white,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ],
+                  ]
+                : widget.isOutlined
+                ? null
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Stack(
+            children: [
+              // Shimmer sweep (only when enabled and not playing)
+              if (widget.showShimmer && !isPlaying)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: AnimatedBuilder(
+                      animation: _shimmerController,
+                      builder: (context, _) =>
+                          _ShimmerSweep(controller: _shimmerController),
                     ),
                   ),
-                ],
+                ),
+
+              // Content
+              Center(
+                child: isPlaying
+                    // ── PLAYING STATE: label + pause + stop ──
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Spinning loader
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: CleanTheme.accentRed,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              widget.label,
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Pause button
+                          GestureDetector(
+                            onTap: widget.onPause,
+                            child: Icon(
+                              Icons.pause_rounded,
+                              color: Colors.white.withValues(alpha: 0.8),
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Stop button
+                          GestureDetector(
+                            onTap: widget.onTap,
+                            child: Icon(
+                              Icons.stop_rounded,
+                              color: CleanTheme.accentRed,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      )
+                    // ── IDLE STATE: mic icon + label ──
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _PulsingMicIcon(
+                            controller: _shimmerController,
+                            color: contentColor,
+                            animate: widget.showShimmer,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            widget.label,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: contentColor,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
@@ -2493,12 +2683,36 @@ class _ShimmerSweep extends StatelessWidget {
 class _PulsingMicIcon extends StatelessWidget {
   final AnimationController controller;
   final Color? color;
+  final bool animate;
 
-  const _PulsingMicIcon({required this.controller, this.color});
+  const _PulsingMicIcon({
+    required this.controller,
+    this.color,
+    this.animate = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     final effectiveColor = color ?? Colors.white;
+    if (!animate) {
+      return Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: effectiveColor.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: effectiveColor.withValues(alpha: 0.25),
+            width: 1,
+          ),
+        ),
+        child: Icon(
+          Icons.record_voice_over_rounded,
+          color: effectiveColor,
+          size: 18,
+        ),
+      );
+    }
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {

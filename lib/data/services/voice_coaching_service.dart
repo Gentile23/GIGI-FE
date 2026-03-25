@@ -142,27 +142,18 @@ class VoiceCoachingService {
     }
   }
 
-  /// Get AI-generated guided execution script for "Esegui con Gigi"
-  /// Returns personalized step-by-step guide for 2 perfect reps
-  /// with positioning, breathing, errors, visualization, and tips
-  Future<String?> getGuidedExecutionScript({required String exerciseId}) async {
+  /// Get AI-generated guided execution script and preparation cards for "Esegui con Gigi"
+  /// Returns personalized step-by-step guide and specific preparation content
+  Future<Map<String, dynamic>?> getGuidedExecutionScript({
+    required String exerciseId,
+  }) async {
     try {
       final response = await _apiClient.dio.post(
         '/exercises/$exerciseId/voice-coaching/guided',
       );
 
       if (response.statusCode == 200 && response.data != null) {
-        final data = response.data as Map<String, dynamic>;
-
-        // Return the full script for TTS
-        if (data['success'] == true && data['full_script'] != null) {
-          return data['full_script'] as String;
-        }
-
-        // If fallback, also return the full_script
-        if (data['full_script'] != null) {
-          return data['full_script'] as String;
-        }
+        return response.data as Map<String, dynamic>;
       }
 
       return null;

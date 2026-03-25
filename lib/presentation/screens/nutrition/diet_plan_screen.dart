@@ -1322,14 +1322,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                         mealIndex: mealIndex,
                       );
 
-                      if (alternatives.isEmpty && mounted) {
+                      if (alternatives.isEmpty && context.mounted) {
                         scaffoldMessenger.showSnackBar(
                           SnackBar(
                             content: Text(provider.error ?? 'Impossibile generare alternative. Riprova.'),
                             backgroundColor: Colors.red,
                           ),
                         );
-                      } else if (mounted) {
+                      } else if (context.mounted) {
                         _showMealAlternativesSheet(
                           context,
                           alternatives,

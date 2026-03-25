@@ -387,7 +387,7 @@ class VoiceCoachingSettingsSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Usa "Esegui con Gigi" su ogni esercizio per una guida passo-passo di 2 ripetizioni perfette con posizionamento e consigli.',
+                    '"Esegui con GiGi" è sempre disponibile come guida vocale passo-passo su ogni esercizio. Questo toggle controlla i suggerimenti automatici durante la sessione.',
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: CleanTheme.textSecondary,
