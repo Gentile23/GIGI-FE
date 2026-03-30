@@ -256,4 +256,30 @@ class NutritionCoachProvider extends ChangeNotifier {
       _setLoading(false);
     }
   }
+
+  /// Calculate food equivalence (AI-powered)
+  Future<Map<String, dynamic>> calculateEquivalence({
+    required Map<String, dynamic> targetFood,
+    required String userFoodName,
+    String mode = 'kcal',
+  }) async {
+    _setLoading(true);
+    try {
+      final result = await _service.calculateEquivalence(
+        targetFood: targetFood,
+        userFoodName: userFoodName,
+        mode: mode,
+      );
+      _error = null;
+      return result;
+    } catch (e) {
+      _error = e.toString();
+      return {
+        'is_valid': false,
+        'validation_message': 'Errore di connessione. Riprova.',
+      };
+    } finally {
+      _setLoading(false);
+    }
+  }
 }

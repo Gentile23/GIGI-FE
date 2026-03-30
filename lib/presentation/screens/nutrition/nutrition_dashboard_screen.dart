@@ -15,6 +15,7 @@ import 'what_to_cook_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'manual_goal_entry_screen.dart';
+import 'food_duel_screen.dart';
 
 class NutritionDashboardScreen extends StatefulWidget {
   const NutritionDashboardScreen({super.key});
@@ -497,7 +498,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         
         // Pannello Strumenti AI
         _buildTrackCaloriesCompact(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        _buildFoodDuelCard(),
+        const SizedBox(height: 12),
         _buildChefAiCard(),
         const SizedBox(height: 24),
         
@@ -765,6 +768,84 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               Icon(
                 Icons.arrow_forward_ios,
                 color: CleanTheme.textPrimary.withValues(alpha: 0.5),
+                size: 14,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Food Duel AI — Compare two foods head-to-head
+  Widget _buildFoodDuelCard() {
+    return GestureDetector(
+      onTap: () {
+        HapticService.lightTap();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const FoodDuelScreen()),
+        );
+      },
+      child: LiquidSteelContainer(
+        borderRadius: 16,
+        enableShine: true,
+        colors: const [
+          Color(0xFF1C1C1E),
+          Color(0xFF2C2C2E),
+          Color(0xFF1C1C1E),
+          Color(0xFF2C2C2E),
+          Color(0xFF1C1C1E),
+        ],
+        border: Border.all(
+          color: CleanTheme.accentGold.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: CleanTheme.accentGold.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.compare_arrows_rounded,
+                  color: CleanTheme.accentGold,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '⚔️ Food Duel AI',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textOnDark,
+                      ),
+                    ),
+                    Text(
+                      'Sfida due alimenti: chi vince a macro?',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textOnDark.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
                 size: 14,
               ),
             ],

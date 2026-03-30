@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/nutrition_coach_provider.dart';
@@ -1145,52 +1146,84 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                     ],
                   ),
                 ),
-                Container(
-                  margin: const EdgeInsets.only(left: 12),
-                  decoration: BoxDecoration(
-                    color: CleanTheme.primaryColor.withValues(alpha: 0.04),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: CleanTheme.primaryColor.withValues(alpha: 0.1),
-                      width: 1,
-                    ),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () async {
-                        final quotaService = QuotaService();
-                        final checkResult = await quotaService.checkAndRecord(
-                          QuotaAction.changeFood,
-                        );
-
-                        if (!checkResult.canPerform && context.mounted) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const PaywallScreen(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Equivalence Calculator Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentBlue.withValues(alpha: 0.06),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: CleanTheme.accentBlue.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => _showEquivalenceCalculator(context, food),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Icon(
+                              Icons.compare_arrows_rounded,
+                              size: 18,
+                              color: CleanTheme.accentBlue.withValues(alpha: 0.8),
                             ),
-                          );
-                        } else if (checkResult.canPerform && context.mounted) {
-                          _showSubstitutionModal(
-                            context,
-                            food,
-                            dayIndex,
-                            mealIndex,
-                            foodIndex,
-                          );
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Icon(
-                          Icons.auto_fix_high_rounded,
-                          size: 18,
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.7),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    // Existing substitution button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.04),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () async {
+                            final quotaService = QuotaService();
+                            final checkResult = await quotaService.checkAndRecord(
+                              QuotaAction.changeFood,
+                            );
+
+                            if (!checkResult.canPerform && context.mounted) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PaywallScreen(),
+                                ),
+                              );
+                            } else if (checkResult.canPerform && context.mounted) {
+                              _showSubstitutionModal(
+                                context,
+                                food,
+                                dayIndex,
+                                mealIndex,
+                                foodIndex,
+                              );
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Icon(
+                              Icons.auto_fix_high_rounded,
+                              size: 18,
+                              color: CleanTheme.primaryColor.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1602,6 +1635,23 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     );
   }
 
+  void _showEquivalenceCalculator(BuildContext context, Map<String, dynamic> food) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (ctx, scrollController) => _EquivalenceCalculatorSheet(
+          food: food,
+          scrollController: scrollController,
+        ),
+      ),
+    );
+  }
 }
 
 class _SubstitutionSheet extends StatefulWidget {
@@ -1745,4 +1795,812 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
       ),
     );
   }
+}
+
+// =============================================================================
+// EQUIVALENCE CALCULATOR SHEET
+// =============================================================================
+
+class _EquivalenceCalculatorSheet extends StatefulWidget {
+  final Map<String, dynamic> food;
+  final ScrollController scrollController;
+
+  const _EquivalenceCalculatorSheet({
+    required this.food,
+    required this.scrollController,
+  });
+
+  @override
+  State<_EquivalenceCalculatorSheet> createState() => _EquivalenceCalculatorSheetState();
+}
+
+class _EquivalenceCalculatorSheetState extends State<_EquivalenceCalculatorSheet>
+    with TickerProviderStateMixin {
+  final _foodController = TextEditingController();
+  String _mode = 'kcal';
+  Map<String, dynamic>? _result;
+  bool _isLoading = false;
+  late AnimationController _gaugeController;
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+  late AnimationController _iconSpinController;
+
+  @override
+  void initState() {
+    super.initState();
+    _gaugeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 12).chain(
+      CurveTween(curve: Curves.elasticIn),
+    ).animate(_shakeController);
+    _iconSpinController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _foodController.dispose();
+    _gaugeController.dispose();
+    _shakeController.dispose();
+    _iconSpinController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _calculate() async {
+    final foodName = _foodController.text.trim();
+    if (foodName.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+      _result = null;
+    });
+    _iconSpinController.repeat();
+
+    final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
+    final result = await provider.calculateEquivalence(
+      targetFood: {
+        'name': widget.food['name'] ?? 'Alimento',
+        'quantity': (widget.food['quantity'] as num?)?.toDouble() ?? 100.0,
+        'calories': (widget.food['calories'] as num?)?.toInt() ?? 0,
+        'proteins': (widget.food['proteins'] as num?)?.toDouble() ?? 0.0,
+        'carbs': (widget.food['carbs'] as num?)?.toDouble() ?? 0.0,
+        'fats': (widget.food['fats'] as num?)?.toDouble() ?? 0.0,
+      },
+      userFoodName: foodName,
+      mode: _mode,
+    );
+
+    _iconSpinController.stop();
+    _iconSpinController.reset();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      _result = result;
+    });
+
+    if (result['is_valid'] == true) {
+      _gaugeController.forward(from: 0);
+    } else {
+      _shakeController.forward(from: 0);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: CleanTheme.borderPrimary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            child: Row(
+              children: [
+                RotationTransition(
+                  turns: _iconSpinController,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          CleanTheme.accentBlue.withValues(alpha: 0.15),
+                          CleanTheme.accentGreen.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.compare_arrows_rounded,
+                      color: CleanTheme.accentBlue,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Confronta con Dispensa',
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '${widget.food['name']} • ${widget.food['quantity']}${widget.food['unit'] ?? 'g'}',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          // Content
+          Expanded(
+            child: ListView(
+              controller: widget.scrollController,
+              padding: const EdgeInsets.all(24),
+              children: [
+                // Search Input
+                Container(
+                  decoration: BoxDecoration(
+                    color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: CleanTheme.borderPrimary),
+                  ),
+                  child: TextField(
+                    controller: _foodController,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _calculate(),
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: CleanTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Cosa hai in dispensa?',
+                      hintStyle: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary.withValues(alpha: 0.5),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: CleanTheme.accentBlue,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Mode Toggle
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.chromeSubtle.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildModeTab('kcal', 'Per Calorie ⚡', _mode == 'kcal'),
+                      _buildModeTab('protein', 'Per Proteine 💪', _mode == 'protein'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Mode Explanation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    child: Text(
+                      _mode == 'kcal'
+                          ? 'L\'AI calcola quanti grammi del nuovo alimento servono per avere esattamente le stesse calorie della porzione originale.'
+                          : 'L\'AI ignora le calorie totali e calcola quanti grammi del nuovo alimento servono per pareggiare i grammi di proteine.',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: CleanTheme.textSecondary.withValues(alpha: 0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Calculate Button
+                GestureDetector(
+                  onTap: _isLoading ? null : _calculate,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: _isLoading
+                            ? [CleanTheme.steelMid, CleanTheme.steelMid]
+                            : [CleanTheme.steelDark, CleanTheme.primaryColor],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: _isLoading
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        else
+                          const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 10),
+                        Text(
+                          _isLoading ? 'Calcolo in corso...' : 'Calcola Equivalenza',
+                          style: GoogleFonts.outfit(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Results
+                if (_result != null) ...[
+                  const SizedBox(height: 24),
+                  if (_result!['is_valid'] == true)
+                    _buildValidResult()
+                  else
+                    _buildInvalidResult(),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeTab(String value, String label, bool isSelected) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _mode = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? CleanTheme.surfaceColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildValidResult() {
+    final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
+    final newQty = (_result!['new_quantity_grams'] as num?)?.toDouble() ?? 0;
+    final delta = _result!['delta'] as Map<String, dynamic>? ?? {};
+    final summary = _result!['summary'] as String? ?? '';
+    final curiosity = _result!['curiosity'] as String? ?? '';
+
+    return Column(
+      children: [
+        // Compatibility Gauge
+        AnimatedBuilder(
+          animation: _gaugeController,
+          builder: (context, child) {
+            final progress = _gaugeController.value;
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    CleanTheme.steelDark,
+                    CleanTheme.steelMid.withValues(alpha: 0.9),
+                    CleanTheme.steelDark,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: _getScoreColor(score).withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Radial Gauge
+                  SizedBox(
+                    width: 160,
+                    height: 160,
+                    child: CustomPaint(
+                      painter: _CompatibilityGaugePainter(
+                        score: (score * progress).toInt(),
+                        color: _getScoreColor(score),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${(score * progress).toInt()}',
+                              style: GoogleFonts.outfit(
+                                fontSize: 42,
+                                fontWeight: FontWeight.w900,
+                                color: _getScoreColor(score),
+                              ),
+                            ),
+                            Text(
+                              'COMPATIBILITÀ',
+                              style: GoogleFonts.outfit(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white.withValues(alpha: 0.5),
+                                letterSpacing: 2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // New quantity big number
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${newQty.round()}g',
+                          style: GoogleFonts.outfit(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '  di ${_foodController.text}',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 20),
+        // Macro Delta Bars
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: CleanTheme.surfaceColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: CleanTheme.borderPrimary),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'CONFRONTO MACROS',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: CleanTheme.textSecondary,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildDeltaRow('Proteine', delta['proteins'] ?? {}, CleanTheme.accentGreen),
+              const SizedBox(height: 12),
+              _buildDeltaRow('Carboidrati', delta['carbs'] ?? {}, CleanTheme.accentGold),
+              const SizedBox(height: 12),
+              _buildDeltaRow('Grassi', delta['fats'] ?? {}, CleanTheme.accentBlue),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Summary Card
+        if (summary.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: CleanTheme.borderPrimary.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('📊', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    summary,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textPrimary,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 12),
+        // Curiosity Card (Wow!)
+        if (curiosity.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  CleanTheme.accentGold.withValues(alpha: 0.1),
+                  CleanTheme.accentGreen.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: CleanTheme.accentGold.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('💡', style: TextStyle(fontSize: 22)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LO SAPEVI?',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: CleanTheme.accentGold,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        curiosity,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: CleanTheme.textPrimary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInvalidResult() {
+    final message = _result!['validation_message'] as String? ?? 'Alimento non riconosciuto.';
+    return AnimatedBuilder(
+      animation: _shakeAnimation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(
+            sin(_shakeAnimation.value * pi * 2) * 6,
+            0,
+          ),
+          child: child,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.red.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Text('🤔', style: TextStyle(fontSize: 36)),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Hmm...',
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                color: CleanTheme.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Prova con un alimento vero! 🍕',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.accentOrange,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeltaRow(String label, Map<String, dynamic> data, Color color) {
+    final original = (data['original'] as num?)?.toDouble() ?? 0;
+    final newVal = (data['new'] as num?)?.toDouble() ?? 0;
+    final diff = (data['diff'] as num?)?.toDouble() ?? 0;
+    final maxVal = [original, newVal].reduce((a, b) => a > b ? a : b);
+    final normalizer = maxVal > 0 ? maxVal : 1.0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: diff >= 0
+                    ? CleanTheme.accentGreen.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}g',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: diff >= 0 ? CleanTheme.accentGreen : Colors.red,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Original bar
+        Row(
+          children: [
+            SizedBox(
+              width: 48,
+              child: Text(
+                '${original.toStringAsFixed(1)}g',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+            ),
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                height: 8,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: original / normalizer,
+                    backgroundColor: color.withValues(alpha: 0.08),
+                    valueColor: AlwaysStoppedAnimation(color.withValues(alpha: 0.3)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        // New bar
+        Row(
+          children: [
+            SizedBox(
+              width: 48,
+              child: Text(
+                '${newVal.toStringAsFixed(1)}g',
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ),
+            Expanded(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                height: 8,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: newVal / normalizer,
+                    backgroundColor: color.withValues(alpha: 0.08),
+                    valueColor: AlwaysStoppedAnimation(color),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Color _getScoreColor(int score) {
+    if (score >= 75) return CleanTheme.accentGreen;
+    if (score >= 50) return CleanTheme.accentGold;
+    if (score >= 25) return CleanTheme.accentOrange;
+    return Colors.red;
+  }
+}
+
+// Custom painter for the radial compatibility gauge
+class _CompatibilityGaugePainter extends CustomPainter {
+  final int score;
+  final Color color;
+
+  _CompatibilityGaugePainter({required this.score, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 12;
+
+    // Background arc
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..color = Colors.white.withValues(alpha: 0.08)
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi * 0.75,
+      pi * 1.5,
+      false,
+      bgPaint,
+    );
+
+    // Progress arc
+    final progressPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round
+      ..shader = SweepGradient(
+        startAngle: -pi * 0.75,
+        endAngle: pi * 0.75,
+        colors: [
+          color.withValues(alpha: 0.4),
+          color,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    final sweepAngle = (score / 100) * pi * 1.5;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi * 0.75,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
+
+    // Glow dot at end
+    if (score > 0) {
+      final dotAngle = -pi * 0.75 + sweepAngle;
+      final dotCenter = Offset(
+        center.dx + radius * cos(dotAngle),
+        center.dy + radius * sin(dotAngle),
+      );
+      final glowPaint = Paint()
+        ..color = color.withValues(alpha: 0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      canvas.drawCircle(dotCenter, 6, glowPaint);
+      canvas.drawCircle(dotCenter, 4, Paint()..color = Colors.white);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CompatibilityGaugePainter oldDelegate) =>
+      oldDelegate.score != score || oldDelegate.color != color;
 }

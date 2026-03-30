@@ -184,4 +184,24 @@ class NutritionCoachService {
     );
     return response;
   }
+
+  /// Calculate Food Equivalence (AI-powered)
+  Future<Map<String, dynamic>> calculateEquivalence({
+    required Map<String, dynamic> targetFood,
+    required String userFoodName,
+    String mode = 'kcal',
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/equivalence',
+      body: {
+        'target_food': targetFood,
+        'user_food_name': userFoodName,
+        'mode': mode,
+      },
+    );
+    if (response['success'] == true) {
+      return response['equivalence'] ?? {};
+    }
+    throw Exception(response['message'] ?? 'Errore nel calcolo equivalenza');
+  }
 }
