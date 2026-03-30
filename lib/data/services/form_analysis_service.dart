@@ -1,11 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/utils/validation_utils.dart';
 import '../models/form_analysis_model.dart';
 import 'api_client.dart';
 
 class FormAnalysisService {
   final ApiClient _apiClient;
+  static const int _maxVideoSizeBytes = 100 * 1024 * 1024; // 100 MB
+  static const Set<String> _allowedVideoExtensions = {
+    'mp4',
+    'mov',
+    'm4v',
+    'webm',
+  };
 
   FormAnalysisService(this._apiClient);
 
@@ -28,6 +36,30 @@ class FormAnalysisService {
     Function(int, int)? onProgress,
   }) async {
     try {
+      final sanitizedExerciseName = ValidationUtils.sanitizeFreeText(
+        exerciseName,
+        maxLength: 80,
+      );
+      if (sanitizedExerciseName.isEmpty) {
+        throw Exception('Nome esercizio non valido');
+      }
+      if (ValidationUtils.containsSuspiciousMarkup(sanitizedExerciseName)) {
+        throw Exception('Nome esercizio contiene contenuto non consentito');
+      }
+
+      final fileName = videoFile.name.toLowerCase();
+      final extension = fileName.contains('.')
+          ? fileName.split('.').last
+          : '';
+      if (!_allowedVideoExtensions.contains(extension)) {
+        throw Exception('Formato video non supportato');
+      }
+
+      final fileSize = await videoFile.length();
+      if (fileSize <= 0 || fileSize > _maxVideoSizeBytes) {
+        throw Exception('Dimensione video non valida (max 100MB)');
+      }
+
       MultipartFile videoPart;
 
       if (kIsWeb) {
@@ -46,7 +78,7 @@ class FormAnalysisService {
 
       final formData = FormData.fromMap({
         'video': videoPart,
-        'exercise_name': exerciseName,
+        'exercise_name': sanitizedExerciseName,
         if (exerciseId != null) 'exercise_id': exerciseId,
       });
 
@@ -62,7 +94,7 @@ class FormAnalysisService {
       return null;
     } catch (e) {
       if (e is DioException && e.response != null) {
-        debugPrint('Analysis API Error: ${e.response?.data}');
+        debugPrint('Analysis API Error on /form-analysis/analyze');
         debugPrint('Status Code: ${e.response?.statusCode}');
       }
       debugPrint('Error analyzing video: $e');
