@@ -497,9 +497,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(height: 24),
         
         // Pannello Strumenti AI
-        _buildTrackCaloriesCompact(),
-        const SizedBox(height: 12),
         _buildFoodDuelCard(),
+        const SizedBox(height: 12),
+        _buildTrackCaloriesCompact(),
         const SizedBox(height: 12),
         _buildChefAiCard(),
         const SizedBox(height: 24),
@@ -834,7 +834,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     Text(
-                      'Sfida due alimenti: chi vince a macro?',
+                      'Confronta due alimenti per macro e calorie e scopri la loro compatibilità nutrizionale con l\'AI.',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: CleanTheme.textOnDark.withValues(alpha: 0.85),

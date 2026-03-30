@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/nutrition_coach_provider.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../widgets/animations/liquid_steel_container.dart';
+import '../../widgets/clean_widgets.dart';
+import '../../widgets/gigi/gigi_coach_message.dart';
 
 /// Food Duel AI — Compare any two foods head-to-head
-/// AI-powered nutritional comparison with wow factor
+/// AI-powered nutritional comparison with Gigi Monochrome aesthetic
 class FoodDuelScreen extends StatefulWidget {
   const FoodDuelScreen({super.key});
 
@@ -22,8 +25,6 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   bool _isLoading = false;
   late AnimationController _gaugeController;
   late AnimationController _vsController;
-  late AnimationController _shakeController;
-  late Animation<double> _shakeAnimation;
   String _mode = 'kcal'; // 'kcal' or 'protein'
 
   @override
@@ -37,13 +38,6 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _shakeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _shakeAnimation = Tween<double>(begin: 0, end: 12).chain(
-      CurveTween(curve: Curves.elasticIn),
-    ).animate(_shakeController);
   }
 
   @override
@@ -52,7 +46,6 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     _foodBController.dispose();
     _gaugeController.dispose();
     _vsController.dispose();
-    _shakeController.dispose();
     super.dispose();
   }
 
@@ -92,8 +85,6 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     if (result['is_valid'] == true) {
       _gaugeController.forward(from: 0);
       _vsController.forward(from: 0);
-    } else {
-      _shakeController.forward(from: 0);
     }
   }
 
@@ -106,117 +97,60 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: CleanTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Food Duel AI',
+          'Analisi Comparativa',
           style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
             color: CleanTheme.textPrimary,
           ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Column(
           children: [
-            // Hero Section
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    CleanTheme.steelDark,
-                    CleanTheme.steelMid,
-                    CleanTheme.steelDark,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: CleanTheme.steelDark.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text('⚔️', style: TextStyle(fontSize: 40)),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Sfida Nutrizionale',
-                    style: GoogleFonts.outfit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Confronta due alimenti e scopri\nchi vince a colpi di macro!',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.7),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
+            // Coach Intro
+            const GigiCoachMessage(
+              message: 'Confronta due alimenti per scoprire quale si adatta meglio ai tuoi obiettivi odierni.',
+              emotion: GigiEmotion.expert,
             ),
             const SizedBox(height: 24),
 
-            // Food A Input
-            _buildFoodInput(
-              controller: _foodAController,
-              label: 'ALIMENTO A',
-              hint: 'es. Pollo alla griglia',
-              emoji: '🥊',
-              color: CleanTheme.accentGreen,
-            ),
-            const SizedBox(height: 12),
-
-            // VS Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: CleanTheme.steelDark,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                'VS',
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 3,
+            // Inputs Row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildFoodInput(
+                    controller: _foodAController,
+                    label: 'ALIMENTO A',
+                    hint: 'es. Pollo',
+                    color: CleanTheme.accentGreen,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Food B Input
-            _buildFoodInput(
-              controller: _foodBController,
-              label: 'ALIMENTO B',
-              hint: 'es. Salmone al forno',
-              emoji: '🥊',
-              color: CleanTheme.accentBlue,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildFoodInput(
+                    controller: _foodBController,
+                    label: 'ALIMENTO B',
+                    hint: 'es. Salmone',
+                    color: CleanTheme.accentBlue,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
 
-            // Mode Selection
-            Container(
+            // Mode Selection Table-like
+             Container(
               decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
+                color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: CleanTheme.borderPrimary),
+                border: Border.all(color: CleanTheme.borderSecondary),
               ),
               padding: const EdgeInsets.all(4),
               child: Row(
@@ -226,7 +160,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // Mode Explanation
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -234,11 +168,12 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   _mode == 'kcal'
-                      ? 'L\'AI calcola quanti grammi del nuovo alimento servono per avere esattamente le stesse calorie della porzione originale.'
-                      : 'L\'AI ignora le calorie totali e calcola quanti grammi del nuovo alimento servono per pareggiare i grammi di proteine.',
+                      ? 'L\'AI calcola quanti grammi del secondo alimento servono per avere le stesse calorie del primo.'
+                      : 'L\'AI ignora le calorie e calcola quanti grammi servono per pareggiare le proteine.',
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: CleanTheme.textSecondary.withValues(alpha: 0.7),
+                    color: CleanTheme.textSecondary,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -246,63 +181,48 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
             ),
             const SizedBox(height: 24),
 
-            // Battle Button
+            // Analysis Button
             GestureDetector(
               onTap: _isLoading ? null : _compare,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: _isLoading
-                        ? [CleanTheme.chromeGray, CleanTheme.chromeGray]
-                        : [CleanTheme.steelDark, CleanTheme.primaryColor],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: _isLoading
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: CleanTheme.primaryColor.withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+              child: LiquidSteelContainer(
+                borderRadius: 28,
+                enableShine: true,
+                colors: _isLoading
+                  ? [CleanTheme.chromeSubtle, CleanTheme.chromeSilver]
+                  : const [
+                      Color(0xFFE5E5EA), 
+                      Color(0xFFD1D1D6), 
+                      Color(0xFFE5E5EA),
+                    ],
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: _isLoading 
+                      ? const SizedBox(
+                          height: 20, 
+                          width: 20, 
+                          child: CircularProgressIndicator(strokeWidth: 2, color: CleanTheme.textPrimary)
+                        )
+                      : Text(
+                          'ESEGUI ANALISI',
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.textPrimary,
+                            letterSpacing: 2,
                           ),
-                        ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_isLoading)
-                      const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
                         ),
-                      )
-                    else
-                      const Text('⚔️', style: TextStyle(fontSize: 22)),
-                    const SizedBox(width: 12),
-                    Text(
-                      _isLoading ? 'Analisi in corso...' : 'INIZIA IL DUELLO!',
-                      style: GoogleFonts.outfit(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
 
-            // Results
+            // Results Section
             if (_result != null) ...[
               const SizedBox(height: 32),
               if (_result!['is_valid'] == true)
-                _buildDuelResult()
+                _buildReportResult()
               else
                 _buildInvalidResult(),
             ],
@@ -318,62 +238,46 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     required TextEditingController controller,
     required String label,
     required String hint,
-    required String emoji,
     required Color color,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.outfit(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: 1.5,
             ),
           ),
-          TextField(
+        ),
+        CleanCard(
+          padding: EdgeInsets.zero,
+          borderRadius: 16,
+          child: TextField(
             controller: controller,
             textInputAction: TextInputAction.next,
             style: GoogleFonts.inter(
-              fontSize: 16,
+              fontSize: 15,
               color: CleanTheme.textPrimary,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: GoogleFonts.inter(
-                color: CleanTheme.textSecondary.withValues(alpha: 0.4),
+                color: CleanTheme.textTertiary,
+                fontWeight: FontWeight.normal,
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -386,16 +290,16 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? CleanTheme.steelDark : Colors.transparent,
+            color: isSelected ? CleanTheme.primaryColor : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected ? Colors.white : CleanTheme.textSecondary,
             ),
@@ -405,7 +309,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     );
   }
 
-  Widget _buildDuelResult() {
+  Widget _buildReportResult() {
     final targetFood = _result!['target_food'] as Map<String, dynamic>? ?? {};
     final userFoodPer100g = _result!['user_food_per_100g'] as Map<String, dynamic>? ?? {};
     final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
@@ -414,382 +318,221 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
 
     final foodAName = _foodAController.text.trim();
     final foodBName = _foodBController.text.trim();
-    final foodAKcal = (targetFood['calories'] as num?)?.toInt() ?? 0;
+    final foodAKcal = (targetFood['kcal'] as num?)?.toInt() ?? 0;
     final foodBKcal = (userFoodPer100g['kcal'] as num?)?.toInt() ?? 0;
 
-    return AnimatedBuilder(
-      animation: _vsController,
-      builder: (context, child) {
-        final progress = Curves.easeOutBack.transform(_vsController.value);
-        return Opacity(
-          opacity: _vsController.value.clamp(0.0, 1.0),
-          child: Transform.scale(
-            scale: 0.8 + (0.2 * progress),
-            child: child,
-          ),
-        );
-      },
-      child: Column(
-        children: [
-          // Head-to-head card
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  CleanTheme.steelDark,
-                  CleanTheme.steelMid.withValues(alpha: 0.95),
-                  CleanTheme.steelDark,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: CleanTheme.steelDark.withValues(alpha: 0.4),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // VS Header
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            foodAName.length > 12
-                                ? '${foodAName.substring(0, 12)}...'
-                                : foodAName,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: CleanTheme.accentGreen,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$foodAKcal kcal',
-                            style: GoogleFonts.outfit(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            'per 100g',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '⚡',
-                        style: GoogleFonts.outfit(fontSize: 20),
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            foodBName.length > 12
-                                ? '${foodBName.substring(0, 12)}...'
-                                : foodBName,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: CleanTheme.accentBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$foodBKcal kcal',
-                            style: GoogleFonts.outfit(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            'per 100g',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+    return Column(
+      children: [
+        // AI Summary Message
+        GigiCoachMessage(
+          message: summary,
+          emotion: score >= 70 ? GigiEmotion.happy : GigiEmotion.expert,
+        ),
+        const SizedBox(height: 24),
 
-                // Macro comparison bars
-                _buildDuelMacroBar(
-                  'Proteine',
-                  (targetFood['proteins'] as num?)?.toDouble() ?? 0,
-                  (userFoodPer100g['proteins'] as num?)?.toDouble() ?? 0,
-                  CleanTheme.accentGreen,
-                  CleanTheme.accentBlue,
-                ),
-                const SizedBox(height: 14),
-                _buildDuelMacroBar(
-                  'Carboidrati',
-                  (targetFood['carbs'] as num?)?.toDouble() ?? 0,
-                  (userFoodPer100g['carbs'] as num?)?.toDouble() ?? 0,
-                  CleanTheme.accentGreen,
-                  CleanTheme.accentBlue,
-                ),
-                const SizedBox(height: 14),
-                _buildDuelMacroBar(
-                  'Grassi',
-                  (targetFood['fats'] as num?)?.toDouble() ?? 0,
-                  (userFoodPer100g['fats'] as num?)?.toDouble() ?? 0,
-                  CleanTheme.accentGreen,
-                  CleanTheme.accentBlue,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Compatibility Score
-          AnimatedBuilder(
-            animation: _gaugeController,
-            builder: (context, _) {
-              final animScore = (score * _gaugeController.value).toInt();
-              return Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: CleanTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: CleanTheme.borderPrimary),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: CustomPaint(
-                        painter: _MiniGaugePainter(
-                          score: animScore,
-                          color: _getScoreColor(score),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$animScore',
-                            style: GoogleFonts.outfit(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              color: _getScoreColor(score),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SIMILARITÀ NUTRIZIONALE',
-                            style: GoogleFonts.outfit(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: CleanTheme.textSecondary,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getScoreLabel(score),
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: _getScoreColor(score),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Summary
-          if (summary.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: CleanTheme.borderPrimary.withValues(alpha: 0.5)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        // Comparison Report Card
+        CleanCard(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('📊', style: TextStyle(fontSize: 20)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      summary,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: CleanTheme.textPrimary,
-                        height: 1.5,
-                      ),
+                  Text(
+                    'REPORT NUTRIZIONALE',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: CleanTheme.textSecondary,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  Text(
+                    'Valori per 100g',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: CleanTheme.textTertiary,
                     ),
                   ),
                 ],
               ),
-            ),
-          const SizedBox(height: 12),
-
-          // Curiosity Card
-          if (curiosity.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    CleanTheme.accentGold.withValues(alpha: 0.12),
-                    CleanTheme.accentGreen.withValues(alpha: 0.06),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: CleanTheme.accentGold.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 20),
+              
+              // Header Alimenti
+              Row(
                 children: [
-                  const Text('💡', style: TextStyle(fontSize: 22)),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'LO SAPEVI?',
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: CleanTheme.accentGold,
-                            letterSpacing: 1.5,
-                          ),
+                          foodAName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.accentGreen),
                         ),
-                        const SizedBox(height: 6),
+                        Text('$foodAKcal kcal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
+                      ],
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Icon(Icons.swap_horiz_rounded, color: CleanTheme.textTertiary, size: 20),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
                         Text(
-                          curiosity,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: CleanTheme.textPrimary,
-                            height: 1.5,
-                          ),
+                          foodBName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.accentBlue),
                         ),
+                        Text('$foodBKcal kcal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
                       ],
                     ),
                   ),
                 ],
               ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Divider(height: 1),
+              ),
+
+              // Macro Rows
+              _buildReportMacroRow('Proteine', (targetFood['proteins'] as num?)?.toDouble() ?? 0, (userFoodPer100g['proteins'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+              const SizedBox(height: 24),
+              _buildReportMacroRow('Carboidrati', (targetFood['carbs'] as num?)?.toDouble() ?? 0, (userFoodPer100g['carbs'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+              const SizedBox(height: 24),
+              _buildReportMacroRow('Grassi', (targetFood['fats'] as num?)?.toDouble() ?? 0, (userFoodPer100g['fats'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Score Card — Simple & Pro
+        CleanCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 70,
+                height: 70,
+                child: CustomPaint(
+                  painter: _ReportGaugePainter(score: score, color: _getScoreColor(score)),
+                  child: Center(
+                    child: Text(
+                      '$score%',
+                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w900, color: _getScoreColor(score)),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'COMPATIBILITÀ',
+                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: CleanTheme.textSecondary, letterSpacing: 1.5),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getScoreLabel(score),
+                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Curiosity Insight
+        if (curiosity.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: CleanTheme.accentGold.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: CleanTheme.accentGold.withValues(alpha: 0.2)),
             ),
-        ],
-      ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('💡', style: TextStyle(fontSize: 24)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ANALISI COACH GIGI',
+                        style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: CleanTheme.accentGold, letterSpacing: 1.5),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        curiosity,
+                        style: GoogleFonts.inter(fontSize: 14, color: CleanTheme.textPrimary, height: 1.5, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildDuelMacroBar(
-    String label,
-    double valueA,
-    double valueB,
-    Color colorA,
-    Color colorB,
-  ) {
-    final maxVal = [valueA, valueB, 1.0].reduce((a, b) => a > b ? a : b);
-
+  Widget _buildReportMacroRow(String label, double valA, double valB, Color colorA, Color colorB) {
+    final maxVal = [valA, valB, 1.0].reduce((a, b) => a > b ? a : b);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '${valueA.toStringAsFixed(1)}g',
-              style: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: colorA,
-              ),
-            ),
-            Text(
-              label.toUpperCase(),
-              style: GoogleFonts.outfit(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: Colors.white.withValues(alpha: 0.5),
-                letterSpacing: 1.5,
-              ),
-            ),
-            Text(
-              '${valueB.toStringAsFixed(1)}g',
-              style: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: colorB,
-              ),
+            Text(label.toUpperCase(), style: GoogleFonts.outfit(fontSize: 9, fontWeight: FontWeight.w900, color: CleanTheme.textSecondary, letterSpacing: 1.2)),
+            Row(
+              children: [
+                Text(valA.toStringAsFixed(1), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: colorA)),
+                const Text(' / ', style: TextStyle(fontSize: 10, color: CleanTheme.textTertiary)),
+                Text(valB.toStringAsFixed(1), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: colorB)),
+              ],
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 10),
         Row(
           children: [
-            // Bar A (right-aligned)
             Expanded(
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(4)),
                   child: LinearProgressIndicator(
-                    value: valueA / maxVal,
-                    backgroundColor: Colors.white.withValues(alpha: 0.06),
+                    value: valA / maxVal,
+                    backgroundColor: CleanTheme.borderSecondary,
                     valueColor: AlwaysStoppedAnimation(colorA),
-                    minHeight: 10,
+                    minHeight: 8,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            // Bar B (left-aligned)
+            const SizedBox(width: 4),
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: const BorderRadius.horizontal(right: Radius.circular(4)),
                 child: LinearProgressIndicator(
-                  value: valueB / maxVal,
-                  backgroundColor: Colors.white.withValues(alpha: 0.06),
+                  value: valB / maxVal,
+                  backgroundColor: CleanTheme.borderSecondary,
                   valueColor: AlwaysStoppedAnimation(colorB),
-                  minHeight: 10,
+                  minHeight: 8,
                 ),
               ),
             ),
@@ -801,124 +544,42 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
 
   Widget _buildInvalidResult() {
     final message = _result!['validation_message'] as String? ?? 'Alimento non riconosciuto.';
-    return AnimatedBuilder(
-      animation: _shakeAnimation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(sin(_shakeAnimation.value * pi * 2) * 6, 0),
-          child: child,
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Text('🤔', style: TextStyle(fontSize: 36)),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Hmm...',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                color: CleanTheme.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Inserisci alimenti veri! 🍕',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.accentOrange,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return GigiCoachMessage(
+      message: '$message Inserisci alimenti reali della dieta mediterranea! 🍕',
+      emotion: GigiEmotion.expert,
     );
   }
 
   String _getScoreLabel(int score) {
-    if (score >= 85) return 'Praticamente gemelli!';
-    if (score >= 70) return 'Ottimi sostituti';
-    if (score >= 50) return 'Abbastanza simili';
-    if (score >= 30) return 'Piuttosto diversi';
-    return 'Mondi diversi!';
+    if (score >= 85) return 'Profilo quasi identico';
+    if (score >= 70) return 'Ottima compatibilità';
+    if (score >= 50) return 'Discreta affinità';
+    if (score >= 30) return 'Valori divergenti';
+    return 'Profili incompatibili';
   }
 
   Color _getScoreColor(int score) {
     if (score >= 75) return CleanTheme.accentGreen;
     if (score >= 50) return CleanTheme.accentGold;
-    if (score >= 25) return CleanTheme.accentOrange;
     return CleanTheme.accentRed;
   }
 }
 
-/// Mini gauge painter for the score circle
-class _MiniGaugePainter extends CustomPainter {
+class _ReportGaugePainter extends CustomPainter {
   final int score;
   final Color color;
-
-  _MiniGaugePainter({required this.score, required this.color});
+  _ReportGaugePainter({required this.score, required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 6;
-
-    final bgPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..color = CleanTheme.chromeSubtle
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi * 0.75,
-      pi * 1.5,
-      false,
-      bgPaint,
-    );
-
-    final progressPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round
-      ..color = color;
-
-    final sweepAngle = (score / 100) * pi * 1.5;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi * 0.75,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
+    final radius = size.width / 2 - 4;
+    final bgPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 5..color = CleanTheme.borderSecondary;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -pi / 2, pi * 2, false, bgPaint);
+    final progressPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 5..strokeCap = StrokeCap.round..color = color;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -pi / 2, (score / 100) * pi * 2, false, progressPaint);
   }
 
   @override
-  bool shouldRepaint(covariant _MiniGaugePainter oldDelegate) =>
-      oldDelegate.score != score || oldDelegate.color != color;
+  bool shouldRepaint(covariant _ReportGaugePainter oldDelegate) => oldDelegate.score != score;
 }
