@@ -1,17 +1,30 @@
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../core/utils/validation_utils.dart';
 import 'api_client.dart';
 
 class NutritionCoachService {
   final ApiClient _client;
+  static const int _maxPdfSizeBytes = 15 * 1024 * 1024; // 15 MB
 
   NutritionCoachService({ApiClient? client}) : _client = client ?? ApiClient();
 
   /// Upload Diet PDF
   Future<Map<String, dynamic>> uploadDietPdf(PlatformFile file) async {
     try {
+      final extension = (file.extension ?? '').toLowerCase();
+      if (extension != 'pdf') {
+        return {'success': false, 'message': 'È consentito solo il formato PDF'};
+      }
+      if (file.size <= 0 || file.size > _maxPdfSizeBytes) {
+        return {
+          'success': false,
+          'message': 'File non valido: dimensione massima 15MB',
+        };
+      }
+
       // Create FormData
-      String fileName = file.name;
+      final fileName = ValidationUtils.sanitizeFileName(file.name);
       MultipartFile multipartFile;
 
       if (file.bytes != null) {
@@ -50,9 +63,19 @@ class NutritionCoachService {
     double quantity,
     String unit,
   ) async {
+    final safeFoodName = ValidationUtils.sanitizeFreeText(foodName, maxLength: 80);
+    final safeUnit = ValidationUtils.sanitizeFreeText(unit, maxLength: 20);
+    if (safeFoodName.isEmpty || safeUnit.isEmpty) {
+      throw Exception('Input non valido');
+    }
+    if (ValidationUtils.containsSuspiciousMarkup(safeFoodName) ||
+        ValidationUtils.containsSuspiciousMarkup(safeUnit)) {
+      throw Exception('Input contiene contenuto non consentito');
+    }
+
     final response = await _client.post(
       '/nutrition/coach/substitute',
-      body: {'food_name': foodName, 'quantity': quantity, 'unit': unit},
+      body: {'food_name': safeFoodName, 'quantity': quantity, 'unit': safeUnit},
     );
 
     if (response['success'] == true) {
@@ -151,14 +174,24 @@ class NutritionCoachService {
     required double quantity,
     required String unit,
   }) async {
+    final safeFoodName = ValidationUtils.sanitizeFreeText(foodName, maxLength: 80);
+    final safeUnit = ValidationUtils.sanitizeFreeText(unit, maxLength: 20);
+    if (safeFoodName.isEmpty || safeUnit.isEmpty) {
+      return false;
+    }
+    if (ValidationUtils.containsSuspiciousMarkup(safeFoodName) ||
+        ValidationUtils.containsSuspiciousMarkup(safeUnit)) {
+      return false;
+    }
+
     final response = await _client.post(
       '/nutrition/coach/extra-meal',
       body: {
         'plan_id': planId,
         'day_index': dayIndex,
-        'food_name': foodName,
+        'food_name': safeFoodName,
         'quantity': quantity,
-        'unit': unit,
+        'unit': safeUnit,
       },
     );
     return response['success'] == true;
@@ -191,11 +224,20 @@ class NutritionCoachService {
     required String userFoodName,
     String mode = 'kcal',
   }) async {
+    final safeFoodName = ValidationUtils.sanitizeFreeText(
+      userFoodName,
+      maxLength: 80,
+    );
+    if (safeFoodName.isEmpty ||
+        ValidationUtils.containsSuspiciousMarkup(safeFoodName)) {
+      throw Exception('Nome alimento non valido');
+    }
+
     final response = await _client.post(
       '/nutrition/coach/equivalence',
       body: {
         'target_food': targetFood,
-        'user_food_name': userFoodName,
+        'user_food_name': safeFoodName,
         'mode': mode,
       },
     );

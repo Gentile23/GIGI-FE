@@ -133,9 +133,7 @@ class WorkoutService {
       if (response.statusCode == 200 && response.data != null) {
         // Backend returns the plan directly
         if (response.data is Map<String, dynamic>) {
-          debugPrint(
-            'DEBUG: Fetched Plan JSON: ${response.data}',
-          ); // DEBUG PRINT
+          debugPrint('DEBUG: Fetched plan payload successfully');
           return {'success': true, 'plan': WorkoutPlan.fromJson(response.data)};
         }
       }
@@ -233,9 +231,9 @@ class WorkoutService {
         // Create WorkoutExercise with sets/reps and type/position
         return WorkoutExercise(
           exercise: exercise,
-          sets: ex['sets'] as int,
+          sets: _parseIntOrDefault(ex['sets'], 3),
           reps: ex['reps'].toString(),
-          restSeconds: _parseRestSeconds(ex['rest'] as String),
+          restSeconds: _parseRestSeconds(ex['rest']?.toString()),
           notes: ex['notes'] as String?,
           exerciseType: exerciseType,
           position: position,
@@ -258,19 +256,31 @@ class WorkoutService {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       userId: userId,
       generatedAt: DateTime.now(),
-      durationWeeks: aiData['durationWeeks'] as int,
+      durationWeeks: _parseIntOrDefault(aiData['durationWeeks'], 4),
       weeklyFrequency: workoutDays.length,
       workouts: workoutDays,
     );
   }
 
   /// Parse rest time string to seconds
-  int _parseRestSeconds(String restString) {
+  int _parseRestSeconds(String? restString) {
+    if (restString == null || restString.trim().isEmpty) {
+      return 60;
+    }
     final match = RegExp(r'(\d+)').firstMatch(restString);
     if (match != null) {
       return int.parse(match.group(1)!);
     }
     return 60; // Default 60 seconds
+  }
+
+  int _parseIntOrDefault(dynamic value, int fallback) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      return int.tryParse(value) ?? fallback;
+    }
+    return fallback;
   }
 
   /// Calculate estimated duration based on exercises

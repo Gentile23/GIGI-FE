@@ -253,18 +253,26 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _handleGoogleAuth(GoogleSignInAccount googleUser) async {
     try {
-      debugPrint('_handleGoogleAuth called with user: ${googleUser.email}');
+      debugPrint('_handleGoogleAuth called');
 
       _isLoading = true;
       notifyListeners();
 
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Google ID token mancante');
+      }
+
       final result = await _authService.socialLogin(
         provider: 'google',
-        token: googleUser.id,
+        token: idToken,
         email: googleUser.email,
         name: googleUser.displayName ?? '',
       );
-      debugPrint('AuthService result: $result');
+      debugPrint(
+        'AuthService social login completed. success=${result['success'] == true}',
+      );
 
       _isLoading = false;
 
@@ -301,10 +309,14 @@ class AuthProvider with ChangeNotifier {
       if (credential.givenName != null) {
         name = '${credential.givenName} ${credential.familyName}';
       }
+      final identityToken = credential.identityToken;
+      if (identityToken == null || identityToken.isEmpty) {
+        throw Exception('Apple identity token mancante');
+      }
 
       final result = await _authService.socialLogin(
         provider: 'apple',
-        token: credential.userIdentifier!,
+        token: identityToken,
         email: email,
         name: name,
       );

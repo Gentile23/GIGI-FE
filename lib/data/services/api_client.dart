@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/api_config.dart';
 
 class ApiClient {
   late final Dio _dio;
   static const String _tokenKey = 'auth_token';
+  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
   ApiClient() {
     _dio = Dio(
@@ -147,16 +149,31 @@ class ApiClient {
   // ========== Token Management ==========
 
   Future<void> saveToken(String token) async {
+    await _secureStorage.write(key: _tokenKey, value: token);
+
+    // Keep backward compatibility for older app versions and migration safety.
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
   Future<String?> getToken() async {
+    final secureToken = await _secureStorage.read(key: _tokenKey);
+    if (secureToken != null && secureToken.isNotEmpty) {
+      return secureToken;
+    }
+
+    // One-time migration path from SharedPreferences -> secure storage.
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final legacyToken = prefs.getString(_tokenKey);
+    if (legacyToken != null && legacyToken.isNotEmpty) {
+      await _secureStorage.write(key: _tokenKey, value: legacyToken);
+      await prefs.remove(_tokenKey);
+    }
+    return legacyToken;
   }
 
   Future<void> clearToken() async {
+    await _secureStorage.delete(key: _tokenKey);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
   }
