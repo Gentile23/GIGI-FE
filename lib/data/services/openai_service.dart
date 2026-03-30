@@ -16,6 +16,12 @@ class OpenAIService {
     String language = 'it',
   }) async {
     try {
+      if (ApiConfig.openAiApiKey.trim().isEmpty) {
+        throw Exception(
+          'OpenAI API key non configurata lato client. Usa il backend per le chiamate AI.',
+        );
+      }
+
       final prompt = _buildPrompt(user, profile, bodyMeasurements);
 
       final response = await http.post(
