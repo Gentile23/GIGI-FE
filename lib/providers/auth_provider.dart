@@ -18,6 +18,7 @@ class AuthProvider with ChangeNotifier {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: kIsWeb ? _googleClientId : null,
+    serverClientId: kIsWeb ? null : _googleClientId,
   );
 
   UserModel? _user;
@@ -238,9 +239,10 @@ class AuthProvider with ChangeNotifier {
       }
 
       if (googleUser != null) {
-        await _handleGoogleAuth(googleUser);
-        return true;
+        return await _handleGoogleAuth(googleUser);
       }
+      _isLoading = false;
+      notifyListeners();
       return false;
     } catch (e) {
       debugPrint('AuthProvider Google Sign In Error: $e');
@@ -251,7 +253,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _handleGoogleAuth(GoogleSignInAccount googleUser) async {
+  Future<bool> _handleGoogleAuth(GoogleSignInAccount googleUser) async {
     try {
       debugPrint('_handleGoogleAuth called');
 
@@ -259,14 +261,14 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
 
       final googleAuth = await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception('Google ID token mancante');
+      final accessToken = googleAuth.accessToken;
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception('Google access token mancante');
       }
 
       final result = await _authService.socialLogin(
         provider: 'google',
-        token: idToken,
+        token: accessToken,
         email: googleUser.email,
         name: googleUser.displayName ?? '',
       );
@@ -279,15 +281,18 @@ class AuthProvider with ChangeNotifier {
       if (result['success']) {
         _user = result['user'];
         notifyListeners();
+        return true;
       } else {
         _error = result['message'];
         notifyListeners();
+        return false;
       }
     } catch (e) {
       debugPrint('AuthProvider Handle Google Auth Error: $e');
       _isLoading = false;
       _error = 'Errore durante l\'autenticazione con Google.';
       notifyListeners();
+      return false;
     }
   }
 

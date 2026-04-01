@@ -3691,7 +3691,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gigiStrategySuggestion =>
-      'Unlock your nutrition\'s full potential! 🚀\n\n🎯 Set Your Goal: Choose \'Automatic AI Calculation\' to have Gigi calculate your ideal daily calories and macros.\n📸 Snap & Track AI: Faster than a diary. Take a photo of your dish and Gigi will identify nutrients and calories for you.';
+      'Unlock your nutrition\'s full potential! 🚀\n\n🎯 Set Your Goal: Choose \'Automatic AI Calculation\' to have Gigi calculate your ideal daily calories and macros.\n📸 Snap & Track AI: Faster than a diary. Take a photo of your dish and Gigi will identify nutrients and calories for you.\n⚔️ Food Duel AI: Compare two foods on the fly and discover their nutritional compatibility.';
 
   @override
   String get calculateForMeSubtitle =>
