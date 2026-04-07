@@ -86,8 +86,19 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Guard to prevent concurrent fetches
+  bool _isFetchingPlan = false;
+
   Future<void> fetchCurrentPlan() async {
     debugPrint('DEBUG: fetchCurrentPlan called');
+    
+    // Prevent concurrent fetches - if already fetching, skip
+    if (_isFetchingPlan) {
+      debugPrint('DEBUG: fetchCurrentPlan already in progress, skipping');
+      return;
+    }
+    _isFetchingPlan = true;
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -133,6 +144,7 @@ class WorkoutProvider with ChangeNotifier {
     }
 
     _isInitialized = true;
+    _isFetchingPlan = false;
     notifyListeners();
   }
 
