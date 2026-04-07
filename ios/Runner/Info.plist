@@ -50,5 +50,11 @@
 	<string>GIGI legge i tuoi dati di salute per personalizzare i tuoi allenamenti e monitorare il tuo recupero.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>GIGI registra i tuoi allenamenti completati e le calorie bruciate in Apple Health.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>GIGI necessita dell'accesso alla fotocamera per analizzare la tua forma fisica tramite video e per fotografare i tuoi pasti per l'analisi nutrizionale.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>GIGI necessita dell'accesso alla tua galleria per permetterti di caricare foto dei pasti e monitorare i tuoi progressi fisici.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>GIGI necessita dell'accesso al microfono per registrare l'audio durante i video dei tuoi allenamenti.</string>
 </dict>
 </plist>
