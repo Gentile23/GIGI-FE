@@ -750,10 +750,11 @@ class _AuthScreenState extends State<AuthScreen>
   Future<void> _handleSubmit() async {
     setState(() => _errorMessage = null);
 
-    if (!_formKey.currentState!.validate()) return;
+    final formState = _formKey.currentState;
+    if (formState == null || !formState.validate()) return;
 
     if (!_isLogin && !_allConsentsAccepted) {
-      setState(() => _errorMessage = AppLocalizations.of(context)!.mustAcceptConsents);
+      setState(() => _errorMessage = AppLocalizations.of(context)?.mustAcceptConsents ?? 'Devi accettare tutti i consensi per registrarti.');
       return;
     }
 
@@ -943,7 +944,8 @@ class _AuthScreenState extends State<AuthScreen>
               CleanButton(
                 text: 'Verifica',
                 onPressed: _isLoading ? null : () async {
-                  if (_otpFormKey.currentState!.validate()) {
+                  final otpState = _otpFormKey.currentState;
+                  if (otpState != null && otpState.validate()) {
                     setState(() => _isLoading = true);
                     final success = await authProvider.verifyRegistrationOtp(_otpController.text);
                     if (mounted) {
