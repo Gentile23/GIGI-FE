@@ -283,12 +283,24 @@ class AuthProvider with ChangeNotifier {
         notifyListeners();
         return true;
       } else {
+        // If backend returned an auth error, sign out of Google to clear stale token
+        final errorMsg = result['message']?.toString().toLowerCase() ?? '';
+        if (errorMsg.contains('401') || errorMsg.contains('unauthorized') || errorMsg.contains('invalid')) {
+          debugPrint('Google token rejected by backend, signing out to clear stale token');
+          try {
+            await _googleSignIn.signOut();
+          } catch (_) {}
+        }
         _error = result['message'];
         notifyListeners();
         return false;
       }
     } catch (e) {
       debugPrint('AuthProvider Handle Google Auth Error: $e');
+      // Sign out of Google to clear potentially stale cached token
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
       _isLoading = false;
       _error = 'Errore durante l\'autenticazione con Google.';
       notifyListeners();

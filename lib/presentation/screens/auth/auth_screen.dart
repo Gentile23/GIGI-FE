@@ -422,8 +422,19 @@ class _AuthScreenState extends State<AuthScreen>
                         if (kIsWeb)
                           Center(child: getGoogleSignInButton())
                         else
-                          _buildGoogleButton(
-                            onPressed: _handleGoogleSignIn,
+                          Opacity(
+                            opacity: (!_isLogin && !_allConsentsAccepted) ? 0.5 : 1.0,
+                            child: _buildGoogleButton(
+                              onPressed: _isLoading
+                                  ? () {}
+                                  : (!_isLogin && !_allConsentsAccepted)
+                                  ? () {
+                                      setState(() {
+                                        _errorMessage = AppLocalizations.of(context)?.mustAcceptConsents ?? 'Devi accettare tutti i consensi per registrarti.';
+                                      });
+                                    }
+                                  : _handleGoogleSignIn,
+                            ),
                           ).animate().fadeIn(
                             duration: 400.ms,
                             delay: _isLogin ? 600.ms : 1000.ms,

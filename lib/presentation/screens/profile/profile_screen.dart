@@ -458,7 +458,7 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Scade il: ${DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!)}',
+                    'Scade il: ${authProvider.user?.subscription?.endDate != null ? DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!) : 'N/A'}',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
