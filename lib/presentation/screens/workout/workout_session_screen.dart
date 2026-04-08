@@ -26,7 +26,10 @@ import '../../../providers/auth_provider.dart';
 import '../../../data/services/voice_coaching_service.dart';
 import '../../../data/services/trial_workout_service.dart'; // [NEW]
 import '../../../data/models/trial_workout_model.dart'; // [NEW]
+import '../../../data/models/workout_chat_model.dart';
+import '../../../data/services/workout_chat_service.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/constants/subscription_tiers.dart';
@@ -83,15 +86,29 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   // Trial Service [NEW]
   late TrialWorkoutService _trialWorkoutService;
 
+  // Workout Chat
+  late WorkoutChatService _workoutChatService;
+  final TextEditingController _chatController = TextEditingController();
+  final ScrollController _chatScrollController = ScrollController();
+  final List<WorkoutChatMessage> _chatMessages = [];
+  bool _isChatOpen = false;
+  bool _isChatLoading = false;
+  String? _chatError;
+  String? _chatContextExerciseId;
+  bool _hasSeededChatWelcome = false;
+  bool _chatIntroOnly = true;
+
   @override
   void initState() {
     super.initState();
+    _initializeUniqueIdMap();
 
     final apiClient = ApiClient();
 
     // Initialize services in correct order for dependency injection
     _voiceCoachingService = VoiceCoachingService(apiClient);
     _trialWorkoutService = TrialWorkoutService(apiClient); // [NEW]
+    _workoutChatService = WorkoutChatService(apiClient);
 
     _gigiTTS = GigiTTSService(_voiceCoachingService);
     _gigiTTS.initialize();
@@ -119,6 +136,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
   }
 
+  final Map<String, WorkoutExercise> _exerciseByUniqueId = {};
+
   /// Initialize voice coaching with user data
   Future<void> _initializeVoiceCoaching() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -136,6 +155,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
     _registrationRetryTimer?.cancel();
+    _chatController.dispose();
+    _chatScrollController.dispose();
     _gigiTTS.dispose();
     _voiceController.dispose();
     super.dispose();
@@ -146,6 +167,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _isSessionActive = true;
       _sessionStartTime = DateTime.now();
     });
+
+    _seedWorkoutChatWelcome();
 
     // Notify Gigi that session has started (Silent)
     // _voiceController.notifySessionStarted();
@@ -164,6 +187,162 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     if (!_isSessionActive) {
       _startWorkoutSession();
     }
+  }
+
+  bool get _canShowWorkoutChat =>
+      _isSessionActive && !widget.workoutDay.id.startsWith('trial_');
+
+  WorkoutExercise? _getChatContextExercise() {
+    if (_chatContextExerciseId != null) {
+      for (final exercise in widget.workoutDay.mainWorkout) {
+        if (exercise.exercise.id == _chatContextExerciseId) {
+          return exercise;
+        }
+      }
+    }
+
+    for (final exercise in widget.workoutDay.mainWorkout) {
+      if (!_completedExercises.contains(exercise.exercise.id)) {
+        return exercise;
+      }
+    }
+
+    if (widget.workoutDay.mainWorkout.isNotEmpty) {
+      return widget.workoutDay.mainWorkout.first;
+    }
+
+    return null;
+  }
+
+  void _seedWorkoutChatWelcome() {
+    if (_hasSeededChatWelcome || widget.workoutDay.id.startsWith('trial_')) {
+      return;
+    }
+
+    final focusExercise = _getChatContextExercise();
+    final focusName = focusExercise?.exercise.name;
+
+    _chatMessages.clear();
+    _chatMessages.add(
+      WorkoutChatMessage.assistant(
+        content: focusName != null
+            ? 'GIGI Chat (AI) è attiva! Partiamo da $focusName: sono qui per assisterti in tempo reale durante tutto l\'allenamento.'
+            : 'GIGI Chat (AI) è attiva! Sono qui per assisterti in tempo reale durante tutto l\'allenamento.',
+        exerciseId: focusExercise?.exercise.id,
+      ),
+    );
+    _hasSeededChatWelcome = true;
+  }
+
+  Future<void> _openWorkoutChat() async {
+    if (!_canShowWorkoutChat) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenIntro = prefs.getBool('has_seen_gigi_chat_intro_v2') ?? false;
+
+    _seedWorkoutChatWelcome();
+    setState(() {
+      _chatIntroOnly = !hasSeenIntro;
+      _isChatOpen = true;
+    });
+    _scrollChatToBottom();
+  }
+
+  void _closeWorkoutChat() {
+    setState(() {
+      _isChatOpen = false;
+    });
+  }
+
+  Future<void> _startFullWorkoutChat() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_gigi_chat_intro_v2', true);
+
+    setState(() {
+      _chatIntroOnly = false;
+    });
+    _scrollChatToBottom();
+  }
+
+  Future<void> _sendWorkoutChatMessage({
+    String? prompt,
+    String? exerciseId,
+  }) async {
+    final rawMessage = (prompt ?? _chatController.text).trim();
+    if (rawMessage.isEmpty || _isChatLoading || !_canShowWorkoutChat) return;
+
+    final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+    WorkoutExercise? activeExercise;
+    if (exerciseId != null) {
+      for (final exercise in widget.workoutDay.mainWorkout) {
+        if (exercise.exercise.id == exerciseId) {
+          activeExercise = exercise;
+          break;
+        }
+      }
+    } else {
+      activeExercise = _getChatContextExercise();
+    }
+
+    setState(() {
+      _chatError = null;
+      _chatContextExerciseId = activeExercise?.exercise.id ?? exerciseId;
+      _chatMessages.add(
+        WorkoutChatMessage.user(
+          content: rawMessage,
+          exerciseId: _chatContextExerciseId,
+        ),
+      );
+      _isChatLoading = true;
+    });
+
+    _chatController.clear();
+    _scrollChatToBottom();
+
+    try {
+      final reply = await _workoutChatService.sendMessage(
+        message: rawMessage,
+        workoutDayId: widget.workoutDay.id,
+        workoutLogId: provider.currentWorkoutLog?.id,
+        exerciseId: _chatContextExerciseId,
+        elapsedSeconds: _elapsedTime.inSeconds,
+        completedExerciseIds: _completedExercises.toList(),
+        restTimerActive: _isRestTimerOverlayVisible,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _chatMessages.add(
+          WorkoutChatMessage.assistant(
+            content: reply.message,
+            exerciseId: reply.exerciseId ?? _chatContextExerciseId,
+            suggestions: reply.suggestions,
+          ),
+        );
+        _isChatLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _chatError = e.toString().replaceFirst('Exception: ', '');
+        _isChatLoading = false;
+      });
+    }
+
+    _scrollChatToBottom();
+  }
+
+  void _scrollChatToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_chatScrollController.hasClients) return;
+      _chatScrollController.animateTo(
+        _chatScrollController.position.maxScrollExtent + 120,
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   String _formatDuration(Duration d) {
@@ -222,30 +401,62 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
   }
 
-  WorkoutExercise? _getExerciseById(String id) {
-    try {
-      return widget.workoutDay.mainWorkout.firstWhere(
-        (e) => e.exercise.id == id,
-      );
-    } catch (_) {
-      return null;
+  void _initializeUniqueIdMap() {
+    _exerciseByUniqueId.clear();
+    
+    // Main
+    for (int i = 0; i < widget.workoutDay.mainWorkout.length; i++) {
+      final e = widget.workoutDay.mainWorkout[i];
+      final id = e.id ?? "main_${e.exercise.id}_$i";
+      _exerciseByUniqueId[id] = e;
     }
+    
+    // Warmup
+    final warmup = widget.workoutDay.warmupCardio;
+    for (int i = 0; i < warmup.length; i++) {
+        final e = warmup[i];
+        final id = e.id ?? "warmup_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+    }
+
+    // Mobility
+    final mobility = widget.workoutDay.preWorkoutMobility;
+    for (int i = 0; i < mobility.length; i++) {
+        final e = mobility[i];
+        final id = e.id ?? "mobility_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+    }
+
+    // Post
+    final post = widget.workoutDay.postWorkoutExercises;
+    for (int i = 0; i < post.length; i++) {
+        final e = post[i];
+        final id = e.id ?? "post_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+    }
+  }
+
+  WorkoutExercise? _getExerciseById(String id) {
+    return _exerciseByUniqueId[id];
   }
 
   /// Find the next exercise after the given exerciseId
   WorkoutExercise? _getNextExercise(String currentExerciseId) {
     final mainWorkout = widget.workoutDay.mainWorkout;
     for (int i = 0; i < mainWorkout.length; i++) {
-      if (mainWorkout[i].exercise.id == currentExerciseId) {
+      final id = mainWorkout[i].id ?? "main_${mainWorkout[i].exercise.id}_$i";
+      if (id == currentExerciseId) {
         // If there's a next exercise that's not completed, return it
         for (int j = i + 1; j < mainWorkout.length; j++) {
-          if (!_completedExercises.contains(mainWorkout[j].exercise.id)) {
+          final nextId = mainWorkout[j].exercise.id;
+          if (!_completedExercises.contains(nextId)) {
             return mainWorkout[j];
           }
         }
         // If current is last or all following are completed, check uncompleted before
         for (int j = 0; j < i; j++) {
-          if (!_completedExercises.contains(mainWorkout[j].exercise.id)) {
+          final nextId = mainWorkout[j].exercise.id;
+          if (!_completedExercises.contains(nextId)) {
             return mainWorkout[j];
           }
         }
@@ -553,8 +764,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         AppLocalizations.of(context)!.mainWorkoutSection,
                         '💪',
                       ),
-                      ...widget.workoutDay.mainWorkout.map((exercise) {
-                        return _buildExerciseCard(exercise);
+                      ...widget.workoutDay.mainWorkout.asMap().entries.map((entry) {
+                        return _buildExerciseCard(entry.value, entry.key, 'main');
                       }),
 
                       // Post-Workout Navigation
@@ -668,28 +879,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     ),
                                   ],
                                 ),
-                                // Center: Workout type
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: CleanTheme.textOnDark.withValues(
-                                      alpha: 0.2,
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
                                     ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    widget.workoutDay.name
-                                        .split(' - ')
-                                        .last
-                                        .toUpperCase(),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                      color: CleanTheme.textOnDark,
-                                      letterSpacing: 0.5,
+                                    decoration: BoxDecoration(
+                                      color: CleanTheme.textOnDark.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      widget.workoutDay.name
+                                          .split(' - ')
+                                          .last
+                                          .toUpperCase(),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: CleanTheme.textOnDark,
+                                        letterSpacing: 0.5,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ),
@@ -846,6 +1060,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
             ),
 
+            if (_canShowWorkoutChat)
+              Positioned(
+                right: 20,
+                bottom:
+                    MediaQuery.of(context).padding.bottom +
+                    (_isSessionActive ? 210 : 88),
+                child: _isChatOpen
+                    ? SizedBox(
+                        width: MediaQuery.of(context).size.width - 40,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: _buildWorkoutChatPanel(),
+                        ),
+                      )
+                    : _buildWorkoutChatFab(),
+              ),
+
             // 6. FULLSCREEN REST TIMER OVERLAY
             if (_isRestTimerOverlayVisible) _buildFullscreenRestTimerOverlay(),
           ],
@@ -970,7 +1201,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (nextExercise != null) {
         return _buildSetDetailOverlayCard(
           title: 'PROSSIMO SET',
-          exerciseId: nextExercise.id ?? nextExercise.exercise.id,
+          exerciseId: nextExercise.id ?? "main_${nextExercise.exercise.id}_${widget.workoutDay.mainWorkout.indexOf(nextExercise)}",
           setNumber: 1,
           isNext: true,
         );
@@ -1456,9 +1687,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 16),
           // Inline Cardio Exercises
-          ...warmupCardio.map((exercise) => _buildExerciseCard(exercise)),
+          ...warmupCardio.asMap().entries.map(
+                (entry) => _buildExerciseCard(entry.value, entry.key, 'warmup'),
+              ),
           // Inline Mobility Exercises
-          ...preWorkoutMobility.map((exercise) => _buildExerciseCard(exercise)),
+          ...preWorkoutMobility.asMap().entries.map(
+                (entry) => _buildExerciseCard(entry.value, entry.key, 'mobility'),
+              ),
         ],
       ),
     );
@@ -1511,9 +1746,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           ),
           const SizedBox(height: 16),
           // Inline post-workout exercises
-          ...postWorkoutExercises.map(
-            (exercise) => _buildExerciseCard(exercise),
-          ),
+          ...postWorkoutExercises.asMap().entries.map(
+                (entry) => _buildExerciseCard(entry.value, entry.key, 'post'),
+              ),
         ],
       ),
     );
@@ -1654,6 +1889,468 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  Widget _buildWorkoutChatPanel() {
+    final contextExercise = _getChatContextExercise();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: CleanTheme.borderPrimary),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: CleanTheme.steelDark,
+                  border: Border.all(
+                    color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'GIGI Chat (AI)',
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      contextExercise != null
+                          ? contextExercise.exercise.name
+                          : 'Coach contestuale della sessione attiva',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.accentGreen.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: CleanTheme.accentGreen,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _isChatLoading ? 'Sta scrivendo...' : 'Live',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.accentGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: _closeWorkoutChat,
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          if (_chatIntroOnly) ...[
+            const SizedBox(height: 12),
+            _buildWorkoutChatIntro(),
+          ],
+          if (!_chatIntroOnly) ...[
+            const SizedBox(height: 16),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 260),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: CleanTheme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: CleanTheme.borderPrimary),
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.separated(
+                      controller: _chatScrollController,
+                      itemCount:
+                          _chatMessages.length + (_isChatLoading ? 1 : 0),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        if (_isChatLoading && index == _chatMessages.length) {
+                          return _buildChatBubble(
+                            message: WorkoutChatMessage(
+                              id: 'loading',
+                              role: 'assistant',
+                              content: 'Sto analizzando il tuo workout...',
+                              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                            ),
+                            isLoading: true,
+                          );
+                        }
+
+                        return _buildChatBubble(message: _chatMessages[index]);
+                      },
+                    ),
+                  ),
+                  if (_chatError != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentRed.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: CleanTheme.accentRed,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _chatError!,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: CleanTheme.accentRed,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed:
+                                _chatMessages.isNotEmpty &&
+                                    _chatMessages.last.role == 'user'
+                                ? () => _sendWorkoutChatMessage(
+                                    prompt: _chatMessages.last.content,
+                                    exerciseId: _chatMessages.last.exerciseId,
+                                  )
+                                : null,
+                            child: const Text('Riprova'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: CleanTheme.scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: CleanTheme.borderPrimary),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _chatController,
+                      minLines: 1,
+                      maxLines: 3,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _sendWorkoutChatMessage(),
+                      decoration: InputDecoration(
+                        hintText: 'Chiedi un consiglio a GIGI',
+                        hintStyle: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textSecondary,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _isChatLoading
+                        ? null
+                        : () => _sendWorkoutChatMessage(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _isChatLoading
+                            ? CleanTheme.chromeGray
+                            : CleanTheme.steelDark,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_upward_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkoutChatIntro() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CleanTheme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  color: CleanTheme.steelDark,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.smart_toy_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Come sfruttare al meglio GIGI Chat',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Il tuo personal trainer AI è sempre in ascolto!',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sfrutta questa chat durante l\'allenamento per avere supporto in tempo reale e massimizzare i tuoi risultati su ogni singolo set.',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              height: 1.5,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '💪 Esempi: chiedimi consigli sulla tecnica corretta, tempistiche di recupero, che carico scegliere, o se hai bisogno al volo di un esercizio alternativo.',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              height: 1.45,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _startFullWorkoutChat,
+              icon: const Icon(Icons.smart_toy_rounded, size: 18),
+              label: Text(
+                'Apri chat',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CleanTheme.steelDark,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWorkoutChatFab() {
+    return GestureDetector(
+      onTap: _openWorkoutChat,
+      child: Container(
+        width: 62,
+        height: 62,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2C2C2E), Color(0xFF111111)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          border: Border.all(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.6), 
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.25),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.smart_toy_rounded,
+          color: Color(0xFFFFD700),
+          size: 28,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatBubble({
+    required WorkoutChatMessage message,
+    bool isLoading = false,
+  }) {
+    final isUser = message.role == 'user';
+
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 280),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isUser ? CleanTheme.steelDark : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isUser ? CleanTheme.steelDark : CleanTheme.borderPrimary,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isUser ? 'Tu' : 'GIGI',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isUser
+                      ? Colors.white.withValues(alpha: 0.75)
+                      : CleanTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                message.content,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: isUser ? Colors.white : CleanTheme.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (!isUser && message.suggestions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...message.suggestions.map((suggestion) => Padding(
+                  padding: const EdgeInsets.only(top: 6.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '💡', 
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          suggestion,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            height: 1.4,
+                            color: CleanTheme.textPrimary.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+              ],
+              if (isLoading) ...[
+                const SizedBox(height: 8),
+                const LinearProgressIndicator(
+                  minHeight: 3,
+                  color: CleanTheme.primaryColor,
+                  backgroundColor: CleanTheme.borderPrimary,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, String emoji) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
@@ -1765,9 +2462,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  Widget _buildExerciseCard(WorkoutExercise exercise) {
+  Widget _buildExerciseCard(
+    WorkoutExercise exercise,
+    int orderIndex, [
+    String prefix = 'main',
+  ]) {
+    final uniqueId = exercise.id ?? "${prefix}_${exercise.exercise.id}_$orderIndex";
     // Staggered entry animation index
-    final index = widget.workoutDay.mainWorkout.indexOf(exercise);
+    final animationIndex = widget.workoutDay.mainWorkout.indexOf(exercise);
 
     // All exercise types now use the full card renderer
     final type = exercise.exerciseType.toLowerCase();
@@ -2013,7 +2715,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: SetLoggingWidget(
                         key: _setLoggingKeys.putIfAbsent(
-                          exercise.id ?? exercise.exercise.id,
+                          uniqueId,
                           () => GlobalKey<SetLoggingWidgetState>(),
                         ),
                         exercise: exercise,
@@ -2043,7 +2745,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               setNumber,
                             ) {
                               _onRestTimerStateChanged(
-                                exercise.id ?? exercise.exercise.id,
+                                uniqueId,
                                 isActive,
                                 secondsRemaining,
                                 totalSeconds,
@@ -2127,7 +2829,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             );
           },
         )
-        .animate(delay: (index * 80).ms)
+        .animate(delay: (animationIndex * 80).ms)
         .fade(duration: 500.ms, curve: Curves.easeOut)
         .slideY(begin: 0.15, duration: 500.ms, curve: Curves.easeOutCubic)
         .shimmer(
@@ -2241,6 +2943,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 listen: false,
               );
 
+              final saveErrorMessage = AppLocalizations.of(
+                context,
+              )!.saveErrorGeneric;
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+
               try {
                 debugPrint(
                   'DEBUG: Completing workout, currentLog exists: ${provider.currentWorkoutLog != null}',
@@ -2328,11 +3035,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               } catch (e) {
                 if (!mounted) return;
                 navigator.pop();
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
-                    // ignore: use_build_context_synchronously
-                    content: Text(AppLocalizations.of(context)!.saveErrorGeneric),
+                    content: Text(saveErrorMessage),
                     backgroundColor: CleanTheme.accentRed,
                   ),
                 );
@@ -2424,7 +3129,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       Navigator.pop(context); // Pop loading
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text("Si è verificato un errore durante il salvataggio della valutazione."),
+          content: const Text(
+            "Si è verificato un errore durante il salvataggio della valutazione.",
+          ),
           backgroundColor: CleanTheme.accentRed,
         ),
       );
@@ -2531,7 +3238,10 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: borderColor, width: widget.isOutlined ? 1.5 : 1),
+            border: Border.all(
+              color: borderColor,
+              width: widget.isOutlined ? 1.5 : 1,
+            ),
             boxShadow: isPlaying
                 ? [
                     BoxShadow(
