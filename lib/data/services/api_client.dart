@@ -132,7 +132,7 @@ class ApiClient {
 
   Map<String, dynamic> _handleError(DioException e) {
     String message = 'Si è verificato un errore di rete. Riprova.';
-    
+
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {
@@ -140,10 +140,31 @@ class ApiClient {
     } else if (e.type == DioExceptionType.connectionError) {
       message = 'Impossibile connettersi al server. Riprova più tardi.';
     } else if (e.response != null) {
-      message = e.response?.data?['message'] ?? 'Errore del server. Riprova.';
+      message = extractErrorMessage(
+        e.response?.data,
+        fallback: 'Errore del server. Riprova.',
+      );
     }
 
     return {'success': false, 'message': message};
+  }
+
+  static String extractErrorMessage(
+    dynamic responseData, {
+    String fallback = 'Si è verificato un errore. Riprova.',
+  }) {
+    if (responseData is Map) {
+      final message = responseData['message'] ?? responseData['error'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message;
+      }
+    }
+
+    if (responseData is String && responseData.trim().isNotEmpty) {
+      return responseData;
+    }
+
+    return fallback;
   }
 
   // ========== Token Management ==========

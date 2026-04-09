@@ -8,6 +8,21 @@ class AuthService {
 
   AuthService(this._apiClient);
 
+  UserModel? _parseUser(dynamic data) {
+    if (data is! Map) return null;
+
+    final json = Map<String, dynamic>.from(data);
+    final id = json['id'];
+    final email = json['email'];
+    final name = json['name'];
+
+    if (id == null || email is! String || name is! String) {
+      return null;
+    }
+
+    return UserModel.fromJson(json);
+  }
+
   Future<Map<String, dynamic>> register({
     required String name,
     required String email,
@@ -28,7 +43,7 @@ class AuthService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = response.data;
-        
+
         if (data['requires_verification'] == true) {
           return {
             'success': true,
@@ -41,15 +56,21 @@ class AuthService {
         if (data['token'] != null) {
           await _apiClient.saveToken(data['token']);
         }
-        
+
         return {
           'success': true,
-          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
+          'user': data['user'] != null
+              ? UserModel.fromJson(data['user'])
+              : null,
           'token': data['token'],
         };
       }
 
-      return {'success': false, 'message': 'Registrazione non riuscita (Status: ${response.statusCode})'};
+      return {
+        'success': false,
+        'message':
+            'Registrazione non riuscita (Status: ${response.statusCode})',
+      };
     } on DioException catch (e) {
       String message = 'Registrazione non riuscita';
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -59,7 +80,11 @@ class AuthService {
       } else if (e.type == DioExceptionType.connectionError) {
         message = 'Impossibile connettersi al server. Riprova più tardi.';
       } else if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Errore ${e.response?.statusCode}: ${e.response?.data.toString()}';
+        message = ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback:
+              'Errore ${e.response?.statusCode}: ${e.response?.data.toString()}',
+        );
       }
 
       return {'success': false, 'message': message};
@@ -73,10 +98,7 @@ class AuthService {
     try {
       final response = await _apiClient.dio.post(
         '/verify-otp',
-        data: {
-          'email': email,
-          'otp': otp,
-        },
+        data: {'email': email, 'otp': otp},
       );
 
       if (response.statusCode == 200) {
@@ -86,7 +108,9 @@ class AuthService {
         }
         return {
           'success': true,
-          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
+          'user': data['user'] != null
+              ? UserModel.fromJson(data['user'])
+              : null,
           'token': data['token'],
         };
       }
@@ -94,7 +118,10 @@ class AuthService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante la verifica',
+        'message': ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback: 'Errore durante la verifica',
+        ),
       };
     }
   }
@@ -115,7 +142,10 @@ class AuthService {
     } on DioException catch (e) {
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Errore durante l\'invio dell\'OTP',
+        'message': ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback: 'Errore durante l\'invio dell\'OTP',
+        ),
       };
     }
   }
@@ -132,7 +162,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        
+
         if (data['requires_verification'] == true) {
           return {
             'success': true,
@@ -148,7 +178,7 @@ class AuthService {
 
         return {
           'success': true,
-          'user': data['user'] != null ? UserModel.fromJson(data['user']) : null,
+          'user': _parseUser(data['user']),
           'token': data['token'],
         };
       }
@@ -163,7 +193,10 @@ class AuthService {
       } else if (e.type == DioExceptionType.connectionError) {
         message = 'Impossibile connettersi al server. Riprova più tardi.';
       } else if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Email o password non corretti';
+        message = ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback: 'Email o password non corretti',
+        );
       }
 
       return {'success': false, 'message': message};
@@ -189,11 +222,15 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        await _apiClient.saveToken(data['token']);
+        final token = data['token'];
+        if (token is String && token.isNotEmpty) {
+          await _apiClient.saveToken(token);
+        }
+
         return {
           'success': true,
-          'user': UserModel.fromJson(data['user']),
-          'token': data['token'],
+          'user': _parseUser(data['user']),
+          'token': token,
         };
       }
 
@@ -201,7 +238,10 @@ class AuthService {
     } on DioException catch (e) {
       String message = 'Accesso social non riuscito';
       if (e.response != null) {
-        message = e.response?.data['message'] ?? 'Errore durante l\'accesso social';
+        message = ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback: 'Errore durante l\'accesso social',
+        );
       }
       return {'success': false, 'message': message};
     }
@@ -216,7 +256,10 @@ class AuthService {
       await _apiClient.clearToken(); // Clear token anyway
       return {
         'success': false,
-        'message': e.response?.data['message'] ?? 'Logout failed',
+        'message': ApiClient.extractErrorMessage(
+          e.response?.data,
+          fallback: 'Logout failed',
+        ),
       };
     }
   }

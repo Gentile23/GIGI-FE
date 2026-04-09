@@ -86,9 +86,9 @@ class PaymentService extends ChangeNotifier {
       final isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
       if (isIOS) {
-        // await Purchases.configure(
-        //   PurchasesConfiguration('appl_YOUR_IOS_API_KEY')
-        // );
+        await Purchases.configure(
+          PurchasesConfiguration('appl_nePauXVrjcKdmdldVWVmBGVLfiH'),
+        );
       } else if (isAndroid) {
         await Purchases.configure(
           PurchasesConfiguration('goog_JEcfJpSFtqYfgXvLTyYPyVaJESr'),

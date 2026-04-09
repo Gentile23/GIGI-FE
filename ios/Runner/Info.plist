@@ -56,5 +56,21 @@
 	<string>GIGI necessita dell'accesso alla tua galleria per permetterti di caricare foto dei pasti e monitorare i tuoi progressi fisici.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>GIGI necessita dell'accesso al microfono per registrare l'audio durante i video dei tuoi allenamenti.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSMotionUsageDescription</key>
+	<string>GIGI utilizza i sensori di movimento per contare i tuoi passi e analizzare la tua attività fisica.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.832030535090-sciu23qp4gsg1m1315u8gmmb3dri2ikd</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
+

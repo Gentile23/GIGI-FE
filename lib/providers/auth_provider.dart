@@ -95,7 +95,9 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        debugPrint('AuthProvider: Login successful. Verification required: ${result['verification_required']}');
+        debugPrint(
+          'AuthProvider: Login successful. Verification required: ${result['verification_required']}',
+        );
         if (result['verification_required'] == true) {
           _registrationVerificationRequired = true;
           _pendingVerificationEmail = result['email'];
@@ -104,6 +106,9 @@ class AuthProvider with ChangeNotifier {
         }
 
         _user = result['user'];
+        if (_user == null) {
+          await fetchUser();
+        }
         notifyListeners();
         return true;
       } else {
@@ -198,7 +203,9 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
 
       if (result['success']) {
-        debugPrint('AuthProvider: Login successful. Verification required: ${result['verification_required']}');
+        debugPrint(
+          'AuthProvider: Login successful. Verification required: ${result['verification_required']}',
+        );
         if (result['verification_required'] == true) {
           _registrationVerificationRequired = true;
           _pendingVerificationEmail = result['email'];
@@ -280,13 +287,20 @@ class AuthProvider with ChangeNotifier {
 
       if (result['success']) {
         _user = result['user'];
+        if (_user == null) {
+          await fetchUser();
+        }
         notifyListeners();
         return true;
       } else {
         // If backend returned an auth error, sign out of Google to clear stale token
         final errorMsg = result['message']?.toString().toLowerCase() ?? '';
-        if (errorMsg.contains('401') || errorMsg.contains('unauthorized') || errorMsg.contains('invalid')) {
-          debugPrint('Google token rejected by backend, signing out to clear stale token');
+        if (errorMsg.contains('401') ||
+            errorMsg.contains('unauthorized') ||
+            errorMsg.contains('invalid')) {
+          debugPrint(
+            'Google token rejected by backend, signing out to clear stale token',
+          );
           try {
             await _googleSignIn.signOut();
           } catch (_) {}
@@ -342,6 +356,9 @@ class AuthProvider with ChangeNotifier {
 
       if (result['success']) {
         _user = result['user'];
+        if (_user == null) {
+          await fetchUser();
+        }
         notifyListeners();
         return true;
       } else {
