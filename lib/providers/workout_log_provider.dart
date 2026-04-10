@@ -61,8 +61,8 @@ class WorkoutLogProvider with ChangeNotifier {
   }
 
   /// Complete the current workout
-  Future<void> completeWorkout({String? notes}) async {
-    if (_currentWorkoutLog == null) return;
+  Future<WorkoutLog?> completeWorkout({String? notes}) async {
+    if (_currentWorkoutLog == null) return null;
 
     _setLoading(true);
     try {
@@ -80,8 +80,10 @@ class WorkoutLogProvider with ChangeNotifier {
       await fetchWorkoutHistory(refresh: true);
 
       notifyListeners();
+      return completedLog;
     } catch (e) {
       _setError(e.toString());
+      return null;
     } finally {
       _setLoading(false);
     }

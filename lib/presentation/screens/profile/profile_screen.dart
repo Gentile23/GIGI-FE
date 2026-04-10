@@ -481,22 +481,34 @@ class ProfileScreen extends StatelessWidget {
   ) {
     final isEligibleForTrial = engagementProvider.isEligibleForSpecialOffer;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final titleFontSize = (screenWidth * 0.055).clamp(20.0, 26.0);
+    final labelFontSize = (screenWidth * 0.035).clamp(12.0, 15.0);
+
     return CleanCard(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.bolt, color: CleanTheme.accentOrange),
-                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.bolt,
+                    color: CleanTheme.accentOrange,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
                   Text(
                     'PASSA A GIGI PRO',
                     style: GoogleFonts.outfit(
-                      fontSize: 14,
+                      fontSize: labelFontSize,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.2,
                       color: CleanTheme.accentOrange,
@@ -507,7 +519,7 @@ class ProfileScreen extends StatelessWidget {
               if (isEligibleForTrial)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
+                    horizontal: 10,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
@@ -540,13 +552,15 @@ class ProfileScreen extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             'Sblocca il tuo Coach AI',
+            textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
-              fontSize: 22,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.bold,
               color: CleanTheme.textPrimary,
+              height: 1.2,
             ),
           ),
           const SizedBox(height: 16),

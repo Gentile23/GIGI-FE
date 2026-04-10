@@ -11,6 +11,7 @@ import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 
 class FormAnalysisScreen extends StatefulWidget {
   final String? exerciseName;
@@ -223,7 +224,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   GigiCoachMessage(
-                    message: AppLocalizations.of(context)!.gigiFormMessage,
+                    messageId: 'form_analysis.upload_intro',
+                    title: 'Prima dell analisi',
+                    message: GigiGuidanceContent.formAnalysisIntro(),
                     emotion: GigiEmotion.expert,
                   ),
                   const SizedBox(height: 24),

@@ -7,6 +7,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 
 /// Food Duel AI — Compare any two foods head-to-head
 /// AI-powered nutritional comparison with Gigi Monochrome aesthetic
@@ -59,7 +60,10 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
       _result = null;
     });
 
-    final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
+    final provider = Provider.of<NutritionCoachProvider>(
+      context,
+      listen: false,
+    );
 
     // Use equivalence endpoint: food A as target (100g baseline), food B as user food
     final result = await provider.calculateEquivalence(
@@ -97,7 +101,11 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: CleanTheme.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 20,
+            color: CleanTheme.textPrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -115,8 +123,10 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
         child: Column(
           children: [
             // Coach Intro
-            const GigiCoachMessage(
-              message: 'Confronta due alimenti per scoprire quale si adatta meglio ai tuoi obiettivi odierni.',
+            GigiCoachMessage(
+              messageId: 'nutrition.food_duel.intro',
+              title: 'Confronto alimenti',
+              message: GigiGuidanceContent.foodDuelIntro(),
               emotion: GigiEmotion.expert,
             ),
             const SizedBox(height: 24),
@@ -146,7 +156,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
             const SizedBox(height: 24),
 
             // Mode Selection Table-like
-             Container(
+            Container(
               decoration: BoxDecoration(
                 color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(16),
@@ -156,7 +166,11 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
               child: Row(
                 children: [
                   _buildModeTab('kcal', 'Per Calorie ⚡', _mode == 'kcal'),
-                  _buildModeTab('protein', 'Per Proteine 💪', _mode == 'protein'),
+                  _buildModeTab(
+                    'protein',
+                    'Per Proteine 💪',
+                    _mode == 'protein',
+                  ),
                 ],
               ),
             ),
@@ -188,31 +202,34 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 borderRadius: 28,
                 enableShine: true,
                 colors: _isLoading
-                  ? [CleanTheme.chromeSubtle, CleanTheme.chromeSilver]
-                  : const [
-                      Color(0xFFE5E5EA), 
-                      Color(0xFFD1D1D6), 
-                      Color(0xFFE5E5EA),
-                    ],
+                    ? [CleanTheme.chromeSubtle, CleanTheme.chromeSilver]
+                    : const [
+                        Color(0xFFE5E5EA),
+                        Color(0xFFD1D1D6),
+                        Color(0xFFE5E5EA),
+                      ],
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Center(
-                    child: _isLoading 
-                      ? const SizedBox(
-                          height: 20, 
-                          width: 20, 
-                          child: CircularProgressIndicator(strokeWidth: 2, color: CleanTheme.textPrimary)
-                        )
-                      : Text(
-                          'ESEGUI ANALISI',
-                          style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: CleanTheme.textPrimary,
-                            letterSpacing: 2,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: CleanTheme.textPrimary,
+                            ),
+                          )
+                        : Text(
+                            'ESEGUI ANALISI',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: CleanTheme.textPrimary,
+                              letterSpacing: 2,
+                            ),
                           ),
-                        ),
                   ),
                 ),
               ),
@@ -273,7 +290,10 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 fontWeight: FontWeight.normal,
               ),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
         ),
@@ -311,7 +331,8 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
 
   Widget _buildReportResult() {
     final targetFood = _result!['target_food'] as Map<String, dynamic>? ?? {};
-    final userFoodPer100g = _result!['user_food_per_100g'] as Map<String, dynamic>? ?? {};
+    final userFoodPer100g =
+        _result!['user_food_per_100g'] as Map<String, dynamic>? ?? {};
     final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
     final curiosity = _result!['curiosity'] as String? ?? '';
     final summary = _result!['summary'] as String? ?? '';
@@ -325,7 +346,11 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
       children: [
         // AI Summary Message
         GigiCoachMessage(
-          message: summary,
+          messageId: 'nutrition.food_duel.result.summary',
+          title: 'Come leggere il risultato',
+          message: summary.isEmpty
+              ? GigiGuidanceContent.foodDuelResult()
+              : '$summary\n\n${GigiGuidanceContent.foodDuelResult()}',
           emotion: score >= 70 ? GigiEmotion.happy : GigiEmotion.expert,
         ),
         const SizedBox(height: 24),
@@ -336,7 +361,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -358,7 +383,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Header Alimenti
               Row(
                 children: [
@@ -370,15 +395,28 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.accentGreen),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.accentGreen,
+                          ),
                         ),
-                        Text('$foodAKcal kcal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
+                        Text(
+                          '$foodAKcal kcal',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Icon(Icons.swap_horiz_rounded, color: CleanTheme.textTertiary, size: 20),
+                    child: Icon(
+                      Icons.swap_horiz_rounded,
+                      color: CleanTheme.textTertiary,
+                      size: 20,
+                    ),
                   ),
                   Expanded(
                     child: Column(
@@ -388,9 +426,18 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.accentBlue),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.accentBlue,
+                          ),
                         ),
-                        Text('$foodBKcal kcal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
+                        Text(
+                          '$foodBKcal kcal',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -402,11 +449,29 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
               ),
 
               // Macro Rows
-              _buildReportMacroRow('Proteine', (targetFood['proteins'] as num?)?.toDouble() ?? 0, (userFoodPer100g['proteins'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+              _buildReportMacroRow(
+                'Proteine',
+                (targetFood['proteins'] as num?)?.toDouble() ?? 0,
+                (userFoodPer100g['proteins'] as num?)?.toDouble() ?? 0,
+                CleanTheme.accentGreen,
+                CleanTheme.accentBlue,
+              ),
               const SizedBox(height: 24),
-              _buildReportMacroRow('Carboidrati', (targetFood['carbs'] as num?)?.toDouble() ?? 0, (userFoodPer100g['carbs'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+              _buildReportMacroRow(
+                'Carboidrati',
+                (targetFood['carbs'] as num?)?.toDouble() ?? 0,
+                (userFoodPer100g['carbs'] as num?)?.toDouble() ?? 0,
+                CleanTheme.accentGreen,
+                CleanTheme.accentBlue,
+              ),
               const SizedBox(height: 24),
-              _buildReportMacroRow('Grassi', (targetFood['fats'] as num?)?.toDouble() ?? 0, (userFoodPer100g['fats'] as num?)?.toDouble() ?? 0, CleanTheme.accentGreen, CleanTheme.accentBlue),
+              _buildReportMacroRow(
+                'Grassi',
+                (targetFood['fats'] as num?)?.toDouble() ?? 0,
+                (userFoodPer100g['fats'] as num?)?.toDouble() ?? 0,
+                CleanTheme.accentGreen,
+                CleanTheme.accentBlue,
+              ),
             ],
           ),
         ),
@@ -421,11 +486,18 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 width: 70,
                 height: 70,
                 child: CustomPaint(
-                  painter: _ReportGaugePainter(score: score, color: _getScoreColor(score)),
+                  painter: _ReportGaugePainter(
+                    score: score,
+                    color: _getScoreColor(score),
+                  ),
                   child: Center(
                     child: Text(
                       '$score%',
-                      style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w900, color: _getScoreColor(score)),
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: _getScoreColor(score),
+                      ),
                     ),
                   ),
                 ),
@@ -437,12 +509,21 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                   children: [
                     Text(
                       'COMPATIBILITÀ',
-                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: CleanTheme.textSecondary, letterSpacing: 1.5),
+                      style: GoogleFonts.outfit(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: CleanTheme.textSecondary,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _getScoreLabel(score),
-                      style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: CleanTheme.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -459,7 +540,9 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
             decoration: BoxDecoration(
               color: CleanTheme.accentGold.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: CleanTheme.accentGold.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: CleanTheme.accentGold.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,12 +555,22 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                     children: [
                       Text(
                         'ANALISI COACH GIGI',
-                        style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: CleanTheme.accentGold, letterSpacing: 1.5),
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: CleanTheme.accentGold,
+                          letterSpacing: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         curiosity,
-                        style: GoogleFonts.inter(fontSize: 14, color: CleanTheme.textPrimary, height: 1.5, fontWeight: FontWeight.w500),
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: CleanTheme.textPrimary,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
@@ -489,7 +582,13 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     );
   }
 
-  Widget _buildReportMacroRow(String label, double valA, double valB, Color colorA, Color colorB) {
+  Widget _buildReportMacroRow(
+    String label,
+    double valA,
+    double valB,
+    Color colorA,
+    Color colorB,
+  ) {
     final maxVal = [valA, valB, 1.0].reduce((a, b) => a > b ? a : b);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -497,12 +596,40 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label.toUpperCase(), style: GoogleFonts.outfit(fontSize: 9, fontWeight: FontWeight.w900, color: CleanTheme.textSecondary, letterSpacing: 1.2)),
+            Text(
+              label.toUpperCase(),
+              style: GoogleFonts.outfit(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: CleanTheme.textSecondary,
+                letterSpacing: 1.2,
+              ),
+            ),
             Row(
               children: [
-                Text(valA.toStringAsFixed(1), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: colorA)),
-                const Text(' / ', style: TextStyle(fontSize: 10, color: CleanTheme.textTertiary)),
-                Text(valB.toStringAsFixed(1), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: colorB)),
+                Text(
+                  valA.toStringAsFixed(1),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: colorA,
+                  ),
+                ),
+                const Text(
+                  ' / ',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: CleanTheme.textTertiary,
+                  ),
+                ),
+                Text(
+                  valB.toStringAsFixed(1),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: colorB,
+                  ),
+                ),
               ],
             ),
           ],
@@ -514,7 +641,9 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(4)),
+                  borderRadius: const BorderRadius.horizontal(
+                    left: Radius.circular(4),
+                  ),
                   child: LinearProgressIndicator(
                     value: valA / maxVal,
                     backgroundColor: CleanTheme.borderSecondary,
@@ -527,7 +656,9 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
             const SizedBox(width: 4),
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.horizontal(right: Radius.circular(4)),
+                borderRadius: const BorderRadius.horizontal(
+                  right: Radius.circular(4),
+                ),
                 child: LinearProgressIndicator(
                   value: valB / maxVal,
                   backgroundColor: CleanTheme.borderSecondary,
@@ -543,9 +674,13 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   }
 
   Widget _buildInvalidResult() {
-    final message = _result!['validation_message'] as String? ?? 'Alimento non riconosciuto.';
+    final message =
+        _result!['validation_message'] as String? ??
+        'Alimento non riconosciuto.';
     return GigiCoachMessage(
-      message: '$message Inserisci alimenti reali della dieta mediterranea! 🍕',
+      messageId: 'nutrition.food_duel.result.invalid',
+      title: 'Input da correggere',
+      message: '$message ${GigiGuidanceContent.foodDuelInvalid()}',
       emotion: GigiEmotion.expert,
     );
   }
@@ -574,12 +709,32 @@ class _ReportGaugePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 4;
-    final bgPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 5..color = CleanTheme.borderSecondary;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -pi / 2, pi * 2, false, bgPaint);
-    final progressPaint = Paint()..style = PaintingStyle.stroke..strokeWidth = 5..strokeCap = StrokeCap.round..color = color;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -pi / 2, (score / 100) * pi * 2, false, progressPaint);
+    final bgPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..color = CleanTheme.borderSecondary;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      pi * 2,
+      false,
+      bgPaint,
+    );
+    final progressPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round
+      ..color = color;
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      (score / 100) * pi * 2,
+      false,
+      progressPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _ReportGaugePainter oldDelegate) => oldDelegate.score != score;
+  bool shouldRepaint(covariant _ReportGaugePainter oldDelegate) =>
+      oldDelegate.score != score;
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+
 import '../../../core/theme/clean_theme.dart';
 
-class ExerciseVideoPlayer extends StatefulWidget {
+class ExerciseVideoPlayer extends StatelessWidget {
   final String? videoUrl;
   final String exerciseName;
 
@@ -13,127 +16,202 @@ class ExerciseVideoPlayer extends StatefulWidget {
   });
 
   @override
-  State<ExerciseVideoPlayer> createState() => _ExerciseVideoPlayerState();
-}
-
-class _ExerciseVideoPlayerState extends State<ExerciseVideoPlayer> {
-  YoutubePlayerController? _controller;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializePlayer();
-  }
-
-  void _initializePlayer() {
-    if (widget.videoUrl == null || widget.videoUrl!.isEmpty) return;
-
-    try {
-      final videoId = YoutubePlayerController.convertUrlToId(widget.videoUrl!);
-      if (videoId != null) {
-        _controller = YoutubePlayerController.fromVideoId(
-          videoId: videoId,
-          autoPlay: false,
-          params: const YoutubePlayerParams(
-            showControls: true,
-            mute: false,
-            showFullscreenButton: true,
-            loop: true,
-            enableCaption: false,
-            playsInline: true,
-          ),
-        );
-      } else {
-        _hasError = true;
-      }
-    } catch (e) {
-      debugPrint('Error initializing YouTube player: $e');
-      _hasError = true;
-    }
-  }
-
-  @override
-  void didUpdateWidget(ExerciseVideoPlayer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.videoUrl != widget.videoUrl) {
-      _controller?.close();
-      _controller = null;
-      _hasError = false;
-      _initializePlayer();
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.close();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (widget.videoUrl == null || widget.videoUrl!.isEmpty) {
+    final videoId = _extractVideoId(videoUrl);
+    if (videoUrl == null || videoUrl!.trim().isEmpty) {
       return const SizedBox.shrink();
     }
 
-    if (_controller == null || _hasError) {
-      return _buildErrorWidget();
+    if (videoId == null) {
+      return _buildUnavailableCard(
+        icon: Icons.link_off_rounded,
+        title: 'URL video non valido',
+        subtitle: 'Il link associato a questo esercizio non e valido.',
+      );
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.black,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: YoutubePlayer(controller: _controller!, aspectRatio: 16 / 9),
+    return GestureDetector(
+      onTap: () => _openExternally(context, videoId),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        height: 210,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.black,
+          image: DecorationImage(
+            image: NetworkImage(
+              YoutubePlayerController.getThumbnail(
+                videoId: videoId,
+                quality: ThumbnailQuality.high,
+                webp: false,
+              ),
+            ),
+            fit: BoxFit.cover,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.05),
+                      Colors.black.withValues(alpha: 0.55),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: CleanTheme.primaryColor,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: CleanTheme.textOnDark,
+                  size: 42,
+                ),
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 14,
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.open_in_new_rounded,
+                    size: 16,
+                    color: CleanTheme.textOnDark,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Guarda su YouTube',
+                      style: GoogleFonts.outfit(
+                        color: CleanTheme.textOnDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildErrorWidget() {
+  String? _extractVideoId(String? url) {
+    if (url == null) return null;
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return null;
+
+    final converted = YoutubePlayerController.convertUrlToId(trimmed);
+    if (converted != null) return converted;
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null) return null;
+
+    final host = uri.host.toLowerCase();
+    if (host.contains('youtube.com')) {
+      final videoId = uri.queryParameters['v'];
+      if (videoId != null && videoId.length == 11) return videoId;
+
+      final segments = uri.pathSegments;
+      if (segments.isNotEmpty) {
+        final markerIndex = segments.indexWhere(
+          (segment) => segment == 'embed' || segment == 'shorts',
+        );
+        if (markerIndex >= 0 && markerIndex + 1 < segments.length) {
+          final candidate = segments[markerIndex + 1];
+          if (candidate.length == 11) return candidate;
+        }
+      }
+    }
+
+    if (host == 'youtu.be' && uri.pathSegments.isNotEmpty) {
+      final candidate = uri.pathSegments.first;
+      if (candidate.length == 11) return candidate;
+    }
+
+    return null;
+  }
+
+  Future<void> _openExternally(BuildContext context, String videoId) async {
+    final uri = Uri.parse('https://www.youtube.com/watch?v=$videoId');
+
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (launched) return;
+
+    final fallbackLaunched = await launchUrl(
+      uri,
+      mode: LaunchMode.platformDefault,
+    );
+    if (fallbackLaunched || !context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Video non disponibile'),
+        backgroundColor: CleanTheme.accentRed,
+      ),
+    );
+  }
+
+  Widget _buildUnavailableCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: CleanTheme.borderSecondary,
+        color: CleanTheme.surfaceColor,
+        border: Border.all(color: CleanTheme.borderSecondary),
       ),
       child: Row(
         children: [
-          const Icon(Icons.videocam_off, color: CleanTheme.textTertiary),
+          Icon(icon, color: CleanTheme.textTertiary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Video non disponibile',
-                  style: TextStyle(
-                    color: CleanTheme.textTertiary,
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    color: CleanTheme.textPrimary,
                     fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      // Open in external browser on mobile, or new tab on web
-                      // You can add url_launcher here if needed
-                    },
-                    child: Text(
-                      'Apri su YouTube',
-                      style: TextStyle(
-                        color: CleanTheme.accentBlue,
-                        fontSize: 12,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    color: CleanTheme.textSecondary,
+                    fontSize: 12,
                   ),
+                ),
               ],
             ),
           ),

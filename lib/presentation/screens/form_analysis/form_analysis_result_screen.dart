@@ -4,6 +4,7 @@ import '../../../data/models/form_analysis_model.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 
 class FormAnalysisResultScreen extends StatelessWidget {
   final FormAnalysis analysis;
@@ -699,19 +700,26 @@ class FormAnalysisResultScreen extends StatelessWidget {
     GigiEmotion emotion = GigiEmotion.happy;
 
     if (score >= 8) {
-      message =
-          'Esecuzione magistrale! La tua tecnica è eccellente. Continua così e focalizzati sul carico progressivo.';
+      message = GigiGuidanceContent.formAnalysisResultHigh();
       emotion = GigiEmotion.celebrating;
     } else if (score >= 6) {
-      message =
-          'Buona tecnica, ma c\'è margine di miglioramento. Ho trovato piccoli errori che se corretti ti permetteranno di caricare di più in sicurezza.';
+      message = GigiGuidanceContent.formAnalysisResultMedium();
       emotion = GigiEmotion.expert;
     } else {
-      message =
-          'Dobbiamo lavorare sulla tecnica! Ci sono errori importanti che potrebbero causare infortuni. Segui i miei suggerimenti qui sotto.';
+      message = GigiGuidanceContent.formAnalysisResultLow();
       emotion = GigiEmotion.motivational;
     }
 
-    return GigiCoachMessage(message: message, emotion: emotion);
+    return GigiCoachMessage(
+      messageId:
+          'form_analysis.result.score_band_${score >= 8
+              ? 'high'
+              : score >= 6
+              ? 'medium'
+              : 'low'}',
+      title: 'Come usare questo report',
+      message: message,
+      emotion: emotion,
+    );
   }
 }

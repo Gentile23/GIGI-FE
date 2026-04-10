@@ -6,6 +6,7 @@ import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 class GoalSetupWizardScreen extends StatefulWidget {
@@ -117,7 +118,9 @@ class _GoalSetupWizardScreenState extends State<GoalSetupWizardScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: GigiCoachMessage(
-              message: AppLocalizations.of(context)!.gigiGoalSetupMessage,
+              messageId: 'nutrition.goal_setup.wizard',
+              title: 'Wizard obiettivi',
+              message: GigiGuidanceContent.nutritionGoalWizard(),
               emotion: GigiEmotion.expert,
             ),
           ),

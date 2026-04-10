@@ -1,4 +1,6 @@
 import 'health_integration_service.dart';
+import '../../data/services/api_client.dart';
+import '../../data/services/workout_log_service.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// HEALTH INSIGHTS SERVICE
@@ -11,14 +13,41 @@ class HealthInsightsService {
   HealthInsightsService._internal();
 
   final HealthIntegrationService _healthService = HealthIntegrationService();
+  final WorkoutLogService _workoutLogService = WorkoutLogService(ApiClient());
+
+  Future<bool> initialize() async {
+    await _healthService.initialize();
+    return _healthService.isAuthorized;
+  }
+
+  bool get isConnected => _healthService.isAuthorized;
+
+  String get platformName => _healthService.platformName;
+
+  bool get isAndroidPlatform => platformName == 'Health Connect';
+
+  Future<bool> connectHealth() async {
+    await _healthService.initialize();
+    return _healthService.requestPermissions();
+  }
+
+  Future<bool> isHealthConnectInstalled() async {
+    await _healthService.initialize();
+    return _healthService.isHealthConnectInstalled();
+  }
+
+  Future<void> installHealthConnect() async {
+    await _healthService.installHealthConnect();
+  }
 
   // ═══════════════════════════════════════════════════════════
   // WEEKLY REPORT DATA
   // ═══════════════════════════════════════════════════════════
 
   /// Generate a complete weekly health report
-  Future<WeeklyHealthReport> generateWeeklyReport() async {
-    await _healthService.initialize();
+  Future<WeeklyHealthReport?> generateWeeklyReport() async {
+    final isAuthorized = await initialize();
+    if (!isAuthorized) return null;
 
     // Get current week data
     final now = DateTime.now();
@@ -49,11 +78,13 @@ class HealthInsightsService {
         trend: sleepTrend,
         bestDay: _getBestDay(sleepData),
         worstDay: _getWorstDay(sleepData),
+        dailyHours: sleepData,
       ),
       activity: ActivitySummary(
         totalSteps: stepsData.values.fold(0, (a, b) => a + b),
         avgDailySteps: (stepsData.values.fold(0, (a, b) => a + b) / 7).round(),
         workoutsCompleted: workoutData,
+        dailySteps: stepsData,
       ),
       heartRate: HeartRateSummary(
         restingAvg: heartRateData ?? 0,
@@ -70,7 +101,8 @@ class HealthInsightsService {
 
   /// Get list of actionable trend insights for the dashboard
   Future<List<TrendInsight>> getTrendInsights() async {
-    await _healthService.initialize();
+    final isAuthorized = await initialize();
+    if (!isAuthorized) return [];
 
     final insights = <TrendInsight>[];
 
@@ -173,56 +205,7 @@ class HealthInsightsService {
       );
     }
 
-    // Add motivational insight if list is short
-    if (insights.isEmpty) {
-      insights.add(
-        TrendInsight(
-          emoji: '📊',
-          title: 'Connetti Health',
-          description: 'Collega Apple Health per insight personalizzati!',
-          type: InsightType.suggestion,
-          metric: '',
-        ),
-      );
-    }
-
     return insights;
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // CORRELATION INSIGHTS
-  // ═══════════════════════════════════════════════════════════
-
-  /// Get correlation-based insights (e.g., sleep vs workout completion)
-  Future<List<CorrelationInsight>> getCorrelationInsights() async {
-    // These would normally be calculated from historical data
-    // For now, return mock correlations that feel realistic
-    return [
-      CorrelationInsight(
-        emoji: '🎯',
-        insight: 'Completi il 94% dei workout quando dormi 7+ ore',
-        correlation: 0.94,
-        dataPoints: 30,
-      ),
-      CorrelationInsight(
-        emoji: '📈',
-        insight: 'Il tuo HRV migliora del 12% dopo giorni di riposo',
-        correlation: 0.78,
-        dataPoints: 14,
-      ),
-      CorrelationInsight(
-        emoji: '⚡',
-        insight: 'Martedì e giovedì sono i tuoi giorni più performanti',
-        correlation: 0.85,
-        dataPoints: 60,
-      ),
-      CorrelationInsight(
-        emoji: '💪',
-        insight: 'Sollevi più peso dopo notti con 8+ ore di sonno',
-        correlation: 0.82,
-        dataPoints: 20,
-      ),
-    ];
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -245,10 +228,10 @@ class HealthInsightsService {
     final data = <String, int>{};
     final days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
-    // For now, return estimated data based on today's steps
-    final todaySteps = await _healthService.getStepsToday() ?? 7000;
     for (int i = 0; i < 7; i++) {
-      data[days[i]] = (todaySteps * (0.7 + (i * 0.1))).round();
+      final date = weekStart.add(Duration(days: i));
+      final steps = await _healthService.getStepsForDate(date);
+      data[days[i]] = steps ?? 0;
     }
     return data;
   }
@@ -258,9 +241,24 @@ class HealthInsightsService {
   }
 
   Future<int> _getWorkoutDataForWeek() async {
-    // This would come from workout log provider
-    // For now return estimated value
-    return 4;
+    try {
+      final now = DateTime.now();
+      final weekStart = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: now.weekday - 1));
+      final weekEnd = weekStart.add(const Duration(days: 7));
+      final logs = await _workoutLogService.getWorkoutLogs(
+        startDate: weekStart,
+        endDate: weekEnd,
+        perPage: 100,
+      );
+
+      return logs.where((log) => log.completedAt != null).length;
+    } catch (_) {
+      return 0;
+    }
   }
 
   List<String> _generateInsights(
@@ -393,12 +391,14 @@ class SleepSummary {
   final String trend; // up, down, stable
   final String bestDay;
   final String worstDay;
+  final Map<String, double> dailyHours;
 
   SleepSummary({
     required this.avgHours,
     required this.trend,
     required this.bestDay,
     required this.worstDay,
+    required this.dailyHours,
   });
 }
 
@@ -406,11 +406,13 @@ class ActivitySummary {
   final int totalSteps;
   final int avgDailySteps;
   final int workoutsCompleted;
+  final Map<String, int> dailySteps;
 
   ActivitySummary({
     required this.totalSteps,
     required this.avgDailySteps,
     required this.workoutsCompleted,
+    required this.dailySteps,
   });
 }
 
@@ -438,17 +440,3 @@ class TrendInsight {
 }
 
 enum InsightType { positive, warning, suggestion, neutral }
-
-class CorrelationInsight {
-  final String emoji;
-  final String insight;
-  final double correlation;
-  final int dataPoints;
-
-  CorrelationInsight({
-    required this.emoji,
-    required this.insight,
-    required this.correlation,
-    required this.dataPoints,
-  });
-}

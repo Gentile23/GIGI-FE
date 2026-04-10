@@ -10,14 +10,12 @@ import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 
 class MealLoggingScreen extends StatefulWidget {
   final bool isCalculatorMode;
 
-  const MealLoggingScreen({
-    super.key,
-    this.isCalculatorMode = false,
-  });
+  const MealLoggingScreen({super.key, this.isCalculatorMode = false});
 
   @override
   State<MealLoggingScreen> createState() => _MealLoggingScreenState();
@@ -70,7 +68,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     super.initState();
     _selectedMealType = _getSuggestedMealType();
     _nutritionService = NutritionService(ApiClient());
-    _quotaService = QuotaService(); 
+    _quotaService = QuotaService();
     _gramsController.addListener(_recalculateMacros);
   }
 
@@ -161,16 +159,16 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
         });
 
         final grams = await _showGramsInputDialog();
-        if (grams == null) return; 
+        if (grams == null) return;
 
         await _quotaService.recordUsage(QuotaAction.mealAnalysis);
 
         setState(() => _isSubmitting = true);
 
-        final finalMealType = _selectedMealType == 'custom' 
-            ? _customMealNameController.text.trim().isEmpty 
-                ? 'Custom' 
-                : _customMealNameController.text.trim()
+        final finalMealType = _selectedMealType == 'custom'
+            ? _customMealNameController.text.trim().isEmpty
+                  ? 'Custom'
+                  : _customMealNameController.text.trim()
             : _selectedMealType;
 
         final result = await _nutritionService.quickLog(
@@ -242,9 +240,11 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Errore durante l\'analisi dell\'immagine')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Errore durante l\'analisi dell\'immagine'),
+          ),
+        );
       }
     }
   }
@@ -256,7 +256,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
     try {
       final foodItem = {
-        'food_name': _selectedMealType == 'custom' &&
+        'food_name':
+            _selectedMealType == 'custom' &&
                 _customMealNameController.text.trim().isNotEmpty
             ? _customMealNameController.text.trim()
             : _foodNameController.text,
@@ -271,8 +272,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
       final finalMealType = _selectedMealType == 'custom'
           ? _customMealNameController.text.trim().isEmpty
-              ? 'Custom'
-              : _customMealNameController.text.trim()
+                ? 'Custom'
+                : _customMealNameController.text.trim()
           : _selectedMealType;
 
       bool success = false;
@@ -319,9 +320,11 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Errore durante il salvataggio del pasto')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Errore durante il salvataggio del pasto'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -517,7 +520,15 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               GigiCoachMessage(
-                message: AppLocalizations.of(context)!.gigiMealMessage,
+                messageId: widget.isCalculatorMode
+                    ? 'nutrition.meal_logging.calculator'
+                    : 'nutrition.meal_logging.entry',
+                title: widget.isCalculatorMode
+                    ? 'Calcolatore nutrizionale'
+                    : 'Registra il pasto',
+                message: GigiGuidanceContent.mealLogging(
+                  calculatorMode: widget.isCalculatorMode,
+                ),
                 emotion: GigiEmotion.expert,
               ),
               const SizedBox(height: 24),
@@ -954,35 +965,35 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        isSelected
-                            ? CleanTheme.primaryColor
-                            : CleanTheme.surfaceColor,
+                    color: isSelected
+                        ? CleanTheme.primaryColor
+                        : CleanTheme.surfaceColor,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color:
-                          isSelected
-                              ? CleanTheme.primaryColor
-                              : CleanTheme.borderPrimary,
+                      color: isSelected
+                          ? CleanTheme.primaryColor
+                          : CleanTheme.borderPrimary,
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        isSelected
-                            ? Icons.check_circle
-                            : Icons.circle_outlined,
-                        color: isSelected ? Colors.white : CleanTheme.textTertiary,
+                        isSelected ? Icons.check_circle : Icons.circle_outlined,
+                        color: isSelected
+                            ? Colors.white
+                            : CleanTheme.textTertiary,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         entry.value,
                         style: GoogleFonts.inter(
-                          color:
-                              isSelected ? Colors.white : CleanTheme.textPrimary,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : CleanTheme.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           fontSize: 14,
                         ),
                       ),

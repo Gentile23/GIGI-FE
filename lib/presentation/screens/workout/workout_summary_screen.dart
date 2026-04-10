@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:confetti/confetti.dart';
 import '../../../core/theme/clean_theme.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -42,8 +41,9 @@ class WorkoutSummaryData {
     this.avgRpe,
   });
 
-  double get completionPercentage =>
-      totalExercises > 0 ? (completedExercises / totalExercises) * 100 : 0;
+  double get completionPercentage => totalExercises > 0
+      ? ((completedExercises / totalExercises) * 100).clamp(0, 100).toDouble()
+      : 0;
 
   String get formattedDuration {
     final hours = duration.inHours;
@@ -68,6 +68,14 @@ class WorkoutSummaryData {
   }
 }
 
+class _SummaryMetric {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _SummaryMetric(this.label, this.value, this.icon);
+}
+
 /// Full-screen workout summary shown after finishing a session
 class WorkoutSummaryScreen extends StatefulWidget {
   final WorkoutSummaryData summaryData;
@@ -79,31 +87,10 @@ class WorkoutSummaryScreen extends StatefulWidget {
 }
 
 class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
-  late ConfettiController _confettiController;
   final GlobalKey _shareCardKey = GlobalKey();
   bool _isGeneratingImage = false;
   File? _selectedPhoto;
   final ImagePicker _picker = ImagePicker();
-
-  @override
-  void initState() {
-    super.initState();
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 3),
-    );
-    // Play confetti if they completed at least one exercise
-    if (widget.summaryData.completedExercises > 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _confettiController.play();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,450 +101,155 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       backgroundColor: CleanTheme.backgroundColor,
       body: Stack(
         children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  CleanTheme.primaryColor.withValues(alpha: 0.15),
-                  CleanTheme.backgroundColor,
-                ],
-              ),
-            ),
-          ),
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  // Trophy/Success Icon
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [CleanTheme.steelDark, CleanTheme.primaryColor],
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: CleanTheme.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.emoji_events_rounded,
-                      size: 50,
-                      color: CleanTheme.textOnDark,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Title
-                  Text(
-                    data.completedExercises > 0
-                        ? l10n.workoutCompletedTitle
-                        : 'Sessione Terminata',
-                    style: GoogleFonts.outfit(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textPrimary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    data.workoutName,
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: CleanTheme.textSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Main Stats Grid
                   Row(
                     children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          icon: Icons.timer_outlined,
-                          value: data.formattedDuration,
-                          label: l10n.durationLabel,
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
                           color: CleanTheme.primaryColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: CleanTheme.textOnDark,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
-                        child: _buildStatCard(
-                          icon: Icons.local_fire_department_rounded,
-                          value: '${data.estimatedCalories}',
-                          label: l10n.caloriesLabel,
-                          color: CleanTheme.accentOrange,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          icon: Icons.fitness_center_rounded,
-                          value:
-                              '${data.completedExercises}/${data.totalExercises}',
-                          label: l10n.exercisesLabel,
-                          color: CleanTheme.accentGreen,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildStatCard(
-                          icon: Icons.repeat_rounded,
-                          value: '${data.completedSets}',
-                          label: l10n.totalSetsLabel,
-                          color: CleanTheme.accentBlue,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Dati sessione reali (kg, reps, RPE)
-                  if (data.totalKgLifted > 0 || data.totalReps > 0)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: CleanTheme.accentGold.withValues(alpha: 0.3),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CleanTheme.accentGold.withValues(
-                              alpha: 0.06,
-                            ),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: CleanTheme.accentGold.withValues(
-                                    alpha: 0.15,
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.bar_chart_rounded,
-                                  size: 18,
-                                  color: CleanTheme.accentGold,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                'Dati Sessione',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: CleanTheme.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              if (data.totalKgLifted > 0)
-                                Expanded(
-                                  child: _buildDetailStat(
-                                    emoji: '🏋️',
-                                    value: data.formattedKg,
-                                    label: 'KG Sollevati',
-                                    color: CleanTheme.accentGold,
-                                  ),
-                                ),
-                              if (data.totalKgLifted > 0 && data.totalReps > 0)
-                                Container(
-                                  width: 1,
-                                  height: 40,
-                                  color: CleanTheme.borderPrimary,
-                                ),
-                              if (data.totalReps > 0)
-                                Expanded(
-                                  child: _buildDetailStat(
-                                    emoji: '🔁',
-                                    value: '${data.totalReps}',
-                                    label: 'Reps Totali',
-                                    color: CleanTheme.accentBlue,
-                                  ),
-                                ),
-                              if (data.avgRpe != null) ...[
-                                Container(
-                                  width: 1,
-                                  height: 40,
-                                  color: CleanTheme.borderPrimary,
-                                ),
-                                Expanded(
-                                  child: _buildDetailStat(
-                                    emoji: '🎯',
-                                    value: data.avgRpe!.toStringAsFixed(1),
-                                    label: 'RPE Medio',
-                                    color: CleanTheme.accentOrange,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          if (data.completedSets > 0) ...[
-                            const SizedBox(height: 12),
-                            const Divider(height: 1),
-                            const SizedBox(height: 12),
-                            _buildDetailStat(
-                              emoji: '📊',
-                              value:
-                                  data.totalKgLifted > 0 &&
-                                      data.completedSets > 0
-                                  ? '${(data.totalKgLifted / data.completedSets).toStringAsFixed(1)} kg'
-                                  : '-',
-                              label: 'Media kg/serie',
-                              color: CleanTheme.primaryColor,
-                              compact: false,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                  const SizedBox(height: 24),
-
-                  // Completion Progress
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: CleanTheme.borderPrimary),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Completamento',
+                              data.completedExercises > 0
+                                  ? 'Allenamento completato'
+                                  : 'Sessione terminata',
                               style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 26,
+                                fontWeight: FontWeight.w800,
                                 color: CleanTheme.textPrimary,
                               ),
                             ),
+                            const SizedBox(height: 2),
                             Text(
-                              '${data.completionPercentage.toStringAsFixed(0)}%',
-                              style: GoogleFonts.outfit(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: CleanTheme.primaryColor,
+                              data.workoutName,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: CleanTheme.textSecondary,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: data.completionPercentage / 100,
-                            backgroundColor: CleanTheme.primaryColor.withValues(
-                              alpha: 0.15,
-                            ),
-                            valueColor: AlwaysStoppedAnimation(
-                              data.completionPercentage >= 100
-                                  ? CleanTheme.accentGreen
-                                  : CleanTheme.primaryColor,
-                            ),
-                            minHeight: 10,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildCompletionCard(data),
+                  const SizedBox(height: 16),
+
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.35,
+                    children: [
+                      _buildMetricCard(
+                        icon: Icons.timer_outlined,
+                        label: l10n.durationLabel,
+                        value: data.formattedDuration,
+                      ),
+                      _buildMetricCard(
+                        icon: Icons.fitness_center_rounded,
+                        label: l10n.exercisesLabel,
+                        value:
+                            '${data.completedExercises}/${data.totalExercises}',
+                      ),
+                      _buildMetricCard(
+                        icon: Icons.repeat_rounded,
+                        label: l10n.totalSetsLabel,
+                        value: '${data.completedSets}',
+                      ),
+                      _buildMetricCard(
+                        icon: Icons.local_fire_department_outlined,
+                        label: l10n.caloriesLabel,
+                        value: '${data.estimatedCalories}',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Muscle Groups Worked
-                  if (data.muscleGroupsWorked.isNotEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: CleanTheme.borderPrimary),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Muscoli Allenati',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: CleanTheme.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: data.muscleGroupsWorked.map((muscle) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: CleanTheme.primaryColor.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: CleanTheme.primaryColor.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  muscle,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: CleanTheme.primaryColor,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 32),
+                  if (data.totalKgLifted > 0 ||
+                      data.totalReps > 0 ||
+                      data.avgRpe != null)
+                    _buildPerformanceCard(data),
 
-                  // Motivational Message
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          CleanTheme.steelMid.withValues(alpha: 0.5),
-                          CleanTheme.primaryColor.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text('💪', style: TextStyle(fontSize: 32)),
-                        const SizedBox(height: 8),
-                        Text(
-                          _getMotivationalMessage(data),
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: CleanTheme.textPrimary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
+                  if (data.muscleGroupsWorked.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildMuscleCard(data),
+                  ],
 
-                  // Share Card CTA
-                  _buildShareCTA(),
                   const SizedBox(height: 20),
+                  _buildShareCTA(),
+                  const SizedBox(height: 16),
 
-                  // Done Button
                   SizedBox(
                     width: double.infinity,
-                    height: 56,
+                    height: 54,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
+                      onPressed: () => Navigator.of(context).pop(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: CleanTheme.primaryColor,
-                        elevation: 4,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(100),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
-                        l10n.close, // Matches 'Chiudi'
+                        l10n.close,
                         style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
                           color: CleanTheme.textOnPrimary,
                         ),
                       ),
                     ),
                   ),
-
-                  // Hidden RepaintBoundary for Image Generation
-                  Offstage(
-                    child: RepaintBoundary(
-                      key: _shareCardKey,
-                      child: SizedBox(
-                        width: 1080, // High res for sharing
-                        child: WorkoutShareCard(
-                          summaryData: data,
-                          photo: _selectedPhoto,
-                          userName: Provider.of<AuthProvider>(
-                            context,
-                            listen: false,
-                          ).user?.name,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-
-          // Confetti
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              shouldLoop: false,
-              colors: [
-                CleanTheme.primaryColor,
-                CleanTheme.accentGreen,
-                CleanTheme.accentOrange,
-                CleanTheme.accentPurple,
-                CleanTheme.accentBlue,
-              ],
-              numberOfParticles: 30,
-              gravity: 0.2,
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.001,
+                child: Center(
+                  child: RepaintBoundary(
+                    key: _shareCardKey,
+                    child: SizedBox(
+                      width: 360,
+                      child: WorkoutShareCard(
+                        summaryData: data,
+                        photo: _selectedPhoto,
+                        userName: Provider.of<AuthProvider>(
+                          context,
+                          listen: false,
+                        ).user?.name,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -565,164 +257,268 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     );
   }
 
-  Widget _buildDetailStat({
-    required String emoji,
-    required String value,
-    required String label,
-    required Color color,
-    bool compact = true,
-  }) {
-    if (compact) {
-      return Column(
+  Widget _buildCompletionCard(WorkoutSummaryData data) {
+    final progress = data.completionPercentage / 100;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.borderSecondary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 22)),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: color,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Completamento',
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              Text(
+                '${data.completionPercentage.toStringAsFixed(0)}%',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: CleanTheme.borderSecondary,
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                CleanTheme.primaryColor,
+              ),
             ),
           ),
+          const SizedBox(height: 12),
           Text(
-            label,
+            _getSummaryMessage(data),
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 13,
+              height: 1.35,
               color: CleanTheme.textSecondary,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
-      );
-    }
+      ),
+    );
+  }
+
+  Widget _buildMetricCard({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.borderSecondary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, color: CleanTheme.textPrimary, size: 22),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.textPrimary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: CleanTheme.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformanceCard(WorkoutSummaryData data) {
+    final averageKg = data.totalKgLifted > 0 && data.completedSets > 0
+        ? '${(data.totalKgLifted / data.completedSets).toStringAsFixed(1)} kg'
+        : null;
+
+    final items = <_SummaryMetric>[
+      if (data.totalKgLifted > 0)
+        _SummaryMetric('Volume', data.formattedKg, Icons.scale_rounded),
+      if (data.totalReps > 0)
+        _SummaryMetric('Ripetizioni', '${data.totalReps}', Icons.repeat),
+      if (data.avgRpe != null)
+        _SummaryMetric(
+          'RPE medio',
+          data.avgRpe!.toStringAsFixed(1),
+          Icons.speed_rounded,
+        ),
+      if (averageKg != null)
+        _SummaryMetric('Media kg/serie', averageKg, Icons.query_stats_rounded),
+    ];
+
+    return _buildInfoCard(
+      title: 'Performance',
+      children: [
+        for (int i = 0; i < items.length; i++) ...[
+          _buildMetricRow(items[i]),
+          if (i != items.length - 1) const Divider(height: 18),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMuscleCard(WorkoutSummaryData data) {
+    return _buildInfoCard(
+      title: 'Muscoli allenati',
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: data.muscleGroupsWorked.map((muscle) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: CleanTheme.chromeSubtle,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                muscle,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.borderSecondary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricRow(_SummaryMetric item) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 8),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: color,
+        Icon(item.icon, color: CleanTheme.textSecondary, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            item.label,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: CleanTheme.textSecondary,
+            ),
           ),
         ),
-        const SizedBox(width: 6),
         Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: CleanTheme.textSecondary,
+          item.value,
+          style: GoogleFonts.outfit(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: CleanTheme.textPrimary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getMotivationalMessage(WorkoutSummaryData data) {
+  String _getSummaryMessage(WorkoutSummaryData data) {
     if (data.completionPercentage >= 100) {
-      return 'Allenamento completato al 100%! Sei una macchina! 🔥';
-    } else if (data.completionPercentage >= 75) {
-      return 'Ottimo lavoro! Hai dato il massimo oggi!';
-    } else if (data.completionPercentage >= 50) {
-      return 'Buon allenamento! Ogni passo conta verso i tuoi obiettivi.';
-    } else if (data.completedExercises > 0) {
-      return 'Hai iniziato e questo è già un successo! Continua così!';
-    } else {
-      return 'Preparazione completata. La prossima volta spacchi tutto! 💪';
+      return 'Hai completato tutti gli esercizi previsti.';
     }
+    if (data.completedExercises > 0) {
+      return 'Sessione registrata con gli esercizi completati.';
+    }
+    return 'Sessione chiusa senza esercizi completati.';
   }
 
   Widget _buildShareCTA() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: CleanTheme.primaryColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: CleanTheme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.borderSecondary),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'MOSTRA IL TUO VALORE',
+            'Condividi riepilogo',
             style: GoogleFonts.outfit(
-              fontSize: 12,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: CleanTheme.accentOrange,
-              letterSpacing: 2,
+              color: CleanTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
-            'Condividi il tuo risultato',
+            'Crea una card pulita con i dati reali della sessione.',
             style: GoogleFonts.inter(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
+              fontSize: 13,
+              color: CleanTheme.textSecondary,
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -758,25 +554,21 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
-            ),
+            color: CleanTheme.primaryColor,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             children: [
-              Icon(icon, color: Colors.white, size: 24),
+              Icon(icon, color: CleanTheme.textOnDark, size: 22),
               const SizedBox(height: 8),
               Text(
                 label,
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: CleanTheme.textOnDark,
                   letterSpacing: 1,
                 ),
               ),
@@ -802,8 +594,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         _selectedPhoto = File(image.path);
       });
 
-      // Give a tiny bit of time for the Offstage RepaintBoundary to update with the new photo
-      await Future.delayed(const Duration(milliseconds: 300));
+      await WidgetsBinding.instance.endOfFrame;
 
       await _generateAndShareImage();
     } catch (e) {
@@ -835,14 +626,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     );
 
     try {
-      RenderRepaintBoundary boundary =
-          _shareCardKey.currentContext!.findRenderObject()
-              as RenderRepaintBoundary;
+      await WidgetsBinding.instance.endOfFrame;
 
-      // Wait for it to be actually rendered
-      ui.Image image = await boundary.toImage(
-        pixelRatio: 2.0,
-      ); // 2x for better quality
+      final boundaryContext = _shareCardKey.currentContext;
+      final renderObject = boundaryContext?.findRenderObject();
+      if (renderObject is! RenderRepaintBoundary) {
+        throw StateError('Share card non pronta');
+      }
+
+      if (renderObject.debugNeedsPaint) {
+        await WidgetsBinding.instance.endOfFrame;
+      }
+
+      ui.Image image = await renderObject.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );

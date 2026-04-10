@@ -9,6 +9,7 @@ import '../../../providers/nutrition_coach_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import 'meal_logging_screen.dart';
 import 'goal_setup_wizard_screen.dart';
 import 'what_to_cook_screen.dart';
@@ -144,7 +145,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                           _buildActivePlanCard()
                         else ...[
                           GigiCoachMessage(
-                            message: 'Hai un piano alimentare dal tuo nutrizionista? Importa il PDF e io analizzerò ogni riga per estrarre macro, obiettivi e pasti giornalieri. Trasformerò la tua dieta cartacea in una guida digitale interattiva! 🧠✨',
+                            messageId: 'nutrition.dashboard.import_diet',
+                            title: 'Importa la tua dieta',
+                            message:
+                                GigiGuidanceContent.nutritionDashboardNoDiet(),
                             emotion: GigiEmotion.expert,
                           ),
                           const SizedBox(height: 16),
@@ -165,7 +169,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         const SizedBox(height: 16),
                         _buildMacroProgressCard(),
                         const SizedBox(height: 24),
-
 
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 6: PASTI DI OGGI
@@ -307,8 +310,12 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
   /// Card con riepilogo piano attivo + azioni rapide inline
   Widget _buildActivePlanCard() {
-    final coachProvider = Provider.of<NutritionCoachProvider>(context, listen: false);
-    final planName = coachProvider.activePlan?['name'] ?? 'Dieta Personalizzata';
+    final coachProvider = Provider.of<NutritionCoachProvider>(
+      context,
+      listen: false,
+    );
+    final planName =
+        coachProvider.activePlan?['name'] ?? 'Dieta Personalizzata';
 
     return Column(
       children: [
@@ -348,9 +355,14 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: CleanTheme.accentGreen.withValues(alpha: 0.2),
+                              color: CleanTheme.accentGreen.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -404,7 +416,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 color: CleanTheme.accentGold,
                 onTap: () {
                   HapticService.lightTap();
-                  Navigator.pushNamed(context, '/nutrition/coach/shopping-list');
+                  Navigator.pushNamed(
+                    context,
+                    '/nutrition/coach/shopping-list',
+                  );
                 },
               ),
             ),
@@ -439,9 +454,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         decoration: BoxDecoration(
           color: CleanTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withValues(alpha: 0.2),
-          ),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -491,11 +504,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(height: 16),
         const SizedBox(height: 12),
         GigiCoachMessage(
-          message: AppLocalizations.of(context)!.gigiStrategySuggestion,
+          messageId: 'nutrition.dashboard.strategy_tools',
+          title: 'Strategia della sezione',
+          message: GigiGuidanceContent.nutritionDashboardStrategy(),
           emotion: GigiEmotion.expert,
         ),
         const SizedBox(height: 24),
-        
+
         // Pannello Strumenti AI
         _buildFoodDuelCard(),
         const SizedBox(height: 12),
@@ -503,7 +518,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(height: 12),
         _buildChefAiCard(),
         const SizedBox(height: 24),
-        
+
         Row(
           children: [
             // Card: Wizard (AI - Prominent)
@@ -566,18 +581,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           color: CleanTheme.surfaceColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                isAI
-                    ? CleanTheme.primaryColor.withValues(alpha: 0.5)
-                    : textColor.withValues(alpha: 0.1),
+            color: isAI
+                ? CleanTheme.primaryColor.withValues(alpha: 0.5)
+                : textColor.withValues(alpha: 0.1),
             width: isAI ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color:
-                  isAI
-                      ? CleanTheme.primaryColor.withValues(alpha: 0.1)
-                      : Colors.black.withValues(alpha: 0.05),
+              color: isAI
+                  ? CleanTheme.primaryColor.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1266,7 +1279,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       ),
     );
   }
-
 
   void _navigateToGoalSetup() async {
     final result = await Navigator.push(

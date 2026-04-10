@@ -1,6 +1,8 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/theme/clean_theme.dart';
 import '../../screens/workout/workout_summary_screen.dart';
 
@@ -19,146 +21,182 @@ class WorkoutShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 9 / 16, // Story format
+      aspectRatio: 9 / 16,
       child: Container(
         decoration: BoxDecoration(
-          color: CleanTheme.steelDark,
-          borderRadius: BorderRadius.circular(24),
-          image: photo != null
-              ? DecorationImage(image: FileImage(photo!), fit: BoxFit.cover)
-              : const DecorationImage(
-                  image: AssetImage('assets/images/workout_hero.png'),
-                  fit: BoxFit.cover,
-                ),
+          color: CleanTheme.backgroundColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: CleanTheme.borderSecondary),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            // Dark Overlay for legibility
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.3),
-                    Colors.black.withValues(alpha: 0.8),
-                  ],
+            if (photo != null)
+              Positioned.fill(
+                child: Image.file(
+                  photo!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: photo != null
+                      ? LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.35),
+                            Colors.black.withValues(alpha: 0.82),
+                          ],
+                        )
+                      : null,
+                  color: photo == null ? CleanTheme.backgroundColor : null,
                 ),
               ),
             ),
-
-            // Content
             Padding(
-              padding: const EdgeInsets.all(32.0),
+              padding: const EdgeInsets.all(30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo & Brand
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Image.asset(
-                          'assets/images/gigi_new_logo.png',
+                      Image.asset(
+                        'assets/images/gigi_new_logo.png',
+                        height: 30,
+                        errorBuilder: (_, _, _) => Container(
+                          width: 30,
                           height: 30,
+                          decoration: BoxDecoration(
+                            color: photo == null
+                                ? CleanTheme.primaryColor
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Text(
-                        'GiGi',
+                        'GIGI',
                         style: GoogleFonts.outfit(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 2,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: _textColor,
+                          letterSpacing: 1,
                         ),
                       ),
                     ],
                   ),
-
                   const Spacer(),
-
-                  // Stats Section
                   Text(
-                    summaryData.workoutName.toUpperCase(),
+                    'Allenamento completato',
                     style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.accentOrange,
-                      letterSpacing: 3,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'WORKOUT\nCOMPLETATO',
-                    style: GoogleFonts.outfit(
-                      fontSize: 36,
+                      fontSize: 34,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 1,
+                      color: _textColor,
+                      height: 1.05,
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Stats Grid
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildShareStat(
-                        label: 'DURATA',
-                        value: summaryData.formattedDuration,
-                      ),
-                      _buildShareStat(
-                        label: 'KCAL',
-                        value: '${summaryData.estimatedCalories}',
-                      ),
-                      _buildShareStat(
-                        label: 'VOLUME',
-                        value: summaryData.formattedKg,
-                      ),
-                    ],
+                  const SizedBox(height: 10),
+                  Text(
+                    summaryData.workoutName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _mutedTextColor,
+                    ),
                   ),
-
-                  const SizedBox(height: 48),
-
-                  // User Info
+                  const SizedBox(height: 28),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: photo == null
+                          ? CleanTheme.surfaceColor
+                          : Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: photo == null
+                            ? CleanTheme.borderSecondary
+                            : Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildShareStat(
+                                label: 'Durata',
+                                value: summaryData.formattedDuration,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildShareStat(
+                                label: 'Esercizi',
+                                value:
+                                    '${summaryData.completedExercises}/${summaryData.totalExercises}',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildShareStat(
+                                label: 'Serie',
+                                value: '${summaryData.completedSets}',
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildShareStat(
+                                label: 'Volume',
+                                value: summaryData.totalKgLifted > 0
+                                    ? summaryData.formattedKg
+                                    : '-',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: CleanTheme.accentOrange,
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: _textColor,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.person, color: Colors.white),
+                        child: Icon(
+                          Icons.person_rounded,
+                          color: photo == null
+                              ? CleanTheme.textOnDark
+                              : CleanTheme.primaryColor,
+                          size: 20,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userName ?? 'ATLETA GIGI',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          userName?.trim().isNotEmpty == true
+                              ? userName!.trim()
+                              : 'Atleta GIGI',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: _textColor,
                           ),
-                          Text(
-                            'Ogni set conta.',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
@@ -171,6 +209,13 @@ class WorkoutShareCard extends StatelessWidget {
     );
   }
 
+  Color get _textColor =>
+      photo == null ? CleanTheme.textPrimary : CleanTheme.textOnDark;
+
+  Color get _mutedTextColor => photo == null
+      ? CleanTheme.textSecondary
+      : CleanTheme.textOnDark.withValues(alpha: 0.72);
+
   Widget _buildShareStat({required String label, required String value}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,19 +223,20 @@ class WorkoutShareCard extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.inter(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.6),
-            letterSpacing: 1,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: _mutedTextColor,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.outfit(
             fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            color: _textColor,
           ),
         ),
       ],

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
+import '../../widgets/workout/exercise_video_player.dart';
 // import '../../widgets/workout/anatomical_muscle_view.dart';
 
 class CardioExerciseDetailScreen extends StatefulWidget {
@@ -28,38 +28,6 @@ class _CardioExerciseDetailScreenState
     extends State<CardioExerciseDetailScreen> {
   static const Color _cardioColor = CleanTheme.accentRed;
   static const Color _accentColor = CleanTheme.accentOrange;
-
-  YoutubePlayerController? _videoController;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeVideo();
-  }
-
-  void _initializeVideo() {
-    final videoUrl = widget.workoutExercise.exercise.videoUrl;
-    if (videoUrl != null && videoUrl.isNotEmpty) {
-      final videoId = YoutubePlayerController.convertUrlToId(videoUrl);
-      if (videoId != null) {
-        _videoController = YoutubePlayerController.fromVideoId(
-          videoId: videoId,
-          autoPlay: false,
-          params: const YoutubePlayerParams(
-            showControls: true,
-            mute: false,
-            showFullscreenButton: true,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _videoController?.close();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,12 +91,16 @@ class _CardioExerciseDetailScreenState
             _buildBenefitsCard(),
             const SizedBox(height: 24),
 
-            if (_videoController != null) ...[
+            if (widget.workoutExercise.exercise.videoUrl != null &&
+                widget.workoutExercise.exercise.videoUrl!.isNotEmpty) ...[
               CleanSectionHeader(
                 title: AppLocalizations.of(context)!.videoDemoLabel,
               ),
               const SizedBox(height: 12),
-              _buildVideoPlayer(),
+              ExerciseVideoPlayer(
+                videoUrl: widget.workoutExercise.exercise.videoUrl,
+                exerciseName: widget.workoutExercise.exercise.name,
+              ),
             ],
             const SizedBox(height: 24),
           ],
@@ -312,29 +284,6 @@ class _CardioExerciseDetailScreenState
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildVideoPlayer() {
-    if (_videoController == null) {
-      return CleanCard(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          'URL video non valido',
-          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: YoutubePlayer(
-          controller: _videoController!,
-          aspectRatio: 16 / 9,
-        ),
       ),
     );
   }

@@ -32,6 +32,7 @@ import 'package:gigi/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../core/services/sound_service.dart';
+import '../../../core/services/rest_timer_service.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/voice_coaching/gigi_preparation_overlay.dart';
@@ -62,6 +63,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   int _restTimerTotal = 0;
   String? _restingExerciseId;
   int _restingSetNumber = 0;
+  RestTimerService? _restTimerService;
 
   // Keys to communicate with SetLoggingWidgets
   final Map<String, GlobalKey<SetLoggingWidgetState>> _setLoggingKeys = {};
@@ -129,10 +131,64 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final restTimerService = context.read<RestTimerService>();
+    if (_restTimerService == restTimerService) return;
+
+    _restTimerService?.removeListener(_handleRestTimerServiceChanged);
+    _restTimerService = restTimerService;
+    _restTimerService?.addListener(_handleRestTimerServiceChanged);
+    _handleRestTimerServiceChanged();
+  }
+
   void _onVoiceStatusChanged() {
     // Trigger rebuild so the overlay in the Stack updates
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void _handleRestTimerServiceChanged() {
+    final restTimerService = _restTimerService;
+    if (restTimerService == null || !mounted) return;
+
+    final state = restTimerService.state;
+    final isCurrentWorkout = state.workoutDayId == widget.workoutDay.id;
+
+    if (state.isActive && isCurrentWorkout && state.exerciseId != null) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() {
+        _isRestTimerOverlayVisible = true;
+        _restingExerciseId = state.exerciseId;
+        _restingSetNumber = state.setNumber;
+        _restTimerSeconds = restTimerService.remainingSeconds;
+        _restTimerTotal = state.totalSeconds;
+      });
+      return;
+    }
+
+    if (state.completed && isCurrentWorkout) {
+      setState(() {
+        _isRestTimerOverlayVisible = false;
+        _restingExerciseId = null;
+        _restingSetNumber = 0;
+        _restTimerSeconds = 0;
+        _restTimerTotal = 0;
+      });
+      Future.microtask(restTimerService.acknowledgeCompletion);
+      return;
+    }
+
+    if (_isRestTimerOverlayVisible) {
+      setState(() {
+        _isRestTimerOverlayVisible = false;
+        _restingExerciseId = null;
+        _restingSetNumber = 0;
+        _restTimerSeconds = 0;
+        _restTimerTotal = 0;
+      });
     }
   }
 
@@ -152,6 +208,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   @override
   void dispose() {
+    _restTimerService?.removeListener(_handleRestTimerServiceChanged);
     _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
     _registrationRetryTimer?.cancel();
@@ -386,6 +443,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     int setNumber,
   ) {
     if (isActive) {
+      FocusManager.instance.primaryFocus?.unfocus();
       final uniqueKey = exerciseId;
       setState(() {
         _isRestTimerOverlayVisible = true;
@@ -403,36 +461,36 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   void _initializeUniqueIdMap() {
     _exerciseByUniqueId.clear();
-    
+
     // Main
     for (int i = 0; i < widget.workoutDay.mainWorkout.length; i++) {
       final e = widget.workoutDay.mainWorkout[i];
       final id = e.id ?? "main_${e.exercise.id}_$i";
       _exerciseByUniqueId[id] = e;
     }
-    
+
     // Warmup
     final warmup = widget.workoutDay.warmupCardio;
     for (int i = 0; i < warmup.length; i++) {
-        final e = warmup[i];
-        final id = e.id ?? "warmup_${e.exercise.id}_$i";
-        _exerciseByUniqueId[id] = e;
+      final e = warmup[i];
+      final id = e.id ?? "warmup_${e.exercise.id}_$i";
+      _exerciseByUniqueId[id] = e;
     }
 
     // Mobility
     final mobility = widget.workoutDay.preWorkoutMobility;
     for (int i = 0; i < mobility.length; i++) {
-        final e = mobility[i];
-        final id = e.id ?? "mobility_${e.exercise.id}_$i";
-        _exerciseByUniqueId[id] = e;
+      final e = mobility[i];
+      final id = e.id ?? "mobility_${e.exercise.id}_$i";
+      _exerciseByUniqueId[id] = e;
     }
 
     // Post
     final post = widget.workoutDay.postWorkoutExercises;
     for (int i = 0; i < post.length; i++) {
-        final e = post[i];
-        final id = e.id ?? "post_${e.exercise.id}_$i";
-        _exerciseByUniqueId[id] = e;
+      final e = post[i];
+      final id = e.id ?? "post_${e.exercise.id}_$i";
+      _exerciseByUniqueId[id] = e;
     }
   }
 
@@ -453,14 +511,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             return mainWorkout[j];
           }
         }
-        // If current is last or all following are completed, check uncompleted before
-        for (int j = 0; j < i; j++) {
-          final nextId = mainWorkout[j].exercise.id;
-          if (!_completedExercises.contains(nextId)) {
-            return mainWorkout[j];
-          }
-        }
-        return null; // All completed
+        return null;
       }
     }
     return null;
@@ -468,12 +519,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   /// Skip the rest timer — closes the overlay and notifies the child widget
   void _skipRestTimerOverlay() {
-    if (_restingExerciseId != null) {
-      _setLoggingKeys[_restingExerciseId]?.currentState?.skipRestTimer();
-    }
+    context.read<RestTimerService>().skip();
     setState(() {
       _isRestTimerOverlayVisible = false;
       _restingExerciseId = null;
+      _restingSetNumber = 0;
+      _restTimerSeconds = 0;
+      _restTimerTotal = 0;
     });
   }
 
@@ -681,6 +733,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                   child: ListView(
                     controller: scrollController,
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: EdgeInsets.fromLTRB(
                       20,
                       24,
@@ -764,8 +818,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         AppLocalizations.of(context)!.mainWorkoutSection,
                         '💪',
                       ),
-                      ...widget.workoutDay.mainWorkout.asMap().entries.map((entry) {
-                        return _buildExerciseCard(entry.value, entry.key, 'main');
+                      ...widget.workoutDay.mainWorkout.asMap().entries.map((
+                        entry,
+                      ) {
+                        return _buildExerciseCard(
+                          entry.value,
+                          entry.key,
+                          'main',
+                        );
                       }),
 
                       // Post-Workout Navigation
@@ -1201,7 +1261,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (nextExercise != null) {
         return _buildSetDetailOverlayCard(
           title: 'PROSSIMO SET',
-          exerciseId: nextExercise.id ?? "main_${nextExercise.exercise.id}_${widget.workoutDay.mainWorkout.indexOf(nextExercise)}",
+          exerciseId:
+              nextExercise.id ??
+              "main_${nextExercise.exercise.id}_${widget.workoutDay.mainWorkout.indexOf(nextExercise)}",
           setNumber: 1,
           isNext: true,
         );
@@ -1249,6 +1311,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required int setNumber,
     String? targetValue,
   }) {
+    final isWeightInput = label == 'KG';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -1276,9 +1340,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 'overlay_input_${label}_${exerciseId}_$setNumber',
               ), // Added Key
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
+              keyboardType: isWeightInput
+                  ? const TextInputType.numberWithOptions(decimal: true)
+                  : TextInputType.number,
+              inputFormatters: [
+                isWeightInput
+                    ? FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*([,.]\d*)?$'),
+                      )
+                    : FilteringTextInputFormatter.digitsOnly,
+              ],
+              textInputAction: TextInputAction.done,
+              onTapOutside: (_) =>
+                  FocusManager.instance.primaryFocus?.unfocus(),
+              onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
               style: GoogleFonts.outfit(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -1517,23 +1592,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 const Spacer(flex: 1),
 
                 // Set Details View (Previous and Next)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      // Previous Set Card
-                      Expanded(
-                        child: _buildSetDetailOverlayCard(
-                          title: 'ULTIMO SET',
-                          exerciseId: _restingExerciseId!,
-                          setNumber: _restingSetNumber,
-                          isNext: false,
-                        ),
+                Flexible(
+                  flex: 5,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildSetDetailOverlayCard(
+                            title: 'ULTIMO SET',
+                            exerciseId: _restingExerciseId!,
+                            setNumber: _restingSetNumber,
+                            isNext: false,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildNextSetOverlayCard(),
+                        ],
                       ),
-                      const SizedBox(width: 16),
-                      // Next Set Card
-                      Expanded(child: _buildNextSetOverlayCard()),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -1688,12 +1764,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           const SizedBox(height: 16),
           // Inline Cardio Exercises
           ...warmupCardio.asMap().entries.map(
-                (entry) => _buildExerciseCard(entry.value, entry.key, 'warmup'),
-              ),
+            (entry) => _buildExerciseCard(entry.value, entry.key, 'warmup'),
+          ),
           // Inline Mobility Exercises
           ...preWorkoutMobility.asMap().entries.map(
-                (entry) => _buildExerciseCard(entry.value, entry.key, 'mobility'),
-              ),
+            (entry) => _buildExerciseCard(entry.value, entry.key, 'mobility'),
+          ),
         ],
       ),
     );
@@ -1747,8 +1823,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           const SizedBox(height: 16),
           // Inline post-workout exercises
           ...postWorkoutExercises.asMap().entries.map(
-                (entry) => _buildExerciseCard(entry.value, entry.key, 'post'),
-              ),
+            (entry) => _buildExerciseCard(entry.value, entry.key, 'post'),
+          ),
         ],
       ),
     );
@@ -2247,7 +2323,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             end: Alignment.bottomCenter,
           ),
           border: Border.all(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.6), 
+            color: const Color(0xFFFFD700).withValues(alpha: 0.6),
             width: 1.5,
           ),
           boxShadow: [
@@ -2311,30 +2387,31 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
               if (!isUser && message.suggestions.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                ...message.suggestions.map((suggestion) => Padding(
-                  padding: const EdgeInsets.only(top: 6.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '💡', 
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          suggestion,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            height: 1.4,
-                            color: CleanTheme.textPrimary.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w500,
+                ...message.suggestions.map(
+                  (suggestion) => Padding(
+                    padding: const EdgeInsets.only(top: 6.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('💡', style: TextStyle(fontSize: 12)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            suggestion,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: CleanTheme.textPrimary.withValues(
+                                alpha: 0.9,
+                              ),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )),
+                ),
               ],
               if (isLoading) ...[
                 const SizedBox(height: 8),
@@ -2467,7 +2544,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     int orderIndex, [
     String prefix = 'main',
   ]) {
-    final uniqueId = exercise.id ?? "${prefix}_${exercise.exercise.id}_$orderIndex";
+    final uniqueId =
+        exercise.id ?? "${prefix}_${exercise.exercise.id}_$orderIndex";
     // Staggered entry animation index
     final animationIndex = widget.workoutDay.mainWorkout.indexOf(exercise);
 
@@ -2719,6 +2797,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           () => GlobalKey<SetLoggingWidgetState>(),
                         ),
                         exercise: exercise,
+                        restTimerId: uniqueId,
+                        workoutDayId: widget.workoutDay.id,
                         exerciseLog: exerciseLog?.id.isNotEmpty == true
                             ? exerciseLog
                             : null,
@@ -2865,23 +2945,32 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Annulla',
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-            ),
-          ),
-          TextButton(
             onPressed: () {
-              _gigiTTS.stop(); // Stop audio immediately on exit confirmation
+              _gigiTTS.stop();
               _voiceController.deactivate();
               Navigator.pop(context); // close dialog
               setState(() => _allowPop = true);
               Navigator.pop(context); // close screen
             },
             child: Text(
-              AppLocalizations.of(context)!.confirmExit,
-              style: GoogleFonts.inter(color: CleanTheme.accentRed),
+              'Elimina sessione',
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentRed,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _finishWorkout(skipConfirmation: true);
+            },
+            child: Text(
+              'Salva sessione',
+              style: GoogleFonts.inter(
+                color: CleanTheme.accentGreen,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -2889,7 +2978,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  Future<void> _finishWorkout() async {
+  Future<void> _finishWorkout({bool skipConfirmation = false}) async {
     // [NEW] Trial Workout Handling
     if (widget.workoutDay.id.startsWith('trial_')) {
       _finishTrialWorkout();
@@ -2897,6 +2986,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+
+    if (skipConfirmation) {
+      await _completeWorkout(provider);
+      return;
+    }
 
     showDialog(
       context: context,
@@ -2926,122 +3020,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(
-                  child: CircularProgressIndicator(
-                    color: CleanTheme.primaryColor,
-                  ),
-                ),
-              );
-
-              final navigator = Navigator.of(context);
-              final gamificationProvider = Provider.of<GamificationProvider>(
-                context,
-                listen: false,
-              );
-
-              final saveErrorMessage = AppLocalizations.of(
-                context,
-              )!.saveErrorGeneric;
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-              try {
-                debugPrint(
-                  'DEBUG: Completing workout, currentLog exists: ${provider.currentWorkoutLog != null}',
-                );
-
-                // ANTICIPATION: Play workout complete sound IMMEDIATELY on confirmation
-                SoundService().play(SoundType.workoutComplete);
-
-                if (provider.currentWorkoutLog != null) {
-                  debugPrint(
-                    'DEBUG: Workout log ID: ${provider.currentWorkoutLog!.id}',
-                  );
-                }
-                await provider.completeWorkout();
-
-                // Refresh gamification stats so home screen updates
-                gamificationProvider.refresh();
-
-                if (!mounted) return;
-                navigator.pop(); // Close loading dialog
-
-                // Collect muscle groups from completed exercises
-                final muscleGroups = <String>{};
-                for (final exercise in widget.workoutDay.mainWorkout) {
-                  if (_completedExercises.contains(exercise.exercise.id)) {
-                    muscleGroups.addAll(exercise.exercise.muscleGroups);
-                  }
-                }
-
-                // Calcola statistiche reali dai set loggati
-                double totalKgLifted = 0;
-                int totalReps = 0;
-                int realCompletedSets = 0;
-                double rpeSum = 0;
-                int rpeCount = 0;
-
-                final workoutLog = provider.currentWorkoutLog;
-                if (workoutLog != null) {
-                  for (final exLog in workoutLog.exerciseLogs) {
-                    for (final setLog in exLog.setLogs) {
-                      if (setLog.completed) {
-                        realCompletedSets++;
-                        final weight = setLog.weightKg ?? 0;
-                        final reps = setLog.reps;
-                        totalKgLifted += weight * reps;
-                        totalReps += reps;
-                        if (setLog.rpe != null && setLog.rpe! > 0) {
-                          rpeSum += setLog.rpe!;
-                          rpeCount++;
-                        }
-                      }
-                    }
-                  }
-                }
-
-                final avgRpe = rpeCount > 0 ? rpeSum / rpeCount : null;
-
-                // Create summary data
-                final summaryData = WorkoutSummaryData(
-                  workoutName: widget.workoutDay.name,
-                  duration: _elapsedTime,
-                  completedExercises: _completedExercises.length,
-                  totalExercises: widget.workoutDay.mainExerciseCount,
-                  estimatedCalories: (_elapsedTime.inMinutes * 8).clamp(
-                    0,
-                    9999,
-                  ),
-                  completedSets: realCompletedSets > 0
-                      ? realCompletedSets
-                      : _completedExercises.length * 3,
-                  muscleGroupsWorked: muscleGroups.toList(),
-                  totalKgLifted: totalKgLifted,
-                  totalReps: totalReps,
-                  avgRpe: avgRpe,
-                );
-
-                // Navigate to summary screen
-                // ignore: use_build_context_synchronously
-                await Navigator.of(navigator.context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        WorkoutSummaryScreen(summaryData: summaryData),
-                  ),
-                );
-              } catch (e) {
-                if (!mounted) return;
-                navigator.pop();
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(saveErrorMessage),
-                    backgroundColor: CleanTheme.accentRed,
-                  ),
-                );
-              }
+              await _completeWorkout(provider);
             },
             child: Text(
               AppLocalizations.of(context)!.finish,
@@ -3054,6 +3033,130 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _completeWorkout(WorkoutLogProvider provider) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: CleanTheme.primaryColor,
+        ),
+      ),
+    );
+
+    final navigator = Navigator.of(context);
+    final gamificationProvider = Provider.of<GamificationProvider>(
+      context,
+      listen: false,
+    );
+
+    final saveErrorMessage = AppLocalizations.of(
+      context,
+    )!.saveErrorGeneric;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      debugPrint(
+        'DEBUG: Completing workout, currentLog exists: ${provider.currentWorkoutLog != null}',
+      );
+
+      // ANTICIPATION: Play workout complete sound IMMEDIATELY on confirmation
+      SoundService().play(SoundType.workoutComplete);
+
+      if (provider.currentWorkoutLog != null) {
+        debugPrint(
+          'DEBUG: Workout log ID: ${provider.currentWorkoutLog!.id}',
+        );
+      }
+      final completedWorkoutLog = await provider.completeWorkout();
+      if (completedWorkoutLog == null) {
+        final message = provider.error ?? 'Nessun workout registrato.';
+        throw Exception(message);
+      }
+
+      try {
+        await gamificationProvider.refresh();
+      } catch (e, st) {
+        debugPrint('WARNING: Failed to refresh gamification stats: $e\n$st');
+      }
+
+      if (!mounted) return;
+      navigator.pop(); // Close loading dialog
+
+      // Collect muscle groups from completed exercises
+      final muscleGroups = <String>{};
+      for (final exercise in widget.workoutDay.mainWorkout) {
+        if (_completedExercises.contains(exercise.exercise.id)) {
+          muscleGroups.addAll(exercise.exercise.muscleGroups);
+        }
+      }
+
+      // Calcola statistiche reali dai set loggati
+      double totalKgLifted = 0;
+      int totalReps = 0;
+      int realCompletedSets = 0;
+      double rpeSum = 0;
+      int rpeCount = 0;
+
+      final workoutLog = completedWorkoutLog;
+      for (final exLog in workoutLog.exerciseLogs) {
+        for (final setLog in exLog.setLogs) {
+          if (setLog.completed) {
+            realCompletedSets++;
+            final weight = setLog.weightKg ?? 0;
+            final reps = setLog.reps;
+            totalKgLifted += weight * reps;
+            totalReps += reps;
+            if (setLog.rpe != null && setLog.rpe! > 0) {
+              rpeSum += setLog.rpe!;
+              rpeCount++;
+            }
+          }
+        }
+      }
+
+      final avgRpe = rpeCount > 0 ? rpeSum / rpeCount : null;
+
+      // Create summary data
+      final summaryData = WorkoutSummaryData(
+        workoutName: widget.workoutDay.name,
+        duration: _elapsedTime,
+        completedExercises: _completedExercises.length.clamp(
+          0,
+          widget.workoutDay.mainExerciseCount,
+        ),
+        totalExercises: widget.workoutDay.mainExerciseCount,
+        estimatedCalories: (_elapsedTime.inMinutes * 8).clamp(
+          0,
+          9999,
+        ),
+        completedSets: realCompletedSets > 0
+            ? realCompletedSets
+            : _completedExercises.length,
+        muscleGroupsWorked: muscleGroups.toList(),
+        totalKgLifted: totalKgLifted,
+        totalReps: totalReps,
+        avgRpe: avgRpe,
+      );
+
+      // ignore: use_build_context_synchronously
+      await Navigator.of(navigator.context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => WorkoutSummaryScreen(summaryData: summaryData),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      navigator.pop();
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(saveErrorMessage),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+    }
   }
 
   // [NEW] Trial Workout Completion Flow

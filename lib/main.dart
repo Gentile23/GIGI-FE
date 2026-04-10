@@ -27,6 +27,7 @@ import 'providers/social_provider.dart';
 import 'providers/nutrition_coach_provider.dart';
 import 'core/services/payment_service.dart';
 import 'core/services/music_integration_service.dart';
+import 'core/services/rest_timer_service.dart';
 import 'package:audio_session/audio_session.dart' as session;
 
 void main() async {
@@ -123,6 +124,7 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => MusicIntegrationService()..initialize(),
         ),
+        ChangeNotifierProvider(create: (_) => RestTimerService()..initialize()),
       ],
       child: MaterialApp(
         title: 'GIGI',
@@ -154,7 +156,8 @@ class GigiApp extends StatelessWidget {
           '/main': (context) => const MainScreen(),
           '/progress': (context) => const ProgressDashboardScreen(),
           '/nutrition/coach/upload': (context) => const DietUploadScreen(),
-          '/nutrition/coach/manage': (context) => const ElitePathManagementScreen(),
+          '/nutrition/coach/manage': (context) =>
+              const ElitePathManagementScreen(),
           '/nutrition/coach/plan': (context) => const DietPlanScreen(),
           '/nutrition/coach/shopping-list': (context) =>
               const ShoppingListScreen(),

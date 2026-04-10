@@ -95,15 +95,10 @@ class _RestPeriodOverlayState extends State<RestPeriodOverlay>
         _playTimerSound(_countdownSource);
       }
 
-      // ANTICIPATION: Play "tempo-finito.mp3" when 1 second is remaining
-      if (_secondsRemaining == 1) {
-        _playTimerSound(_timerEndSource);
-      }
-
       if (_secondsRemaining <= 0) {
         _timer?.cancel();
         HapticService.heavyTap();
-        // Skip playing here as it was anticipated at 1s
+        _playTimerSound(_timerEndSource);
         widget.onComplete();
       }
     });

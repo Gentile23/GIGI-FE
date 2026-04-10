@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -31,6 +32,8 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
   // Local list of exercises to add
   List<_LocalExercise> _exercises = [];
   bool _isSaving = false;
+  bool _allowPop = false;
+  late String _initialSnapshot;
   bool get isEditing => widget.existingPlan != null;
   late QuotaService _quotaService;
 
@@ -58,6 +61,8 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
           )
           .toList();
     }
+
+    _initialSnapshot = _buildSnapshot();
   }
 
   @override
@@ -142,6 +147,7 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             backgroundColor: CleanTheme.accentGreen,
           ),
         );
+        setState(() => _allowPop = true);
         Navigator.pop(context, true);
       }
     } else {
@@ -154,6 +160,92 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
         );
       }
     }
+  }
+
+  String _buildSnapshot() {
+    final exerciseSnapshot = _exercises
+        .map(
+          (exercise) => [
+            exercise.exercise.id,
+            exercise.sets,
+            exercise.reps.trim(),
+            exercise.restSeconds,
+            exercise.exerciseType,
+            exercise.position,
+            exercise.notes?.trim() ?? '',
+          ].join('|'),
+        )
+        .join(';;');
+
+    return [
+      _nameController.text.trim(),
+      _descriptionController.text.trim(),
+      exerciseSnapshot,
+    ].join('::');
+  }
+
+  bool get _hasUnsavedChanges => _buildSnapshot() != _initialSnapshot;
+  bool get _shouldConfirmExit => !isEditing || _hasUnsavedChanges;
+
+  Future<void> _handleBackPressed() async {
+    if (_isSaving) return;
+
+    if (!_shouldConfirmExit) {
+      setState(() => _allowPop = true);
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    final action = await _showDiscardChangesDialog();
+    if (!mounted) return;
+
+    if (action == 'discard') {
+      setState(() => _allowPop = true);
+      Navigator.pop(context);
+    } else if (action == 'save') {
+      await _saveWorkout();
+    }
+  }
+
+  Future<String?> _showDiscardChangesDialog() {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Sei sicuro di tornare indietro?',
+          style: GoogleFonts.outfit(
+            color: CleanTheme.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Text(
+          'Perderai tutto quello che non hai salvato.',
+          style: GoogleFonts.outfit(color: CleanTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            child: Text(
+              'Esci senza salvare',
+              style: GoogleFonts.outfit(color: CleanTheme.accentRed),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CleanTheme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Salva',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showQuotaExceededDialog(String reason) {
@@ -282,11 +374,19 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBackPressed();
+      },
       child: Scaffold(
         backgroundColor: CleanTheme.backgroundColor,
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            onPressed: _handleBackPressed,
+          ),
           title: Text(
             isEditing
                 ? AppLocalizations.of(context)!.editWorkout
@@ -322,21 +422,24 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
             ),
           ],
         ),
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  // 1. Interactive Header (Brain-Friendly)
-                  _buildModernHeader(),
+        body: Form(
+          key: _formKey,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    // 1. Interactive Header (Brain-Friendly)
+                    _buildModernHeader(),
 
-                  // 2. Vertical Reorderable Phases
-                  Expanded(child: _buildReorderablePhases()),
-                ],
-              ),
-              // 3. Floating Action Bottom (optional, but keep it clean)
-              _buildBottomActions(),
-            ],
+                    // 2. Vertical Reorderable Phases
+                    Expanded(child: _buildReorderablePhases()),
+                  ],
+                ),
+                // 3. Floating Action Bottom (optional, but keep it clean)
+                _buildBottomActions(),
+              ],
+            ),
           ),
         ),
       ),
@@ -823,6 +926,9 @@ class _EditExerciseSheet extends StatefulWidget {
 class _EditExerciseSheetState extends State<_EditExerciseSheet> {
   late List<TextEditingController> _repsControllers;
   late TextEditingController _notesController;
+  late TextEditingController _customSetsController;
+  late TextEditingController _customTargetController;
+  late TextEditingController _customRestController;
   late String _exerciseType;
   late String _position;
   late int _sets;
@@ -846,6 +952,13 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     _isUniformReps =
         repsList.length <= 1 || repsList.every((r) => r == repsList[0]);
     _globalReps = repsList.isNotEmpty ? repsList[0] : '10';
+    _customSetsController = TextEditingController(text: _sets.toString());
+    _customTargetController = TextEditingController(
+      text: _isUniformReps && _globalReps != 'A cedimento' ? _globalReps : '',
+    );
+    _customRestController = TextEditingController(
+      text: _restSeconds.toString(),
+    );
 
     _initializeRepsControllers();
   }
@@ -899,12 +1012,126 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     );
   }
 
+  int? _parseBoundedInt({
+    required String rawValue,
+    required String fieldLabel,
+    required int min,
+    required int max,
+  }) {
+    final value = rawValue.trim();
+    if (value.isEmpty) {
+      _showInputError('$fieldLabel non puo essere vuoto.');
+      return null;
+    }
+
+    final parsed = int.tryParse(value);
+    if (parsed == null) {
+      _showInputError('$fieldLabel deve essere un numero intero.');
+      return null;
+    }
+
+    if (parsed < min || parsed > max) {
+      _showInputError('$fieldLabel deve essere tra $min e $max.');
+      return null;
+    }
+
+    return parsed;
+  }
+
+  String? _parseCardioDuration(String rawValue) {
+    final value = rawValue.trim();
+    if (value.isEmpty) {
+      _showInputError('La durata non puo essere vuota.');
+      return null;
+    }
+
+    int totalSeconds;
+    if (value.contains(':')) {
+      final parts = value.split(':');
+      if (parts.length != 2) {
+        _showInputError('Usa un formato durata valido, ad esempio 1:30.');
+        return null;
+      }
+
+      final minutes = int.tryParse(parts[0]);
+      final seconds = int.tryParse(parts[1]);
+      if (minutes == null || seconds == null || seconds < 0 || seconds > 59) {
+        _showInputError('Usa un formato durata valido, ad esempio 1:30.');
+        return null;
+      }
+      totalSeconds = (minutes * 60) + seconds;
+    } else {
+      final seconds = int.tryParse(value);
+      if (seconds == null) {
+        _showInputError('La durata deve essere in secondi o in formato m:ss.');
+        return null;
+      }
+      totalSeconds = seconds;
+    }
+
+    if (totalSeconds < 1 || totalSeconds > 7200) {
+      _showInputError('La durata deve essere tra 1 secondo e 120 minuti.');
+      return null;
+    }
+
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  String? _tryParseCardioDuration(String rawValue) {
+    final value = rawValue.trim();
+    if (value.isEmpty) return null;
+
+    int? totalSeconds;
+    if (value.contains(':')) {
+      final parts = value.split(':');
+      if (parts.length != 2) return null;
+      final minutes = int.tryParse(parts[0]);
+      final seconds = int.tryParse(parts[1]);
+      if (minutes == null || seconds == null || seconds < 0 || seconds > 59) {
+        return null;
+      }
+      totalSeconds = (minutes * 60) + seconds;
+    } else {
+      totalSeconds = int.tryParse(value);
+    }
+
+    if (totalSeconds == null || totalSeconds < 1 || totalSeconds > 7200) {
+      return null;
+    }
+
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _showInputError(String message) {
+    HapticService.errorPattern();
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Valore non valido'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     for (var controller in _repsControllers) {
       controller.dispose();
     }
     _notesController.dispose();
+    _customSetsController.dispose();
+    _customTargetController.dispose();
+    _customRestController.dispose();
     super.dispose();
   }
 
@@ -1055,10 +1282,12 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                 onTap: () {
                   setState(() {
                     _sets = s['sets'] as int;
+                    _customSetsController.text = _sets.toString();
                     final repsValue = s['reps'] as String;
 
                     if (repsValue.contains(',')) {
                       _isUniformReps = false;
+                      _customTargetController.clear();
                       final repsList = repsValue
                           .split(',')
                           .map((e) => e.trim())
@@ -1068,6 +1297,7 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
                     } else {
                       _isUniformReps = true;
                       _globalReps = repsValue;
+                      _customTargetController.text = repsValue;
                       _updateRepsControllers();
                     }
                     HapticService.selectionClick();
@@ -1128,10 +1358,28 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               isSelected: isSelected,
               onTap: () => setState(() {
                 _sets = val;
+                _customSetsController.text = val.toString();
                 _updateRepsControllers();
               }),
             );
           }),
+        ),
+        const SizedBox(height: 16),
+        _buildCustomInputField(
+          label: 'Serie personalizzate',
+          hint: '1-20',
+          controller: _customSetsController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (value) {
+            final parsed = int.tryParse(value.trim());
+            if (parsed != null && parsed >= 1 && parsed <= 20) {
+              setState(() {
+                _sets = parsed;
+                _updateRepsControllers();
+              });
+            }
+          },
         ),
       ],
     );
@@ -1195,13 +1443,95 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               isSelected: isSelected,
               onTap: () => setState(() {
                 _globalReps = val;
+                _isUniformReps = true;
+                _customTargetController.text = val == 'Cedimento' ? '' : val;
+                _updateRepsControllers();
                 HapticService.selectionClick();
               }),
               compact: true,
             );
           },
         ),
+        const SizedBox(height: 16),
+        _buildCustomInputField(
+          label: isCardio
+              ? 'Durata personalizzata'
+              : 'Ripetizioni personalizzate',
+          hint: isCardio ? 'es. 90 o 1:30' : '1-999',
+          controller: _customTargetController,
+          keyboardType: isCardio
+              ? TextInputType.datetime
+              : TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(
+              isCardio ? RegExp(r'[\d:]') : RegExp(r'\d'),
+            ),
+          ],
+          onChanged: (value) {
+            final trimmed = value.trim();
+            if (trimmed.isEmpty) return;
+
+            if (isCardio) {
+              final normalized = _tryParseCardioDuration(trimmed);
+              if (normalized != null) {
+                setState(() {
+                  _isUniformReps = true;
+                  _globalReps = normalized;
+                  _updateRepsControllers();
+                });
+              }
+              return;
+            }
+
+            final parsed = int.tryParse(trimmed);
+            if (parsed != null && parsed >= 1 && parsed <= 999) {
+              setState(() {
+                _isUniformReps = true;
+                _globalReps = parsed.toString();
+                _updateRepsControllers();
+              });
+            }
+          },
+        ),
       ],
+    );
+  }
+
+  Widget _buildCustomInputField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required TextInputType keyboardType,
+    required List<TextInputFormatter> inputFormatters,
+    required ValueChanged<String> onChanged,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      onChanged: onChanged,
+      textInputAction: TextInputAction.done,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
+        filled: true,
+        fillColor: CleanTheme.surfaceColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.borderSecondary),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.borderSecondary),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CleanTheme.primaryColor),
+        ),
+      ),
+      style: GoogleFonts.inter(color: CleanTheme.textPrimary),
     );
   }
 
@@ -1269,6 +1599,7 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
             return GestureDetector(
               onTap: () => setState(() {
                 _restSeconds = s;
+                _customRestController.text = s.toString();
                 HapticService.selectionClick();
               }),
               child: AnimatedContainer(
@@ -1299,6 +1630,20 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               ),
             );
           }).toList(),
+        ),
+        const SizedBox(height: 16),
+        _buildCustomInputField(
+          label: 'Recupero personalizzato',
+          hint: '0-600 secondi',
+          controller: _customRestController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          onChanged: (value) {
+            final parsed = int.tryParse(value.trim());
+            if (parsed != null && parsed >= 0 && parsed <= 600) {
+              setState(() => _restSeconds = parsed);
+            }
+          },
         ),
       ],
     );
@@ -1483,24 +1828,92 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     );
   }
 
-  void _saveExercise() {
-    String combinedReps = _globalReps == 'Cedimento'
-        ? 'A cedimento'
-        : _globalReps;
+  Future<void> _saveExercise() async {
+    final parsedSets = _parseBoundedInt(
+      rawValue: _customSetsController.text,
+      fieldLabel: 'Le serie',
+      min: 1,
+      max: 20,
+    );
+    if (parsedSets == null) return;
+
+    final parsedRest = _parseBoundedInt(
+      rawValue: _customRestController.text,
+      fieldLabel: 'Il recupero',
+      min: 0,
+      max: 600,
+    );
+    if (parsedRest == null) return;
+
+    _sets = parsedSets;
+    _restSeconds = parsedRest;
+    _updateRepsControllers();
+
+    String combinedReps;
+    final isCardio = _exerciseType == 'cardio';
 
     if (!_isUniformReps) {
-      combinedReps = _repsControllers
-          .map((c) => c.text.trim())
-          .where((text) => text.isNotEmpty)
-          .join(', ');
+      final parsedValues = <String>[];
+      for (int i = 0; i < _repsControllers.length; i++) {
+        final rawValue = _repsControllers[i].text.trim();
+        if (isCardio) {
+          final parsedDuration = _parseCardioDuration(rawValue);
+          if (parsedDuration == null) return;
+          parsedValues.add(parsedDuration);
+        } else {
+          if (rawValue == 'Cedimento' || rawValue == 'A cedimento') {
+            parsedValues.add('A cedimento');
+            continue;
+          }
+
+          final parsedReps = _parseBoundedInt(
+            rawValue: rawValue,
+            fieldLabel: 'Le ripetizioni della serie ${i + 1}',
+            min: 1,
+            max: 999,
+          );
+          if (parsedReps == null) return;
+          parsedValues.add(parsedReps.toString());
+        }
+      }
+      combinedReps = parsedValues.join(', ');
+    } else if (isCardio) {
+      final parsedDuration = _parseCardioDuration(
+        _customTargetController.text.trim().isNotEmpty
+            ? _customTargetController.text
+            : _globalReps,
+      );
+      if (parsedDuration == null) return;
+      combinedReps = parsedDuration;
+      _globalReps = parsedDuration;
+      _customTargetController.text = parsedDuration;
+    } else {
+      final rawTarget = _customTargetController.text.trim().isNotEmpty
+          ? _customTargetController.text.trim()
+          : _globalReps;
+
+      if (rawTarget == 'Cedimento' || rawTarget == 'A cedimento') {
+        combinedReps = 'A cedimento';
+      } else {
+        final parsedReps = _parseBoundedInt(
+          rawValue: rawTarget,
+          fieldLabel: 'Le ripetizioni',
+          min: 1,
+          max: 999,
+        );
+        if (parsedReps == null) return;
+        combinedReps = parsedReps.toString();
+        _globalReps = combinedReps;
+        _customTargetController.text = combinedReps;
+      }
     }
 
     final updated = _LocalExercise(
       id: widget.exercise.id,
       exercise: widget.exercise.exercise,
-      sets: _sets,
+      sets: parsedSets,
       reps: combinedReps.isNotEmpty ? combinedReps : '10',
-      restSeconds: _restSeconds,
+      restSeconds: parsedRest,
       exerciseType: _exerciseType,
       position: _position,
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,

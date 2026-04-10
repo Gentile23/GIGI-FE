@@ -5,6 +5,7 @@ import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/social_provider.dart';
 import 'package:gigi/l10n/app_localizations.dart';
@@ -185,7 +186,9 @@ class _ActivityFeedScreenState extends State<ActivityFeedScreen>
                 return Padding(
                   padding: EdgeInsets.only(bottom: 20),
                   child: GigiCoachMessage(
-                    message: AppLocalizations.of(context)!.communityGigiMessage,
+                    messageId: 'social.feed.intro',
+                    title: 'Come usare il feed',
+                    message: GigiGuidanceContent.socialFeed(),
                     emotion: GigiEmotion.motivational,
                   ),
                 );

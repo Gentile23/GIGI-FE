@@ -10,6 +10,7 @@ import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/gamification_provider.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import '../../widgets/clean_widgets.dart';
@@ -379,19 +380,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                 end: Alignment.bottomRight,
               ),
             ),
-          child: Consumer<AuthProvider>(
-            builder: (context, auth, _) => CleanAvatar(
-              size: 48,
-              imageUrl: auth.user?.avatarUrl,
-              initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
-              backgroundColor: CleanTheme.surfaceColor,
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) => CleanAvatar(
+                size: 48,
+                imageUrl: auth.user?.avatarUrl,
+                initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                backgroundColor: CleanTheme.surfaceColor,
+              ),
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;
@@ -667,8 +668,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       }
     }
 
+    final screenHeight = MediaQuery.of(context).size.height;
+    final cardHeight = (screenHeight * 0.38).clamp(280.0, 400.0);
+
     return SizedBox(
-      height: 380,
+      height: cardHeight,
       width: double.infinity,
       child: GestureDetector(
         onTap: onActionTap,
@@ -935,7 +939,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
   }
 
-
   Widget _buildSkeletonLoading({Key? key}) {
     return Column(
       key: key,
@@ -962,7 +965,14 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         const SkeletonBox(width: double.infinity, height: 80, radius: 20),
         const SizedBox(height: 24),
         // Hero Card Skeleton
-        const SkeletonBox(width: double.infinity, height: 280, radius: 24),
+        SkeletonBox(
+          width: double.infinity,
+          height: (MediaQuery.of(context).size.height * 0.38).clamp(
+            280.0,
+            400.0,
+          ),
+          radius: 24,
+        ),
         const SizedBox(height: 24),
         // Stats Row Skeleton
         Row(
@@ -996,7 +1006,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: GigiCoachMessage(
-            message: AppLocalizations.of(context)!.gigiAssessmentComplete,
+            messageId: 'home.assessment_complete',
+            title: 'Come usare la home',
+            message: GigiGuidanceContent.homeAssessmentComplete(),
             emotion: GigiEmotion.celebrating,
           ),
         );
@@ -1005,7 +1017,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 24),
           child: GigiCoachMessage(
-            message: AppLocalizations.of(context)!.gigiStartTransformation,
+            messageId: 'home.questionnaire_incomplete',
+            title: 'Prima configurazione',
+            message: GigiGuidanceContent.homeQuestionnaireIncomplete(),
             emotion: GigiEmotion.expert,
             action: CleanButton(
               text: 'Completa il Profilo',
@@ -1028,7 +1042,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       return Padding(
         padding: const EdgeInsets.only(bottom: 24),
         child: GigiCoachMessage(
-          message: "Sto elaborando la tua nuova strategia scientifica...",
+          messageId: 'home.plan_processing',
+          title: 'Scheda in preparazione',
+          message: GigiGuidanceContent.homePlanProcessing(),
           emotion: GigiEmotion.expert,
         ),
       );
@@ -1037,7 +1053,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: GigiCoachMessage(
-        message: AppLocalizations.of(context)!.gigiReadyForWorkout,
+        messageId: 'home.plan_ready',
+        title: 'Pannello rapido',
+        message: GigiGuidanceContent.homePlanReady(),
         emotion: GigiEmotion.expert,
       ),
     );

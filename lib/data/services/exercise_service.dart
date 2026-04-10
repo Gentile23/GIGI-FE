@@ -26,6 +26,7 @@ class ExerciseService {
     String? muscleGroup,
     String? equipment,
     String? exerciseType,
+    String? search,
     String? locale,
   }) async {
     try {
@@ -34,6 +35,9 @@ class ExerciseService {
       if (muscleGroup != null) queryParams['muscle_group'] = muscleGroup;
       if (equipment != null) queryParams['equipment'] = equipment;
       if (exerciseType != null) queryParams['exercise_type'] = exerciseType;
+      if (search != null && search.trim().isNotEmpty) {
+        queryParams['search'] = search.trim();
+      }
       // Add locale for translations
       queryParams['locale'] = locale ?? _getLocale();
 
@@ -55,7 +59,8 @@ class ExerciseService {
       return {
         'success': false,
         'message': e is DioException
-            ? (e.response?.data['message'] ?? 'Errore durante il recupero degli esercizi')
+            ? (e.response?.data['message'] ??
+                  'Errore durante il recupero degli esercizi')
             : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
@@ -72,12 +77,16 @@ class ExerciseService {
         return {'success': true, 'exercise': Exercise.fromJson(response.data)};
       }
 
-      return {'success': false, 'message': 'Impossibile recuperare l\'esercizio'};
+      return {
+        'success': false,
+        'message': 'Impossibile recuperare l\'esercizio',
+      };
     } catch (e) {
       return {
         'success': false,
         'message': e is DioException
-            ? (e.response?.data['message'] ?? 'Errore durante il recupero dell\'esercizio')
+            ? (e.response?.data['message'] ??
+                  'Errore durante il recupero dell\'esercizio')
             : 'Si è verificato un errore inatteso. Riprova.',
       };
     }
@@ -97,7 +106,10 @@ class ExerciseService {
         return {'success': true, 'exercises': exercises};
       }
 
-      return {'success': false, 'message': 'Impossibile recuperare esercizi simili'};
+      return {
+        'success': false,
+        'message': 'Impossibile recuperare esercizi simili',
+      };
     } catch (e) {
       return {
         'success': false,

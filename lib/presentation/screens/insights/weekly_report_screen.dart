@@ -22,8 +22,10 @@ class WeeklyReportScreen extends StatefulWidget {
 class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   final HealthInsightsService _insightsService = HealthInsightsService();
   WeeklyHealthReport? _report;
-  List<CorrelationInsight> _correlations = [];
   bool _isLoading = true;
+  bool _isConnecting = false;
+  bool _isInstalling = false;
+  bool _healthConnectInstalled = true;
 
   @override
   void initState() {
@@ -33,13 +35,16 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
   Future<void> _loadReport() async {
     try {
+      final isAndroid = _insightsService.isAndroidPlatform;
+      final healthConnectInstalled = isAndroid
+          ? await _insightsService.isHealthConnectInstalled()
+          : true;
       final report = await _insightsService.generateWeeklyReport();
-      final correlations = await _insightsService.getCorrelationInsights();
 
       if (mounted) {
         setState(() {
           _report = report;
-          _correlations = correlations;
+          _healthConnectInstalled = healthConnectInstalled;
           _isLoading = false;
         });
       }
@@ -47,6 +52,47 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _installHealthConnect() async {
+    setState(() => _isInstalling = true);
+    await _insightsService.installHealthConnect();
+    final installed = await _insightsService.isHealthConnectInstalled();
+
+    if (!mounted) return;
+
+    setState(() {
+      _healthConnectInstalled = installed;
+      _isInstalling = false;
+    });
+  }
+
+  Future<void> _connectHealth() async {
+    setState(() => _isConnecting = true);
+
+    final authorized = await _insightsService.connectHealth();
+
+    if (!mounted) return;
+
+    setState(() => _isConnecting = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          authorized
+              ? '${_insightsService.platformName} connesso'
+              : 'Permessi Health non concessi',
+        ),
+        backgroundColor: authorized
+            ? CleanTheme.accentGreen
+            : CleanTheme.accentOrange,
+      ),
+    );
+
+    if (authorized) {
+      setState(() => _isLoading = true);
+      await _loadReport();
     }
   }
 
@@ -204,17 +250,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 _buildInsightsList(),
 
                 const SizedBox(height: 24),
-
-                // Correlations
-                _buildSectionTitle(
-                  '🔮',
-                  AppLocalizations.of(context)!.patternDiscovery,
-                ),
-                const SizedBox(height: 12),
-                _buildCorrelationsList(),
-
-                const SizedBox(height: 24),
-
                 // AI Tip
                 _buildAITip(),
 
@@ -359,8 +394,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildSleepChart() {
-    // Mock data for chart
-    final sleepData = [6.5, 7.2, 5.8, 7.5, 6.9, 8.1, 7.0];
+    final sleepData = _report!.sleep.dailyHours.values.toList();
     final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 
     return Container(
@@ -425,7 +459,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           ),
           borderData: FlBorderData(show: false),
           barGroups: List.generate(7, (index) {
-            final value = sleepData[index];
+            final value = index < sleepData.length ? sleepData[index] : 0.0;
             return BarChartGroupData(
               x: index,
               barRods: [
@@ -538,79 +572,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  Widget _buildCorrelationsList() {
-    return Column(
-      children: _correlations
-          .map(
-            (c) => Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    CleanTheme.primaryColor.withValues(alpha: 0.1),
-                    CleanTheme.primaryColor.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Text(c.emoji, style: const TextStyle(fontSize: 24)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          c.insight,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: CleanTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.basedOnDataPoints(c.dataPoints),
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: CleanTheme.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${(c.correlation * 100).round()}%',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.primaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
-    );
-  }
-
   Widget _buildAITip() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -681,9 +642,47 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!.connectHealthDesc,
+              _healthConnectInstalled
+                  ? (_insightsService.isAndroidPlatform
+                        ? AppLocalizations.of(context)!.syncHealthConnect
+                        : AppLocalizations.of(context)!.syncAppleHealth)
+                  : AppLocalizations.of(context)!.installHealthConnectInfo,
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isConnecting || _isInstalling
+                    ? null
+                    : (_healthConnectInstalled
+                          ? _connectHealth
+                          : _installHealthConnect),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CleanTheme.primaryColor,
+                  foregroundColor: CleanTheme.textOnDark,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: _isConnecting || _isInstalling
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: CleanTheme.textOnDark,
+                        ),
+                      )
+                    : Text(
+                        _healthConnectInstalled
+                            ? AppLocalizations.of(
+                                context,
+                              )!.connectTo(_insightsService.platformName)
+                            : AppLocalizations.of(
+                                context,
+                              )!.installHealthConnect,
+                      ),
+              ),
             ),
           ],
         ),

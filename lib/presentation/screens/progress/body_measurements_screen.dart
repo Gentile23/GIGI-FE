@@ -8,6 +8,7 @@ import '../../widgets/clean_widgets.dart';
 import '../../../data/services/api_client.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import '../../../core/services/haptic_service.dart';
 
 class BodyMeasurementsScreen extends StatefulWidget {
@@ -53,8 +54,8 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
       final response = await _apiClient.get('progress/measurements');
       if (response['latest'] != null) {
         setState(() {
-          _latestMeasurements = response['latest'] is Map<String, dynamic> 
-              ? response['latest'] 
+          _latestMeasurements = response['latest'] is Map<String, dynamic>
+              ? response['latest']
               : null;
         });
       }
@@ -91,25 +92,25 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
-      appBar: widget.isOnboarding 
-        ? null 
-        : AppBar(
-            title: Text(
-              l10n.bodyMeasurements,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textPrimary,
-                fontSize: 20,
+      appBar: widget.isOnboarding
+          ? null
+          : AppBar(
+              title: Text(
+                l10n.bodyMeasurements,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                  fontSize: 20,
+                ),
+              ),
+              centerTitle: true,
+              backgroundColor: CleanTheme.surfaceColor,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-            centerTitle: true,
-            backgroundColor: CleanTheme.surfaceColor,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -148,7 +149,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
               _buildModernGroupHeader(l10n.torso, Icons.accessibility),
               const SizedBox(height: 12),
@@ -293,8 +294,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                 ),
               ),
               if (isRequired)
-                const Text(' *',
-                    style: TextStyle(color: CleanTheme.accentRed)),
+                const Text(' *', style: TextStyle(color: CleanTheme.accentRed)),
             ],
           ),
           const SizedBox(height: 8),
@@ -332,10 +332,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                     controller: controller,
                     textAlign: TextAlign.center,
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*')),
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
                     style: GoogleFonts.outfit(
                       fontSize: 16,
@@ -356,7 +356,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                       setState(() {
                         if (val != null && range != null) {
                           if (val < range.$1 || val > range.$2) {
-                                _validationErrors[apiKey] = 'Valore insolito?';
+                            _validationErrors[apiKey] = 'Valore insolito?';
                           } else {
                             _validationErrors[apiKey] = null;
                           }
@@ -422,7 +422,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                         'Inserisci le tue misure per vedere come cambia il tuo fisico.',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: CleanTheme.textOnPrimary.withValues(alpha: 0.8),
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.8,
+                          ),
                         ),
                       ),
                     ],
@@ -438,8 +440,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const GigiCoachMessage(
-          message: 'Le misure sono fondamentali per capire la tua trasformazione, specialmente quando la bilancia non si muove!',
+        GigiCoachMessage(
+          messageId: 'progress.body_measurements.entry',
+          title: 'Perche inserire le misure',
+          message: GigiGuidanceContent.bodyMeasurements(),
           emotion: GigiEmotion.expert,
         ),
       ],
@@ -463,7 +467,11 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.lightbulb_outline, color: CleanTheme.accentGold, size: 20),
+                const Icon(
+                  Icons.lightbulb_outline,
+                  color: CleanTheme.accentGold,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -476,7 +484,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                   ),
                 ),
                 Icon(
-                  _showTips ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  _showTips
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                   color: CleanTheme.textSecondary,
                   size: 20,
                 ),
@@ -491,10 +501,26 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             backgroundColor: CleanTheme.primaryLight.withValues(alpha: 0.5),
             child: Column(
               children: [
-                _buildTipRow(Icons.access_time, l10n.measureSameTime, l10n.morningsFasting),
-                _buildTipRow(Icons.square_foot, l10n.flexibleTape, l10n.noRigidRulers),
-                _buildTipRow(Icons.refresh, l10n.repeatTwice, l10n.ensureCorrect),
-                _buildTipRow(Icons.air, l10n.relaxNoContracting, l10n.naturalPosition),
+                _buildTipRow(
+                  Icons.access_time,
+                  l10n.measureSameTime,
+                  l10n.morningsFasting,
+                ),
+                _buildTipRow(
+                  Icons.square_foot,
+                  l10n.flexibleTape,
+                  l10n.noRigidRulers,
+                ),
+                _buildTipRow(
+                  Icons.refresh,
+                  l10n.repeatTwice,
+                  l10n.ensureCorrect,
+                ),
+                _buildTipRow(
+                  Icons.air,
+                  l10n.relaxNoContracting,
+                  l10n.naturalPosition,
+                ),
               ],
             ),
           ),
@@ -538,7 +564,6 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     );
   }
 
-
   Future<void> _saveMeasurements() async {
     HapticService.mediumTap();
     setState(() => _isLoading = true);
@@ -554,12 +579,18 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     try {
       final data = {
         'measurement_date': DateTime.now().toIso8601String().split('T')[0],
-        'bicep_right_cm': parseValue(_bicepRightController.text, 'bicep_right_cm'),
+        'bicep_right_cm': parseValue(
+          _bicepRightController.text,
+          'bicep_right_cm',
+        ),
         'bicep_left_cm': parseValue(_bicepLeftController.text, 'bicep_left_cm'),
         'chest_cm': parseValue(_chestController.text, 'chest_cm'),
         'waist_cm': parseValue(_waistController.text, 'waist_cm'),
         'hips_cm': parseValue(_hipsController.text, 'hips_cm'),
-        'thigh_right_cm': parseValue(_thighRightController.text, 'thigh_right_cm'),
+        'thigh_right_cm': parseValue(
+          _thighRightController.text,
+          'thigh_right_cm',
+        ),
         'thigh_left_cm': parseValue(_thighLeftController.text, 'thigh_left_cm'),
         'calf_cm': parseValue(_calfController.text, 'calf_cm'),
       };
@@ -577,7 +608,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             ),
             backgroundColor: CleanTheme.accentGreen,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
 
@@ -590,9 +623,10 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        
-        String errorMessage = 'Ops! Qualcosa è andato storto durante il salvataggio.';
-        
+
+        String errorMessage =
+            'Ops! Qualcosa è andato storto durante il salvataggio.';
+
         if (e is DioException) {
           if (e.response?.statusCode == 422) {
             final errors = e.response?.data['errors'] as Map<String, dynamic>?;
@@ -600,7 +634,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               // Prendi il primo errore e rendilo leggibile
               String field = errors.keys.first;
               String rawMessage = errors.values.first[0].toString();
-              
+
               // Traduzione dei nomi dei campi per l'utente
               final fieldTranslations = {
                 'bicep_right_cm': 'Bicipite destro',
@@ -615,23 +649,29 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               };
 
               String cleanField = fieldTranslations[field] ?? field;
-              
+
               if (rawMessage.contains('greater than')) {
-                errorMessage = 'Il valore per $cleanField è troppo alto. Controlla di aver inserito i dati corretti.';
+                errorMessage =
+                    'Il valore per $cleanField è troppo alto. Controlla di aver inserito i dati corretti.';
               } else if (rawMessage.contains('less than')) {
                 errorMessage = 'Il valore per $cleanField è troppo basso.';
               } else {
                 errorMessage = 'Dati non validi per $cleanField. Riprova.';
               }
             } else {
-              errorMessage = 'I dati inseriti non sono validi. Controlla i valori e riprova.';
+              errorMessage =
+                  'I dati inseriti non sono validi. Controlla i valori e riprova.';
             }
-          } else if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
-            errorMessage = 'Problema di connessione. Verifica la tua rete e riprova.';
+          } else if (e.type == DioExceptionType.connectionTimeout ||
+              e.type == DioExceptionType.receiveTimeout) {
+            errorMessage =
+                'Problema di connessione. Verifica la tua rete e riprova.';
           } else if (e.response?.statusCode == 401) {
-            errorMessage = 'Sessione scaduta. Per favore, effettua di nuovo l\'accesso.';
+            errorMessage =
+                'Sessione scaduta. Per favore, effettua di nuovo l\'accesso.';
           } else {
-            errorMessage = 'Impossibile raggiungere il server al momento. Riprova più tardi.';
+            errorMessage =
+                'Impossibile raggiungere il server al momento. Riprova più tardi.';
           }
         }
 
@@ -647,7 +687,9 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             backgroundColor: CleanTheme.accentRed,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 5),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }

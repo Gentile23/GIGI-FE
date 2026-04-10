@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -62,6 +64,7 @@ String? _toEnglishEquipment(String? italianName) {
 class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
   late ExerciseService _exerciseService;
   final _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   List<Exercise> _allExercises = [];
   List<Exercise> _filteredExercises = [];
@@ -100,6 +103,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -116,13 +120,14 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
         equipment: _toEnglishEquipment(_selectedEquipment),
         difficulty: _selectedDifficulty,
         exerciseType: _selectedType,
+        search: _searchController.text,
       );
 
       if (mounted) {
         setState(() {
           if (result['success'] == true) {
             _allExercises = result['exercises'] as List<Exercise>;
-            _applySearch();
+            _filteredExercises = _filterExercises(_allExercises);
           } else {
             _error = result['message'] as String?;
           }
@@ -149,16 +154,32 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     'spinte': ['press', 'push'],
     'croci': ['fly'],
     'stacco': ['deadlift'],
-    'rematore': ['row'],
-    'trazioni': ['pull up', 'chin up', 'lat pull'],
+    'rematore': ['row', 'rowing', 'tirage'],
+    'trazioni': ['pull up', 'chin up', 'lat pull', 'pulldown'],
     'flessioni': ['push up'],
     'affondi': ['lunge'],
     'alzate': ['raise'],
     'estensioni': ['extension'],
     'curl': ['curl'],
     'presse': ['press'],
-    'cavo': ['cable'],
+    'cavo': ['cable', 'cables', 'pulley', 'poulie'],
     'cav': ['cable'],
+    'cavi': ['cable', 'cables', 'pulley', 'poulie'],
+    'pulley': [
+      'cable',
+      'cables',
+      'poulie',
+      'puleggia',
+      'row',
+      'rowing',
+      'tirage',
+    ],
+    'puleggia': ['cable', 'cables', 'pulley', 'poulie'],
+    'poulie': ['cable', 'cables', 'pulley'],
+    'lat machine': ['lat pulldown', 'pulldown', 'tirage vertical'],
+    'latmachine': ['lat pulldown', 'pulldown', 'tirage vertical'],
+    'tirata': ['row', 'rowing', 'tirage', 'pulldown'],
+    'tiraggio': ['row', 'rowing', 'tirage', 'pulldown'],
     'manubri': ['dumbbell'],
     'bilanciere': ['barbell'],
     'sbarra': ['bar'],
@@ -179,35 +200,66 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
   };
 
   void _applySearch() {
+    setState(() {
+      _filteredExercises = _filterExercises(_allExercises);
+    });
+  }
+
+  List<Exercise> _filterExercises(List<Exercise> exercises) {
     final rawQuery = _searchController.text.toLowerCase().trim();
 
-    setState(() {
-      if (rawQuery.isEmpty) {
-        _filteredExercises = List.from(_allExercises);
-        return;
+    if (rawQuery.isEmpty) {
+      return List.from(exercises);
+    }
+
+    // Expand query with English terms if Italian keywords are found
+    final searchTerms = [rawQuery];
+    _italianMappings.forEach((italian, englishTerms) {
+      if (rawQuery.contains(italian)) {
+        searchTerms.addAll(englishTerms);
+      }
+    });
+
+    return exercises.where((exercise) {
+      final searchableName = exercise.name.toLowerCase();
+      final italianName = exercise.nameIt?.toLowerCase() ?? '';
+      final description = exercise.description.toLowerCase();
+
+      // Check exact name match first
+      if (searchableName.contains(rawQuery) ||
+          italianName.contains(rawQuery) ||
+          description.contains(rawQuery)) {
+        return true;
       }
 
-      // Expand query with English terms if Italian keywords are found
-      List<String> searchTerms = [rawQuery];
-      _italianMappings.forEach((italian, englishTerms) {
-        if (rawQuery.contains(italian)) {
-          searchTerms.addAll(englishTerms);
-        }
+      // Check against expanded terms
+      return searchTerms.any((term) {
+        final t = term.toLowerCase();
+        return searchableName.contains(t) ||
+            italianName.contains(t) ||
+            description.contains(t) ||
+            exercise.muscleGroups.any((mg) => mg.toLowerCase().contains(t)) ||
+            exercise.secondaryMuscleGroups.any(
+              (mg) => mg.toLowerCase().contains(t),
+            ) ||
+            exercise.equipment.any((eq) => eq.toLowerCase().contains(t));
       });
+    }).toList();
+  }
 
-      _filteredExercises = _allExercises.where((exercise) {
-        // Check exact name match first
-        if (exercise.name.toLowerCase().contains(rawQuery)) return true;
+  void _onSearchChanged(String _) {
+    if (_searchController.text.trim().isNotEmpty &&
+        _selectedMuscleGroup != null) {
+      setState(() {
+        _selectedMuscleGroup = null;
+        _filteredExercises = _filterExercises(_allExercises);
+      });
+    } else {
+      _applySearch();
+    }
 
-        // Check against expanded terms
-        return searchTerms.any((term) {
-          final t = term.toLowerCase();
-          return exercise.name.toLowerCase().contains(t) ||
-              exercise.muscleGroups.any((mg) => mg.toLowerCase().contains(t)) ||
-              exercise.equipment.any((eq) => eq.toLowerCase().contains(t));
-        });
-      }).toList();
-    });
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), _loadExercises);
   }
 
   void _toggleSelection(Exercise exercise) {
@@ -549,7 +601,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                     child: TextField(
                       controller: _searchController,
                       style: GoogleFonts.outfit(color: CleanTheme.textPrimary),
-                      onChanged: (_) => _applySearch(),
+                      onChanged: _onSearchChanged,
                       decoration: InputDecoration(
                         hintText: AppLocalizations.of(context)!.searchHint,
                         hintStyle: GoogleFonts.outfit(
@@ -567,7 +619,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                                 color: CleanTheme.textSecondary,
                                 onPressed: () {
                                   _searchController.clear();
-                                  _applySearch();
+                                  _loadExercises();
                                 },
                               )
                             : null,

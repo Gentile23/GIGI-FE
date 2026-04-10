@@ -12,6 +12,7 @@ import '../../../data/models/workout_log_model.dart';
 import '../../../providers/workout_log_provider.dart';
 import '../../../core/services/audio/voice_coaching_player.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/services/rest_timer_service.dart';
 
 /// Data passed when a single set is completed
 class SetCompletionData {
@@ -34,6 +35,8 @@ class SetCompletionData {
 
 class SetLoggingWidget extends StatefulWidget {
   final WorkoutExercise exercise;
+  final String restTimerId;
+  final String workoutDayId;
   final ExerciseLogModel? exerciseLog;
   final Function(bool) onCompletionChanged;
 
@@ -64,6 +67,8 @@ class SetLoggingWidget extends StatefulWidget {
   const SetLoggingWidget({
     super.key,
     required this.exercise,
+    required this.restTimerId,
+    required this.workoutDayId,
     this.exerciseLog,
     required this.onCompletionChanged,
     this.onSetCompleted,
@@ -112,19 +117,30 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   final Map<int, String> _presetReps = {};
 
   // Rest timer
-  Timer? _restTimer;
-  int _restSecondsRemaining = 0;
   bool _isRestTimerActive = false;
-  int _activeRestSetNumber = 0;
-  final AudioPlayer _timerAudioPlayer = AudioPlayer();
   final AudioPlayer _successAudioPlayer = AudioPlayer();
   final Source _successSource = AssetSource('sounds/success.wav');
-  final Source _countdownSource = AssetSource('sounds/secondi.mp3');
-  final Source _timerEndSource = AssetSource('sounds/tempo-finito.mp3');
+  RestTimerService? _restTimerService;
 
   // Default rest time from exercise or 60 seconds
   int get _defaultRestSeconds =>
       widget.exercise.restSeconds > 0 ? widget.exercise.restSeconds : 60;
+
+  String _formatWeightForInput(double weight) {
+    if (weight % 1 == 0) return weight.toInt().toString();
+    return weight.toStringAsFixed(1).replaceAll('.', ',');
+  }
+
+  double? _parseWeightInput(String text) {
+    final normalized = text.trim().replaceAll(',', '.');
+    if (normalized.isEmpty ||
+        normalized == '.' ||
+        normalized.endsWith('.') ||
+        normalized.split('.').length > 2) {
+      return null;
+    }
+    return double.tryParse(normalized);
+  }
 
   @override
   void initState() {
@@ -135,7 +151,6 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _loadPreviousData();
     // Pre-load sounds for zero-latency playback
     _successAudioPlayer.setSource(_successSource);
-    _timerAudioPlayer.setSource(_countdownSource);
     // Use low latency mode if available (depends on audioplayers version, but usually default is fine)
   }
 
@@ -147,6 +162,41 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     if (widget.exerciseLog != oldWidget.exerciseLog &&
         widget.exerciseLog != null) {
       _syncStateWithLog();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final restTimerService = context.read<RestTimerService>();
+    if (_restTimerService == restTimerService) return;
+
+    _restTimerService?.removeListener(_handleRestTimerServiceChanged);
+    _restTimerService = restTimerService;
+    _restTimerService?.addListener(_handleRestTimerServiceChanged);
+    _handleRestTimerServiceChanged();
+  }
+
+  void _handleRestTimerServiceChanged() {
+    final restTimerService = _restTimerService;
+    if (restTimerService == null || !mounted) return;
+
+    final state = restTimerService.state;
+    final isThisTimer =
+        state.exerciseId == widget.restTimerId &&
+        state.workoutDayId == widget.workoutDayId;
+
+    if (state.isActive && isThisTimer) {
+      setState(() {
+        _isRestTimerActive = true;
+      });
+      return;
+    }
+
+    if (_isRestTimerActive && isThisTimer) {
+      setState(() {
+        _isRestTimerActive = false;
+      });
     }
   }
 
@@ -164,9 +214,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         // Update controllers if they exist
         final weightController = _weightControllers[num];
         if (weightController != null) {
-          final newText = _weights[num]! % 1 == 0
-              ? _weights[num]!.toInt().toString()
-              : _weights[num]!.toStringAsFixed(1);
+          final newText = _formatWeightForInput(_weights[num]!);
           if (weightController.text != newText &&
               !_manuallyEditedWeights.contains(num)) {
             weightController.text = newText;
@@ -190,16 +238,14 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       // Weight controller
       final weightVal = _weights[i];
       final weightText = weightVal != null && weightVal > 0
-          ? (weightVal % 1 == 0
-                ? weightVal.toInt().toString()
-                : weightVal.toStringAsFixed(1))
+          ? _formatWeightForInput(weightVal)
           : '';
       final weightController = TextEditingController(text: weightText);
       _weightControllers[i] = weightController;
 
       weightController.addListener(() {
         final text = weightController.text;
-        final parsed = double.tryParse(text);
+        final parsed = _parseWeightInput(text);
 
         // PERSISTENCE FIX: Only update weight and trigger auto-fill if we have a valid positive number.
         // If the user clears the field to type a new number, we don't zero it out immediately.
@@ -260,9 +306,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         _weights[i] = weight;
         final controller = _weightControllers[i];
         if (controller != null) {
-          final newText = weight % 1 == 0
-              ? weight.toInt().toString()
-              : weight.toStringAsFixed(1);
+          final newText = _formatWeightForInput(weight);
 
           if (controller.text != newText) {
             controller.text = newText;
@@ -388,7 +432,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           if (weightValue is num) {
             parsedWeight = weightValue.toDouble();
           } else if (weightValue is String) {
-            parsedWeight = double.tryParse(weightValue);
+            parsedWeight = _parseWeightInput(weightValue);
           }
 
           previousMap[set['set_number'] as int] = {
@@ -413,9 +457,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                       _weightControllers[setNum]!.text == '0')) {
                 if (prevWeight != null && prevWeight > 0) {
                   _weights[setNum] = prevWeight.toDouble();
-                  _weightControllers[setNum]!.text = prevWeight % 1 == 0
-                      ? prevWeight.toInt().toString()
-                      : prevWeight.toStringAsFixed(1);
+                  _weightControllers[setNum]!.text = _formatWeightForInput(
+                    prevWeight.toDouble(),
+                  );
                 }
               }
 
@@ -447,9 +491,8 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     for (final c in _repsControllers.values) {
       c.dispose();
     }
+    _restTimerService?.removeListener(_handleRestTimerServiceChanged);
     _coachingPlayer.dispose();
-    _restTimer?.cancel();
-    _timerAudioPlayer.dispose();
     _successAudioPlayer.dispose();
     for (final timer in _autoSaveTimers.values) {
       timer?.cancel();
@@ -457,68 +500,24 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     super.dispose();
   }
 
-  void _startRestTimer(int setNumber) {
+  Future<void> _startRestTimer(int setNumber) async {
     setState(() {
-      _restSecondsRemaining = _defaultRestSeconds;
       _isRestTimerActive = true;
-      _activeRestSetNumber = setNumber;
     });
 
-    // Notify parent to show fullscreen timer overlay
-    widget.onRestTimerStateChanged?.call(
-      true,
-      _defaultRestSeconds,
-      _defaultRestSeconds,
-      setNumber,
+    await context.read<RestTimerService>().start(
+      workoutDayId: widget.workoutDayId,
+      exerciseId: widget.restTimerId,
+      setNumber: setNumber,
+      totalSeconds: _defaultRestSeconds,
     );
-
-    _restTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_restSecondsRemaining > 0) {
-        setState(() {
-          _restSecondsRemaining--;
-        });
-
-        // Notify parent of countdown
-        widget.onRestTimerStateChanged?.call(
-          true,
-          _restSecondsRemaining,
-          _defaultRestSeconds,
-          _activeRestSetNumber,
-        );
-
-        // Sound and haptic feedback at key moments
-        // Play countdown sound for the last 3-1 seconds
-        if (_restSecondsRemaining <= 3 && _restSecondsRemaining >= 1) {
-          // Play tick (secondi.mp3)
-          _playTimerSound(_countdownSource);
-        }
-
-        // ANTICIPATION: Play "tempo-finito.mp3" when 1 second is remaining
-        // This ensures the sound is felt exactly when it hits 0 or just before
-        if (_restSecondsRemaining == 1) {
-          _playTimerSound(_timerEndSource);
-        }
-      } else {
-        _stopRestTimer();
-        // We already played "tempo-finito" at 1s, but we still ensure timer is cleared
-      }
-    });
   }
 
-  /// Helper to play timer sounds with minimal latency
-  Future<void> _playTimerSound(Source source) async {
-    await _timerAudioPlayer.stop();
-    await _timerAudioPlayer.play(source, mode: PlayerMode.lowLatency);
-  }
-
-  void _stopRestTimer() {
-    _restTimer?.cancel();
+  Future<void> _stopRestTimer() async {
+    await context.read<RestTimerService>().skip();
     setState(() {
       _isRestTimerActive = false;
-      _restSecondsRemaining = 0;
     });
-    // Notify parent to hide fullscreen timer
-    widget.onRestTimerStateChanged?.call(false, 0, 0, 0);
   }
 
   /// Skip the rest timer — called when parent overlay's skip button is pressed
@@ -843,7 +842,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                       ),
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(
-                                      RegExp(r'^\d*\.?\d*'),
+                                      RegExp(r'^\d*([,.]\d*)?$'),
                                     ),
                                   ],
                                   scrollPadding: const EdgeInsets.only(

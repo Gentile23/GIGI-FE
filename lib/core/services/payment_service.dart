@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../constants/subscription_tiers.dart';
@@ -141,12 +142,20 @@ class PaymentService extends ChangeNotifier {
         }
       } else {
         debugPrint('RevenueCat: No current offerings found. Check dashboard.');
-        _loadMockProducts(); // Fallback to mock for UI development
+        if (kDebugMode) {
+          _loadMockProducts(); // Fallback to mock only for local UI development
+        } else {
+          _availableProducts = [];
+        }
       }
       notifyListeners();
     } catch (e) {
       debugPrint('RevenueCat: Error fetching products: $e');
-      _loadMockProducts();
+      if (kDebugMode) {
+        _loadMockProducts();
+      } else {
+        _availableProducts = [];
+      }
     }
   }
 
@@ -194,57 +203,44 @@ class PaymentService extends ChangeNotifier {
     }
 
     try {
+      if (!_isInitialized) {
+        await initialize();
+      }
+
       // In production:
       final offerings = await Purchases.getOfferings();
-      // Find package matching product ID
-      Package? package;
-      if (offerings.current != null &&
-          offerings.current!.availablePackages.isNotEmpty) {
-        try {
-          package = offerings.current!.availablePackages.firstWhere(
-            (p) => p.storeProduct.identifier == productId,
-          );
-        } catch (_) {}
-      }
+      final package = _findPackageForProduct(productId, offerings);
 
       if (package == null) {
-        // Fallback for testing/mock if not found in offerings
         debugPrint(
-          'Product $productId not found in offerings. Simulating purchase...',
+          'RevenueCat: Product $productId not found in current offerings.',
         );
-      } else {
-        // ignore: deprecated_member_use
-        final purchaseResult = await Purchases.purchasePackage(package);
-        _updateFromCustomerInfo(purchaseResult.customerInfo);
-        _purchaseStatus = PurchaseStatus.success;
+        _purchaseStatus = PurchaseStatus.error;
+        _errorMessage =
+            'Abbonamento non disponibile in questo build. Verifica prodotto, offering e package su RevenueCat/App Store Connect.';
         notifyListeners();
-        return true;
+        return false;
       }
 
-      // Mock successful purchase (fallback)
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Determine plan based on product
-      if (productId.contains('elite')) {
-        _currentPlan = SubscriptionTier.elite;
-      } else if (productId.contains('pro')) {
-        _currentPlan = SubscriptionTier.pro;
-      }
-
-      _expirationDate = DateTime.now().add(
-        productId.contains('yearly')
-            ? const Duration(days: 365)
-            : const Duration(days: 30),
-      );
-
+      // ignore: deprecated_member_use
+      final purchaseResult = await Purchases.purchasePackage(package);
+      _updateFromCustomerInfo(purchaseResult.customerInfo);
       _purchaseStatus = PurchaseStatus.success;
       notifyListeners();
-
-      debugPrint('Purchase successful: $productId');
+      debugPrint(
+        'Purchase successful: ${package.storeProduct.identifier} via package ${package.identifier}',
+      );
       return true;
+    } on PlatformException catch (e) {
+      _purchaseStatus = PurchaseStatus.error;
+      _errorMessage = _translatePlatformError(e);
+      notifyListeners();
+
+      debugPrint('Purchase failed: $e');
+      return false;
     } catch (e) {
       _purchaseStatus = PurchaseStatus.error;
-      _errorMessage = _translateError(e.toString());
+      _errorMessage = 'Si è verificato un errore durante l\'acquisto. Riprova.';
       notifyListeners();
 
       debugPrint('Purchase failed: $e');
@@ -319,15 +315,61 @@ class PaymentService extends ChangeNotifier {
     return _expirationDate!.difference(DateTime.now()).inDays;
   }
 
-  String _translateError(String error) {
-    if (error.contains('cancelled')) {
-      return 'Acquisto annullato';
-    } else if (error.contains('network')) {
-      return 'Errore di rete. Riprova.';
-    } else if (error.contains('already_purchased')) {
-      return 'Prodotto già acquistato';
+  Package? _findPackageForProduct(String productId, Offerings offerings) {
+    final current = offerings.current;
+    if (current == null || current.availablePackages.isEmpty) {
+      return null;
     }
-    return 'Si è verificato un errore. Riprova.';
+
+    final normalizedTarget = _normalizeProductIdentifier(productId);
+
+    for (final package in current.availablePackages) {
+      final normalizedStoreId = _normalizeProductIdentifier(
+        package.storeProduct.identifier,
+      );
+
+      if (package.storeProduct.identifier == productId ||
+          normalizedStoreId == normalizedTarget) {
+        return package;
+      }
+    }
+
+    return null;
+  }
+
+  String _normalizeProductIdentifier(String productId) {
+    final separatorIndex = productId.indexOf(':');
+    if (separatorIndex == -1) return productId;
+    return productId.substring(0, separatorIndex);
+  }
+
+  String _translatePlatformError(PlatformException error) {
+    final code = PurchasesErrorHelper.getErrorCode(error);
+
+    switch (code) {
+      case PurchasesErrorCode.purchaseCancelledError:
+        return 'Acquisto annullato.';
+      case PurchasesErrorCode.networkError:
+        return 'Errore di rete durante l\'acquisto. Riprova.';
+      case PurchasesErrorCode.storeProblemError:
+        return 'Lo store non riesce a completare l\'acquisto. Su TestFlight verifica anche che il prodotto sia approvato e disponibile.';
+      case PurchasesErrorCode.purchaseNotAllowedError:
+        return 'Questo account non puo effettuare acquisti in-app su questo dispositivo.';
+      case PurchasesErrorCode.productNotAvailableForPurchaseError:
+        return 'Questo abbonamento non è disponibile per l\'acquisto in questo momento.';
+      case PurchasesErrorCode.configurationError:
+        return 'Configurazione acquisti non valida. Controlla RevenueCat, offering e prodotti store.';
+      case PurchasesErrorCode.receiptAlreadyInUseError:
+        return 'L\'acquisto risulta associato a un altro account.';
+      case PurchasesErrorCode.invalidReceiptError:
+        return 'La ricevuta di acquisto non è valida. Riprova più tardi.';
+      default:
+        final message = error.message;
+        if (message != null && message.trim().isNotEmpty) {
+          return message;
+        }
+        return 'Si è verificato un errore. Riprova.';
+    }
   }
 
   /// Identify user for RevenueCat (call after login)

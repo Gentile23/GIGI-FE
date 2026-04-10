@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../../core/theme/clean_theme.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import '../../../data/models/workout_model.dart';
+import '../../widgets/workout/exercise_video_player.dart';
 
 import '../../widgets/workout/anatomical_muscle_view.dart';
 import '../../widgets/workout/similar_exercises_sheet.dart';
@@ -25,38 +25,6 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  YoutubePlayerController? _videoController;
-  bool _showVideoPlayer = false;
-
-  @override
-  void dispose() {
-    _videoController?.close();
-    super.dispose();
-  }
-
-  void _initializeVideoPlayer(String url) {
-    final videoId = YoutubePlayerController.convertUrlToId(url);
-    if (videoId == null) return;
-
-    // Dispose previous controller if exists
-    _videoController?.close();
-
-    _videoController = YoutubePlayerController.fromVideoId(
-      videoId: videoId,
-      autoPlay: true,
-      params: const YoutubePlayerParams(
-        showControls: true,
-        mute: false,
-        enableCaption: false,
-        showFullscreenButton: true,
-      ),
-    );
-
-    setState(() {
-      _showVideoPlayer = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,7 +187,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 title: AppLocalizations.of(context)!.videoTutorial,
               ),
               const SizedBox(height: 12),
-              _buildVideoSection(widget.workoutExercise.exercise.videoUrl!),
+              ExerciseVideoPlayer(
+                videoUrl: widget.workoutExercise.exercise.videoUrl,
+                exerciseName: widget.workoutExercise.exercise.name,
+              ),
             ],
             const SizedBox(height: 32),
           ],
@@ -556,63 +527,6 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVideoSection(String url) {
-    final videoId = YoutubePlayerController.convertUrlToId(url);
-    if (videoId == null) {
-      return CleanCard(
-        padding: const EdgeInsets.all(16),
-        child: Text(
-          AppLocalizations.of(context)!.videoUrlInvalid,
-          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
-        ),
-      );
-    }
-
-    if (_showVideoPlayer && _videoController != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: YoutubePlayer(
-            controller: _videoController!,
-            aspectRatio: 16 / 9,
-          ),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () => _initializeVideoPlayer(url),
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.black,
-          image: DecorationImage(
-            image: NetworkImage(
-              'https://img.youtube.com/vi/$videoId/hqdefault.jpg',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.play_arrow,
-              color: CleanTheme.textOnDark,
-              size: 40,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

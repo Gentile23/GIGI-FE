@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
 
@@ -34,13 +33,22 @@ class HealthIntegrationService {
   ];
 
   /// Check if health integration is available on this platform
-  bool get isAvailable => Platform.isIOS || Platform.isAndroid;
+  bool get isAvailable {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
+  }
 
   /// Check if currently authorized
   bool get isAuthorized => _isAuthorized;
 
   /// Get platform name for display
-  String get platformName => Platform.isIOS ? 'Apple Health' : 'Health Connect';
+  String get platformName {
+    if (kIsWeb) return 'Web';
+    if (defaultTargetPlatform == TargetPlatform.iOS) return 'Apple Health';
+    if (defaultTargetPlatform == TargetPlatform.android) return 'Health Connect';
+    return 'Unknown';
+  }
 
   /// Initialize the health service
   Future<void> initialize() async {
@@ -86,7 +94,7 @@ class HealthIntegrationService {
 
   /// Check if Health Connect is installed (Android only)
   Future<bool> isHealthConnectInstalled() async {
-    if (!Platform.isAndroid) return true;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return true;
 
     try {
       final status = await _health.getHealthConnectSdkStatus();
@@ -99,7 +107,7 @@ class HealthIntegrationService {
 
   /// Install Health Connect (Android only)
   Future<void> installHealthConnect() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     await _health.installHealthConnect();
   }
 
@@ -119,6 +127,21 @@ class HealthIntegrationService {
       return steps;
     } catch (e) {
       debugPrint('Error getting steps: $e');
+      return null;
+    }
+  }
+
+  /// Get steps for a specific date
+  Future<int?> getStepsForDate(DateTime date) async {
+    if (!_isAuthorized) return null;
+
+    try {
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      return await _health.getTotalStepsInInterval(startOfDay, endOfDay);
+    } catch (e) {
+      debugPrint('Error getting steps for date: $e');
       return null;
     }
   }

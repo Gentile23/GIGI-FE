@@ -6,6 +6,7 @@ import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/progress/interactive_body_silhouette.dart';
 import '../../../data/services/api_client.dart';
+import '../../../core/constants/gigi_guidance_content.dart';
 import 'body_measurements_screen.dart';
 import '../../widgets/progress/body_part_detail_sheet.dart';
 
@@ -43,7 +44,6 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         '/progress/measurements',
       );
 
-
       if (mounted) {
         final measurementsData = measurementsResponse.data;
 
@@ -67,11 +67,6 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       }
     }
   }
-
-
-
-
-
 
   Widget _buildWorkoutStatsSection() {
     return Consumer<GamificationProvider>(
@@ -149,18 +144,16 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-  Widget _buildWorkoutStatItem(
-    String value,
-    String label,
-    IconData icon,
-  ) {
+  Widget _buildWorkoutStatItem(String value, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: CleanTheme.primaryColor.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CleanTheme.borderSecondary.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: CleanTheme.borderSecondary.withValues(alpha: 0.5),
+        ),
       ),
       child: Column(
         children: [
@@ -170,11 +163,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               color: CleanTheme.primaryColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 16,
-              color: CleanTheme.textOnPrimary,
-            ),
+            child: Icon(icon, size: 16, color: CleanTheme.textOnPrimary),
           ),
           const SizedBox(height: 10),
           Text(
@@ -247,12 +236,6 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-
-
-
-
-
-
   Widget _buildBodySilhouetteSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -310,9 +293,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         HapticService.lightTap();
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => const BodyMeasurementsScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const BodyMeasurementsScreen()),
         ).then((_) => _loadData());
       },
       child: LiquidSteelContainer(
@@ -376,13 +357,12 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     );
   }
 
-
-
   Widget _buildGigiInsights() {
-    return const Center(
+    return Center(
       child: GigiCoachMessage(
-        message:
-            'Tocca i diversi muscoli sulla sagoma qui sotto per vedere lo storico dettagliato e i grafici dei tuoi progressi. Monitorare le tue misure mi permette di calibrare perfettamente i tuoi piani futuri!',
+        messageId: 'progress.dashboard.overview',
+        title: 'Come leggere i progressi',
+        message: GigiGuidanceContent.progressDashboard(),
         emotion: GigiEmotion.expert,
       ),
     );
