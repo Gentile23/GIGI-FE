@@ -64,6 +64,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   String? _restingExerciseId;
   int _restingSetNumber = 0;
   RestTimerService? _restTimerService;
+  final Map<String, TextEditingController> _overlayDifficultyControllers = {};
 
   // Keys to communicate with SetLoggingWidgets
   final Map<String, GlobalKey<SetLoggingWidgetState>> _setLoggingKeys = {};
@@ -158,18 +159,33 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final isCurrentWorkout = state.workoutDayId == widget.workoutDay.id;
 
     if (state.isActive && isCurrentWorkout && state.exerciseId != null) {
-      FocusManager.instance.primaryFocus?.unfocus();
-      setState(() {
-        _isRestTimerOverlayVisible = true;
-        _restingExerciseId = state.exerciseId;
-        _restingSetNumber = state.setNumber;
-        _restTimerSeconds = restTimerService.remainingSeconds;
-        _restTimerTotal = state.totalSeconds;
-      });
+      final nextSeconds = restTimerService.remainingSeconds;
+      final isOverlayOpening = !_isRestTimerOverlayVisible;
+      if (isOverlayOpening) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
+
+      final requiresUpdate =
+          isOverlayOpening ||
+          _restingExerciseId != state.exerciseId ||
+          _restingSetNumber != state.setNumber ||
+          _restTimerSeconds != nextSeconds ||
+          _restTimerTotal != state.totalSeconds;
+
+      if (requiresUpdate) {
+        setState(() {
+          _isRestTimerOverlayVisible = true;
+          _restingExerciseId = state.exerciseId;
+          _restingSetNumber = state.setNumber;
+          _restTimerSeconds = nextSeconds;
+          _restTimerTotal = state.totalSeconds;
+        });
+      }
       return;
     }
 
     if (state.completed && isCurrentWorkout) {
+      _disposeOverlayDifficultyControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
         _restingExerciseId = null;
@@ -182,6 +198,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     if (_isRestTimerOverlayVisible) {
+      _disposeOverlayDifficultyControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
         _restingExerciseId = null;
@@ -209,6 +226,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   void dispose() {
     _restTimerService?.removeListener(_handleRestTimerServiceChanged);
+    _disposeOverlayDifficultyControllers();
     _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
     _registrationRetryTimer?.cancel();
@@ -443,7 +461,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     int setNumber,
   ) {
     if (isActive) {
-      FocusManager.instance.primaryFocus?.unfocus();
+      final isOverlayOpening = !_isRestTimerOverlayVisible;
+      if (isOverlayOpening) {
+        FocusManager.instance.primaryFocus?.unfocus();
+      }
       final uniqueKey = exerciseId;
       setState(() {
         _isRestTimerOverlayVisible = true;
@@ -453,6 +474,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         _restTimerTotal = totalSeconds;
       });
     } else {
+      _disposeOverlayDifficultyControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
       });
@@ -520,6 +542,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   /// Skip the rest timer — closes the overlay and notifies the child widget
   void _skipRestTimerOverlay() {
     context.read<RestTimerService>().skip();
+    _disposeOverlayDifficultyControllers();
     setState(() {
       _isRestTimerOverlayVisible = false;
       _restingExerciseId = null;
@@ -1158,28 +1181,35 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final setLoggingState = _setLoggingKeys[exerciseId]?.currentState;
     final weightController = setLoggingState?.getWeightController(setNumber);
     final repsController = setLoggingState?.getRepsController(setNumber);
+    final currentRpe = setLoggingState?.getRpe(setNumber) ?? 7;
+    final difficultyController = _getOverlayDifficultyController(
+      exerciseId: exerciseId,
+      setNumber: setNumber,
+      currentRpe: currentRpe,
+    );
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: CleanTheme.textOnDark.withValues(alpha: isNext ? 0.12 : 0.05),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: CleanTheme.textOnDark.withValues(alpha: isNext ? 0.2 : 0.1),
-          width: isNext ? 2 : 1,
+          color: CleanTheme.textOnDark.withValues(alpha: isNext ? 0.3 : 0.16),
+          width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
               Text(
                 title,
                 style: GoogleFonts.outfit(
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
+                  letterSpacing: 1.1,
                   color: isNext
                       ? CleanTheme.accentBlue
                       : CleanTheme.textOnDark.withValues(alpha: 0.5),
@@ -1190,15 +1220,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 const Icon(
                   Icons.check_circle_rounded,
                   color: CleanTheme.accentGreen,
-                  size: 14,
+                  size: 12,
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Text(
             exercise.exercise.name,
             style: GoogleFonts.outfit(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: CleanTheme.textOnDark,
             ),
@@ -1209,34 +1239,57 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           Text(
             'Set $setNumber di ${exercise.sets}',
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 10,
               color: CleanTheme.textOnDark.withValues(alpha: 0.4),
             ),
           ),
-          const SizedBox(height: 16),
-          _buildOverlayInputField(
-            label: 'KG',
-            controller: weightController,
-            isNext: isNext,
-            exerciseId: exerciseId,
-            setNumber: setNumber,
-          ),
           const SizedBox(height: 8),
-          _buildOverlayInputField(
-            label: 'REPS',
-            controller: repsController,
-            isNext: isNext,
-            exerciseId: exerciseId,
-            setNumber: setNumber,
-            targetValue: _getTargetReps(exercise, setNumber),
+          Row(
+            children: [
+              Expanded(
+                child: _buildOverlayMetricField(
+                  label: 'KG',
+                  controller: weightController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*([,.]\d*)?$'),
+                    ),
+                  ],
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildOverlayMetricField(
+                  label: 'REPS',
+                  controller: repsController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildOverlayDifficultyField(
+                  controller: difficultyController,
+                  setLoggingState: setLoggingState,
+                  setNumber: setNumber,
+                ),
+              ),
+            ],
           ),
-          if (!isNext) ...[
-            const SizedBox(height: 16),
-            _buildRpeOverlaySelector(
-              exerciseId: exerciseId,
-              setNumber: setNumber,
+          const SizedBox(height: 4),
+          Text(
+            'Target reps: ${_getTargetReps(exercise, setNumber)}',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textOnDark.withValues(alpha: 0.4),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -1303,173 +1356,170 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
   }
 
-  Widget _buildOverlayInputField({
+  Widget _buildOverlayMetricField({
     required String label,
     required TextEditingController? controller,
-    required bool isNext,
-    required String exerciseId,
-    required int setNumber,
-    String? targetValue,
+    required TextInputType keyboardType,
+    required List<TextInputFormatter> inputFormatters,
+    required TextInputAction textInputAction,
   }) {
-    final isWeightInput = label == 'KG';
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: CleanTheme.textOnDark.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: CleanTheme.textOnDark.withValues(alpha: isNext ? 0.3 : 0.1),
-        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.textOnDark.withValues(alpha: 0.2)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: FontWeight.w700,
               color: CleanTheme.textOnDark.withValues(alpha: 0.5),
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: TextField(
-              key: ValueKey(
-                'overlay_input_${label}_${exerciseId}_$setNumber',
-              ), // Added Key
-              controller: controller,
-              keyboardType: isWeightInput
-                  ? const TextInputType.numberWithOptions(decimal: true)
-                  : TextInputType.number,
-              inputFormatters: [
-                isWeightInput
-                    ? FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*([,.]\d*)?$'),
-                      )
-                    : FilteringTextInputFormatter.digitsOnly,
-              ],
-              textInputAction: TextInputAction.done,
-              onTapOutside: (_) =>
-                  FocusManager.instance.primaryFocus?.unfocus(),
-              onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.right,
-              decoration: const InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-              cursorColor: CleanTheme.accentBlue,
+          const SizedBox(height: 2),
+          TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
+            textInputAction: textInputAction,
+            readOnly: controller == null,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: CleanTheme.textOnDark,
             ),
+            textAlign: TextAlign.right,
+            decoration: const InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            cursorColor: CleanTheme.accentBlue,
           ),
-          if (targetValue != null && targetValue.isNotEmpty) ...[
-            const SizedBox(width: 12),
-            Flexible(
-              flex: 3,
-              child: Text(
-                'Obiettivo: $targetValue',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textOnDark.withValues(alpha: 0.4),
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.visible,
-                softWrap: false,
-              ),
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildRpeOverlaySelector({
-    required String exerciseId,
+  Widget _buildOverlayDifficultyField({
+    required TextEditingController controller,
+    required SetLoggingWidgetState? setLoggingState,
     required int setNumber,
   }) {
-    final setLoggingState = _setLoggingKeys[exerciseId]?.currentState;
-    if (setLoggingState == null) return const SizedBox.shrink();
-
-    final currentRpe = setLoggingState.getRpe(setNumber);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'DIFFICOLTÀ (RPE)',
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textOnDark.withValues(alpha: 0.5),
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CleanTheme.textOnDark.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'RPE',
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textOnDark.withValues(alpha: 0.5),
             ),
-            const Spacer(),
-            Text(
-              currentRpe.toString(),
-              style: GoogleFonts.outfit(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: CleanTheme.accentBlue,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(10, (index) {
-              final val = index + 1;
-              final isSelected = val == currentRpe;
-              return GestureDetector(
-                onTap: () {
-                  HapticService.selectionClick();
-                  setLoggingState.updateRpe(setNumber, val);
-                },
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  margin: const EdgeInsets.only(right: 4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? CleanTheme.accentBlue
-                        : CleanTheme.textOnDark.withValues(alpha: 0.1),
-                    border: Border.all(
-                      color: isSelected
-                          ? CleanTheme.accentBlue
-                          : CleanTheme.textOnDark.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      val.toString(),
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isSelected
-                            ? Colors.black
-                            : CleanTheme.textOnDark,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }),
           ),
-        ),
-      ],
+          const SizedBox(height: 2),
+          TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            textInputAction: TextInputAction.done,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            onSubmitted: (value) {
+              _syncOverlayDifficultyValue(
+                value: value,
+                controller: controller,
+                setLoggingState: setLoggingState,
+                setNumber: setNumber,
+              );
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            onChanged: (value) {
+              _syncOverlayDifficultyValue(
+                value: value,
+                controller: controller,
+                setLoggingState: setLoggingState,
+                setNumber: setNumber,
+              );
+            },
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: CleanTheme.textOnDark,
+            ),
+            textAlign: TextAlign.right,
+            decoration: const InputDecoration(
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            cursorColor: CleanTheme.accentBlue,
+          ),
+        ],
+      ),
     );
+  }
+
+  TextEditingController _getOverlayDifficultyController({
+    required String exerciseId,
+    required int setNumber,
+    required int currentRpe,
+  }) {
+    final key = '${exerciseId}_$setNumber';
+    final existingController = _overlayDifficultyControllers[key];
+    if (existingController != null) {
+      return existingController;
+    }
+    final controller = TextEditingController(text: currentRpe.toString());
+    _overlayDifficultyControllers[key] = controller;
+    return controller;
+  }
+
+  void _disposeOverlayDifficultyControllers() {
+    for (final controller in _overlayDifficultyControllers.values) {
+      controller.dispose();
+    }
+    _overlayDifficultyControllers.clear();
+  }
+
+  void _syncOverlayDifficultyValue({
+    required String value,
+    required TextEditingController controller,
+    required SetLoggingWidgetState? setLoggingState,
+    required int setNumber,
+  }) {
+    if (value.isEmpty || setLoggingState == null) return;
+    final parsed = int.tryParse(value);
+    if (parsed == null) return;
+
+    final clamped = parsed.clamp(1, 10);
+    if (clamped.toString() != value) {
+      final text = clamped.toString();
+      controller.value = TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    }
+
+    if (setLoggingState.getRpe(setNumber) != clamped) {
+      HapticService.selectionClick();
+      setLoggingState.updateRpe(setNumber, clamped);
+    }
   }
 
   String _getTargetReps(WorkoutExercise exercise, int setNumber) {
@@ -1513,7 +1563,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Spacer(flex: 2),
+                const Spacer(flex: 1),
 
                 // Label
                 Row(
@@ -1553,13 +1603,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 // Huge Timer
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
                   style: GoogleFonts.outfit(
-                    fontSize: 80,
+                    fontSize: 72,
                     fontWeight: FontWeight.w800,
                     color: isUrgent
                         ? CleanTheme.accentRed
@@ -1569,7 +1619,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   child: Text('$minutes:${seconds.toString().padLeft(2, '0')}'),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Progress Bar
                 Padding(
@@ -1593,27 +1643,25 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                 // Set Details View (Previous and Next)
                 Flexible(
-                  flex: 5,
+                  flex: 4,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _buildSetDetailOverlayCard(
-                            title: 'ULTIMO SET',
-                            exerciseId: _restingExerciseId!,
-                            setNumber: _restingSetNumber,
-                            isNext: false,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildNextSetOverlayCard(),
-                        ],
-                      ),
+                    child: Column(
+                      children: [
+                        _buildSetDetailOverlayCard(
+                          title: 'ULTIMO SET',
+                          exerciseId: _restingExerciseId!,
+                          setNumber: _restingSetNumber,
+                          isNext: false,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildNextSetOverlayCard(),
+                      ],
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Skip Button
                 TextButton(
@@ -2334,10 +2382,25 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ],
         ),
-        child: const Icon(
-          Icons.smart_toy_rounded,
-          color: Color(0xFFFFD700),
-          size: 28,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.chat_bubble_rounded,
+              color: Color(0xFFFFD700),
+              size: 22,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'CHAT',
+              style: GoogleFonts.outfit(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFFFFD700),
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -3040,9 +3103,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          color: CleanTheme.primaryColor,
-        ),
+        child: CircularProgressIndicator(color: CleanTheme.primaryColor),
       ),
     );
 
@@ -3052,9 +3113,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       listen: false,
     );
 
-    final saveErrorMessage = AppLocalizations.of(
-      context,
-    )!.saveErrorGeneric;
+    final saveErrorMessage = AppLocalizations.of(context)!.saveErrorGeneric;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
@@ -3066,9 +3125,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       SoundService().play(SoundType.workoutComplete);
 
       if (provider.currentWorkoutLog != null) {
-        debugPrint(
-          'DEBUG: Workout log ID: ${provider.currentWorkoutLog!.id}',
-        );
+        debugPrint('DEBUG: Workout log ID: ${provider.currentWorkoutLog!.id}');
       }
       final completedWorkoutLog = await provider.completeWorkout();
       if (completedWorkoutLog == null) {
@@ -3128,10 +3185,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           widget.workoutDay.mainExerciseCount,
         ),
         totalExercises: widget.workoutDay.mainExerciseCount,
-        estimatedCalories: (_elapsedTime.inMinutes * 8).clamp(
-          0,
-          9999,
-        ),
+        estimatedCalories: (_elapsedTime.inMinutes * 8).clamp(0, 9999),
         completedSets: realCompletedSets > 0
             ? realCompletedSets
             : _completedExercises.length,

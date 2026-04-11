@@ -104,12 +104,24 @@ class _GigiCoachMessageState extends State<GigiCoachMessage> {
       );
     }
 
-    return _buildShell(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: _isExpanded ? _buildExpanded(context) : _buildCollapsed(context),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: _isExpanded
+          ? _buildShell(child: _buildExpanded(context))
+          : _buildCollapsed(context),
+    );
+  }
+
+  Widget _buildCollapsed(BuildContext context) {
+    return Align(
+      key: const ValueKey('collapsed'),
+      alignment: Alignment.centerRight,
+      child: _buildInfoButton(
+        icon: Icons.info_outline,
+        label: 'Info',
+        onPressed: () => _setExpanded(true),
       ),
     );
   }
@@ -175,18 +187,6 @@ class _GigiCoachMessageState extends State<GigiCoachMessage> {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildCollapsed(BuildContext context) {
-    return Align(
-      key: const ValueKey('collapsed'),
-      alignment: Alignment.centerRight,
-      child: _buildInfoButton(
-        icon: Icons.info_outline,
-        label: 'Info',
-        onPressed: () => _setExpanded(true),
-      ),
     );
   }
 

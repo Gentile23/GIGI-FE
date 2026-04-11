@@ -211,6 +211,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                               context,
                             )!.aiWorkoutsSectionSubtitle,
                             action: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (plan.aiGenerationNotes != null &&
                                     plan.aiGenerationNotes!.isNotEmpty)
@@ -222,17 +223,38 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                       );
                                     },
                                     child: Container(
-                                      margin: const EdgeInsets.only(right: 12),
-                                      padding: const EdgeInsets.all(8),
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 7,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: CleanTheme.primaryColor
-                                            .withValues(alpha: 0.1),
-                                        shape: BoxShape.circle,
+                                            .withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: CleanTheme.primaryColor
+                                              .withValues(alpha: 0.22),
+                                        ),
                                       ),
-                                      child: const Icon(
-                                        Icons.psychology_outlined,
-                                        size: 20,
-                                        color: CleanTheme.primaryColor,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.psychology_outlined,
+                                            size: 16,
+                                            color: CleanTheme.primaryColor,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            'Consigli',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: CleanTheme.primaryColor,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -862,30 +884,35 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
   Widget _buildSectionTitle(String title, String subtitle, {Widget? action}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textPrimary,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: CleanTheme.textSecondary,
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        if (action != null) action,
+        if (action != null) ...[
+          const SizedBox(width: 12),
+          IntrinsicWidth(child: action),
+        ],
       ],
     );
   }
@@ -955,7 +982,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -963,17 +990,29 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(
+                        'PIANO AI',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: CleanTheme.textOnDark.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                          horizontal: 10,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: CleanTheme.textOnDark.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          '🔥 ${AppLocalizations.of(context)!.nextWorkoutTitle.replaceAll('🔥 ', '')}',
+                          AppLocalizations.of(
+                            context,
+                          )!.nextWorkoutTitle.replaceAll('🔥 ', ''),
                           style: GoogleFonts.outfit(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -981,7 +1020,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         nextWorkout.name,
                         style: GoogleFonts.outfit(
@@ -1000,7 +1039,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   Row(
                     children: [
                       Container(
@@ -1462,13 +1501,73 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
   late List<Animation<double>> _fadeAnimations;
   late Animation<double> _ctaScale;
 
+  String _cleanText(Object? value) {
+    if (value == null) return '';
+    final normalized = value.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.isEmpty) return '';
+
+    const placeholders = {
+      'null',
+      'none',
+      'n/a',
+      'na',
+      '-',
+      '--',
+      'non disponibile',
+      'non disponibile.',
+      'not available',
+      'not generated',
+    };
+
+    if (placeholders.contains(normalized.toLowerCase())) {
+      return '';
+    }
+
+    return normalized;
+  }
+
+  List<Map<String, dynamic>> _validAnalysisPoints(Map<String, dynamic> data) {
+    final rawPoints = data['analysis_points'];
+    if (rawPoints is! List) return const [];
+
+    final valid = <Map<String, dynamic>>[];
+    for (final point in rawPoints) {
+      if (point is! Map) continue;
+      final map = Map<String, dynamic>.from(point);
+      final title = _cleanText(map['title']);
+      final detail = _cleanText(map['detail']);
+      if (title.isEmpty && detail.isEmpty) continue;
+
+      valid.add({
+        'icon': _cleanText(map['icon']),
+        'title': title,
+        'detail': detail,
+      });
+    }
+    return valid;
+  }
+
   // Total sections: header + greeting + N analysis cards + promise + closing + CTA
   int get _totalSections {
-    if (widget.structured == null) return 3; // header, text, CTA
-    final points = widget.structured!['analysis_points'] as List? ?? [];
-    return 3 +
-        points.length +
-        2; // header + greeting + cards + promise + closing + CTA
+    if (widget.structured == null) {
+      final rawNotes = _cleanText(widget.rawNotes);
+      return rawNotes.isEmpty ? 2 : 3; // header, [text], CTA
+    }
+
+    final data = widget.structured!;
+    final greeting = _cleanText(data['greeting']);
+    final points = _validAnalysisPoints(data);
+    final rehabNote = _cleanText(data['rehab_note']);
+    final promise = _cleanText(data['promise']);
+    final closing = _cleanText(data['closing']);
+
+    var total = 2; // header + CTA
+    if (greeting.isNotEmpty) total++;
+    total += points.length;
+    if (rehabNote.isNotEmpty) total++;
+    if (promise.isNotEmpty) total++;
+    if (closing.isNotEmpty) total++;
+    return total;
   }
 
   @override
@@ -1575,78 +1674,83 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
 
   Widget _buildStructuredContent() {
     final data = widget.structured!;
-    final greeting = data['greeting'] as String? ?? '';
-    final points = (data['analysis_points'] as List?) ?? [];
-    final promise = data['promise'] as String? ?? '';
-    final closing = data['closing'] as String? ?? '';
-    final rehabNote = data['rehab_note'] as String?;
+    final greeting = _cleanText(data['greeting']);
+    final points = _validAnalysisPoints(data);
+    final promise = _cleanText(data['promise']);
+    final closing = _cleanText(data['closing']);
+    final rehabNote = _cleanText(data['rehab_note']);
 
     int sectionIndex = 0;
+    final children = <Widget>[
+      const SizedBox(height: 16),
+      _buildAnimatedSection(sectionIndex++, _buildHeader()),
+    ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-
-        // ── HEADER ──
-        _buildAnimatedSection(sectionIndex++, _buildHeader()),
-
-        const SizedBox(height: 24),
-
-        // ── GREETING ──
+    if (greeting.isNotEmpty) {
+      children.add(const SizedBox(height: 24));
+      children.add(
         _buildAnimatedSection(sectionIndex++, _buildGreeting(greeting)),
+      );
+    }
 
-        const SizedBox(height: 20),
-
-        // ── ANALYSIS CARDS ──
-        ...points.map((point) {
-          final p = point as Map<String, dynamic>;
-          return _buildAnimatedSection(
-            sectionIndex++,
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildAnalysisCard(
-                icon: widget.mapIcon(p['icon'] ?? ''),
-                title: p['title'] ?? '',
-                detail: p['detail'] ?? '',
-              ),
-            ),
-          );
-        }),
-
-        // ── REHAB NOTE (if present) ──
-        if (rehabNote != null && rehabNote.isNotEmpty) ...[
+    if (points.isNotEmpty) {
+      children.add(const SizedBox(height: 20));
+      for (final point in points) {
+        children.add(
           _buildAnimatedSection(
             sectionIndex++,
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _buildAnalysisCard(
-                icon: Icons.healing_rounded,
-                title: 'Protezione Infortuni',
-                detail: rehabNote,
-                accentColor: const Color(0xFFFF6B6B),
+                icon: widget.mapIcon(point['icon'] as String? ?? ''),
+                title: point['title'] as String? ?? '',
+                detail: point['detail'] as String? ?? '',
               ),
             ),
           ),
-        ],
+        );
+      }
+    }
 
-        const SizedBox(height: 8),
+    if (rehabNote.isNotEmpty) {
+      children.add(const SizedBox(height: 12));
+      children.add(
+        _buildAnimatedSection(
+          sectionIndex++,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildAnalysisCard(
+              icon: Icons.healing_rounded,
+              title: 'Protezione Infortuni',
+              detail: rehabNote,
+              accentColor: const Color(0xFFFF6B6B),
+            ),
+          ),
+        ),
+      );
+    }
 
-        // ── PROMISE ──
+    if (promise.isNotEmpty) {
+      children.add(const SizedBox(height: 8));
+      children.add(
         _buildAnimatedSection(sectionIndex++, _buildPromise(promise)),
+      );
+    }
 
-        const SizedBox(height: 16),
-
-        // ── CLOSING ──
+    if (closing.isNotEmpty) {
+      children.add(const SizedBox(height: 16));
+      children.add(
         _buildAnimatedSection(sectionIndex++, _buildClosing(closing)),
+      );
+    }
 
-        const SizedBox(height: 28),
+    children.add(const SizedBox(height: 28));
+    children.add(_buildAnimatedSection(sectionIndex++, _buildCTA()));
+    children.add(const SizedBox(height: 12));
 
-        // ── CTA BUTTON ──
-        _buildAnimatedSection(sectionIndex, _buildCTA()),
-
-        const SizedBox(height: 12),
-      ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
     );
   }
 
@@ -1739,6 +1843,12 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
     required String detail,
     Color? accentColor,
   }) {
+    final safeTitle = _cleanText(title);
+    final safeDetail = _cleanText(detail);
+    if (safeTitle.isEmpty && safeDetail.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     final color = accentColor ?? Colors.white;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1763,24 +1873,27 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.outfit(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.95),
-                    letterSpacing: -0.2,
+                if (safeTitle.isNotEmpty)
+                  Text(
+                    safeTitle,
+                    style: GoogleFonts.outfit(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white.withValues(alpha: 0.95),
+                      letterSpacing: -0.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  detail,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Colors.white.withValues(alpha: 0.65),
-                    height: 1.5,
+                if (safeTitle.isNotEmpty && safeDetail.isNotEmpty)
+                  const SizedBox(height: 4),
+                if (safeDetail.isNotEmpty)
+                  Text(
+                    safeDetail,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.65),
+                      height: 1.5,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -1898,33 +2011,38 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
   }
 
   Widget _buildFallbackContent() {
+    final safeRawNotes = _cleanText(widget.rawNotes);
+    int sectionIndex = 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
-        _buildAnimatedSection(0, _buildHeader()),
-        const SizedBox(height: 24),
-        _buildAnimatedSection(
-          1,
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-            ),
-            child: Text(
-              widget.rawNotes,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.7),
-                height: 1.6,
+        _buildAnimatedSection(sectionIndex++, _buildHeader()),
+        if (safeRawNotes.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          _buildAnimatedSection(
+            sectionIndex++,
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+              child: Text(
+                safeRawNotes,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  height: 1.6,
+                ),
               ),
             ),
           ),
-        ),
+        ],
         const SizedBox(height: 28),
-        _buildAnimatedSection(2, _buildCTA()),
+        _buildAnimatedSection(sectionIndex++, _buildCTA()),
         const SizedBox(height: 12),
       ],
     );

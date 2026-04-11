@@ -46,7 +46,9 @@ class HealthIntegrationService {
   String get platformName {
     if (kIsWeb) return 'Web';
     if (defaultTargetPlatform == TargetPlatform.iOS) return 'Apple Health';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'Health Connect';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'Health Connect';
+    }
     return 'Unknown';
   }
 
@@ -75,12 +77,29 @@ class HealthIntegrationService {
     if (!isAvailable) return false;
 
     try {
-      // Request authorization for reading and writing
+      // Ensure plugin is configured before requesting permissions.
+      if (!_isInitialized) {
+        await initialize();
+      }
+
+      // Build a single, deduplicated list of data types with matching access list.
+      // health.requestAuthorization requires one permission entry per data type.
+      final accessByType = <HealthDataType, HealthDataAccess>{};
+      for (final type in _readTypes) {
+        accessByType[type] = HealthDataAccess.READ;
+      }
+      for (final type in _writeTypes) {
+        accessByType[type] = HealthDataAccess.READ_WRITE;
+      }
+
+      final types = accessByType.keys.toList(growable: false);
+      final permissions = types
+          .map((type) => accessByType[type]!)
+          .toList(growable: false);
+
       final authorized = await _health.requestAuthorization(
-        _readTypes,
-        permissions:
-            _readTypes.map((_) => HealthDataAccess.READ).toList() +
-            _writeTypes.map((_) => HealthDataAccess.READ_WRITE).toList(),
+        types,
+        permissions: permissions,
       );
 
       _isAuthorized = authorized;

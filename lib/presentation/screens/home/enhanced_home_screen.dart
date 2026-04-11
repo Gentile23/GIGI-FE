@@ -26,7 +26,7 @@ import '../profile/profile_screen.dart';
 import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
-import '../progress/progress_dashboard_screen.dart';
+import '../../navigation/main_tab_navigation.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -189,13 +189,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                     TextButton(
                                       onPressed: () {
                                         HapticService.lightTap();
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const ProgressDashboardScreen(),
-                                          ),
-                                        );
+                                        MainTabNavigation.goTo(3);
                                       },
                                       child: Text(
                                         AppLocalizations.of(context)!.viewAll,
@@ -704,121 +698,123 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               ),
 
               // Content
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 24,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: CleanTheme.textOnPrimary.withValues(
-                            alpha: 0.3,
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: CleanTheme.textOnPrimary.withValues(
+                              alpha: 0.3,
+                            ),
+                            width: 0.5,
                           ),
-                          width: 0.5,
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.aiPlanBadge,
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.textOnPrimary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1,
+                          ),
                         ),
                       ),
-                      child: Text(
-                        AppLocalizations.of(context)!.aiPlanBadge,
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textOnPrimary,
-                          fontSize: 10,
+                      const SizedBox(height: 8),
+                      Text(
+                        title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 32,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
+                          color: CleanTheme.textOnPrimary,
+                          height: 1.1,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      title,
-                      style: GoogleFonts.outfit(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textOnPrimary,
-                        height: 1.1,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+                      const SizedBox(height: 8),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          color: CleanTheme.textOnPrimary.withValues(
+                            alpha: 0.9,
                           ),
-                        ],
+                          fontWeight: FontWeight.w500,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w500,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                      const Spacer(),
 
-                    // Action Button – White High Contrast
-                    Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: CleanTheme.textOnPrimary,
-                        borderRadius: BorderRadius.circular(100),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 24),
-                            child: Text(
-                              actionLabel,
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
+                      // Action Button – White High Contrast
+                      Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: CleanTheme.textOnPrimary,
+                          borderRadius: BorderRadius.circular(100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 24),
+                              child: Text(
+                                actionLabel,
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: Container(
-                              height: 40,
-                              width: 40,
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward,
-                                color: CleanTheme.textOnPrimary,
-                                size: 20,
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Container(
+                                height: 40,
+                                width: 40,
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward,
+                                  color: CleanTheme.textOnPrimary,
+                                  size: 20,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

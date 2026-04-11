@@ -8,13 +8,16 @@ import 'profile/profile_screen.dart';
 import '../../core/theme/clean_theme.dart';
 import '../../core/services/haptic_service.dart';
 import '../widgets/navigation/floating_nav_bar.dart';
+import '../navigation/main_tab_navigation.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// MAIN SCREEN - TRIPGLIDE STYLE
 /// Stack-based layout with Floating Navigation Bar
 /// ═══════════════════════════════════════════════════════════
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -30,6 +33,30 @@ class _MainScreenState extends State<MainScreen> {
     ProgressDashboardScreen(), // Tab 3: Progress (was Rewards)
     ProfileScreen(), // Tab 4: Profile
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final maxIndex = _screens.length - 1;
+    final initial = widget.initialIndex < 0
+        ? 0
+        : (widget.initialIndex > maxIndex ? maxIndex : widget.initialIndex);
+    _currentIndex = initial;
+    MainTabNavigation.selectedIndex.value = initial;
+    MainTabNavigation.selectedIndex.addListener(_handleExternalTabChange);
+  }
+
+  @override
+  void dispose() {
+    MainTabNavigation.selectedIndex.removeListener(_handleExternalTabChange);
+    super.dispose();
+  }
+
+  void _handleExternalTabChange() {
+    final nextIndex = MainTabNavigation.selectedIndex.value;
+    if (!mounted || nextIndex == _currentIndex) return;
+    setState(() => _currentIndex = nextIndex);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +78,9 @@ class _MainScreenState extends State<MainScreen> {
             currentIndex: _currentIndex,
             onTap: (index) {
               HapticService.lightTap();
+              if (index == _currentIndex) return;
               setState(() => _currentIndex = index);
+              MainTabNavigation.selectedIndex.value = index;
             },
             items: [
               FloatingNavItem(
