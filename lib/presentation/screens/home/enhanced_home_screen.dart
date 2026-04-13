@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/utils/next_workout_selector.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
+import '../../../providers/workout_log_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
@@ -19,7 +21,10 @@ import '../../widgets/animations/liquid_steel_container.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../workout/workout_session_screen.dart';
+import '../../../data/models/custom_workout_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/services/api_client.dart';
+import '../../../data/services/custom_workout_service.dart';
 
 import '../../widgets/skeleton_box.dart';
 import '../profile/profile_screen.dart';
@@ -27,6 +32,7 @@ import '../form_analysis/form_analysis_screen.dart';
 import '../../widgets/insights/health_trends_carousel.dart';
 import '../insights/weekly_report_screen.dart';
 import '../../navigation/main_tab_navigation.dart';
+import '../main_screen.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// ENHANCED HOME SCREEN - Single Focus Design
@@ -41,14 +47,17 @@ class EnhancedHomeScreen extends StatefulWidget {
 }
 
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
+  static const String _customWorkoutOrderKey = 'custom_workout_order_v1';
   bool _showCelebration = false;
-  final int _currentWorkoutIndex = 0; // Track which workout to show
+  late final CustomWorkoutService _customWorkoutService;
+  List<CustomWorkoutPlan> _customPlans = [];
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
   VoidCallback? _onGenerationComplete;
 
   @override
   void initState() {
     super.initState();
+    _customWorkoutService = CustomWorkoutService(ApiClient());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
@@ -116,206 +125,241 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
           Container(color: CleanTheme.scaffoldBackgroundColor),
 
           SafeArea(
-            child: Consumer2<AuthProvider, WorkoutProvider>(
-              builder: (context, authProvider, workoutProvider, _) {
-                final user = authProvider.user;
-                final isLoading =
-                    workoutProvider.isLoading || !workoutProvider.isInitialized;
+            child: Consumer3<AuthProvider, WorkoutProvider, WorkoutLogProvider>(
+              builder:
+                  (
+                    context,
+                    authProvider,
+                    workoutProvider,
+                    workoutLogProvider,
+                    _,
+                  ) {
+                    final user = authProvider.user;
+                    final isLoading =
+                        workoutProvider.isLoading ||
+                        !workoutProvider.isInitialized;
 
-                return RefreshIndicator(
-                  key: const ValueKey('home_root_refresh'),
-                  onRefresh: _loadData,
-                  color: CleanTheme.primaryColor,
-                  child: SingleChildScrollView(
-                    key: const ValueKey('home_root_scroll'),
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(
-                      24,
-                      16,
-                      24,
-                      ResponsiveUtils.floatingElementPadding(
-                        context,
-                        baseHeight: 80,
-                      ),
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: isLoading
-                          ? _buildSkeletonLoading(
-                              key: const ValueKey('home_skeleton'),
-                            )
-                          : Column(
-                              key: const ValueKey('home_content_column'),
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // 1. Header (Hello, Name + Avatar)
-                                _buildCompactHeader(user),
-
-                                const SizedBox(height: 32),
-
-                                _buildGigiGuidance(workoutProvider),
-
-                                // 4. Hero Section
-                                Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.homeNextWorkoutTitle,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: CleanTheme.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                _buildHeroWorkoutCard(workoutProvider),
-
-                                const SizedBox(height: 32),
-
-                                // 5. Weekly Stats (Upcoming tours/stats)
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                    return RefreshIndicator(
+                      key: const ValueKey('home_root_refresh'),
+                      onRefresh: _loadData,
+                      color: CleanTheme.primaryColor,
+                      child: SingleChildScrollView(
+                        key: const ValueKey('home_root_scroll'),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(
+                          24,
+                          16,
+                          24,
+                          ResponsiveUtils.floatingElementPadding(
+                            context,
+                            baseHeight: 80,
+                          ),
+                        ),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: isLoading
+                              ? _buildSkeletonLoading(
+                                  key: const ValueKey('home_skeleton'),
+                                )
+                              : Column(
+                                  key: const ValueKey('home_content_column'),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // 1. Header (Hello, Name + Avatar)
+                                    _buildCompactHeader(user),
+
+                                    const SizedBox(height: 32),
+
+                                    _buildGigiGuidance(workoutProvider),
+
+                                    // 4. Hero Section
                                     Text(
                                       AppLocalizations.of(
                                         context,
-                                      )!.homeProgressTitle,
+                                      )!.homeNextWorkoutTitle,
                                       style: GoogleFonts.outfit(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w700,
                                         color: CleanTheme.textPrimary,
                                       ),
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        HapticService.lightTap();
-                                        MainTabNavigation.goTo(3);
+                                    const SizedBox(height: 16),
+                                    _buildHeroWorkoutCard(
+                                      workoutProvider,
+                                      workoutLogProvider,
+                                    ),
+
+                                    const SizedBox(height: 32),
+
+                                    // 5. Weekly Stats (Upcoming tours/stats)
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.homeProgressTitle,
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                            color: CleanTheme.textPrimary,
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            HapticService.lightTap();
+                                            final insideMainShell =
+                                                context
+                                                    .findAncestorWidgetOfExactType<
+                                                      MainScreen
+                                                    >() !=
+                                                null;
+                                            if (insideMainShell) {
+                                              MainTabNavigation.goTo(3);
+                                            } else {
+                                              Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const MainScreen(
+                                                        initialIndex: 3,
+                                                      ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Text(
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.viewAll,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: CleanTheme.textSecondary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildQuickStatsRow(),
+
+                                    const SizedBox(height: 24),
+                                    _buildStreakMotivator(),
+
+                                    // Health Insights Section
+                                    const SizedBox(height: 32),
+                                    HealthTrendsCarousel(
+                                      onViewAllTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const WeeklyReportScreen(),
+                                          ),
+                                        );
                                       },
-                                      child: Text(
-                                        AppLocalizations.of(context)!.viewAll,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: CleanTheme.textSecondary,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    // 6. Quick Actions
+                                    // Row 1: Form Check AI (Full Width)
+                                    GestureDetector(
+                                      onTap: () {
+                                        HapticService.lightTap();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const FormAnalysisScreen(),
+                                          ),
+                                        );
+                                      },
+                                      child: LiquidSteelContainer(
+                                        borderRadius: 16,
+                                        enableShine: true,
+                                        border: Border.all(
+                                          color: CleanTheme.textOnPrimary
+                                              .withValues(alpha: 0.3),
+                                          width: 1,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.all(
+                                                  12,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black
+                                                      .withValues(alpha: 0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        14,
+                                                      ), // Unified with standard
+                                                  border: Border.all(
+                                                    color: CleanTheme
+                                                        .textOnPrimary
+                                                        .withValues(alpha: 0.1),
+                                                  ),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.camera_alt_outlined,
+                                                  color:
+                                                      CleanTheme.textOnPrimary,
+                                                  size: 26,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.actionFormCheck,
+                                                      style: GoogleFonts.inter(
+                                                        // Unified font
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: CleanTheme
+                                                            .textOnPrimary,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      'Analizza con AI',
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 12,
+                                                        color: CleanTheme
+                                                            .textOnPrimary
+                                                            .withValues(
+                                                              alpha: 0.85,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: CleanTheme.textOnPrimary,
+                                                size: 18,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 12),
-                                _buildQuickStatsRow(),
-
-                                const SizedBox(height: 24),
-                                _buildStreakMotivator(),
-
-                                // Health Insights Section
-                                const SizedBox(height: 32),
-                                HealthTrendsCarousel(
-                                  onViewAllTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const WeeklyReportScreen(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                // 6. Quick Actions
-                                // Row 1: Form Check AI (Full Width)
-                                GestureDetector(
-                                  onTap: () {
-                                    HapticService.lightTap();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const FormAnalysisScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: LiquidSteelContainer(
-                                    borderRadius: 16,
-                                    enableShine: true,
-                                    border: Border.all(
-                                      color: CleanTheme.textOnPrimary
-                                          .withValues(alpha: 0.3),
-                                      width: 1,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                    14,
-                                                  ), // Unified with standard
-                                              border: Border.all(
-                                                color: CleanTheme.textOnPrimary
-                                                    .withValues(alpha: 0.1),
-                                              ),
-                                            ),
-                                            child: const Icon(
-                                              Icons.camera_alt_outlined,
-                                              color: CleanTheme.textOnPrimary,
-                                              size: 26,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  AppLocalizations.of(
-                                                    context,
-                                                  )!.actionFormCheck,
-                                                  style: GoogleFonts.inter(
-                                                    // Unified font
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: CleanTheme
-                                                        .textOnPrimary,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Analizza con AI',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 12,
-                                                    color: CleanTheme
-                                                        .textOnPrimary
-                                                        .withValues(
-                                                          alpha: 0.85,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: CleanTheme.textOnPrimary,
-                                            size: 18,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  ),
-                );
-              },
+                        ),
+                      ),
+                    );
+                  },
             ),
           ),
           if (_showCelebration)
@@ -581,7 +625,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   // 4. Immersive Hero Card
-  Widget _buildHeroWorkoutCard(WorkoutProvider workoutProvider) {
+  Widget _buildHeroWorkoutCard(
+    WorkoutProvider workoutProvider,
+    WorkoutLogProvider workoutLogProvider,
+  ) {
     final plan = workoutProvider.currentPlan;
     final bool isStillGenerating =
         workoutProvider.isGenerating ||
@@ -592,32 +639,26 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     // Determine what to show
     String title = '';
     String subtitle = '';
+    bool isCustomSuggestion = false;
     // List<Color> gradientColors = [CleanTheme.primaryColor, Colors.black87]; // Removed
     VoidCallback? onActionTap;
     String actionLabel = AppLocalizations.of(context)!.start;
 
-    // --- Default Dashboard View ---
-    final hasActivePlan = workoutProvider.currentPlan != null;
-    final workouts = hasActivePlan ? workoutProvider.currentPlan!.workouts : [];
+    final nextSuggestion = NextWorkoutSelector.resolve(
+      aiPlan: workoutProvider.currentPlan,
+      customPlans: _customPlans,
+      workoutHistory: workoutLogProvider.workoutHistory,
+    );
+    final currentWorkout = nextSuggestion?.workoutDay;
+    isCustomSuggestion = nextSuggestion?.isCustom ?? false;
 
-    // Get next workout based on saved index, with wrap-around
-    final safeIndex = workouts.isNotEmpty
-        ? _currentWorkoutIndex % workouts.length
-        : 0;
-    final currentWorkout = workouts.isNotEmpty ? workouts[safeIndex] : null;
-
-    if (hasActivePlan && currentWorkout != null) {
+    if (currentWorkout != null) {
       title = currentWorkout.name;
       subtitle =
           '${currentWorkout.exercises.length} Esercizi • ${currentWorkout.estimatedDuration} min';
       // gradientColors = [const Color(0xFF1C1C1E), const Color(0xFF000000)]; // Removed
 
       onActionTap = () async {
-        // Increment workout index for next time
-        final prefs = await SharedPreferences.getInstance();
-        final nextIndex = (safeIndex + 1) % workouts.length;
-        await prefs.setInt('next_workout_index', nextIndex);
-
         if (mounted) {
           Navigator.push(
             context,
@@ -720,7 +761,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                           ),
                         ),
                         child: Text(
-                          AppLocalizations.of(context)!.aiPlanBadge,
+                          isCustomSuggestion
+                              ? 'SCHEDA PERSONALIZZATA'
+                              : AppLocalizations.of(context)!.aiPlanBadge,
                           style: GoogleFonts.inter(
                             color: CleanTheme.textOnPrimary,
                             fontSize: 10,
@@ -1104,6 +1147,16 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     );
     await workoutProvider.fetchCurrentPlan();
 
+    if (!mounted) return;
+    final workoutLogProvider = Provider.of<WorkoutLogProvider>(
+      context,
+      listen: false,
+    );
+    await workoutLogProvider.fetchWorkoutHistory();
+
+    if (!mounted) return;
+    await _loadCustomWorkouts();
+
     // Refresh Gamification
     if (!mounted) return;
     final gamificationProvider = Provider.of<GamificationProvider>(
@@ -1113,5 +1166,58 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     gamificationProvider.refresh();
 
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadCustomWorkouts() async {
+    final result = await _customWorkoutService.getCustomWorkouts();
+    if (result['success'] != true) return;
+
+    final fetchedPlans = result['plans'] as List<CustomWorkoutPlan>;
+    final orderedPlans = await _applySavedCustomOrder(fetchedPlans);
+
+    if (!mounted) return;
+    setState(() {
+      _customPlans = orderedPlans;
+    });
+  }
+
+  Future<List<CustomWorkoutPlan>> _applySavedCustomOrder(
+    List<CustomWorkoutPlan> fetchedPlans,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedOrder = prefs.getStringList(_customWorkoutOrderKey) ?? const [];
+
+    if (savedOrder.isEmpty) {
+      await prefs.setStringList(
+        _customWorkoutOrderKey,
+        fetchedPlans.map((plan) => plan.id).toList(),
+      );
+      return fetchedPlans;
+    }
+
+    final remaining = {for (final plan in fetchedPlans) plan.id: plan};
+    final ordered = <CustomWorkoutPlan>[];
+    for (final planId in savedOrder) {
+      final plan = remaining.remove(planId);
+      if (plan != null) {
+        ordered.add(plan);
+      }
+    }
+    ordered.addAll(remaining.values);
+
+    final normalizedOrder = ordered.map((plan) => plan.id).toList();
+    if (!_sameIdOrder(savedOrder, normalizedOrder)) {
+      await prefs.setStringList(_customWorkoutOrderKey, normalizedOrder);
+    }
+
+    return ordered;
+  }
+
+  bool _sameIdOrder(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }

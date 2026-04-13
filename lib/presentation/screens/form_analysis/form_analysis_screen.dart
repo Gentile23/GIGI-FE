@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../data/models/form_analysis_model.dart';
 import '../../../data/services/form_analysis_service.dart';
 import '../../../data/services/api_client.dart';
+import '../../../data/services/quota_service.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
@@ -27,6 +29,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   final FormAnalysisService _service = FormAnalysisService(ApiClient());
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _exerciseController = TextEditingController();
+  late final QuotaService _quotaService;
 
   FormAnalysisQuota? _quota;
   XFile? _videoFile;
@@ -37,6 +40,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   @override
   void initState() {
     super.initState();
+    _quotaService = QuotaService();
     _exerciseController.text = widget.exerciseName ?? '';
     _loadQuota();
   }
@@ -49,12 +53,22 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Future<void> _loadQuota() async {
     setState(() => _isLoading = true);
-    final quota = await _service.checkQuota();
-    if (mounted) {
-      setState(() {
-        _quota = quota;
-        _isLoading = false;
-      });
+    try {
+      final status = await _quotaService.getQuotaStatus();
+      if (mounted) {
+        setState(() {
+          _quota = FormAnalysisQuota.fromQuotaUsage(
+            usage: status.usage.formAnalysis,
+            isPremium: status.isPremium,
+          );
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading form-analysis quota status: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -107,6 +121,17 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       return;
     }
 
+    final checkResult = await _quotaService.canPerformAction(
+      QuotaAction.formAnalysis,
+    );
+    if (!checkResult.canPerform) {
+      await _loadQuota();
+      if (mounted) {
+        _showUpgradeDialog(reason: checkResult.reason);
+      }
+      return;
+    }
+
     setState(() {
       _isAnalyzing = true;
       _uploadProgress = 0.0;
@@ -144,6 +169,14 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         throw Exception(AppLocalizations.of(context)!.analysisFailed);
       }
     } catch (e) {
+      if (e is DioException && e.response?.statusCode == 429) {
+        await _loadQuota();
+        if (mounted) {
+          _showUpgradeDialog(reason: _extractApiError(e));
+        }
+        return;
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -159,7 +192,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     }
   }
 
-  void _showUpgradeDialog() {
+  void _showUpgradeDialog({String? reason}) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -173,9 +206,9 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
           ),
         ),
         content: Text(
-          AppLocalizations.of(
-            context,
-          )!.limitReachedDesc(_quota?.dailyLimit ?? 3),
+          reason != null && reason.trim().isNotEmpty
+              ? reason
+              : _limitReachedMessage(),
           style: GoogleFonts.inter(color: CleanTheme.textSecondary),
         ),
         actions: [
@@ -195,6 +228,62 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         ],
       ),
     );
+  }
+
+  String _limitReachedMessage() {
+    final quota = _quota;
+    if (quota == null) {
+      return AppLocalizations.of(context)!.limitReachedDesc(1);
+    }
+
+    final periodLabel = _periodLabel(quota.period);
+    final limit = quota.limit == -1 ? 0 : quota.limit;
+    return 'Hai raggiunto il limite di $limit analisi $periodLabel.\n\nUpgrade a Premium per analisi illimitate!';
+  }
+
+  String _remainingMessage(FormAnalysisQuota quota) {
+    if (quota.isPremium || quota.isUnlimited) {
+      return AppLocalizations.of(context)!.unlimitedAnalyses;
+    }
+
+    final periodLabel = _periodLabel(quota.period);
+    return '${quota.remaining}/${quota.limit} rimaste $periodLabel';
+  }
+
+  String _periodLabel(String period) {
+    switch (period) {
+      case 'day':
+        return 'oggi';
+      case 'week':
+        return 'questa settimana';
+      case 'month':
+        return 'questo mese';
+      case 'lifetime':
+        return 'in totale';
+      default:
+        return 'in questo periodo';
+    }
+  }
+
+  String? _extractApiError(DioException error) {
+    final data = error.response?.data;
+    if (data is Map<String, dynamic>) {
+      final message = data['error'] ?? data['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+      return null;
+    }
+
+    if (data is Map) {
+      final mapped = Map<String, dynamic>.from(data);
+      final message = mapped['error'] ?? mapped['message'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -305,9 +394,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
                     Text(
                       isPremium
                           ? AppLocalizations.of(context)!.unlimitedAnalyses
-                          : AppLocalizations.of(
-                              context,
-                            )!.remainingToday(remaining, _quota!.dailyLimit),
+                          : _remainingMessage(_quota!),
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         color: remaining > 0 || isPremium

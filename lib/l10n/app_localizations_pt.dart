@@ -2794,7 +2794,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywallCurrentPlan => 'Plano Atual';
 
   @override
-  String get paywallGuarantee => '7 dias de teste grátis';
+  String get paywallGuarantee => 'Acesso imediato';
 
   @override
   String get paywallTerms =>

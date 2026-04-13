@@ -886,7 +886,7 @@
   "paywallSubscribeButtonYearly": "Subscribe - {price}€/year",
   "paywallSubscribeButtonMonthly": "Subscribe - {price}€/month",
   "paywallCurrentPlan": "Current Plan",
-  "paywallGuarantee": "7 days free trial",
+  "paywallGuarantee": "Instant access",
   "paywallTerms": "By subscribing you accept our Terms of Service and Privacy Policy. Subscription renews automatically. You can cancel anytime.",
   "paywallActivateTitle": "Activate {planName}",
   "paywallActivateDesc": "You are about to activate the {planName} plan at €{price}/{period}.",

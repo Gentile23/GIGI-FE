@@ -147,28 +147,6 @@ class PremiumGateWidget extends StatelessWidget {
                       },
                   width: double.infinity,
                 ),
-
-                const SizedBox(height: 8),
-
-                // Trial reminder
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.verified_user,
-                      color: CleanTheme.accentGreen,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '7 giorni di prova gratuita',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: CleanTheme.accentGreen,
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),

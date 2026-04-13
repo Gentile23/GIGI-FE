@@ -867,7 +867,7 @@
   "paywallSubscribeButtonYearly": "Abonnieren - {price}€/Jahr",
   "paywallSubscribeButtonMonthly": "Abonnieren - {price}€/Monat",
   "paywallCurrentPlan": "Aktueller Plan",
-  "paywallGuarantee": "7 Tage kostenlos testen",
+  "paywallGuarantee": "Sofortiger Zugriff",
   "paywallTerms": "Mit dem Abonnement akzeptieren Sie unsere AGB und Datenschutzrichtlinien. Das Abo verlängert sich automatisch. Jederzeit kündbar.",
   "paywallActivateTitle": "Aktiviere {planName}",
   "paywallActivateDesc": "Du bist dabei, den Plan {planName} für €{price}/{period} zu aktivieren.",

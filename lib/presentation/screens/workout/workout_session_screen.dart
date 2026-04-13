@@ -33,6 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/services/rest_timer_service.dart';
+import '../../../core/services/workout_lock_screen_service.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/voice_coaching/gigi_preparation_overlay.dart';
@@ -64,6 +65,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   String? _restingExerciseId;
   int _restingSetNumber = 0;
   RestTimerService? _restTimerService;
+  final WorkoutLockScreenService _lockScreenService =
+      WorkoutLockScreenService();
+  final Map<String, TextEditingController> _overlayWeightControllers = {};
+  final Map<String, TextEditingController> _overlayRepsControllers = {};
   final Map<String, TextEditingController> _overlayDifficultyControllers = {};
 
   // Keys to communicate with SetLoggingWidgets
@@ -105,6 +110,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   void initState() {
     super.initState();
     _initializeUniqueIdMap();
+    unawaited(_lockScreenService.initialize());
+    unawaited(_lockScreenService.clear());
 
     final apiClient = ApiClient();
 
@@ -181,11 +188,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           _restTimerTotal = state.totalSeconds;
         });
       }
+      unawaited(_updateLockScreenWidget(isTick: true));
       return;
     }
 
     if (state.completed && isCurrentWorkout) {
-      _disposeOverlayDifficultyControllers();
+      _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
         _restingExerciseId = null;
@@ -193,12 +201,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         _restTimerSeconds = 0;
         _restTimerTotal = 0;
       });
+      unawaited(_updateLockScreenWidget());
       Future.microtask(restTimerService.acknowledgeCompletion);
       return;
     }
 
     if (_isRestTimerOverlayVisible) {
-      _disposeOverlayDifficultyControllers();
+      _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
         _restingExerciseId = null;
@@ -206,6 +215,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         _restTimerSeconds = 0;
         _restTimerTotal = 0;
       });
+      unawaited(_updateLockScreenWidget());
     }
   }
 
@@ -226,7 +236,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   @override
   void dispose() {
     _restTimerService?.removeListener(_handleRestTimerServiceChanged);
-    _disposeOverlayDifficultyControllers();
+    unawaited(_lockScreenService.clear());
+    _disposeOverlayInputControllers();
     _voiceController.removeListener(_onVoiceStatusChanged);
     _sessionTimer?.cancel();
     _registrationRetryTimer?.cancel();
@@ -242,6 +253,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _isSessionActive = true;
       _sessionStartTime = DateTime.now();
     });
+    unawaited(_updateLockScreenWidget());
 
     _seedWorkoutChatWelcome();
 
@@ -426,6 +438,110 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return '${d.inHours > 0 ? '${d.inHours}:' : ''}$minutes:$seconds';
   }
 
+  _LockSetPointer? _resolveCurrentSetPointer() {
+    final isResting =
+        _isRestTimerOverlayVisible &&
+        _restingExerciseId != null &&
+        _restingSetNumber > 0;
+    if (isResting) {
+      final exercise = _getExerciseById(_restingExerciseId!);
+      if (exercise != null) {
+        return _LockSetPointer(
+          exerciseId: _restingExerciseId!,
+          setNumber: _restingSetNumber.clamp(1, exercise.sets),
+        );
+      }
+    }
+
+    for (int i = 0; i < widget.workoutDay.mainWorkout.length; i++) {
+      final exercise = widget.workoutDay.mainWorkout[i];
+      if (_completedExercises.contains(exercise.exercise.id)) {
+        continue;
+      }
+      final uniqueId = exercise.id ?? "main_${exercise.exercise.id}_$i";
+      final nextPendingSet = _resolveNextPendingSetNumber(uniqueId, exercise);
+      return _LockSetPointer(exerciseId: uniqueId, setNumber: nextPendingSet);
+    }
+
+    return null;
+  }
+
+  _LockSetPointer? _resolveNextSetPointer(_LockSetPointer current) {
+    final currentExercise = _getExerciseById(current.exerciseId);
+    if (currentExercise == null) return null;
+
+    if (current.setNumber < currentExercise.sets) {
+      return _LockSetPointer(
+        exerciseId: current.exerciseId,
+        setNumber: current.setNumber + 1,
+      );
+    }
+
+    final nextExercise = _getNextExercise(current.exerciseId);
+    if (nextExercise == null) return null;
+    final nextId =
+        nextExercise.id ??
+        "main_${nextExercise.exercise.id}_${widget.workoutDay.mainWorkout.indexOf(nextExercise)}";
+    return _LockSetPointer(exerciseId: nextId, setNumber: 1);
+  }
+
+  int _resolveNextPendingSetNumber(String uniqueId, WorkoutExercise exercise) {
+    final state = _setLoggingKeys[uniqueId]?.currentState;
+    if (state == null) return 1;
+
+    final completedSetNumbers = state
+        .getCompletedSetEntries()
+        .map((entry) => entry.setNumber)
+        .toSet();
+    for (int setNumber = 1; setNumber <= exercise.sets; setNumber++) {
+      if (!completedSetNumbers.contains(setNumber)) {
+        return setNumber;
+      }
+    }
+    return exercise.sets;
+  }
+
+  Future<void> _updateLockScreenWidget({bool isTick = false}) async {
+    if (!_isSessionActive) {
+      await _lockScreenService.clear();
+      return;
+    }
+
+    final currentPointer = _resolveCurrentSetPointer();
+    final nextPointer = currentPointer == null
+        ? null
+        : _resolveNextSetPointer(currentPointer);
+
+    final currentExercise = currentPointer == null
+        ? null
+        : _getExerciseById(currentPointer.exerciseId);
+    final nextExercise = nextPointer == null
+        ? null
+        : _getExerciseById(nextPointer.exerciseId);
+
+    final isResting =
+        _isRestTimerOverlayVisible &&
+        _restingExerciseId != null &&
+        _restTimerSeconds > 0;
+
+    final snapshot = WorkoutLockScreenSnapshot(
+      sessionActive: true,
+      workoutName: widget.workoutDay.name,
+      currentExerciseName:
+          currentExercise?.exercise.name ?? 'Allenamento completato',
+      currentSetNumber: currentPointer?.setNumber ?? 1,
+      currentSetTotal: currentExercise?.sets ?? 1,
+      nextExerciseName: nextExercise?.exercise.name,
+      nextSetNumber: nextPointer?.setNumber,
+      nextSetTotal: nextExercise?.sets,
+      isResting: isResting,
+      restRemainingSeconds: isResting ? _restTimerSeconds : null,
+      restTotalSeconds: isResting ? _restTimerTotal : null,
+    );
+
+    await _lockScreenService.updateSession(snapshot, isTick: isTick);
+  }
+
   Widget _buildSessionStat(String emoji, String value, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -473,11 +589,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         _restTimerSeconds = secondsRemaining;
         _restTimerTotal = totalSeconds;
       });
+      unawaited(_updateLockScreenWidget(isTick: true));
     } else {
-      _disposeOverlayDifficultyControllers();
+      _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
       });
+      unawaited(_updateLockScreenWidget());
     }
   }
 
@@ -542,7 +660,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   /// Skip the rest timer — closes the overlay and notifies the child widget
   void _skipRestTimerOverlay() {
     context.read<RestTimerService>().skip();
-    _disposeOverlayDifficultyControllers();
+    _disposeOverlayInputControllers();
     setState(() {
       _isRestTimerOverlayVisible = false;
       _restingExerciseId = null;
@@ -550,6 +668,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _restTimerSeconds = 0;
       _restTimerTotal = 0;
     });
+    unawaited(_updateLockScreenWidget());
   }
 
   Future<void> _startWorkoutSession() async {
@@ -717,6 +836,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       },
       child: Scaffold(
         backgroundColor: CleanTheme.scaffoldBackgroundColor,
+        resizeToAvoidBottomInset: !_isRestTimerOverlayVisible,
         appBar: AppBar(
           backgroundColor: CleanTheme.surfaceColor,
           elevation: 0,
@@ -1179,8 +1299,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     if (exercise == null) return const SizedBox.shrink();
 
     final setLoggingState = _setLoggingKeys[exerciseId]?.currentState;
-    final weightController = setLoggingState?.getWeightController(setNumber);
-    final repsController = setLoggingState?.getRepsController(setNumber);
+    final sourceWeightController = setLoggingState?.getWeightController(
+      setNumber,
+    );
+    final sourceRepsController = setLoggingState?.getRepsController(setNumber);
+    final overlayWeightController = _getOverlayWeightController(
+      exerciseId: exerciseId,
+      setNumber: setNumber,
+      sourceController: sourceWeightController,
+    );
+    final overlayRepsController = _getOverlayRepsController(
+      exerciseId: exerciseId,
+      setNumber: setNumber,
+      sourceController: sourceRepsController,
+    );
     final currentRpe = setLoggingState?.getRpe(setNumber) ?? 7;
     final difficultyController = _getOverlayDifficultyController(
       exerciseId: exerciseId,
@@ -1249,7 +1381,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               Expanded(
                 child: _buildOverlayMetricField(
                   label: 'KG',
-                  controller: weightController,
+                  controller: overlayWeightController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -1259,16 +1391,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     ),
                   ],
                   textInputAction: TextInputAction.next,
+                  readOnly: sourceWeightController == null,
+                  onChanged: (value) {
+                    _syncOverlayMetricValue(
+                      value: value,
+                      sourceController: sourceWeightController,
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildOverlayMetricField(
                   label: 'REPS',
-                  controller: repsController,
+                  controller: overlayRepsController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textInputAction: TextInputAction.next,
+                  readOnly: sourceRepsController == null,
+                  onChanged: (value) {
+                    _syncOverlayMetricValue(
+                      value: value,
+                      sourceController: sourceRepsController,
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 8),
@@ -1358,10 +1504,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   Widget _buildOverlayMetricField({
     required String label,
-    required TextEditingController? controller,
+    required TextEditingController controller,
     required TextInputType keyboardType,
     required List<TextInputFormatter> inputFormatters,
     required TextInputAction textInputAction,
+    required bool readOnly,
+    required ValueChanged<String> onChanged,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1388,9 +1536,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             keyboardType: keyboardType,
             inputFormatters: inputFormatters,
             textInputAction: textInputAction,
-            readOnly: controller == null,
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-            onSubmitted: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+            readOnly: readOnly,
+            onChanged: onChanged,
             style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -1439,7 +1586,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             textInputAction: TextInputAction.done,
-            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             onSubmitted: (value) {
               _syncOverlayDifficultyValue(
                 value: value,
@@ -1475,6 +1621,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  TextEditingController _getOverlayWeightController({
+    required String exerciseId,
+    required int setNumber,
+    required TextEditingController? sourceController,
+  }) {
+    return _getOrCreateOverlayController(
+      map: _overlayWeightControllers,
+      key: '${exerciseId}_$setNumber',
+      sourceController: sourceController,
+    );
+  }
+
+  TextEditingController _getOverlayRepsController({
+    required String exerciseId,
+    required int setNumber,
+    required TextEditingController? sourceController,
+  }) {
+    return _getOrCreateOverlayController(
+      map: _overlayRepsControllers,
+      key: '${exerciseId}_$setNumber',
+      sourceController: sourceController,
+    );
+  }
+
   TextEditingController _getOverlayDifficultyController({
     required String exerciseId,
     required int setNumber,
@@ -1490,11 +1660,54 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return controller;
   }
 
-  void _disposeOverlayDifficultyControllers() {
+  TextEditingController _getOrCreateOverlayController({
+    required Map<String, TextEditingController> map,
+    required String key,
+    required TextEditingController? sourceController,
+  }) {
+    final existingController = map[key];
+    final sourceValue = sourceController?.text ?? '';
+    if (existingController != null) {
+      if (sourceController != null && existingController.text != sourceValue) {
+        existingController.value = TextEditingValue(
+          text: sourceValue,
+          selection: TextSelection.collapsed(offset: sourceValue.length),
+        );
+      }
+      return existingController;
+    }
+
+    final controller = TextEditingController(text: sourceValue);
+    map[key] = controller;
+    return controller;
+  }
+
+  void _disposeOverlayInputControllers() {
+    for (final controller in _overlayWeightControllers.values) {
+      controller.dispose();
+    }
+    _overlayWeightControllers.clear();
+
+    for (final controller in _overlayRepsControllers.values) {
+      controller.dispose();
+    }
+    _overlayRepsControllers.clear();
+
     for (final controller in _overlayDifficultyControllers.values) {
       controller.dispose();
     }
     _overlayDifficultyControllers.clear();
+  }
+
+  void _syncOverlayMetricValue({
+    required String value,
+    required TextEditingController? sourceController,
+  }) {
+    if (sourceController == null || sourceController.text == value) return;
+    sourceController.value = TextEditingValue(
+      text: value,
+      selection: TextSelection.collapsed(offset: value.length),
+    );
   }
 
   void _syncOverlayDifficultyValue({
@@ -1648,14 +1861,16 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       children: [
-                        _buildSetDetailOverlayCard(
-                          title: 'ULTIMO SET',
-                          exerciseId: _restingExerciseId!,
-                          setNumber: _restingSetNumber,
-                          isNext: false,
+                        Expanded(
+                          child: _buildSetDetailOverlayCard(
+                            title: 'ULTIMO SET',
+                            exerciseId: _restingExerciseId!,
+                            setNumber: _restingSetNumber,
+                            isNext: false,
+                          ),
                         ),
                         const SizedBox(height: 10),
-                        _buildNextSetOverlayCard(),
+                        Expanded(child: _buildNextSetOverlayCard()),
                       ],
                     ),
                   ),
@@ -2874,10 +3089,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               _completedExercises.remove(exercise.exercise.id);
                             }
                           });
+                          unawaited(_updateLockScreenWidget());
                         },
                         onSetCompleted: (setData) {
                           _autoStartSessionIfNeeded();
                           if (widget.workoutDay.id.startsWith('trial_')) {}
+                          unawaited(_updateLockScreenWidget());
                         },
                         onRestTimerSkipped: () {},
                         onRestTimerStateChanged:
@@ -2986,6 +3203,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     if (!_isSessionActive && _completedExercises.isEmpty) {
       _gigiTTS.stop(); // Stop audio immediately before exit
       _voiceController.deactivate();
+      unawaited(_lockScreenService.clear());
       Navigator.pop(context);
       return;
     }
@@ -3011,6 +3229,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             onPressed: () {
               _gigiTTS.stop();
               _voiceController.deactivate();
+              unawaited(_lockScreenService.clear());
               Navigator.pop(context); // close dialog
               setState(() => _allowPop = true);
               Navigator.pop(context); // close screen
@@ -3121,6 +3340,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         'DEBUG: Completing workout, currentLog exists: ${provider.currentWorkoutLog != null}',
       );
 
+      await _ensureSessionAndSyncPendingLogs(provider);
+
       // ANTICIPATION: Play workout complete sound IMMEDIATELY on confirmation
       SoundService().play(SoundType.workoutComplete);
 
@@ -3196,6 +3417,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       );
 
       // ignore: use_build_context_synchronously
+      await _lockScreenService.clear();
+      // ignore: use_build_context_synchronously
       await Navigator.of(navigator.context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => WorkoutSummaryScreen(summaryData: summaryData),
@@ -3204,13 +3427,131 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     } catch (e) {
       if (!mounted) return;
       navigator.pop();
+      final rawError = e.toString().replaceFirst('Exception: ', '').trim();
+      final providerError = provider.error?.trim() ?? '';
+      final message = rawError.isNotEmpty
+          ? rawError
+          : providerError.isNotEmpty
+          ? providerError
+          : saveErrorMessage;
       scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(saveErrorMessage),
-          backgroundColor: CleanTheme.accentRed,
-        ),
+        SnackBar(content: Text(message), backgroundColor: CleanTheme.accentRed),
       );
     }
+  }
+
+  Future<void> _ensureSessionAndSyncPendingLogs(
+    WorkoutLogProvider provider,
+  ) async {
+    if (provider.currentWorkoutLog == null) {
+      await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+    }
+
+    if (provider.currentWorkoutLog == null) {
+      throw Exception(
+        provider.error?.trim().isNotEmpty == true
+            ? provider.error!.trim()
+            : 'Sessione workout non disponibile per il salvataggio.',
+      );
+    }
+
+    await _syncPendingCompletedSets(provider);
+  }
+
+  Future<void> _syncPendingCompletedSets(WorkoutLogProvider provider) async {
+    final entries = _setLoggingKeys.entries.toList();
+
+    for (final entry in entries) {
+      final uniqueId = entry.key;
+      final setState = entry.value.currentState;
+      if (setState == null) continue;
+
+      final exercise = _getExerciseById(uniqueId);
+      if (exercise == null) continue;
+
+      final completedSets = setState.getCompletedSetEntries();
+      if (completedSets.isEmpty) continue;
+
+      var exerciseLog = _findExerciseLogByExerciseId(
+        provider,
+        exercise.exercise.id,
+      );
+
+      if (exerciseLog == null) {
+        final orderIndex = widget.workoutDay.exercises.indexOf(exercise);
+        final newLog = await provider.addExerciseLog(
+          exerciseId: exercise.exercise.id,
+          orderIndex: orderIndex >= 0 ? orderIndex : 0,
+          exerciseType: exercise.exerciseType,
+        );
+        if (newLog == null) {
+          throw Exception(
+            provider.error?.trim().isNotEmpty == true
+                ? provider.error!.trim()
+                : 'Impossibile salvare i dati per ${exercise.exercise.name}.',
+          );
+        }
+        exerciseLog = newLog;
+      }
+
+      final existingSetNumbers = exerciseLog.setLogs
+          .map((setLog) => setLog.setNumber)
+          .toSet();
+
+      for (final setEntry in completedSets) {
+        if (existingSetNumbers.contains(setEntry.setNumber)) continue;
+
+        final reps = _resolveSafeRepsForSave(
+          exercise: exercise,
+          setNumber: setEntry.setNumber,
+          reps: setEntry.reps,
+        );
+
+        final added = await provider.addSetLog(
+          exerciseLogId: exerciseLog.id,
+          setNumber: setEntry.setNumber,
+          reps: reps,
+          weightKg: setEntry.weightKg,
+          rpe: setEntry.rpe,
+          completed: true,
+        );
+
+        if (!added) {
+          throw Exception(
+            provider.error?.trim().isNotEmpty == true
+                ? provider.error!.trim()
+                : 'Errore nel salvataggio dei set completati.',
+          );
+        }
+
+        existingSetNumbers.add(setEntry.setNumber);
+      }
+    }
+  }
+
+  ExerciseLogModel? _findExerciseLogByExerciseId(
+    WorkoutLogProvider provider,
+    String exerciseId,
+  ) {
+    final logs = provider.currentWorkoutLog?.exerciseLogs;
+    if (logs == null) return null;
+    for (final log in logs) {
+      if (log.exerciseId == exerciseId) return log;
+    }
+    return null;
+  }
+
+  int _resolveSafeRepsForSave({
+    required WorkoutExercise exercise,
+    required int setNumber,
+    required int? reps,
+  }) {
+    if (reps != null && reps > 0) return reps;
+    final target = _getTargetReps(exercise, setNumber);
+    final parsed = int.tryParse(
+      RegExp(r'(\d+)').firstMatch(target)?.group(1) ?? '',
+    );
+    return (parsed ?? 1).clamp(1, 999);
   }
 
   // [NEW] Trial Workout Completion Flow
@@ -3277,6 +3618,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         );
 
         // Navigate to Home or specific success screen
+        await _lockScreenService.clear();
+        if (!mounted) return;
         Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
         throw Exception("Failed to submit results");
@@ -3294,6 +3637,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       );
     }
   }
+}
+
+class _LockSetPointer {
+  final String exerciseId;
+  final int setNumber;
+
+  const _LockSetPointer({required this.exerciseId, required this.setNumber});
 }
 
 /// Premium "Esegui con Gigi" button – full-width, black, animated shimmer.

@@ -15,7 +15,14 @@ abstract class ApiService {
         path,
         queryParameters: queryParameters,
       );
-      return response.data as Map<String, dynamic>;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'success': true, 'data': data};
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -32,7 +39,14 @@ abstract class ApiService {
         data: body,
         queryParameters: queryParameters,
       );
-      return response.data as Map<String, dynamic>;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'success': true, 'data': data};
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -49,7 +63,14 @@ abstract class ApiService {
         data: body,
         queryParameters: queryParameters,
       );
-      return response.data as Map<String, dynamic>;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'success': true, 'data': data};
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -64,7 +85,14 @@ abstract class ApiService {
         path,
         queryParameters: queryParameters,
       );
-      return response.data as Map<String, dynamic>;
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return data;
+      }
+      if (data is Map) {
+        return Map<String, dynamic>.from(data);
+      }
+      return {'success': true, 'data': data};
     } on DioException catch (e) {
       throw _handleError(e);
     }

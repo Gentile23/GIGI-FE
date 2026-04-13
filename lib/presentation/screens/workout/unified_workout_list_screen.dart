@@ -3,13 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../../data/models/workout_model.dart';
+import '../../../core/utils/next_workout_selector.dart';
 import '../../../data/models/custom_workout_model.dart';
 import '../../../data/services/custom_workout_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
+import '../../../providers/workout_log_provider.dart';
 import '../../../presentation/widgets/clean_widgets.dart';
 import 'workout_session_screen.dart';
 import '../custom_workout/create_custom_workout_screen.dart';
@@ -32,6 +34,7 @@ class UnifiedWorkoutListScreen extends StatefulWidget {
 }
 
 class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
+  static const String _customWorkoutOrderKey = 'custom_workout_order_v1';
   late CustomWorkoutService _customWorkoutService;
   late QuotaService _quotaService;
   List<CustomWorkoutPlan> _customPlans = [];
@@ -46,6 +49,10 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     _quotaService = QuotaService(apiClient: ApiClient());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<WorkoutProvider>(context, listen: false).fetchCurrentPlan();
+      Provider.of<WorkoutLogProvider>(
+        context,
+        listen: false,
+      ).fetchWorkoutHistory();
       _loadCustomWorkouts();
       _setupGenerationCompleteCallback();
     });
@@ -142,14 +149,77 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
   Future<void> _loadCustomWorkouts() async {
     setState(() => _isLoadingCustom = true);
     final result = await _customWorkoutService.getCustomWorkouts();
+    List<CustomWorkoutPlan> nextPlans = _customPlans;
+    if (result['success'] == true) {
+      final fetchedPlans = (result['plans'] as List<CustomWorkoutPlan>);
+      nextPlans = await _applySavedCustomOrder(fetchedPlans);
+    }
     if (mounted) {
       setState(() {
         _isLoadingCustom = false;
-        if (result['success'] == true) {
-          _customPlans = result['plans'] as List<CustomWorkoutPlan>;
-        }
+        _customPlans = nextPlans;
       });
     }
+  }
+
+  Future<List<CustomWorkoutPlan>> _applySavedCustomOrder(
+    List<CustomWorkoutPlan> fetchedPlans,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedOrder = prefs.getStringList(_customWorkoutOrderKey) ?? const [];
+    if (savedOrder.isEmpty) {
+      await prefs.setStringList(
+        _customWorkoutOrderKey,
+        fetchedPlans.map((plan) => plan.id).toList(),
+      );
+      return fetchedPlans;
+    }
+
+    final remaining = {for (final plan in fetchedPlans) plan.id: plan};
+    final ordered = <CustomWorkoutPlan>[];
+
+    for (final planId in savedOrder) {
+      final plan = remaining.remove(planId);
+      if (plan != null) {
+        ordered.add(plan);
+      }
+    }
+    ordered.addAll(remaining.values);
+
+    final normalizedOrder = ordered.map((plan) => plan.id).toList();
+    if (!_sameIdOrder(savedOrder, normalizedOrder)) {
+      await prefs.setStringList(_customWorkoutOrderKey, normalizedOrder);
+    }
+
+    return ordered;
+  }
+
+  bool _sameIdOrder(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  Future<void> _persistCustomWorkoutOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _customWorkoutOrderKey,
+      _customPlans.map((plan) => plan.id).toList(),
+    );
+  }
+
+  Future<void> _onCustomReorder(int oldIndex, int newIndex) async {
+    if (oldIndex == newIndex) return;
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final movedPlan = _customPlans.removeAt(oldIndex);
+      _customPlans.insert(newIndex, movedPlan);
+    });
+    await _persistCustomWorkoutOrder();
   }
 
   @override
@@ -159,13 +229,14 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
         Scaffold(
           backgroundColor: CleanTheme.backgroundColor,
           body: SafeArea(
-            child: Consumer<WorkoutProvider>(
-              builder: (context, workoutProvider, _) {
+            child: Consumer2<WorkoutProvider, WorkoutLogProvider>(
+              builder: (context, workoutProvider, workoutLogProvider, _) {
                 final plan = workoutProvider.currentPlan;
 
                 return RefreshIndicator(
                   onRefresh: () async {
                     await workoutProvider.fetchCurrentPlan();
+                    await workoutLogProvider.fetchWorkoutHistory(refresh: true);
                     await _loadCustomWorkouts();
                   },
                   child: SingleChildScrollView(
@@ -197,7 +268,10 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                         const SizedBox(height: 24),
 
                         // Hero Card - Next AI Workout
-                        _buildHeroNextWorkout(workoutProvider),
+                        _buildHeroNextWorkout(
+                          workoutProvider,
+                          workoutLogProvider,
+                        ),
 
                         const SizedBox(height: 32),
 
@@ -247,7 +321,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                           ),
                                           const SizedBox(width: 5),
                                           Text(
-                                            'Consigli',
+                                            'AI Insights',
                                             style: GoogleFonts.outfit(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
@@ -917,7 +991,10 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
-  Widget _buildHeroNextWorkout(WorkoutProvider workoutProvider) {
+  Widget _buildHeroNextWorkout(
+    WorkoutProvider workoutProvider,
+    WorkoutLogProvider workoutLogProvider,
+  ) {
     final plan = workoutProvider.currentPlan;
 
     // Show generating state only if plan is processing or provider is generating
@@ -929,11 +1006,15 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       return _buildGeneratingHeroCard();
     }
 
-    final nextWorkout = plan?.workouts.isNotEmpty == true
-        ? plan!.workouts.first
-        : null;
+    final nextSuggestion = NextWorkoutSelector.resolve(
+      aiPlan: plan,
+      customPlans: _customPlans,
+      workoutHistory: workoutLogProvider.workoutHistory,
+    );
+    final nextWorkout = nextSuggestion?.workoutDay;
+    final isCustomSuggestion = nextSuggestion?.isCustom ?? false;
 
-    if (plan == null || nextWorkout == null) {
+    if (nextWorkout == null) {
       return _buildActionableEmptyState(
         icon: Icons.auto_awesome,
         title: "Inizia la tua Trasformazione",
@@ -957,12 +1038,18 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [CleanTheme.primaryColor, CleanTheme.steelDark],
+            colors: isCustomSuggestion
+                ? [CleanTheme.accentPurple, CleanTheme.primaryColor]
+                : [CleanTheme.primaryColor, CleanTheme.steelDark],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.3),
+              color:
+                  (isCustomSuggestion
+                          ? CleanTheme.accentPurple
+                          : CleanTheme.primaryColor)
+                      .withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -991,7 +1078,9 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PIANO AI',
+                        isCustomSuggestion
+                            ? 'SCHEDA PERSONALIZZATA'
+                            : 'PIANO AI',
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -1053,9 +1142,11 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.play_arrow,
-                              color: CleanTheme.primaryColor,
+                              color: isCustomSuggestion
+                                  ? CleanTheme.accentPurple
+                                  : CleanTheme.primaryColor,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -1064,7 +1155,9 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                               style: GoogleFonts.outfit(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: CleanTheme.primaryColor,
+                                color: isCustomSuggestion
+                                    ? CleanTheme.accentPurple
+                                    : CleanTheme.primaryColor,
                               ),
                             ),
                           ],
@@ -1209,10 +1302,25 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
     return Column(
       children: [
-        Column(
-          children: _customPlans.map((plan) {
-            return _buildCustomWorkoutCard(plan);
-          }).toList(),
+        ReorderableListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: false,
+          itemCount: _customPlans.length,
+          onReorder: (oldIndex, newIndex) {
+            unawaited(_onCustomReorder(oldIndex, newIndex));
+          },
+          itemBuilder: (context, index) {
+            final plan = _customPlans[index];
+            return KeyedSubtree(
+              key: ValueKey('custom_plan_${plan.id}'),
+              child: _buildCustomWorkoutCard(
+                plan,
+                showDragHandle: true,
+                dragIndex: index,
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _buildCreateCustomCard(),
@@ -1366,24 +1474,12 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
     );
   }
 
-  Widget _buildCustomWorkoutCard(CustomWorkoutPlan plan) {
-    final workoutDay = WorkoutDay(
-      id: 'custom_${plan.id}',
-      name: plan.name,
-      focus: plan.description ?? 'Personalizzata',
-      estimatedDuration: plan.estimatedDuration,
-      exercises: plan.exercises.map((e) {
-        return WorkoutExercise(
-          exercise: e.exercise,
-          sets: e.sets,
-          reps: e.reps,
-          restSeconds: e.restSeconds,
-          notes: e.notes,
-          position: 'main',
-          exerciseType: e.exerciseType ?? 'strength',
-        );
-      }).toList(),
-    );
+  Widget _buildCustomWorkoutCard(
+    CustomWorkoutPlan plan, {
+    bool showDragHandle = false,
+    int? dragIndex,
+  }) {
+    final workoutDay = NextWorkoutSelector.mapCustomPlanToWorkoutDay(plan);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -1471,7 +1567,20 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: CleanTheme.textTertiary),
+            if (showDragHandle && dragIndex != null)
+              ReorderableDragStartListener(
+                index: dragIndex,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.drag_indicator_rounded,
+                    color: CleanTheme.textTertiary,
+                    size: 20,
+                  ),
+                ),
+              )
+            else
+              Icon(Icons.chevron_right, color: CleanTheme.textTertiary),
           ],
         ),
       ),

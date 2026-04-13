@@ -90,6 +90,24 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       _repsControllers[setNumber];
   int getRpe(int setNumber) => _rpe[setNumber] ?? 7;
 
+  List<SetCompletionData> getCompletedSetEntries() {
+    final entries = <SetCompletionData>[];
+    for (int setNumber = 1; setNumber <= widget.exercise.sets; setNumber++) {
+      if (!(_completedSets[setNumber] ?? false)) continue;
+      entries.add(
+        SetCompletionData(
+          setNumber: setNumber,
+          weightKg: _weights[setNumber],
+          reps: _reps[setNumber],
+          rpe: _rpe[setNumber],
+          previousWeightKg: null,
+          isLastSet: setNumber == widget.exercise.sets,
+        ),
+      );
+    }
+    return entries;
+  }
+
   void updateRpe(int setNumber, int value) {
     if (_rpe[setNumber] != value) {
       setState(() {
@@ -1279,8 +1297,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         rpe: _rpe[setNumber],
         completed: true,
       );
+    }
 
-      // Call voice coaching sync callback with set data
+    // Keep workout session lifecycle in sync even if backend log wasn't ready.
+    if (value) {
       final previousSet = _previousData?[setNumber];
       widget.onSetCompleted?.call(
         SetCompletionData(

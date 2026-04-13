@@ -64,8 +64,8 @@ class SubscriptionQuotas {
   /// FREE: Quota generose per hook, ma con limiti che creano desiderio di upgrade
   static const SubscriptionQuotas free = SubscriptionQuotas(
     workoutPlanIntervalWeeks: 8, // 1 piano ogni 8 settimane
-    formAnalysisPerWeek: 2, // 2 form check a settimana
-    mealAnalysisLimit: 1, // 1 analisi pasto a settimana
+    formAnalysisPerWeek: 1, // 1 form check a settimana
+    mealAnalysisLimit: 1, // 1 analisi pasto al giorno
     recipesPerWeek: 2, // 2 ricette a settimana
     voiceCoachingEnabled: false, // Solo nel trial
     customWorkoutsPerPeriod: 3, // 3 workout custom
@@ -80,7 +80,7 @@ class SubscriptionQuotas {
   static const SubscriptionQuotas pro = SubscriptionQuotas(
     workoutPlanIntervalWeeks: 2, // Piano ogni 2 settimane
     formAnalysisPerWeek: 20, // 20 form check a settimana
-    mealAnalysisLimit: 20, // 20 analisi pasto a settimana
+    mealAnalysisLimit: 20, // 20 analisi pasto al giorno
     recipesPerWeek: 20, // 20 ricette a settimana
     voiceCoachingEnabled: true, // Voice coaching attivo
     customWorkoutsPerPeriod: 5, // 5 workout custom
@@ -148,9 +148,9 @@ class SubscriptionTierConfig {
     priceYearly: 0.0,
     features: [
       'Piano AI ogni 8 settimane',
-      '2 Form Analysis AI/settimana',
-      '1 Analisi pasto/settimana',
-      '1 Ricetta AI/settimana',
+      '1 Form Analysis AI/settimana',
+      '1 Analisi pasto/giorno',
+      '2 Ricette AI/settimana',
       'Libreria 500+ esercizi',
       'Tracking workouts',
       'Gamification (XP, livelli)',
@@ -309,11 +309,11 @@ class SubscriptionTierConfig {
     return usedThisWeek < quotas.formAnalysisPerWeek;
   }
 
-  /// Verifica se l'utente può analizzare un pasto questa settimana
-  bool canAnalyzeMeal(int usedThisWeek) {
+  /// Verifica se l'utente può analizzare un pasto oggi
+  bool canAnalyzeMeal(int usedToday) {
     if (quotas.mealAnalysisLimit == -1) return true;
     if (quotas.mealAnalysisLimit == 0) return false;
-    return usedThisWeek < quotas.mealAnalysisLimit;
+    return usedToday < quotas.mealAnalysisLimit;
   }
 
   /// Verifica se l'utente può ottenere una ricetta questa settimana
@@ -354,7 +354,7 @@ class SubscriptionTierConfig {
 
   /// Ottiene la stringa per analisi pasto
   String get mealAnalysisQuotaDisplay {
-    return formatQuota(quotas.mealAnalysisLimit, '/settimana');
+    return formatQuota(quotas.mealAnalysisLimit, '/giorno');
   }
 
   /// Ottiene la stringa per ricette

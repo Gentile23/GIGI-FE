@@ -118,6 +118,7 @@ class PaymentService extends ChangeNotifier {
   Future<void> _fetchProducts() async {
     try {
       final offerings = await Purchases.getOfferings();
+      _logOfferingsSnapshot(offerings, context: '_fetchProducts');
       if (offerings.current != null) {
         final packages = offerings.current!.availablePackages;
         _availableProducts = packages.map((package) {
@@ -169,7 +170,6 @@ class PaymentService extends ChangeNotifier {
         price: 14.99,
         priceString: '€14,99',
         currencyCode: 'EUR',
-        trialDuration: '7 giorni gratis',
       ),
       const ProductInfo(
         identifier: ProductInfo.proYearly,
@@ -179,7 +179,6 @@ class PaymentService extends ChangeNotifier {
         priceString: '€99,99',
         currencyCode: 'EUR',
         introductoryPrice: '€8,33/mese',
-        trialDuration: '7 giorni gratis',
       ),
       // Elite removed from user-accessible purchase list as requested.
       // Elite tier remains in system for manual assignment.
@@ -209,6 +208,7 @@ class PaymentService extends ChangeNotifier {
 
       // In production:
       final offerings = await Purchases.getOfferings();
+      _logOfferingsSnapshot(offerings, context: 'purchaseProduct:$productId');
       final package = _findPackageForProduct(productId, offerings);
 
       if (package == null) {
@@ -236,7 +236,10 @@ class PaymentService extends ChangeNotifier {
       _errorMessage = _translatePlatformError(e);
       notifyListeners();
 
-      debugPrint('Purchase failed: $e');
+      debugPrint(
+        'Purchase failed: code=${PurchasesErrorHelper.getErrorCode(e)} '
+        'message=${e.message} details=${e.details}',
+      );
       return false;
     } catch (e) {
       _purchaseStatus = PurchaseStatus.error;
@@ -294,10 +297,10 @@ class PaymentService extends ChangeNotifier {
     }
   }
 
-  /// Start free trial
+  /// Start promotional access window
   Future<void> startFreeTrial(String productId) async {
     // In production, this would trigger the purchase flow
-    // with a free trial attached
+    // with a promotional access window attached
     _isTrialActive = true;
     _expirationDate = DateTime.now().add(const Duration(days: 7));
     notifyListeners();
@@ -322,14 +325,22 @@ class PaymentService extends ChangeNotifier {
     }
 
     final normalizedTarget = _normalizeProductIdentifier(productId);
+    final canonicalTarget = _canonicalizeProductIdentifier(normalizedTarget);
 
     for (final package in current.availablePackages) {
-      final normalizedStoreId = _normalizeProductIdentifier(
-        package.storeProduct.identifier,
+      final storeIdentifier = package.storeProduct.identifier;
+      final normalizedStoreId = _normalizeProductIdentifier(storeIdentifier);
+      final canonicalStoreId = _canonicalizeProductIdentifier(
+        normalizedStoreId,
       );
+      final isDirectMatch =
+          storeIdentifier == productId || normalizedStoreId == normalizedTarget;
+      final isCanonicalMatch =
+          canonicalStoreId == canonicalTarget ||
+          canonicalStoreId.endsWith('_$canonicalTarget') ||
+          canonicalStoreId.contains('_${canonicalTarget}_');
 
-      if (package.storeProduct.identifier == productId ||
-          normalizedStoreId == normalizedTarget) {
+      if (isDirectMatch || isCanonicalMatch) {
         return package;
       }
     }
@@ -341,6 +352,37 @@ class PaymentService extends ChangeNotifier {
     final separatorIndex = productId.indexOf(':');
     if (separatorIndex == -1) return productId;
     return productId.substring(0, separatorIndex);
+  }
+
+  String _canonicalizeProductIdentifier(String productId) {
+    final lowered = productId.toLowerCase();
+    final sanitized = lowered.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
+    final compacted = sanitized.replaceAll(RegExp(r'_+'), '_');
+    return compacted.replaceAll(RegExp(r'^_+|_+$'), '');
+  }
+
+  void _logOfferingsSnapshot(Offerings offerings, {required String context}) {
+    final allOfferingIds = offerings.all.keys.join(', ');
+    debugPrint('RevenueCat[$context]: offerings=[$allOfferingIds]');
+
+    final current = offerings.current;
+    if (current == null) {
+      debugPrint('RevenueCat[$context]: current offering is NULL');
+      return;
+    }
+
+    debugPrint(
+      'RevenueCat[$context]: current=${current.identifier} '
+      'packages=${current.availablePackages.length}',
+    );
+
+    for (final package in current.availablePackages) {
+      debugPrint(
+        'RevenueCat[$context]: package=${package.identifier} '
+        'type=${package.packageType.name} '
+        'product=${package.storeProduct.identifier}',
+      );
+    }
   }
 
   String _translatePlatformError(PlatformException error) {
@@ -358,6 +400,10 @@ class PaymentService extends ChangeNotifier {
       case PurchasesErrorCode.productNotAvailableForPurchaseError:
         return 'Questo abbonamento non è disponibile per l\'acquisto in questo momento.';
       case PurchasesErrorCode.configurationError:
+        final details = error.message?.trim();
+        if (details != null && details.isNotEmpty) {
+          return 'Configurazione acquisti non valida: $details';
+        }
         return 'Configurazione acquisti non valida. Controlla RevenueCat, offering e prodotti store.';
       case PurchasesErrorCode.receiptAlreadyInUseError:
         return 'L\'acquisto risulta associato a un altro account.';

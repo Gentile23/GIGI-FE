@@ -21,7 +21,10 @@ class FormAnalysisService {
   Future<FormAnalysisQuota?> checkQuota() async {
     try {
       final response = await _apiClient.dio.get('/form-analysis/quota');
-      return FormAnalysisQuota.fromJson(response.data);
+      final payload = _asMap(response.data);
+      if (payload == null) return null;
+      final quotaPayload = _asMap(payload['data']) ?? payload;
+      return FormAnalysisQuota.fromJson(quotaPayload);
     } catch (e) {
       debugPrint('Error checking quota: $e');
       return null;
@@ -48,9 +51,7 @@ class FormAnalysisService {
       }
 
       final fileName = videoFile.name.toLowerCase();
-      final extension = fileName.contains('.')
-          ? fileName.split('.').last
-          : '';
+      final extension = fileName.contains('.') ? fileName.split('.').last : '';
       if (!_allowedVideoExtensions.contains(extension)) {
         throw Exception('Formato video non supportato');
       }
@@ -88,8 +89,16 @@ class FormAnalysisService {
         onSendProgress: onProgress,
       );
 
-      if (response.data['success'] == true) {
-        return FormAnalysis.fromJson(response.data['analysis']);
+      final payload = _asMap(response.data);
+      if (payload == null) return null;
+      final analysisPayload =
+          _asMap(payload['analysis']) ??
+          _asMap(payload['data']) ??
+          _asMap(_asMap(payload['result'])?['analysis']);
+      final isSuccess = payload['success'] != false;
+
+      if (isSuccess && analysisPayload != null) {
+        return FormAnalysis.fromJson(analysisPayload);
       }
       return null;
     } catch (e) {
@@ -106,8 +115,15 @@ class FormAnalysisService {
   Future<List<FormAnalysis>?> getHistory() async {
     try {
       final response = await _apiClient.dio.get('/form-analysis/history');
-      return (response.data['analyses'] as List)
-          .map((json) => FormAnalysis.fromJson(json))
+      final payload = _asMap(response.data);
+      if (payload == null) return null;
+      final analysesRaw =
+          payload['analyses'] ?? _asMap(payload['data'])?['analyses'];
+      final analysesList = analysesRaw is List ? analysesRaw : const [];
+      return analysesList
+          .map((json) => _asMap(json))
+          .whereType<Map<String, dynamic>>()
+          .map(FormAnalysis.fromJson)
           .toList();
     } catch (e) {
       debugPrint('Error fetching history: $e');
@@ -119,7 +135,14 @@ class FormAnalysisService {
   Future<FormAnalysis?> getAnalysis(int id) async {
     try {
       final response = await _apiClient.dio.get('/form-analysis/$id');
-      return FormAnalysis.fromJson(response.data['analysis']);
+      final payload = _asMap(response.data);
+      if (payload == null) return null;
+      final analysisPayload =
+          _asMap(payload['analysis']) ??
+          _asMap(payload['data']) ??
+          _asMap(_asMap(payload['result'])?['analysis']);
+      if (analysisPayload == null) return null;
+      return FormAnalysis.fromJson(analysisPayload);
     } catch (e) {
       debugPrint('Error fetching analysis: $e');
       return null;
@@ -135,5 +158,11 @@ class FormAnalysisService {
       debugPrint('Error deleting analysis: $e');
       return false;
     }
+  }
+
+  Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
   }
 }

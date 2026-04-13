@@ -479,8 +479,6 @@ class ProfileScreen extends StatelessWidget {
     PaymentService paymentService,
     EngagementProvider engagementProvider,
   ) {
-    final isEligibleForTrial = engagementProvider.isEligibleForSpecialOffer;
-
     final screenWidth = MediaQuery.of(context).size.width;
     final titleFontSize = (screenWidth * 0.055).clamp(20.0, 26.0);
     final labelFontSize = (screenWidth * 0.035).clamp(12.0, 15.0);
@@ -516,40 +514,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              if (isEligibleForTrial)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: CleanTheme.accentOrange.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: CleanTheme.accentOrange,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        color: CleanTheme.accentOrange,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '7 GG GRATIS',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: CleanTheme.accentOrange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),

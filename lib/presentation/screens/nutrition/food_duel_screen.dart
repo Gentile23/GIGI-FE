@@ -66,7 +66,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     );
 
     // Use equivalence endpoint: food A as target (100g baseline), food B as user food
-    final result = await provider.calculateEquivalence(
+    final rawResult = await provider.calculateEquivalence(
       targetFood: {
         'name': foodA,
         'quantity': 100,
@@ -78,6 +78,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
       userFoodName: foodB,
       mode: _mode,
     );
+    final result = _normalizeResult(rawResult);
 
     if (!mounted) return;
 
@@ -330,17 +331,32 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   }
 
   Widget _buildReportResult() {
-    final targetFood = _result!['target_food'] as Map<String, dynamic>? ?? {};
-    final userFoodPer100g =
-        _result!['user_food_per_100g'] as Map<String, dynamic>? ?? {};
+    final targetFood = _extractFoodBlock(
+      _result!,
+      primaryKey: 'target_food',
+      fallbackKeys: const ['target_food_per_100g', 'target', 'food_a'],
+    );
+    final userFoodPer100g = _extractFoodBlock(
+      _result!,
+      primaryKey: 'user_food_per_100g',
+      fallbackKeys: const ['user_food', 'food_b', 'comparison_food'],
+    );
     final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
     final curiosity = _result!['curiosity'] as String? ?? '';
     final summary = _result!['summary'] as String? ?? '';
 
     final foodAName = _foodAController.text.trim();
     final foodBName = _foodBController.text.trim();
-    final foodAKcal = (targetFood['kcal'] as num?)?.toInt() ?? 0;
-    final foodBKcal = (userFoodPer100g['kcal'] as num?)?.toInt() ?? 0;
+    final foodAKcal = _readNutrientInt(targetFood, const [
+      'kcal',
+      'calories',
+      'cal',
+    ]);
+    final foodBKcal = _readNutrientInt(userFoodPer100g, const [
+      'kcal',
+      'calories',
+      'cal',
+    ]);
 
     return Column(
       children: [
@@ -451,24 +467,40 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
               // Macro Rows
               _buildReportMacroRow(
                 'Proteine',
-                (targetFood['proteins'] as num?)?.toDouble() ?? 0,
-                (userFoodPer100g['proteins'] as num?)?.toDouble() ?? 0,
+                _readNutrientDouble(targetFood, const [
+                  'proteins',
+                  'protein',
+                  'prot',
+                ]),
+                _readNutrientDouble(userFoodPer100g, const [
+                  'proteins',
+                  'protein',
+                  'prot',
+                ]),
                 CleanTheme.accentGreen,
                 CleanTheme.accentBlue,
               ),
               const SizedBox(height: 24),
               _buildReportMacroRow(
                 'Carboidrati',
-                (targetFood['carbs'] as num?)?.toDouble() ?? 0,
-                (userFoodPer100g['carbs'] as num?)?.toDouble() ?? 0,
+                _readNutrientDouble(targetFood, const [
+                  'carbs',
+                  'carb',
+                  'carbohydrates',
+                ]),
+                _readNutrientDouble(userFoodPer100g, const [
+                  'carbs',
+                  'carb',
+                  'carbohydrates',
+                ]),
                 CleanTheme.accentGreen,
                 CleanTheme.accentBlue,
               ),
               const SizedBox(height: 24),
               _buildReportMacroRow(
                 'Grassi',
-                (targetFood['fats'] as num?)?.toDouble() ?? 0,
-                (userFoodPer100g['fats'] as num?)?.toDouble() ?? 0,
+                _readNutrientDouble(targetFood, const ['fats', 'fat']),
+                _readNutrientDouble(userFoodPer100g, const ['fats', 'fat']),
                 CleanTheme.accentGreen,
                 CleanTheme.accentBlue,
               ),
@@ -683,6 +715,55 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
       message: '$message ${GigiGuidanceContent.foodDuelInvalid()}',
       emotion: GigiEmotion.expert,
     );
+  }
+
+  Map<String, dynamic> _normalizeResult(Map<String, dynamic> raw) {
+    final nested = raw['equivalence'];
+    if (nested is Map<String, dynamic>) {
+      return nested;
+    }
+    if (nested is Map) {
+      return Map<String, dynamic>.from(nested);
+    }
+    return raw;
+  }
+
+  Map<String, dynamic> _extractFoodBlock(
+    Map<String, dynamic> payload, {
+    required String primaryKey,
+    List<String> fallbackKeys = const [],
+  }) {
+    final keys = [primaryKey, ...fallbackKeys];
+    for (final key in keys) {
+      final value = payload[key];
+      if (value is Map<String, dynamic>) return value;
+      if (value is Map) return Map<String, dynamic>.from(value);
+    }
+    return const {};
+  }
+
+  int _readNutrientInt(Map<String, dynamic> block, List<String> keys) {
+    return _readNutrientDouble(block, keys).round();
+  }
+
+  double _readNutrientDouble(Map<String, dynamic> block, List<String> keys) {
+    for (final key in keys) {
+      final value = block[key];
+      final parsed = _toDouble(value);
+      if (parsed != null) return parsed;
+    }
+    return 0;
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final normalized = value.trim().replaceAll(',', '.');
+      if (normalized.isEmpty) return null;
+      return double.tryParse(normalized);
+    }
+    return null;
   }
 
   String _getScoreLabel(int score) {

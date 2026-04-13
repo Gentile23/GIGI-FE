@@ -2786,7 +2786,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywallCurrentPlan => 'Current Plan';
 
   @override
-  String get paywallGuarantee => '7 days free trial';
+  String get paywallGuarantee => 'Instant access';
 
   @override
   String get paywallTerms =>

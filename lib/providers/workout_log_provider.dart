@@ -119,7 +119,7 @@ class WorkoutLogProvider with ChangeNotifier {
   }
 
   /// Add set to exercise
-  Future<void> addSetLog({
+  Future<bool> addSetLog({
     required String exerciseLogId,
     required int setNumber,
     required int reps,
@@ -151,8 +151,11 @@ class WorkoutLogProvider with ChangeNotifier {
       }
 
       notifyListeners();
+      return true;
     } catch (e) {
+      _setError(e.toString());
       debugPrint('Error adding set log: $e');
+      return false;
     }
   }
 

@@ -5,6 +5,8 @@ import '../../../core/theme/clean_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/services/payment_service.dart';
+import '../../../data/models/quota_status_model.dart';
+import '../../../data/services/quota_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
@@ -18,6 +20,8 @@ class PaywallScreen extends StatefulWidget {
 class _PaywallScreenState extends State<PaywallScreen> {
   SubscriptionTier _selectedTier = SubscriptionTier.pro;
   bool _isYearly = true; // Default to yearly for better conversion
+  late final QuotaService _quotaService;
+  QuotaStatus? _quotaStatus;
 
   // Urgency timer - scade a mezzanotte
   late Duration _timeRemaining;
@@ -26,8 +30,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   void initState() {
     super.initState();
+    _quotaService = QuotaService();
     _calculateTimeRemaining();
     _startTimer();
+    _loadQuotaStatus();
+  }
+
+  Future<void> _loadQuotaStatus() async {
+    try {
+      final status = await _quotaService.getQuotaStatus();
+      if (!mounted) return;
+      setState(() => _quotaStatus = status);
+    } catch (_) {
+      // Keep static fallback when backend limits are not available.
+    }
   }
 
   void _startTimer() {
@@ -185,40 +201,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
               width: double.infinity,
             ),
 
-            const SizedBox(height: 12),
-
-            // Money back guarantee
-            if (_selectedTier != SubscriptionTier.free)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: CleanTheme.accentGreen.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.verified_user,
-                      color: CleanTheme.accentGreen,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.paywallGuarantee, // '7 giorni di prova gratuita'
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: CleanTheme.accentGreen,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
             const SizedBox(height: 16),
 
             // Terms
@@ -342,13 +324,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ? 'anno'
         : 'mese';
 
+    final displayedFeatures = _resolveFeaturesForTier(config);
+
     return GestureDetector(
       onTap: () => setState(() => _selectedTier = config.tier),
       child: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
-              color: isSelected ? CleanTheme.primaryColor.withValues(alpha: 0.02) : CleanTheme.surfaceColor,
+              color: isSelected
+                  ? CleanTheme.primaryColor.withValues(alpha: 0.02)
+                  : CleanTheme.surfaceColor,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isSelected ? accentColor : CleanTheme.borderPrimary,
@@ -457,7 +443,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  ...config.features.map((feature) {
+                  ...displayedFeatures.map((feature) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
@@ -494,7 +480,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
               ),
             ),
           ),
-          if (isPopular)
+          if (isPopular && _isYearly && config.tier != SubscriptionTier.free)
             Positioned(
               top: 0,
               right: 16,
@@ -505,10 +491,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      CleanTheme.primaryColor,
-                      CleanTheme.primaryLight,
-                    ],
+                    colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
                   ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(12),
@@ -540,6 +523,86 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   SubscriptionTierConfig _getSelectedConfig() {
     return SubscriptionTierConfig.fromTier(_selectedTier);
+  }
+
+  List<String> _resolveFeaturesForTier(SubscriptionTierConfig config) {
+    final backendLimits = _getBackendLimitsForTier(config.tier);
+    if (backendLimits == null || backendLimits.isEmpty) {
+      return config.features;
+    }
+    return _buildFeaturesFromBackendLimits(backendLimits);
+  }
+
+  Map<String, dynamic>? _getBackendLimitsForTier(SubscriptionTier tier) {
+    final quota = _quotaStatus;
+    if (quota == null) return null;
+    final tierKey = _tierKeyForSubscription(tier);
+    return quota.limitsForTier(tierKey);
+  }
+
+  String _tierKeyForSubscription(SubscriptionTier tier) {
+    switch (tier) {
+      case SubscriptionTier.free:
+        return 'free';
+      case SubscriptionTier.pro:
+        return 'pro';
+      case SubscriptionTier.elite:
+        return 'elite';
+    }
+  }
+
+  List<String> _buildFeaturesFromBackendLimits(Map<String, dynamic> limits) {
+    final workoutInterval = _toInt(limits['workout_plan_interval_weeks']);
+    final formPerWeek = _toInt(limits['form_analysis_per_week']);
+    final mealPerDay = _toInt(limits['meal_analysis_per_day']);
+    final recipesPerWeek = _toInt(limits['recipes_per_week']);
+    final customWorkouts = _toInt(limits['custom_workouts_per_period']);
+    final customPeriodWeeks = _toInt(limits['custom_workouts_period_weeks']);
+    final executePerWeek = _toInt(limits['execute_with_gigi_per_week']);
+    final shoppingListLimit = _toInt(limits['shopping_list_limit']);
+    final changeMealPerWeek = _toInt(limits['change_meal_per_week']);
+    final changeFoodPerWeek = _toInt(limits['change_food_per_week']);
+    final voiceCoaching = (limits['voice_coaching'] as bool?) ?? false;
+
+    return [
+      workoutInterval == 0
+          ? 'Piani workout AI: illimitati'
+          : 'Piani workout AI: 1 ogni ${_weekLabel(workoutInterval)}',
+      'Form Check AI: ${_limitLabel(formPerWeek)} / settimana',
+      'Analisi pasti AI: ${_limitLabel(mealPerDay)} / giorno',
+      'Ricette AI: ${_limitLabel(recipesPerWeek)} / settimana',
+      customWorkouts == -1
+          ? 'Workout custom: illimitati'
+          : 'Workout custom: $customWorkouts ogni ${_weekLabel(customPeriodWeeks)}',
+      'Execute con Gigi: ${_limitLabel(executePerWeek)} / settimana',
+      shoppingListLimit == -1
+          ? 'Lista spesa AI: illimitata'
+          : 'Lista spesa AI: $shoppingListLimit totale',
+      'Cambio pasto: ${_limitLabel(changeMealPerWeek)} / settimana',
+      'Sostituzione alimento: ${_limitLabel(changeFoodPerWeek)} / settimana',
+      voiceCoaching
+          ? 'Voice Coaching realtime incluso'
+          : 'Voice Coaching realtime non incluso',
+    ];
+  }
+
+  int _toInt(dynamic value, {int fallback = 0}) {
+    if (value == null) return fallback;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  String _limitLabel(int limit) {
+    if (limit == -1) return 'illimitate';
+    return '$limit';
+  }
+
+  String _weekLabel(int weeks) {
+    if (weeks <= 0) return '1 settimana';
+    if (weeks == 1) return '1 settimana';
+    return '$weeks settimane';
   }
 
   Future<void> _handleSubscribe() async {

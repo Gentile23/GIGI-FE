@@ -56,6 +56,17 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   WorkoutExercise get _currentExercise => _mainExercises[_currentExerciseIndex];
 
+  int get _completedExerciseCount {
+    int completed = 0;
+    for (final exercise in _mainExercises) {
+      final sets = _completedSets[exercise.exercise.id];
+      if (sets != null && sets.length >= exercise.sets) {
+        completed++;
+      }
+    }
+    return completed;
+  }
+
   WorkoutExercise? get _nextExercise {
     if (_currentSetNumber < _currentExercise.sets) {
       return _currentExercise; // Same exercise, next set
@@ -313,6 +324,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
               SessionTimerWidget(
                 startTime: _sessionStartTime,
                 currentExercise: _currentExerciseIndex + 1,
+                completedExercises: _completedExerciseCount,
                 totalExercises: _mainExercises.length,
                 isPaused: _isPaused,
               ),

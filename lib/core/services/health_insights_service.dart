@@ -28,6 +28,9 @@ class HealthInsightsService {
 
   Future<bool> connectHealth() async {
     await _healthService.initialize();
+    if (_healthService.isAuthorized) {
+      return true;
+    }
     return _healthService.requestPermissions();
   }
 

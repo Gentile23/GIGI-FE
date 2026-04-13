@@ -1079,33 +1079,6 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 
-  String? _tryParseCardioDuration(String rawValue) {
-    final value = rawValue.trim();
-    if (value.isEmpty) return null;
-
-    int? totalSeconds;
-    if (value.contains(':')) {
-      final parts = value.split(':');
-      if (parts.length != 2) return null;
-      final minutes = int.tryParse(parts[0]);
-      final seconds = int.tryParse(parts[1]);
-      if (minutes == null || seconds == null || seconds < 0 || seconds > 59) {
-        return null;
-      }
-      totalSeconds = (minutes * 60) + seconds;
-    } else {
-      totalSeconds = int.tryParse(value);
-    }
-
-    if (totalSeconds == null || totalSeconds < 1 || totalSeconds > 7200) {
-      return null;
-    }
-
-    final minutes = totalSeconds ~/ 60;
-    final seconds = totalSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
   void _showInputError(String message) {
     HapticService.errorPattern();
     showDialog<void>(
@@ -1121,6 +1094,90 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
         ],
       ),
     );
+  }
+
+  void _showFieldSaved(String message) {
+    if (!mounted) return;
+    HapticService.lightTap();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(milliseconds: 1200),
+        backgroundColor: CleanTheme.accentGreen,
+      ),
+    );
+  }
+
+  void _saveCustomSets() {
+    FocusScope.of(context).unfocus();
+    final parsedSets = _parseBoundedInt(
+      rawValue: _customSetsController.text,
+      fieldLabel: 'Le serie',
+      min: 1,
+      max: 20,
+    );
+    if (parsedSets == null) return;
+
+    setState(() {
+      _sets = parsedSets;
+      _customSetsController.text = parsedSets.toString();
+      _updateRepsControllers();
+    });
+    _showFieldSaved('Serie salvate');
+  }
+
+  void _saveCustomTarget() {
+    FocusScope.of(context).unfocus();
+    final isCardio = _exerciseType == 'cardio';
+
+    if (isCardio) {
+      final parsedDuration = _parseCardioDuration(_customTargetController.text);
+      if (parsedDuration == null) return;
+
+      setState(() {
+        _isUniformReps = true;
+        _globalReps = parsedDuration;
+        _customTargetController.text = parsedDuration;
+        _updateRepsControllers();
+      });
+      _showFieldSaved('Durata salvata');
+      return;
+    }
+
+    final parsedReps = _parseBoundedInt(
+      rawValue: _customTargetController.text,
+      fieldLabel: 'Le ripetizioni',
+      min: 1,
+      max: 999,
+    );
+    if (parsedReps == null) return;
+
+    setState(() {
+      _isUniformReps = true;
+      _globalReps = parsedReps.toString();
+      _customTargetController.text = parsedReps.toString();
+      _updateRepsControllers();
+    });
+    _showFieldSaved('Ripetizioni salvate');
+  }
+
+  void _saveCustomRest() {
+    FocusScope.of(context).unfocus();
+    final parsedRest = _parseBoundedInt(
+      rawValue: _customRestController.text,
+      fieldLabel: 'Il recupero',
+      min: 0,
+      max: 600,
+    );
+    if (parsedRest == null) return;
+
+    setState(() {
+      _restSeconds = parsedRest;
+      _customRestController.text = parsedRest.toString();
+    });
+    _showFieldSaved('Recupero salvato');
   }
 
   @override
@@ -1371,15 +1428,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
           controller: _customSetsController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) {
-            final parsed = int.tryParse(value.trim());
-            if (parsed != null && parsed >= 1 && parsed <= 20) {
-              setState(() {
-                _sets = parsed;
-                _updateRepsControllers();
-              });
-            }
-          },
+          onChanged: (_) {},
+          onSavePressed: _saveCustomSets,
         ),
       ],
     );
@@ -1467,31 +1517,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
               isCardio ? RegExp(r'[\d:]') : RegExp(r'\d'),
             ),
           ],
-          onChanged: (value) {
-            final trimmed = value.trim();
-            if (trimmed.isEmpty) return;
-
-            if (isCardio) {
-              final normalized = _tryParseCardioDuration(trimmed);
-              if (normalized != null) {
-                setState(() {
-                  _isUniformReps = true;
-                  _globalReps = normalized;
-                  _updateRepsControllers();
-                });
-              }
-              return;
-            }
-
-            final parsed = int.tryParse(trimmed);
-            if (parsed != null && parsed >= 1 && parsed <= 999) {
-              setState(() {
-                _isUniformReps = true;
-                _globalReps = parsed.toString();
-                _updateRepsControllers();
-              });
-            }
-          },
+          onChanged: (_) {},
+          onSavePressed: _saveCustomTarget,
         ),
       ],
     );
@@ -1504,18 +1531,39 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
     required TextInputType keyboardType,
     required List<TextInputFormatter> inputFormatters,
     required ValueChanged<String> onChanged,
+    VoidCallback? onSavePressed,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       onChanged: onChanged,
+      onSubmitted: (_) => onSavePressed?.call(),
       textInputAction: TextInputAction.done,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         labelStyle: GoogleFonts.inter(color: CleanTheme.textSecondary),
         hintStyle: GoogleFonts.inter(color: CleanTheme.textTertiary),
+        suffixIcon: onSavePressed == null
+            ? null
+            : TextButton(
+                onPressed: onSavePressed,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Salva',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.primaryColor,
+                  ),
+                ),
+              ),
         filled: true,
         fillColor: CleanTheme.surfaceColor,
         border: OutlineInputBorder(
@@ -1638,12 +1686,8 @@ class _EditExerciseSheetState extends State<_EditExerciseSheet> {
           controller: _customRestController,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: (value) {
-            final parsed = int.tryParse(value.trim());
-            if (parsed != null && parsed >= 0 && parsed <= 600) {
-              setState(() => _restSeconds = parsed);
-            }
-          },
+          onChanged: (_) {},
+          onSavePressed: _saveCustomRest,
         ),
       ],
     );

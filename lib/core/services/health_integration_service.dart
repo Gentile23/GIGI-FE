@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:health/health.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// HEALTH INTEGRATION SERVICE
@@ -14,6 +15,7 @@ class HealthIntegrationService {
   final Health _health = Health();
   bool _isInitialized = false;
   bool _isAuthorized = false;
+  static const String _iosConnectedKey = 'apple_health_connected_v1';
 
   /// Data types we want to read
   static final List<HealthDataType> _readTypes = [
@@ -39,6 +41,11 @@ class HealthIntegrationService {
         defaultTargetPlatform == TargetPlatform.android;
   }
 
+  bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
   /// Check if currently authorized
   bool get isAuthorized => _isAuthorized;
 
@@ -61,8 +68,12 @@ class HealthIntegrationService {
       await _health.configure();
       _isInitialized = true;
 
-      // Check if already authorized
-      _isAuthorized = await _health.hasPermissions(_readTypes) ?? false;
+      if (_isIOS) {
+        _isAuthorized = await _loadIosConnectedState();
+      } else {
+        // Android can report real authorization state.
+        _isAuthorized = await _health.hasPermissions(_readTypes) ?? false;
+      }
 
       debugPrint(
         'HealthIntegrationService initialized. Authorized: $_isAuthorized',
@@ -80,6 +91,11 @@ class HealthIntegrationService {
       // Ensure plugin is configured before requesting permissions.
       if (!_isInitialized) {
         await initialize();
+      }
+
+      // Avoid requesting permissions again once already connected.
+      if (_isAuthorized) {
+        return true;
       }
 
       // Build a single, deduplicated list of data types with matching access list.
@@ -102,7 +118,7 @@ class HealthIntegrationService {
         permissions: permissions,
       );
 
-      _isAuthorized = authorized;
+      await _setAuthorizedState(authorized);
       debugPrint('Health permissions granted: $authorized');
       return authorized;
     } catch (e) {
@@ -113,7 +129,7 @@ class HealthIntegrationService {
 
   /// Check if Health Connect is installed (Android only)
   Future<bool> isHealthConnectInstalled() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return true;
+    if (!_isAndroid) return true;
 
     try {
       final status = await _health.getHealthConnectSdkStatus();
@@ -126,7 +142,7 @@ class HealthIntegrationService {
 
   /// Install Health Connect (Android only)
   Future<void> installHealthConnect() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    if (!_isAndroid) return;
     await _health.installHealthConnect();
   }
 
@@ -146,6 +162,7 @@ class HealthIntegrationService {
       return steps;
     } catch (e) {
       debugPrint('Error getting steps: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -161,6 +178,7 @@ class HealthIntegrationService {
       return await _health.getTotalStepsInInterval(startOfDay, endOfDay);
     } catch (e) {
       debugPrint('Error getting steps for date: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -191,6 +209,7 @@ class HealthIntegrationService {
       return null;
     } catch (e) {
       debugPrint('Error getting heart rate: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -221,6 +240,7 @@ class HealthIntegrationService {
       return totalMinutes / 60;
     } catch (e) {
       debugPrint('Error getting sleep: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -252,6 +272,7 @@ class HealthIntegrationService {
       return total;
     } catch (e) {
       debugPrint('Error getting calories: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -280,6 +301,7 @@ class HealthIntegrationService {
       return null;
     } catch (e) {
       debugPrint('Error getting weight: $e');
+      await _handlePotentialPermissionRevocation(e);
       return null;
     }
   }
@@ -314,6 +336,7 @@ class HealthIntegrationService {
       return success;
     } catch (e) {
       debugPrint('Error writing workout: $e');
+      await _handlePotentialPermissionRevocation(e);
       return false;
     }
   }
@@ -363,7 +386,35 @@ class HealthIntegrationService {
 
   /// Disconnect health integration
   Future<void> disconnect() async {
-    _isAuthorized = false;
+    await _setAuthorizedState(false);
     debugPrint('Health integration disconnected');
+  }
+
+  Future<void> _setAuthorizedState(bool value) async {
+    _isAuthorized = value;
+    if (_isIOS) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_iosConnectedKey, value);
+    }
+  }
+
+  Future<bool> _loadIosConnectedState() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_iosConnectedKey) ?? false;
+  }
+
+  bool _looksLikePermissionError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('not authorized') ||
+        message.contains('authorization') ||
+        message.contains('permission denied') ||
+        message.contains('no data access');
+  }
+
+  Future<void> _handlePotentialPermissionRevocation(Object error) async {
+    if (!_isIOS || !_isAuthorized) return;
+    if (_looksLikePermissionError(error)) {
+      await _setAuthorizedState(false);
+    }
   }
 }

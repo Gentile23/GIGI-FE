@@ -30,7 +30,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     with SingleTickerProviderStateMixin {
   late final NutritionService _nutritionService;
   late AnimationController _animationController;
+  late final ScrollController _scrollController;
   bool _isLoading = true;
+  bool _isDeletingGoal = false;
   DailyNutritionLog? _dailyLog;
   List<Meal> _meals = [];
   NutritionGoal? _goal;
@@ -42,6 +44,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   void initState() {
     super.initState();
     _nutritionService = NutritionService(ApiClient());
+    _scrollController = ScrollController();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -51,12 +54,15 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadData({bool showLoader = true}) async {
+    if (showLoader && mounted) {
+      setState(() => _isLoading = true);
+    }
 
     // Ottieni il provider PRIMA degli await per evitare use_build_context_synchronously
     final coachProvider = Provider.of<NutritionCoachProvider>(
@@ -87,6 +93,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
           _isLoading = false;
         });
+        _stabilizeScrollPosition();
         _animationController.forward(from: 0.0);
       }
     } catch (e) {
@@ -94,6 +101,31 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _stabilizeScrollPosition() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final position = _scrollController.position;
+      final current = position.pixels;
+      final min = position.minScrollExtent;
+      final max = position.maxScrollExtent;
+
+      if (current < min) {
+        _scrollController.jumpTo(min);
+      } else if (current > max) {
+        _scrollController.jumpTo(max);
+      }
+    });
+  }
+
+  Future<void> _scrollToTop() async {
+    if (!mounted || !_scrollController.hasClients) return;
+    await _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -105,10 +137,13 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               child: CircularProgressIndicator(color: CleanTheme.primaryColor),
             )
           : RefreshIndicator(
-              onRefresh: _loadData,
+              onRefresh: () => _loadData(showLoader: false),
               color: CleanTheme.chromeGray,
               backgroundColor: CleanTheme.surfaceColor,
               child: CustomScrollView(
+                key: const PageStorageKey<String>('nutrition_dashboard_scroll'),
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   // Premium App Bar
                   SliverAppBar(
@@ -885,12 +920,21 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             children: [
               if (_goal != null)
                 GestureDetector(
-                  onTap: _showDeleteGoalDialog,
-                  child: const Icon(
-                    Icons.delete_outline,
-                    color: CleanTheme.accentRed,
-                    size: 20,
-                  ),
+                  onTap: _isDeletingGoal ? null : _showDeleteGoalDialog,
+                  child: _isDeletingGoal
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: CleanTheme.accentRed,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.delete_outline,
+                          color: CleanTheme.accentRed,
+                          size: 20,
+                        ),
                 )
               else
                 _buildAddGoalButton(),
@@ -1289,6 +1333,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   }
 
   void _showDeleteGoalDialog() {
+    if (_isDeletingGoal) return;
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
@@ -1328,7 +1373,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   }
 
   Future<void> _deleteGoal() async {
-    setState(() => _isLoading = true);
+    if (_isDeletingGoal) return;
+    setState(() => _isDeletingGoal = true);
+
     try {
       final success = await _nutritionService.deleteGoals();
       if (success) {
@@ -1337,6 +1384,10 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
             _goal = null;
             // Note: keeping dailyLog and meals as they are tracking what was eaten
           });
+          _stabilizeScrollPosition();
+          await _loadData(showLoader: false);
+          await _scrollToTop();
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Obiettivo eliminato correttamente'),
@@ -1355,7 +1406,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         );
       }
     } finally {
-      _loadData();
+      if (mounted) {
+        setState(() => _isDeletingGoal = false);
+      }
     }
   }
 }

@@ -5,6 +5,7 @@ class WorkoutLog {
   final String id;
   final String userId;
   final String? workoutPlanId;
+  final String? customWorkoutPlanId;
   final String? workoutDayId;
   final DateTime startedAt;
   final DateTime? completedAt;
@@ -17,6 +18,7 @@ class WorkoutLog {
     required this.id,
     required this.userId,
     this.workoutPlanId,
+    this.customWorkoutPlanId,
     this.workoutDayId,
     required this.startedAt,
     this.completedAt,
@@ -31,6 +33,7 @@ class WorkoutLog {
       id: json['id'].toString(),
       userId: json['user_id'].toString(),
       workoutPlanId: json['workout_plan_id']?.toString(),
+      customWorkoutPlanId: json['custom_workout_plan_id']?.toString(),
       workoutDayId: json['workout_day_id']?.toString(),
       startedAt: json['started_at'] != null
           ? DateTime.parse(json['started_at'])
@@ -56,6 +59,7 @@ class WorkoutLog {
       'id': id,
       'user_id': userId,
       'workout_plan_id': workoutPlanId,
+      'custom_workout_plan_id': customWorkoutPlanId,
       'workout_day_id': workoutDayId,
       'started_at': startedAt.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),

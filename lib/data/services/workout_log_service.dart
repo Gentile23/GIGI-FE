@@ -10,6 +10,11 @@ class WorkoutLogService extends ApiService {
     String? workoutPlanId,
     String? workoutDayId,
   }) async {
+    final customWorkoutPlanId = _extractCustomWorkoutPlanId(workoutDayId);
+    final normalizedWorkoutDayId = customWorkoutPlanId != null
+        ? null
+        : workoutDayId;
+
     debugPrint(
       'DEBUG Service: POST workout-logs/start with dayId=$workoutDayId',
     );
@@ -17,20 +22,26 @@ class WorkoutLogService extends ApiService {
       'workout-logs/start',
       body: {
         if (workoutPlanId != null) 'workout_plan_id': workoutPlanId,
-        if (workoutDayId != null) 'workout_day_id': workoutDayId,
+        if (normalizedWorkoutDayId != null)
+          'workout_day_id': normalizedWorkoutDayId,
+        if (customWorkoutPlanId != null)
+          'custom_workout_plan_id': customWorkoutPlanId,
       },
     );
 
     debugPrint('DEBUG Service: Response = $response');
 
-    if (response['success'] == true) {
-      return WorkoutLog.fromJson(response['workout_log']);
-    } else {
-      final error =
-          response['message'] ?? response['error'] ?? 'Failed to start workout';
-      debugPrint('DEBUG Service: API Error = $error');
-      throw Exception(error);
+    final payload = _extractWorkoutLogPayload(response);
+    if (_isSuccessResponse(response) && payload != null) {
+      return WorkoutLog.fromJson(payload);
     }
+
+    final error = _extractErrorMessage(
+      response,
+      fallback: 'Failed to start workout',
+    );
+    debugPrint('DEBUG Service: API Error = $error');
+    throw Exception(error);
   }
 
   /// Complete a workout session
@@ -42,12 +53,32 @@ class WorkoutLogService extends ApiService {
       'workout-logs/$workoutLogId/complete',
       body: {if (notes != null) 'notes': notes},
     );
+    debugPrint('DEBUG Service: Complete workout response = $response');
 
-    if (response['success'] == true) {
-      return WorkoutLog.fromJson(response['workout_log']);
-    } else {
-      throw Exception('Failed to complete workout');
+    final payload = _extractWorkoutLogPayload(response);
+    if (_isSuccessResponse(response) && payload != null) {
+      return WorkoutLog.fromJson(payload);
     }
+
+    // Some backends return success without embedding the full workout log.
+    if (_isSuccessResponse(response)) {
+      try {
+        return await getWorkoutLogDetails(workoutLogId);
+      } catch (_) {
+        return WorkoutLog(
+          id: workoutLogId,
+          userId: '0',
+          startedAt: DateTime.now(),
+          completedAt: DateTime.now(),
+          notes: notes,
+          exerciseLogs: const [],
+        );
+      }
+    }
+
+    throw Exception(
+      _extractErrorMessage(response, fallback: 'Failed to complete workout'),
+    );
   }
 
   /// Add an exercise to the workout session
@@ -68,11 +99,14 @@ class WorkoutLogService extends ApiService {
       },
     );
 
-    if (response['success'] == true) {
-      return ExerciseLogModel.fromJson(response['exercise_log']);
-    } else {
-      throw Exception('Failed to add exercise log');
+    final payload = _extractExerciseLogPayload(response);
+    if (_isSuccessResponse(response) && payload != null) {
+      return ExerciseLogModel.fromJson(payload);
     }
+
+    throw Exception(
+      _extractErrorMessage(response, fallback: 'Failed to add exercise log'),
+    );
   }
 
   /// Add a set to an exercise log
@@ -97,16 +131,24 @@ class WorkoutLogService extends ApiService {
       },
     );
 
-    if (response['success'] == true) {
-      final setLog = SetLogModel.fromJson(response['set_log']);
-      final newRecords = (response['new_records'] as List)
-          .map((e) => PersonalRecord.fromJson(e))
+    final payload = _extractSetLogPayload(response);
+    if (_isSuccessResponse(response) && payload != null) {
+      final setLog = SetLogModel.fromJson(payload);
+      final nestedData = _asMap(response['data']);
+      final rawRecords = response['new_records'] ?? nestedData?['new_records'];
+      final recordsList = rawRecords is List ? rawRecords : const [];
+      final newRecords = recordsList
+          .map((e) => _asMap(e))
+          .whereType<Map<String, dynamic>>()
+          .map(PersonalRecord.fromJson)
           .toList();
 
       return {'set_log': setLog, 'new_records': newRecords};
-    } else {
-      throw Exception('Failed to add set log');
     }
+
+    throw Exception(
+      _extractErrorMessage(response, fallback: 'Failed to add set log'),
+    );
   }
 
   /// Update a set log
@@ -129,11 +171,14 @@ class WorkoutLogService extends ApiService {
       },
     );
 
-    if (response['success'] == true) {
-      return SetLogModel.fromJson(response['set_log']);
-    } else {
-      throw Exception('Failed to update set log');
+    final payload = _extractSetLogPayload(response);
+    if (_isSuccessResponse(response) && payload != null) {
+      return SetLogModel.fromJson(payload);
     }
+
+    throw Exception(
+      _extractErrorMessage(response, fallback: 'Failed to update set log'),
+    );
   }
 
   /// Get workout logs list
@@ -204,5 +249,88 @@ class WorkoutLogService extends ApiService {
     } catch (e) {
       return null;
     }
+  }
+
+  bool _isSuccessResponse(Map<String, dynamic> response) {
+    final success = response['success'];
+    if (success is bool) return success;
+    final status = response['status'];
+    if (status is String) {
+      final normalized = status.trim().toLowerCase();
+      if (normalized == 'success' || normalized == 'ok') return true;
+      if (normalized == 'error' || normalized == 'failed') return false;
+    }
+    // Many endpoints return payload directly without explicit success flag.
+    return true;
+  }
+
+  String _extractErrorMessage(
+    Map<String, dynamic> response, {
+    required String fallback,
+  }) {
+    final message = response['message'];
+    if (message is String && message.trim().isNotEmpty) return message;
+    final error = response['error'];
+    if (error is String && error.trim().isNotEmpty) return error;
+    final nestedData = _asMap(response['data']);
+    final nestedMessage = nestedData?['message'];
+    if (nestedMessage is String && nestedMessage.trim().isNotEmpty) {
+      return nestedMessage;
+    }
+    return fallback;
+  }
+
+  Map<String, dynamic>? _extractWorkoutLogPayload(
+    Map<String, dynamic> response,
+  ) {
+    final nestedData = _asMap(response['data']);
+    return _asMap(response['workout_log']) ??
+        _asMap(response['workoutLog']) ??
+        _asMap(response['workout']) ??
+        _asMap(nestedData?['workout_log']) ??
+        _asMap(nestedData?['workoutLog']) ??
+        _asMap(nestedData?['workout']) ??
+        (nestedData != null && nestedData['id'] != null ? nestedData : null) ??
+        (response['id'] != null ? response : null);
+  }
+
+  Map<String, dynamic>? _extractExerciseLogPayload(
+    Map<String, dynamic> response,
+  ) {
+    final nestedData = _asMap(response['data']);
+    return _asMap(response['exercise_log']) ??
+        _asMap(response['exerciseLog']) ??
+        _asMap(nestedData?['exercise_log']) ??
+        _asMap(nestedData?['exerciseLog']) ??
+        (nestedData != null && nestedData['workout_log_id'] != null
+            ? nestedData
+            : null);
+  }
+
+  Map<String, dynamic>? _extractSetLogPayload(Map<String, dynamic> response) {
+    final nestedData = _asMap(response['data']);
+    return _asMap(response['set_log']) ??
+        _asMap(response['setLog']) ??
+        _asMap(nestedData?['set_log']) ??
+        _asMap(nestedData?['setLog']) ??
+        (nestedData != null && nestedData['set_number'] != null
+            ? nestedData
+            : null);
+  }
+
+  Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return Map<String, dynamic>.from(value);
+    }
+    return null;
+  }
+
+  String? _extractCustomWorkoutPlanId(String? workoutDayId) {
+    if (workoutDayId == null) return null;
+    const prefix = 'custom_';
+    if (!workoutDayId.startsWith(prefix)) return null;
+    final customPlanId = workoutDayId.substring(prefix.length).trim();
+    return customPlanId.isEmpty ? null : customPlanId;
   }
 }

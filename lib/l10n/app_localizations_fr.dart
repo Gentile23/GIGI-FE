@@ -2814,7 +2814,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get paywallCurrentPlan => 'Plan Actuel';
 
   @override
-  String get paywallGuarantee => '7 jours d\'essai gratuit';
+  String get paywallGuarantee => 'Acces immediat';
 
   @override
   String get paywallTerms =>

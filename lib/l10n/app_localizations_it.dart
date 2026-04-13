@@ -2809,7 +2809,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get paywallCurrentPlan => 'Piano Attuale';
 
   @override
-  String get paywallGuarantee => '7 giorni di prova gratuita';
+  String get paywallGuarantee => 'Accesso immediato';
 
   @override
   String get paywallTerms =>

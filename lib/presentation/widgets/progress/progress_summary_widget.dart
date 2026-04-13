@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../screens/progress/progress_dashboard_screen.dart';
+import '../../navigation/main_tab_navigation.dart';
+import '../../screens/main_screen.dart';
 
 /// Compact widget showing progress summary for the home screen
 class ProgressSummaryWidget extends StatelessWidget {
@@ -23,10 +24,18 @@ class ProgressSummaryWidget extends StatelessWidget {
     final hasData = latestMeasurements != null || totalMeasurements > 0;
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ProgressDashboardScreen()),
-      ),
+      onTap: () {
+        final insideMainShell =
+            context.findAncestorWidgetOfExactType<MainScreen>() != null;
+        if (insideMainShell) {
+          MainTabNavigation.goTo(3);
+          return;
+        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 3)),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

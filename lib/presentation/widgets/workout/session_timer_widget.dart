@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 class SessionTimerWidget extends StatefulWidget {
   final DateTime startTime;
   final int currentExercise;
+  final int? completedExercises;
   final int totalExercises;
   final int estimatedCaloriesPerMinute;
   final bool isPaused;
@@ -20,6 +21,7 @@ class SessionTimerWidget extends StatefulWidget {
     super.key,
     required this.startTime,
     required this.currentExercise,
+    this.completedExercises,
     required this.totalExercises,
     this.estimatedCaloriesPerMinute = 7,
     this.isPaused = false,
@@ -85,10 +87,13 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
   int get _estimatedCalories =>
       (_elapsed.inMinutes * widget.estimatedCaloriesPerMinute).clamp(0, 9999);
 
+  int get _progressExercises =>
+      widget.completedExercises ?? widget.currentExercise;
+
   @override
   Widget build(BuildContext context) {
     final progress = widget.totalExercises > 0
-        ? widget.currentExercise / widget.totalExercises
+        ? _progressExercises / widget.totalExercises
         : 0.0;
 
     return Container(
@@ -169,7 +174,7 @@ class _SessionTimerWidgetState extends State<SessionTimerWidget>
                 const SizedBox(width: 12),
                 _buildStatBadge(
                       Icons.fitness_center_rounded,
-                      '${widget.currentExercise}',
+                      '$_progressExercises',
                       '/${widget.totalExercises}',
                       CleanTheme.primaryColor,
                     )

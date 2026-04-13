@@ -2,12 +2,14 @@
 class QuotaStatus {
   final String subscriptionTier;
   final Map<String, dynamic> limits;
+  final Map<String, Map<String, dynamic>> planLimitsByTier;
   final QuotaUsageDetails usage;
   final QuotaFeatures features;
 
   QuotaStatus({
     required this.subscriptionTier,
     required this.limits,
+    required this.planLimitsByTier,
     required this.usage,
     required this.features,
   });
@@ -16,10 +18,28 @@ class QuotaStatus {
     return QuotaStatus(
       subscriptionTier: json['subscription_tier'] ?? 'free',
       limits: Map<String, dynamic>.from(json['limits'] ?? {}),
+      planLimitsByTier: _parsePlanLimitsByTier(json['plan_limits']),
       usage: QuotaUsageDetails.fromJson(json['usage'] ?? {}),
       features: QuotaFeatures.fromJson(json['features'] ?? {}),
     );
   }
+
+  static Map<String, Map<String, dynamic>> _parsePlanLimitsByTier(
+    dynamic rawPlanLimits,
+  ) {
+    if (rawPlanLimits is! Map) return {};
+
+    final parsed = <String, Map<String, dynamic>>{};
+    rawPlanLimits.forEach((key, value) {
+      if (key is String && value is Map) {
+        parsed[key] = Map<String, dynamic>.from(value);
+      }
+    });
+
+    return parsed;
+  }
+
+  Map<String, dynamic>? limitsForTier(String tier) => planLimitsByTier[tier];
 
   bool get isFree => subscriptionTier == 'free';
   bool get isPro => subscriptionTier == 'pro';

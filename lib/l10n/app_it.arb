@@ -1036,7 +1036,7 @@
   "paywallSubscribeButtonYearly": "Abbonati - {price}€/anno",
   "paywallSubscribeButtonMonthly": "Abbonati - {price}€/mese",
   "paywallCurrentPlan": "Piano Attuale",
-  "paywallGuarantee": "7 giorni di prova gratuita",
+  "paywallGuarantee": "Accesso immediato",
   "paywallTerms": "Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.",
   "paywallActivateTitle": "Attiva {planName}",
   "paywallActivateDesc": "Stai per attivare il piano {planName} a €{price}/{period}.",

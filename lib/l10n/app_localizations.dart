@@ -5347,7 +5347,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallGuarantee.
   ///
   /// In it, this message translates to:
-  /// **'7 giorni di prova gratuita'**
+  /// **'Accesso immediato'**
   String get paywallGuarantee;
 
   /// No description provided for @paywallTerms.

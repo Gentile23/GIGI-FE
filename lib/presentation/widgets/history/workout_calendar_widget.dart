@@ -6,8 +6,15 @@ import '../../../data/models/workout_log_model.dart';
 
 class WorkoutCalendarWidget extends StatefulWidget {
   final List<WorkoutLog> workoutLogs;
+  final bool showLegend;
+  final bool showMonthlyCount;
 
-  const WorkoutCalendarWidget({super.key, required this.workoutLogs});
+  const WorkoutCalendarWidget({
+    super.key,
+    required this.workoutLogs,
+    this.showLegend = false,
+    this.showMonthlyCount = false,
+  });
 
   @override
   State<WorkoutCalendarWidget> createState() => _WorkoutCalendarWidgetState();
@@ -31,13 +38,21 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
     });
   }
 
-  bool _hasWorkoutOnDate(DateTime date) {
-    return widget.workoutLogs.any((log) {
+  int _workoutsOnDate(DateTime date) {
+    return widget.workoutLogs.where((log) {
       final logDate = log.completedAt ?? log.startedAt;
       return logDate.year == date.year &&
           logDate.month == date.month &&
           logDate.day == date.day;
-    });
+    }).length;
+  }
+
+  int _focusedMonthWorkoutCount() {
+    return widget.workoutLogs.where((log) {
+      final logDate = log.completedAt ?? log.startedAt;
+      return logDate.year == _focusedMonth.year &&
+          logDate.month == _focusedMonth.month;
+    }).length;
   }
 
   @override
@@ -93,6 +108,17 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
               ),
             ],
           ),
+          if (widget.showMonthlyCount) ...[
+            const SizedBox(height: 6),
+            Text(
+              '${_focusedMonthWorkoutCount()} allenamenti nel mese',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
 
           // Days of week
@@ -134,13 +160,17 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
                 _focusedMonth.month,
                 day,
               );
-              final hasWorkout = _hasWorkoutOnDate(date);
+              final workoutsCount = _workoutsOnDate(date);
+              final hasWorkout = workoutsCount > 0;
               final isToday = DateUtils.isSameDay(date, DateTime.now());
+              final intensityAlpha = workoutsCount >= 2 ? 0.24 : 0.15;
 
               return Container(
                 decoration: BoxDecoration(
                   color: hasWorkout
-                      ? CleanTheme.primaryColor.withValues(alpha: 0.15)
+                      ? CleanTheme.primaryColor.withValues(
+                          alpha: intensityAlpha,
+                        )
                       : isToday
                       ? CleanTheme.textSecondary.withValues(alpha: 0.1)
                       : Colors.transparent,
@@ -159,7 +189,7 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
                       color: hasWorkout
                           ? CleanTheme.primaryColor
                           : CleanTheme.textPrimary,
-                      fontWeight: hasWorkout || isToday
+                      fontWeight: (hasWorkout && workoutsCount >= 2) || isToday
                           ? FontWeight.w600
                           : FontWeight.normal,
                     ),
@@ -168,8 +198,63 @@ class _WorkoutCalendarWidgetState extends State<WorkoutCalendarWidget> {
               );
             },
           ),
+          if (widget.showLegend) ...[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildLegendDot(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.15),
+                  label: 'Allenato',
+                ),
+                const SizedBox(width: 14),
+                _buildLegendDot(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.24),
+                  label: '2+ sessioni',
+                ),
+                const SizedBox(width: 14),
+                _buildLegendDot(
+                  color: CleanTheme.textSecondary.withValues(alpha: 0.1),
+                  label: 'Oggi',
+                  borderColor: CleanTheme.primaryColor,
+                ),
+              ],
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildLegendDot({
+    required Color color,
+    required String label,
+    Color? borderColor,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: borderColor != null
+                ? Border.all(color: borderColor, width: 1)
+                : null,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: CleanTheme.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

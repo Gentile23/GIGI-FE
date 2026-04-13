@@ -867,7 +867,7 @@
   "paywallSubscribeButtonYearly": "اشتراك - {price}€/سنة",
   "paywallSubscribeButtonMonthly": "اشتراك - {price}€/شهر",
   "paywallCurrentPlan": "الخطة الحالية",
-  "paywallGuarantee": "تجربة مجانية لمدة 7 أيام",
+  "paywallGuarantee": "وصول فوري",
   "paywallTerms": "عند الاشتراك، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.",
   "paywallActivateTitle": "تفعيل {planName}",
   "paywallActivateDesc": "أنت على وشك تفعيل خطة {planName} مقابل €{price}/{period}.",
