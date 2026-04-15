@@ -125,12 +125,22 @@ class LandingScreen extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Footer Info
-                  Text(
-                    AppLocalizations.of(context)!.sloganSubtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: CleanTheme.textTertiary,
-                      fontWeight: FontWeight.w400,
+                  SizedBox(
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text(
+                        AppLocalizations.of(context)!.sloganSubtitle,
+                        maxLines: 1,
+                        softWrap: false,
+                        overflow: TextOverflow.visible,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: CleanTheme.textTertiary,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
                     ),
                   ).animate().fadeIn(duration: 600.ms, delay: 1000.ms),
 

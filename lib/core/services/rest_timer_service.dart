@@ -234,7 +234,7 @@ class RestTimerService extends ChangeNotifier with WidgetsBindingObserver {
       await _notifications.zonedSchedule(
         _notificationId,
         'Recupero finito',
-        'E ora del prossimo set',
+        'È ora del prossimo set',
         tz.TZDateTime.from(endsAt, tz.local),
         const NotificationDetails(
           android: AndroidNotificationDetails(

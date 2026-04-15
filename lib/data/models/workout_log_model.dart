@@ -41,7 +41,7 @@ class WorkoutLog {
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'])
           : null,
-      durationMinutes: json['duration_minutes'],
+      durationMinutes: _asIntOrNull(json['duration_minutes']),
       notes: json['notes'],
       workoutDay: json['workout_day'] != null
           ? WorkoutDay.fromJson(json['workout_day'])
@@ -116,7 +116,7 @@ class ExerciseLogModel {
       id: json['id'].toString(),
       workoutLogId: json['workout_log_id'].toString(),
       exerciseId: json['exercise_id'].toString(),
-      orderIndex: json['order_index'] ?? 0,
+      orderIndex: _asIntOrNull(json['order_index']) ?? 0,
       exerciseType: json['exercise_type'] ?? 'main',
       notes: json['notes'],
       exercise: json['exercise'] != null
@@ -191,14 +191,12 @@ class SetLogModel {
     return SetLogModel(
       id: json['id'].toString(),
       exerciseLogId: json['exercise_log_id'].toString(),
-      setNumber: json['set_number'],
-      reps: json['reps'],
-      weightKg: json['weight_kg'] != null
-          ? double.parse(json['weight_kg'].toString())
-          : null,
-      durationSeconds: json['duration_seconds'],
-      rpe: json['rpe'],
-      completed: json['completed'] ?? true,
+      setNumber: _asIntOrNull(json['set_number']) ?? 1,
+      reps: _asIntOrNull(json['reps']) ?? 0,
+      weightKg: _asDoubleOrNull(json['weight_kg']),
+      durationSeconds: _asIntOrNull(json['duration_seconds']),
+      rpe: _asIntOrNull(json['rpe']),
+      completed: _asBool(json['completed'], fallback: true),
     );
   }
 
@@ -329,20 +327,17 @@ class WorkoutStats {
 
   factory WorkoutStats.fromJson(Map<String, dynamic> json) {
     return WorkoutStats(
-      totalWorkouts: json['total_workouts'] ?? 0,
-      totalTimeMinutes: json['total_time_minutes'] ?? 0,
-      totalExercises: json['total_exercises'] ?? 0,
-      totalVolumeKg: double.parse(json['total_volume_kg']?.toString() ?? '0'),
-      currentStreak: json['current_streak'] ?? 0,
-      longestStreak: json['longest_streak'] ?? 0,
-      workoutsThisWeek: json['workouts_this_week'] ?? 0,
-      workoutsThisMonth: json['workouts_this_month'] ?? 0,
-      averageDurationMinutes: double.parse(
-        json['average_duration_minutes']?.toString() ?? '0',
-      ),
-      mostTrainedMuscles: json['most_trained_muscles'] != null
-          ? Map<String, int>.from(json['most_trained_muscles'])
-          : {},
+      totalWorkouts: _asIntOrNull(json['total_workouts']) ?? 0,
+      totalTimeMinutes: _asIntOrNull(json['total_time_minutes']) ?? 0,
+      totalExercises: _asIntOrNull(json['total_exercises']) ?? 0,
+      totalVolumeKg: _asDoubleOrNull(json['total_volume_kg']) ?? 0,
+      currentStreak: _asIntOrNull(json['current_streak']) ?? 0,
+      longestStreak: _asIntOrNull(json['longest_streak']) ?? 0,
+      workoutsThisWeek: _asIntOrNull(json['workouts_this_week']) ?? 0,
+      workoutsThisMonth: _asIntOrNull(json['workouts_this_month']) ?? 0,
+      averageDurationMinutes:
+          _asDoubleOrNull(json['average_duration_minutes']) ?? 0,
+      mostTrainedMuscles: _asStringIntMap(json['most_trained_muscles']),
     );
   }
 
@@ -355,4 +350,56 @@ class WorkoutStats {
     }
     return '${minutes}min';
   }
+}
+
+int? _asIntOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.round();
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return int.tryParse(trimmed) ?? double.tryParse(trimmed)?.round();
+  }
+  return null;
+}
+
+double? _asDoubleOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is double) return value;
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return double.tryParse(trimmed.replaceAll(',', '.'));
+  }
+  return null;
+}
+
+bool _asBool(dynamic value, {required bool fallback}) {
+  if (value == null) return fallback;
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+      return true;
+    }
+    if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+      return false;
+    }
+  }
+  return fallback;
+}
+
+Map<String, int> _asStringIntMap(dynamic value) {
+  if (value is! Map) return {};
+  final result = <String, int>{};
+  value.forEach((key, val) {
+    final parsed = _asIntOrNull(val);
+    if (key != null && parsed != null) {
+      result[key.toString()] = parsed;
+    }
+  });
+  return result;
 }

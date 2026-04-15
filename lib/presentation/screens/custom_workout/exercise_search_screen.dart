@@ -78,6 +78,12 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
   bool _isLoading = true;
   String? _error;
 
+  bool get _hasAdvancedFiltersActive =>
+      _selectedMuscleGroup != null ||
+      _selectedEquipment != null ||
+      _selectedDifficulty != null ||
+      _selectedType != null;
+
   final List<String> _equipmentOptions = [
     'Bodyweight',
     'Barbell',
@@ -276,6 +282,20 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
     Navigator.pop(context, _selectedExercises.values.toList());
   }
 
+  void _resetAdvancedFilters({bool withHapticFeedback = false}) {
+    if (withHapticFeedback) {
+      HapticService.lightTap();
+    }
+
+    setState(() {
+      _selectedMuscleGroup = null;
+      _selectedEquipment = null;
+      _selectedDifficulty = null;
+      _selectedType = null;
+    });
+    _loadExercises();
+  }
+
   void _showFilters() {
     showModalBottomSheet(
       context: context,
@@ -314,13 +334,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
           _loadExercises();
         },
         onClear: () {
-          setState(() {
-            _selectedMuscleGroup = null;
-            _selectedEquipment = null;
-            _selectedDifficulty = null;
-            _selectedType = null;
-          });
-          _loadExercises();
+          _resetAdvancedFilters();
         },
       ),
     );
@@ -649,18 +663,14 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  (_selectedEquipment != null ||
-                                      _selectedDifficulty != null)
+                              color: _hasAdvancedFiltersActive
                                   ? CleanTheme.primaryColor.withValues(
                                       alpha: 0.1,
                                     )
                                   : CleanTheme.cardColor,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color:
-                                    (_selectedEquipment != null ||
-                                        _selectedDifficulty != null)
+                                color: _hasAdvancedFiltersActive
                                     ? CleanTheme.primaryColor
                                     : CleanTheme.borderSecondary,
                                 width: 1.5,
@@ -671,9 +681,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                                 Icon(
                                   Icons.tune,
                                   size: 16,
-                                  color:
-                                      (_selectedEquipment != null ||
-                                          _selectedDifficulty != null)
+                                  color: _hasAdvancedFiltersActive
                                       ? CleanTheme.primaryColor
                                       : CleanTheme.textSecondary,
                                 ),
@@ -683,9 +691,7 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color:
-                                        (_selectedEquipment != null ||
-                                            _selectedDifficulty != null)
+                                    color: _hasAdvancedFiltersActive
                                         ? CleanTheme.primaryColor
                                         : CleanTheme.textSecondary,
                                   ),
@@ -694,6 +700,49 @@ class _ExerciseSearchScreenState extends State<ExerciseSearchScreen> {
                             ),
                           ),
                         ),
+                        if (_hasAdvancedFiltersActive) ...[
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () =>
+                                _resetAdvancedFilters(withHapticFeedback: true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.accentRed.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: CleanTheme.accentRed.withValues(
+                                    alpha: 0.55,
+                                  ),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.restart_alt_rounded,
+                                    size: 16,
+                                    color: CleanTheme.accentRed,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "Reset",
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: CleanTheme.accentRed,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

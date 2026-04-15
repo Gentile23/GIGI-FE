@@ -10,15 +10,21 @@ import '../../../core/services/health_insights_service.dart';
 class TrendInsightCard extends StatelessWidget {
   final TrendInsight insight;
   final VoidCallback? onTap;
+  final double width;
 
-  const TrendInsightCard({super.key, required this.insight, this.onTap});
+  const TrendInsightCard({
+    super.key,
+    required this.insight,
+    this.onTap,
+    this.width = 280,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 280,
+        width: width,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(

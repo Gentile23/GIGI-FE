@@ -63,32 +63,32 @@ class SubscriptionQuotas {
 
   /// FREE: Quota generose per hook, ma con limiti che creano desiderio di upgrade
   static const SubscriptionQuotas free = SubscriptionQuotas(
-    workoutPlanIntervalWeeks: 8, // 1 piano ogni 8 settimane
-    formAnalysisPerWeek: 1, // 1 form check a settimana
-    mealAnalysisLimit: 1, // 1 analisi pasto al giorno
-    recipesPerWeek: 2, // 2 ricette a settimana
+    workoutPlanIntervalWeeks: 6, // 1 piano ogni 6 settimane
+    formAnalysisPerWeek: 2, // Backend authoritative period: mese
+    mealAnalysisLimit: 2, // Backend authoritative period: settimana
+    recipesPerWeek: 4, // 4 ricette a settimana
     voiceCoachingEnabled: false, // Solo nel trial
     customWorkoutsPerPeriod: 3, // 3 workout custom
     customWorkoutsPeriodWeeks: 8, // ogni 8 settimane
-    executeWithGigiPerWeek: 2,
+    executeWithGigiPerWeek: 3, // Backend authoritative period: una tantum
     shoppingListLimit: 1, // Una tantum
     changeMealPerWeek: 1,
-    changeFoodItemPerWeek: 1,
+    changeFoodItemPerWeek: 2,
   );
 
   /// PRO: Limiti generosi che soddisfano la maggior parte degli utenti
   static const SubscriptionQuotas pro = SubscriptionQuotas(
-    workoutPlanIntervalWeeks: 2, // Piano ogni 2 settimane
-    formAnalysisPerWeek: 20, // 20 form check a settimana
-    mealAnalysisLimit: 20, // 20 analisi pasto al giorno
-    recipesPerWeek: 20, // 20 ricette a settimana
+    workoutPlanIntervalWeeks: 1, // Piano ogni settimana
+    formAnalysisPerWeek: 20, // Backend authoritative period: mese
+    mealAnalysisLimit: 5, // 5 analisi pasto al giorno
+    recipesPerWeek: 30, // 30 ricette a settimana
     voiceCoachingEnabled: true, // Voice coaching attivo
     customWorkoutsPerPeriod: 5, // 5 workout custom
     customWorkoutsPeriodWeeks: 1, // a settimana
-    executeWithGigiPerWeek: -1, // Illimitato
+    executeWithGigiPerWeek: 20, // Backend authoritative period: mese
     shoppingListLimit: -1, // Illimitato
-    changeMealPerWeek: -1, // Illimitato
-    changeFoodItemPerWeek: -1, // Illimitato
+    changeMealPerWeek: 7,
+    changeFoodItemPerWeek: 20,
   );
 
   /// ELITE: Tutto illimitato per power users
@@ -147,10 +147,10 @@ class SubscriptionTierConfig {
     priceMonthly: 0.0,
     priceYearly: 0.0,
     features: [
-      'Piano AI ogni 8 settimane',
-      '1 Form Analysis AI/settimana',
-      '1 Analisi pasto/giorno',
-      '2 Ricette AI/settimana',
+      'Piano AI ogni 6 settimane',
+      '2 Form Analysis AI/mese',
+      '2 Snap & Track AI/settimana',
+      '4 Ricette AI/settimana',
       'Libreria 500+ esercizi',
       'Tracking workouts',
       'Gamification (XP, livelli)',
@@ -176,10 +176,10 @@ class SubscriptionTierConfig {
     priceYearly: 99.99, // €8.33/mese - risparmio 44%
     features: [
       'Coaching Vocale Real-time in OGNI allenamento',
-      'Form Check AI Avanzato (20 check/settimana)',
+      'Form Check AI Avanzato (20 check/mese)',
       'Piani di Allenamento che evolvono con te',
       'Nutrizione AI con Ricette e Macronutrienti',
-      'Execute with GiGi: Correzione errori live',
+      'Execute with GiGi: 20 utilizzi/mese',
       'Liste Spesa Automatiche e Cambio Pasti',
       'Analytics Profonde e Statistiche Avanzate',
       'Niente pubblicità e caricamento prioritario',
@@ -237,7 +237,7 @@ class SubscriptionTierConfig {
   /// Prezzo mensile effettivo con abbonamento annuale
   double get effectiveMonthlyPrice => priceYearly / 12;
 
-  /// Verifica disponibilità feature
+  /// Smart swap feature
   bool hasFeature(String feature) {
     switch (feature) {
       case 'voice_coach':

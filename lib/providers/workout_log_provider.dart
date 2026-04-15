@@ -219,6 +219,20 @@ class WorkoutLogProvider with ChangeNotifier {
     }
   }
 
+  Future<void> deleteSetLog({
+    required String setLogId,
+    required String exerciseLogId,
+  }) async {
+    try {
+      await _logService.deleteSetLog(setLogId);
+      _removeLocalSetLog(exerciseLogId, setLogId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting set log: $e');
+      rethrow;
+    }
+  }
+
   // Helper to update local state deeply
   void _updateLocalSetLog(String exerciseLogId, SetLogModel setLog) {
     if (_currentWorkoutLog == null) return;
@@ -250,6 +264,19 @@ class WorkoutLogProvider with ChangeNotifier {
       // Sort sets by set number to keep UI consistent
       exerciseLog.setLogs.sort((a, b) => a.setNumber.compareTo(b.setNumber));
     }
+  }
+
+  void _removeLocalSetLog(String exerciseLogId, String setLogId) {
+    if (_currentWorkoutLog == null) return;
+
+    final exerciseIndex = _currentWorkoutLog!.exerciseLogs.indexWhere(
+      (e) => e.id == exerciseLogId,
+    );
+
+    if (exerciseIndex == -1) return;
+
+    final exerciseLog = _currentWorkoutLog!.exerciseLogs[exerciseIndex];
+    exerciseLog.setLogs.removeWhere((setLog) => setLog.id == setLogId);
   }
 
   void _setLoading(bool value) {

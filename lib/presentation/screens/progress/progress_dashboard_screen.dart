@@ -38,32 +38,39 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   }
 
   Future<void> _loadData() async {
+    final gamificationProvider = Provider.of<GamificationProvider>(
+      context,
+      listen: false,
+    );
+
     try {
-      // Fetch measurements data
+      await gamificationProvider.loadStats();
+
+      // Fetch measurements data independently from workout stats
       final measurementsResponse = await _apiClient.dio.get(
         '/progress/measurements',
       );
 
-      if (mounted) {
-        final measurementsData = measurementsResponse.data;
+      if (!mounted) return;
 
-        setState(() {
-          _latestMeasurements =
-              measurementsData['latest'] is Map<String, dynamic>
-              ? measurementsData['latest']
-              : null;
-          _changes = measurementsData['changes'] is Map<String, dynamic>
-              ? measurementsData['changes']
-              : {};
-          _isLoading = false;
-        });
+      final measurementsData = measurementsResponse.data;
 
-        // Load workout history stats from provider
-        Provider.of<GamificationProvider>(context, listen: false).loadStats();
-      }
+      setState(() {
+        _latestMeasurements = measurementsData['latest'] is Map<String, dynamic>
+            ? measurementsData['latest']
+            : null;
+        _changes = measurementsData['changes'] is Map<String, dynamic>
+            ? measurementsData['changes']
+            : {};
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _latestMeasurements = null;
+          _changes = {};
+        });
       }
     }
   }

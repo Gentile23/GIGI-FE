@@ -402,12 +402,17 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
                         // Custom Workouts Section
                         _buildSectionTitle(
-                          AppLocalizations.of(
-                            context,
-                          )!.customWorkoutsSectionTitle,
+                          _customPlans.isEmpty
+                              ? AppLocalizations.of(
+                                  context,
+                                )!.customWorkoutsSectionTitle
+                              : 'Schede personalizzate create da te',
                           AppLocalizations.of(
                             context,
                           )!.customWorkoutsSectionSubtitle,
+                          action: _customPlans.isEmpty || _isLoadingCustom
+                              ? null
+                              : _buildAddCustomWorkoutButton(),
                         ),
 
                         const SizedBox(height: 12),
@@ -433,17 +438,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
 
   Widget _buildCreateCustomCard() {
     return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CreateCustomWorkoutScreen(),
-          ),
-        );
-        if (result == true) {
-          _loadCustomWorkouts();
-        }
-      },
+      onTap: _openCreateCustomWorkout,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -496,6 +491,53 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
               ),
             ),
             const Icon(Icons.arrow_forward, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openCreateCustomWorkout() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateCustomWorkoutScreen(),
+      ),
+    );
+    if (result == true) {
+      _loadCustomWorkouts();
+    }
+  }
+
+  Widget _buildAddCustomWorkoutButton() {
+    return GestureDetector(
+      onTap: _openCreateCustomWorkout,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: CleanTheme.primaryColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: CleanTheme.primaryColor.withValues(alpha: 0.22),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.add_rounded,
+              size: 16,
+              color: CleanTheme.primaryColor,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Aggiungi',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.primaryColor,
+              ),
+            ),
           ],
         ),
       ),
@@ -1300,31 +1342,25 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       return _buildCreateCustomCard();
     }
 
-    return Column(
-      children: [
-        ReorderableListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          buildDefaultDragHandles: false,
-          itemCount: _customPlans.length,
-          onReorder: (oldIndex, newIndex) {
-            unawaited(_onCustomReorder(oldIndex, newIndex));
-          },
-          itemBuilder: (context, index) {
-            final plan = _customPlans[index];
-            return KeyedSubtree(
-              key: ValueKey('custom_plan_${plan.id}'),
-              child: _buildCustomWorkoutCard(
-                plan,
-                showDragHandle: true,
-                dragIndex: index,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        _buildCreateCustomCard(),
-      ],
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
+      itemCount: _customPlans.length,
+      onReorder: (oldIndex, newIndex) {
+        unawaited(_onCustomReorder(oldIndex, newIndex));
+      },
+      itemBuilder: (context, index) {
+        final plan = _customPlans[index];
+        return KeyedSubtree(
+          key: ValueKey('custom_plan_${plan.id}'),
+          child: _buildCustomWorkoutCard(
+            plan,
+            showDragHandle: true,
+            dragIndex: index,
+          ),
+        );
+      },
     );
   }
 

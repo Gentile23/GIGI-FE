@@ -41,9 +41,12 @@ class QuotaStatus {
 
   Map<String, dynamic>? limitsForTier(String tier) => planLimitsByTier[tier];
 
-  bool get isFree => subscriptionTier == 'free';
-  bool get isPro => subscriptionTier == 'pro';
-  bool get isElite => subscriptionTier == 'elite';
+  String get normalizedSubscriptionTier =>
+      subscriptionTier == 'premium' ? 'pro' : subscriptionTier;
+
+  bool get isFree => normalizedSubscriptionTier == 'free';
+  bool get isPro => normalizedSubscriptionTier == 'pro';
+  bool get isElite => normalizedSubscriptionTier == 'elite';
   bool get isPremium => isPro || isElite;
 }
 
@@ -59,6 +62,10 @@ class QuotaUsageDetails {
   final QuotaUsage shoppingList;
   final QuotaUsage changeMeal;
   final QuotaUsage changeFood;
+  final QuotaUsage pdfDiet;
+  final QuotaUsage workoutChat;
+  final QuotaUsage exerciseAlternatives;
+  final QuotaUsage similarExercises;
 
   QuotaUsageDetails({
     required this.formAnalysis,
@@ -70,6 +77,10 @@ class QuotaUsageDetails {
     required this.shoppingList,
     required this.changeMeal,
     required this.changeFood,
+    required this.pdfDiet,
+    required this.workoutChat,
+    required this.exerciseAlternatives,
+    required this.similarExercises,
   });
 
   factory QuotaUsageDetails.fromJson(Map<String, dynamic> json) {
@@ -83,6 +94,12 @@ class QuotaUsageDetails {
       shoppingList: QuotaUsage.fromJson(json['shopping_list'] ?? {}),
       changeMeal: QuotaUsage.fromJson(json['change_meal'] ?? {}),
       changeFood: QuotaUsage.fromJson(json['change_food'] ?? {}),
+      pdfDiet: QuotaUsage.fromJson(json['pdf_diet'] ?? {}),
+      workoutChat: QuotaUsage.fromJson(json['workout_chat'] ?? {}),
+      exerciseAlternatives: QuotaUsage.fromJson(
+        json['exercise_alternatives'] ?? {},
+      ),
+      similarExercises: QuotaUsage.fromJson(json['similar_exercises'] ?? {}),
     );
   }
 }

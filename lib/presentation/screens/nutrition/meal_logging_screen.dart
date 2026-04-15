@@ -6,6 +6,7 @@ import 'package:gigi/l10n/app_localizations.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/quota_service.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
@@ -110,6 +111,7 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (_isSubmitting) return;
     final check = await _quotaService.canPerformAction(
       QuotaAction.mealAnalysis,
     );
@@ -151,6 +153,16 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
+        if (bytes.isEmpty || bytes.length > ValidationUtils.maxMealPhotoBytes) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('La foto deve essere piu piccola di 10MB.'),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+          return;
+        }
 
         setState(() {
           _imageFile = pickedFile;
@@ -160,8 +172,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
         final grams = await _showGramsInputDialog();
         if (grams == null) return;
-
-        await _quotaService.recordUsage(QuotaAction.mealAnalysis);
 
         setState(() => _isSubmitting = true);
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -20,6 +22,10 @@ class HealthTrendsCarousel extends StatefulWidget {
 }
 
 class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
+  static const double _horizontalPadding = 24;
+  static const double _insightCardHeight = 180;
+  static const double _defaultInsightCardWidth = 280;
+
   final HealthInsightsService _insightsService = HealthInsightsService();
   List<TrendInsight> _insights = [];
   bool _isLoading = true;
@@ -102,7 +108,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
       children: [
         // Header
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -155,39 +161,74 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
         else if (_insights.isEmpty)
           _buildEmptyState()
         else
-          SizedBox(
-            height: 180,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _insights.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: TrendInsightCard(
-                    insight: _insights[index],
-                    onTap: widget.onViewAllTap,
-                  ),
-                );
-              },
-            ),
-          ),
+          _buildInsightsCards(),
       ],
+    );
+  }
+
+  Widget _buildInsightsCards() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = math.max(
+          0.0,
+          constraints.maxWidth - (_horizontalPadding * 2),
+        );
+        final centeredWidth = availableWidth > 0
+            ? math.min(_defaultInsightCardWidth, availableWidth)
+            : _defaultInsightCardWidth;
+
+        if (_insights.length == 1) {
+          return SizedBox(
+            height: _insightCardHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: _horizontalPadding,
+              ),
+              child: Center(
+                child: TrendInsightCard(
+                  insight: _insights.first,
+                  onTap: widget.onViewAllTap,
+                  width: centeredWidth,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: _insightCardHeight,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
+            itemCount: _insights.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: TrendInsightCard(
+                  insight: _insights[index],
+                  onTap: widget.onViewAllTap,
+                  width: _defaultInsightCardWidth,
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _buildLoadingState() {
     return SizedBox(
-      height: 180,
+      height: _insightCardHeight,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
         itemCount: 3,
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Container(
-              width: 280,
+              width: _defaultInsightCardWidth,
               decoration: BoxDecoration(
                 color: CleanTheme.surfaceColor,
                 borderRadius: BorderRadius.circular(20),
@@ -210,7 +251,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
     final cardHeight = (screenHeight * 0.32).clamp(260.0, 340.0);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
       child: Container(
         height: cardHeight,
         width: double.infinity,
@@ -294,9 +335,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                             : AppLocalizations.of(
                                 context,
                               )!.installHealthConnect,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                       ),
               ),
             ),

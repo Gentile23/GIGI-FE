@@ -101,14 +101,25 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     if (_report == null) return;
 
+    final hasHealthData = _report!.hasHealthData;
+    final sleepValue = hasHealthData
+        ? '${_report!.sleep.avgHours.toStringAsFixed(1)}h${AppLocalizations.of(context)!.perNight}'
+        : AppLocalizations.of(context)!.noDataAvailable;
+    final stepsValue = hasHealthData
+        ? '${_report!.activity.avgDailySteps}${AppLocalizations.of(context)!.perDay}'
+        : AppLocalizations.of(context)!.noDataAvailable;
+    final hrValue = hasHealthData
+        ? '${_report!.heartRate.restingAvg} bpm'
+        : AppLocalizations.of(context)!.noDataAvailable;
+
     final text =
         '''
 📊 ${AppLocalizations.of(context)!.myWeeklyReport}
 
-😴 ${AppLocalizations.of(context)!.sleep}: ${_report!.sleep.avgHours.toStringAsFixed(1)}h${AppLocalizations.of(context)!.perNight}
-🚶 ${AppLocalizations.of(context)!.steps}: ${_report!.activity.avgDailySteps}${AppLocalizations.of(context)!.perDay}  
+😴 ${AppLocalizations.of(context)!.sleep}: $sleepValue
+🚶 ${AppLocalizations.of(context)!.steps}: $stepsValue  
 💪 ${AppLocalizations.of(context)!.workouts}: ${_report!.activity.workoutsCompleted} ${AppLocalizations.of(context)!.completed}
-❤️ ${AppLocalizations.of(context)!.heartRate}: ${_report!.heartRate.restingAvg} bpm
+❤️ ${AppLocalizations.of(context)!.heartRate}: $hrValue
 
 💡 ${_report!.aiTip}
 
@@ -272,6 +283,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildStatsGrid() {
+    final hasHealthData = _report!.hasHealthData;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -290,14 +303,18 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         children: [
           _buildStatItem(
             '😴',
-            '${_report!.sleep.avgHours.toStringAsFixed(1)}h',
+            hasHealthData
+                ? '${_report!.sleep.avgHours.toStringAsFixed(1)}h'
+                : '-',
             AppLocalizations.of(context)!.avgSleep,
-            _getTrendIcon(_report!.sleep.trend),
+            hasHealthData ? _getTrendIcon(_report!.sleep.trend) : null,
           ),
           _buildDivider(),
           _buildStatItem(
             '🚶',
-            '${(_report!.activity.avgDailySteps / 1000).toStringAsFixed(1)}k',
+            hasHealthData
+                ? '${(_report!.activity.avgDailySteps / 1000).toStringAsFixed(1)}k'
+                : '-',
             AppLocalizations.of(context)!.stepsPerDay,
             null,
           ),
@@ -311,7 +328,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           _buildDivider(),
           _buildStatItem(
             '❤️',
-            '${_report!.heartRate.restingAvg}',
+            hasHealthData ? '${_report!.heartRate.restingAvg}' : '-',
             AppLocalizations.of(context)!.hrBpm,
             null,
           ),
@@ -394,6 +411,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildSleepChart() {
+    if (!_report!.hasHealthData) {
+      return _buildMissingHealthDataCard(
+        message: 'Nessun dato sonno disponibile questa settimana.',
+      );
+    }
+
     final sleepData = _report!.sleep.dailyHours.values.toList();
     final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 
@@ -480,6 +503,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildActivityCard() {
+    if (!_report!.hasHealthData) {
+      return _buildMissingHealthDataCard(
+        message: 'Nessun dato passi disponibile questa settimana.',
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -612,6 +641,37 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               fontSize: 15,
               color: CleanTheme.textOnDark.withValues(alpha: 0.95),
               height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMissingHealthDataCard({required String message}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline,
+            color: CleanTheme.textTertiary,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: CleanTheme.textSecondary,
+                height: 1.45,
+              ),
             ),
           ),
         ],

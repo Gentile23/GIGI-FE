@@ -91,6 +91,7 @@ class CustomWorkoutExercise {
   final int sets;
   final String reps;
   final int restSeconds;
+  final List<int>? restSecondsPerSet;
   final int orderIndex;
   final String? exerciseType;
   final String? position;
@@ -102,6 +103,7 @@ class CustomWorkoutExercise {
     required this.sets,
     required this.reps,
     required this.restSeconds,
+    this.restSecondsPerSet,
     required this.orderIndex,
     this.exerciseType = 'strength',
     this.position = 'main',
@@ -115,6 +117,7 @@ class CustomWorkoutExercise {
       sets: json['sets'] as int,
       reps: json['reps'] as String,
       restSeconds: json['rest_seconds'] as int,
+      restSecondsPerSet: _parseRestSecondsPerSet(json['rest_seconds_per_set']),
       orderIndex: json['order_index'] as int? ?? 0,
       exerciseType: json['exercise_type'] as String? ?? 'strength',
       position: json['position'] as String? ?? 'main',
@@ -129,6 +132,7 @@ class CustomWorkoutExercise {
       'sets': sets,
       'reps': reps,
       'rest_seconds': restSeconds,
+      'rest_seconds_per_set': restSecondsPerSet,
       'order_index': orderIndex,
       'exercise_type': exerciseType,
       'position': position,
@@ -142,6 +146,7 @@ class CustomWorkoutExercise {
     int? sets,
     String? reps,
     int? restSeconds,
+    List<int>? restSecondsPerSet,
     int? orderIndex,
     String? exerciseType,
     String? position,
@@ -153,11 +158,27 @@ class CustomWorkoutExercise {
       sets: sets ?? this.sets,
       reps: reps ?? this.reps,
       restSeconds: restSeconds ?? this.restSeconds,
+      restSecondsPerSet: restSecondsPerSet ?? this.restSecondsPerSet,
       orderIndex: orderIndex ?? this.orderIndex,
       exerciseType: exerciseType ?? this.exerciseType,
       position: position ?? this.position,
       notes: notes ?? this.notes,
     );
+  }
+
+  static List<int>? _parseRestSecondsPerSet(dynamic raw) {
+    if (raw is! List) return null;
+    final values = raw
+        .map((entry) {
+          if (entry is int) return entry;
+          if (entry is num) return entry.toInt();
+          if (entry is String) return int.tryParse(entry);
+          return null;
+        })
+        .whereType<int>()
+        .toList();
+    if (values.isEmpty) return null;
+    return values;
   }
 }
 
@@ -188,6 +209,7 @@ class CustomWorkoutExerciseRequest {
   final int sets;
   final String reps;
   final int restSeconds;
+  final List<int>? restSecondsPerSet;
   final String? exerciseType;
   final String? position;
   final String? notes;
@@ -197,6 +219,7 @@ class CustomWorkoutExerciseRequest {
     this.sets = 3,
     this.reps = '10',
     this.restSeconds = 60,
+    this.restSecondsPerSet,
     this.exerciseType = 'strength',
     this.position = 'main',
     this.notes,
@@ -208,6 +231,7 @@ class CustomWorkoutExerciseRequest {
       'sets': sets,
       'reps': reps,
       'rest_seconds': restSeconds,
+      'rest_seconds_per_set': restSecondsPerSet,
       'exercise_type': exerciseType,
       'position': position,
       'notes': notes,

@@ -81,6 +81,7 @@ class NextWorkoutSelector {
           sets: entry.sets,
           reps: entry.reps,
           restSeconds: entry.restSeconds,
+          restSecondsPerSet: entry.restSecondsPerSet,
           notes: entry.notes,
           position: 'main',
           exerciseType: entry.exerciseType ?? 'strength',

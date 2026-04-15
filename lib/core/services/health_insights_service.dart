@@ -60,6 +60,10 @@ class HealthInsightsService {
     final sleepData = await _getSleepDataForWeek(weekStart);
     final stepsData = await _getStepsDataForWeek(weekStart);
     final heartRateData = await _getHeartRateData();
+    final hasHealthData =
+        sleepData.values.any((value) => value > 0) ||
+        stepsData.values.any((value) => value > 0) ||
+        heartRateData != null;
     final workoutData = await _getWorkoutDataForWeek();
 
     // Generate insights
@@ -95,6 +99,7 @@ class HealthInsightsService {
       ),
       insights: insights,
       aiTip: _generateWeeklyTip(sleepData, stepsData, workoutData),
+      hasHealthData: hasHealthData,
     );
   }
 
@@ -272,32 +277,46 @@ class HealthInsightsService {
   ) {
     final insights = <String>[];
 
-    final avgSleep = _average(sleep.values.toList());
-    if (avgSleep < 7) {
-      insights.add(
-        'Il tuo sonno medio è ${avgSleep.toStringAsFixed(1)}h. Punta a 7-8 ore per massimizzare il recupero.',
-      );
+    final hasSleepData = sleep.values.any((value) => value > 0);
+    if (hasSleepData) {
+      final avgSleep = _average(sleep.values.toList());
+      if (avgSleep < 7) {
+        insights.add(
+          'Il tuo sonno medio è ${avgSleep.toStringAsFixed(1)}h. Punta a 7-8 ore per massimizzare il recupero.',
+        );
+      } else {
+        insights.add(
+          'Ottimo! Dormi in media ${avgSleep.toStringAsFixed(1)}h a notte. Continua così!',
+        );
+      }
     } else {
-      insights.add(
-        'Ottimo! Dormi in media ${avgSleep.toStringAsFixed(1)}h a notte. Continua così!',
-      );
+      insights.add('Nessun dato sonno disponibile questa settimana da Health.');
     }
 
-    final avgSteps = steps.values.fold(0, (a, b) => a + b) ~/ 7;
-    if (avgSteps >= 10000) {
-      insights.add(
-        'Media di $avgSteps passi/giorno. Eccellente livello di attività!',
-      );
+    final hasStepsData = steps.values.any((value) => value > 0);
+    if (hasStepsData) {
+      final avgSteps = steps.values.fold(0, (a, b) => a + b) ~/ 7;
+      if (avgSteps >= 10000) {
+        insights.add(
+          'Media di $avgSteps passi/giorno. Eccellente livello di attività!',
+        );
+      } else {
+        insights.add(
+          'Media di $avgSteps passi/giorno. Prova ad aggiungere una camminata di 15 min.',
+        );
+      }
     } else {
-      insights.add(
-        'Media di $avgSteps passi/giorno. Prova ad aggiungere una camminata di 15 min.',
-      );
+      insights.add('Nessun dato passi disponibile questa settimana da Health.');
     }
 
     if (workouts >= 4) {
       insights.add(
         '$workouts allenamenti completati. Sei sulla strada giusta! 💪',
       );
+    }
+
+    if (hr != null) {
+      insights.add('Frequenza cardiaca a riposo rilevata: $hr bpm.');
     }
 
     return insights;
@@ -308,6 +327,12 @@ class HealthInsightsService {
     Map<String, int> steps,
     int workouts,
   ) {
+    final hasSleepData = sleep.values.any((value) => value > 0);
+    final hasStepsData = steps.values.any((value) => value > 0);
+    if (!hasSleepData && !hasStepsData) {
+      return 'Abbiamo pochi dati Health questa settimana: controlla i permessi Apple Health e riapri l’app.';
+    }
+
     final avgSleep = _average(sleep.values.toList());
 
     if (avgSleep < 6.5) {
@@ -377,6 +402,7 @@ class WeeklyHealthReport {
   final HeartRateSummary heartRate;
   final List<String> insights;
   final String aiTip;
+  final bool hasHealthData;
 
   WeeklyHealthReport({
     required this.periodStart,
@@ -386,6 +412,7 @@ class WeeklyHealthReport {
     required this.heartRate,
     required this.insights,
     required this.aiTip,
+    required this.hasHealthData,
   });
 }
 

@@ -8,6 +8,8 @@ import '../../../data/models/training_preferences_model.dart';
 import '../../../data/models/workout_model.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../data/models/quota_status_model.dart';
+import '../../../data/services/quota_service.dart';
 
 /// Screen for generating AI-powered workout plan
 class AIWorkoutGenerationScreen extends StatefulWidget {
@@ -26,16 +28,60 @@ class AIWorkoutGenerationScreen extends StatefulWidget {
 }
 
 class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
+  final QuotaService _quotaService = QuotaService();
   bool _isGenerating = false;
+  bool _isLoadingQuota = true;
   WorkoutPlan? _generatedPlan;
   String? _errorMessage;
+  QuotaStatus? _quotaStatus;
 
   bool get _isPremium => [
     SubscriptionTier.pro,
     SubscriptionTier.elite,
   ].contains(widget.user.subscriptionTier);
 
+  @override
+  void initState() {
+    super.initState();
+    _loadQuotaStatus();
+  }
+
+  Future<void> _loadQuotaStatus() async {
+    setState(() {
+      _isLoadingQuota = true;
+    });
+
+    try {
+      final quotaStatus = await _quotaService.getQuotaStatus();
+      if (!mounted) return;
+      setState(() {
+        _quotaStatus = quotaStatus;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage ??=
+            'Impossibile verificare i limiti del tuo piano. Riprova tra poco.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingQuota = false;
+        });
+      }
+    }
+  }
+
   Future<void> _generatePlan() async {
+    final workoutPlanQuota = _quotaStatus?.usage.workoutPlan;
+    if (workoutPlanQuota != null && !workoutPlanQuota.canGenerate) {
+      setState(() {
+        _errorMessage =
+            'Devi attendere ancora ${workoutPlanQuota.daysUntilNext} giorni prima di generare una nuova scheda.';
+      });
+      return;
+    }
+
     setState(() {
       _isGenerating = true;
       _errorMessage = null;
@@ -56,6 +102,7 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
         setState(() {
           _generatedPlan = workoutProvider.currentPlan;
         });
+        await _loadQuotaStatus();
       } else {
         setState(() {
           _errorMessage = workoutProvider.error ?? 'Errore sconosciuto';
@@ -63,7 +110,8 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Si è verificato un errore durante la generazione dell\'allenamento.';
+        _errorMessage =
+            'Si è verificato un errore durante la generazione dell\'allenamento.';
       });
     } finally {
       setState(() {
@@ -194,76 +242,74 @@ class _AIWorkoutGenerationScreenState extends State<AIWorkoutGenerationScreen> {
           const SizedBox(height: 24),
 
           // Cooldown Check
-          Consumer<WorkoutProvider>(
-            builder: (context, workoutProvider, _) {
-              final canGenerate = workoutProvider.canGenerateNewPlan(
-                widget.user,
-              );
-              final daysRemaining = workoutProvider.getDaysUntilNextGeneration(
-                widget.user,
-              );
-
-              if (!canGenerate) {
-                return Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.accentOrange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+          if (_isLoadingQuota)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: CleanTheme.primaryColor,
+                ),
+              ),
+            )
+          else if (_quotaStatus != null &&
+              !_quotaStatus!.usage.workoutPlan.canGenerate)
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        color: CleanTheme.accentOrange,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Prossima generazione disponibile tra',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: CleanTheme.accentOrange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${_quotaStatus!.usage.workoutPlan.daysUntilNext} '
+                              '${_quotaStatus!.usage.workoutPlan.daysUntilNext == 1 ? "giorno" : "giorni"}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: CleanTheme.accentOrange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            color: CleanTheme.accentOrange,
-                            size: 32,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Prossima generazione disponibile tra',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: CleanTheme.accentOrange,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$daysRemaining ${daysRemaining == 1 ? "giorno" : "giorni"}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: CleanTheme.accentOrange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
 
           // Generate Button
           Consumer<WorkoutProvider>(
             builder: (context, workoutProvider, _) {
-              final canGenerate = workoutProvider.canGenerateNewPlan(
-                widget.user,
-              );
+              final canGenerate =
+                  !_isLoadingQuota &&
+                  (_quotaStatus?.usage.workoutPlan.canGenerate ?? true);
 
               return SizedBox(
                 width: double.infinity,

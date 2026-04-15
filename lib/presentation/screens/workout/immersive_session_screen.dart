@@ -42,6 +42,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
   final bool _isPaused = false;
   bool _showCompletion = false;
   bool _showCelebration = false;
+  bool _isCompletingWorkout = false;
 
   // Animation controllers
   late AnimationController _slideController;
@@ -174,25 +175,122 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
   }
 
   Future<void> _completeWorkout() async {
+    if (_isCompletingWorkout) return;
+    _isCompletingWorkout = true;
     HapticService.celebrationPattern();
-
-    // Sync workout to Apple Health / Health Connect
-    await _syncWorkoutToHealth();
-
-    if (!mounted) return;
-
-    // Award XP
+    final workoutLogProvider = Provider.of<WorkoutLogProvider>(
+      context,
+      listen: false,
+    );
     final gamificationProvider = Provider.of<GamificationProvider>(
       context,
       listen: false,
     );
-    // Refresh gamification stats
-    await gamificationProvider.refresh();
 
-    setState(() {
-      _showCompletion = true;
-      _showCelebration = true;
-    });
+    try {
+      await _syncCompletedSetsToBackend(workoutLogProvider);
+      final completedWorkout = await workoutLogProvider.completeWorkout();
+      if (completedWorkout == null) {
+        throw Exception(
+          workoutLogProvider.error ?? 'Impossibile completare il workout.',
+        );
+      }
+
+      if (!mounted) return;
+
+      try {
+        await gamificationProvider.refresh();
+      } catch (e) {
+        debugPrint('Error refreshing gamification after immersive workout: $e');
+      }
+
+      await _syncWorkoutToHealth();
+
+      if (!mounted) return;
+
+      setState(() {
+        _showCompletion = true;
+        _showCelebration = true;
+      });
+    } catch (e) {
+      debugPrint('Error completing immersive workout: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Errore nel salvataggio workout: $e'),
+            backgroundColor: CleanTheme.accentRed,
+          ),
+        );
+      }
+    } finally {
+      _isCompletingWorkout = false;
+    }
+  }
+
+  Future<void> _syncCompletedSetsToBackend(WorkoutLogProvider provider) async {
+    if (provider.currentWorkoutLog == null) {
+      await provider.startWorkout(workoutDayId: widget.workoutDay.id);
+    }
+
+    final currentWorkoutLog = provider.currentWorkoutLog;
+    if (currentWorkoutLog == null) {
+      throw Exception('Sessione workout non inizializzata.');
+    }
+
+    for (int index = 0; index < _mainExercises.length; index++) {
+      final workoutExercise = _mainExercises[index];
+      final completedSets = _completedSets[workoutExercise.exercise.id];
+      if (completedSets == null || completedSets.isEmpty) continue;
+
+      final existingExerciseLog = currentWorkoutLog.exerciseLogs
+          .where((log) => log.exerciseId == workoutExercise.exercise.id)
+          .cast<dynamic>()
+          .firstWhere((log) => true, orElse: () => null);
+
+      final exerciseLog =
+          existingExerciseLog ??
+          await provider.addExerciseLog(
+            exerciseId: workoutExercise.exercise.id,
+            orderIndex: index,
+            exerciseType: workoutExercise.exerciseType,
+            notes: workoutExercise.notes,
+          );
+
+      if (exerciseLog == null) {
+        throw Exception(
+          'Impossibile registrare l\'esercizio ${workoutExercise.exercise.name}.',
+        );
+      }
+
+      final loggedSetNumbers = exerciseLog.setLogs
+          .map((setLog) => setLog.setNumber)
+          .toSet();
+
+      for (final rawSet in completedSets) {
+        final setNumber = rawSet['setNumber'] as int?;
+        final reps = rawSet['reps'] as int?;
+        final weight = rawSet['weight'] as double?;
+
+        if (setNumber == null || reps == null) continue;
+        if (loggedSetNumbers.contains(setNumber)) continue;
+
+        final success = await provider.addSetLog(
+          exerciseLogId: exerciseLog.id,
+          setNumber: setNumber,
+          reps: reps,
+          weightKg: weight,
+          completed: true,
+        );
+
+        if (!success) {
+          throw Exception(
+            'Impossibile salvare la serie $setNumber di ${workoutExercise.exercise.name}.',
+          );
+        }
+
+        loggedSetNumbers.add(setNumber);
+      }
+    }
   }
 
   /// Sync completed workout to Apple Health / Health Connect

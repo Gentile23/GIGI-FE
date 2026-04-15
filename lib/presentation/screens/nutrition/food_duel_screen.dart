@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/nutrition_coach_provider.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
@@ -51,9 +52,20 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   }
 
   Future<void> _compare() async {
+    if (_isLoading) return;
     final foodA = _foodAController.text.trim();
     final foodB = _foodBController.text.trim();
     if (foodA.isEmpty || foodB.isEmpty) return;
+    if (!ValidationUtils.isReasonableAiText(foodA) ||
+        !ValidationUtils.isReasonableAiText(foodB)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Inserisci due alimenti validi.'),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isLoading = true;

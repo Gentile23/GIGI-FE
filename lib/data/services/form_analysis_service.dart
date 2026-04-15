@@ -7,7 +7,7 @@ import 'api_client.dart';
 
 class FormAnalysisService {
   final ApiClient _apiClient;
-  static const int _maxVideoSizeBytes = 100 * 1024 * 1024; // 100 MB
+  static const int _maxVideoSizeBytes = ValidationUtils.maxFormVideoBytes;
   static const Set<String> _allowedVideoExtensions = {
     'mp4',
     'mov',
@@ -41,7 +41,7 @@ class FormAnalysisService {
     try {
       final sanitizedExerciseName = ValidationUtils.sanitizeFreeText(
         exerciseName,
-        maxLength: 80,
+        maxLength: ValidationUtils.maxAiLabelLength,
       );
       if (sanitizedExerciseName.isEmpty) {
         throw Exception('Nome esercizio non valido');

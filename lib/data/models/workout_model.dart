@@ -130,6 +130,7 @@ class WorkoutExercise {
   final int sets;
   final String reps;
   final int restSeconds;
+  final List<int>? restSecondsPerSet;
   final String? notes;
   final String exerciseType; // 'strength', 'mobility', 'cardio', 'warmup'
   final String position; // 'warmup', 'pre_workout', 'main', 'post_workout'
@@ -140,6 +141,7 @@ class WorkoutExercise {
     required this.sets,
     required this.reps,
     required this.restSeconds,
+    this.restSecondsPerSet,
     this.notes,
     this.exerciseType = 'strength', // Default to strength
     this.position = 'main', // Default to main
@@ -152,6 +154,7 @@ class WorkoutExercise {
       'sets': sets,
       'reps': reps,
       'restSeconds': restSeconds,
+      'rest_seconds_per_set': restSecondsPerSet,
       'notes': notes,
       'exerciseType': exerciseType,
       'position': position,
@@ -178,6 +181,7 @@ class WorkoutExercise {
       sets: _parseInt(json['sets']) ?? 3,
       reps: json['reps']?.toString() ?? '10',
       restSeconds: _parseInt(json['rest_seconds']) ?? 60,
+      restSecondsPerSet: _parseIntList(json['rest_seconds_per_set']),
       notes: json['notes'] as String?,
       exerciseType: json['exercise_type'] as String? ?? 'strength',
       position: json['position'] as String? ?? 'main',
@@ -195,6 +199,21 @@ class WorkoutExercise {
       }
     }
     return null;
+  }
+
+  static List<int>? _parseIntList(dynamic value) {
+    if (value is! List) return null;
+    final parsed = value
+        .map((entry) {
+          if (entry is int) return entry;
+          if (entry is num) return entry.toInt();
+          if (entry is String) return int.tryParse(entry);
+          return null;
+        })
+        .whereType<int>()
+        .toList();
+    if (parsed.isEmpty) return null;
+    return parsed;
   }
 }
 

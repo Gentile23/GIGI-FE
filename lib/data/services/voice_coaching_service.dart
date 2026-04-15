@@ -98,16 +98,11 @@ class VoiceCoachingService {
   /// Check if user has access to voice coaching (premium feature)
   Future<bool> hasAccess() async {
     try {
-      final response = await _apiClient.dio.get('/user');
+      final response = await _apiClient.dio.get('/quota/status');
 
       if (response.statusCode == 200) {
-        final subscription = response.data['subscription'];
-        if (subscription == null) return false;
-
-        final tier = subscription['tier'] as String?;
-        final isActive = subscription['is_active'] as bool? ?? false;
-
-        return isActive && (tier == 'pro' || tier == 'elite');
+        final features = response.data['features'] as Map<String, dynamic>?;
+        return features?['voice_coaching'] as bool? ?? false;
       }
 
       return false;

@@ -114,7 +114,7 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => WorkoutProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => WorkoutLogProvider(apiClient)),
-        ChangeNotifierProvider(create: (_) => GamificationProvider()),
+        ChangeNotifierProvider(create: (_) => GamificationProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => EngagementProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => SocialProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => PaymentService()..initialize()),

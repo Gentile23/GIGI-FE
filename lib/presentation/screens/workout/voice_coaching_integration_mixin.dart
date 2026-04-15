@@ -82,7 +82,7 @@ mixin VoiceCoachingIntegrationMixin<T extends StatefulWidget> on State<T> {
   }) async {
     // Check quota for Execute with GiGi
     final quotaService = QuotaService();
-    final checkResult = await quotaService.checkAndRecord(
+    final checkResult = await quotaService.canPerformAction(
       QuotaAction.executeWithGigi,
     );
 

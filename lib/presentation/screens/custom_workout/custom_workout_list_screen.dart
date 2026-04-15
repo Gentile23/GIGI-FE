@@ -111,6 +111,18 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
     }
   }
 
+  Future<void> _openCreateWorkout() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CreateCustomWorkoutScreen(),
+      ),
+    );
+    if (result == true) {
+      _loadWorkouts();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,25 +142,6 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
         actions: [],
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateCustomWorkoutScreen(),
-            ),
-          );
-          if (result == true) {
-            _loadWorkouts();
-          }
-        },
-        backgroundColor: CleanTheme.primaryColor,
-        icon: const Icon(Icons.add),
-        label: Text(
-          'Nuova Scheda',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
-        ),
-      ),
     );
   }
 
@@ -190,16 +183,6 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
       );
     }
 
-    if (_plans.isEmpty) {
-      return _buildEmptyStateContent();
-    }
-
-    // Add Provider import at the top of the file if not already present
-    // But since this is a fragment replacement, I will assume imports are handled or I will add them in a separate step if needed.
-    // Wait, I need to check imports first. CustomWorkoutListScreen imports:
-    // currently: material, google_fonts, app_localizations, clean_theme, custom_workout_model, custom_workout_service, api_client, clean_widgets, create_custom_workout_screen, workout_pdf_upload_screen
-    // I need: provider, auth_provider, subscription_model (usually via auth_provider)
-
     return RefreshIndicator(
       onRefresh: _loadWorkouts,
       color: CleanTheme.primaryColor,
@@ -208,14 +191,13 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Create Custom Workout Card
-            _buildCreateCustomCard(),
-            const SizedBox(height: 16),
-
-            // Existing List or Empty State
-            if (_plans.isEmpty)
-              _buildEmptyStateContent()
-            else
+            if (_plans.isEmpty) ...[
+              _buildCreateCustomCard(),
+              const SizedBox(height: 16),
+              _buildEmptyStateContent(),
+            ] else ...[
+              _buildPlansHeaderRow(),
+              const SizedBox(height: 12),
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -226,11 +208,46 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
                   return _buildWorkoutCard(_plans[index]);
                 },
               ),
+            ],
             // Add extra padding at bottom for FAB
-            const SizedBox(height: 80),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPlansHeaderRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Schede personalizzate create da te',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+        ),
+        ElevatedButton.icon(
+          onPressed: _openCreateWorkout,
+          icon: const Icon(Icons.add_rounded, size: 16),
+          label: Text(
+            'Aggiungi',
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: CleanTheme.primaryColor,
+            foregroundColor: CleanTheme.textOnDark,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -446,17 +463,7 @@ class _CustomWorkoutListScreenState extends State<CustomWorkoutListScreen> {
 
   Widget _buildCreateCustomCard() {
     return GestureDetector(
-      onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CreateCustomWorkoutScreen(),
-          ),
-        );
-        if (result == true) {
-          _loadWorkouts();
-        }
-      },
+      onTap: _openCreateWorkout,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

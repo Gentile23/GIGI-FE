@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../providers/nutrition_coach_provider.dart';
 import '../../../../core/theme/clean_theme.dart';
+import '../../../../core/utils/validation_utils.dart';
+import '../../../../data/services/quota_service.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 
 class DietUploadScreen extends StatefulWidget {
@@ -36,21 +38,67 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
 
   Future<void> _pickAndUpload() async {
     try {
+      final provider = Provider.of<NutritionCoachProvider>(
+        context,
+        listen: false,
+      );
+      if (provider.isLoading) return;
+
+      final quotaService = QuotaService();
+      final quotaCheck = await quotaService.canPerformAction(
+        QuotaAction.pdfDiet,
+      );
+      if (!quotaCheck.canPerform) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              quotaCheck.reason.isNotEmpty
+                  ? quotaCheck.reason
+                  : 'Hai raggiunto il limite di analisi PDF dieta.',
+            ),
+            backgroundColor: CleanTheme.accentOrange,
+          ),
+        );
+        return;
+      }
+
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
 
       if (result != null) {
+        final file = result.files.single;
+        final fileName = file.name.trim();
+        if (fileName.isEmpty ||
+            fileName.length > 120 ||
+            !(file.extension?.toLowerCase() == 'pdf')) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Seleziona un PDF valido.'),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+          return;
+        }
+        if (file.size <= 0 || file.size > ValidationUtils.maxPdfUploadBytes) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Il PDF deve essere piu piccolo di 10MB.'),
+              backgroundColor: CleanTheme.accentRed,
+            ),
+          );
+          return;
+        }
+
         if (!mounted) return;
 
-        final provider = Provider.of<NutritionCoachProvider>(
-          context,
-          listen: false,
-        );
         _startLoadingMessages();
 
-        final success = await provider.uploadDiet(result.files.single);
+        final success = await provider.uploadDiet(file);
 
         if (success) {
           if (mounted) {

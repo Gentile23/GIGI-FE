@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../screens/paywall/paywall_screen.dart';
 import '../../../data/services/quota_service.dart';
 import '../../../data/models/quota_status_model.dart';
@@ -102,8 +103,24 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   }
 
   Future<void> _addIngredient() async {
-    final text = _ingredientController.text.trim();
-    if (text.isNotEmpty) {
+    final text = ValidationUtils.sanitizeFreeText(
+      _ingredientController.text,
+      maxLength: ValidationUtils.maxIngredientLength,
+    );
+    if (text.isNotEmpty && !ValidationUtils.containsSuspiciousMarkup(text)) {
+      if (_ingredients.length >= ValidationUtils.maxIngredientsPerChefRequest) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Puoi inserire al massimo 10 ingredienti.'),
+            backgroundColor: CleanTheme.accentOrange,
+          ),
+        );
+        return;
+      }
+      if (_ingredients.contains(text)) {
+        _ingredientController.clear();
+        return;
+      }
       setState(() {
         _ingredients.add(text);
         _ingredientController.clear();
@@ -114,33 +131,41 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   }
 
   Future<void> _searchRecipes() async {
-    if (_ingredients.isEmpty) return;
+    if (_ingredients.isEmpty || _isLoading) return;
 
     HapticService.mediumTap();
 
-    if (_quotaStatus != null) {
-      final recipesQuota = _quotaStatus!.usage.recipes;
-      if (!recipesQuota.canUse) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Hai raggiunto il limite settimanale di ricette. Passa a Premium!',
-            ),
-            backgroundColor: CleanTheme.accentRed,
-            action: SnackBarAction(
-              label: 'Upgrade',
-              textColor: CleanTheme.textOnDark,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PaywallScreen()),
-                );
-              },
-            ),
+    if (_quotaStatus == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile verificare i limiti adesso. Riprova.'),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+      return;
+    }
+
+    final recipesQuota = _quotaStatus!.usage.recipes;
+    if (!recipesQuota.canUse) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Hai raggiunto il limite settimanale di ricette. Passa a Premium!',
           ),
-        );
-        return;
-      }
+          backgroundColor: CleanTheme.accentRed,
+          action: SnackBarAction(
+            label: 'Upgrade',
+            textColor: CleanTheme.textOnDark,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaywallScreen()),
+              );
+            },
+          ),
+        ),
+      );
+      return;
     }
 
     setState(() {

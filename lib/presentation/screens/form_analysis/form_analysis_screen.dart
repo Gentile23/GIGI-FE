@@ -6,6 +6,7 @@ import '../../../data/models/form_analysis_model.dart';
 import '../../../data/services/form_analysis_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/quota_service.dart';
+import '../../../core/utils/validation_utils.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
@@ -74,6 +75,8 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
 
   Future<void> _pickVideo(ImageSource source) async {
     try {
+      if (_isAnalyzing) return;
+
       final XFile? pickedFile = await _picker.pickVideo(
         source: source,
         maxDuration: const Duration(seconds: 15),
@@ -83,7 +86,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
         // Use XFile.length() which works on Web too
         final fileSize = await pickedFile.length();
 
-        if (fileSize > 50 * 1024 * 1024) {
+        if (fileSize > ValidationUtils.maxFormVideoBytes) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -107,10 +110,26 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Future<void> _analyzeVideo() async {
+    if (_isAnalyzing) return;
     if (_videoFile == null || _exerciseController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.selectVideoAndExercise),
+        ),
+      );
+      return;
+    }
+
+    final sanitizedExerciseName = ValidationUtils.sanitizeFreeText(
+      _exerciseController.text,
+      maxLength: ValidationUtils.maxAiLabelLength,
+    );
+    if (sanitizedExerciseName.isEmpty ||
+        ValidationUtils.containsSuspiciousMarkup(sanitizedExerciseName)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Inserisci un nome esercizio valido.'),
+          backgroundColor: CleanTheme.accentRed,
         ),
       );
       return;
@@ -140,7 +159,7 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     try {
       final analysis = await _service.analyzeVideo(
         videoFile: _videoFile!,
-        exerciseName: _exerciseController.text,
+        exerciseName: sanitizedExerciseName,
         exerciseId: widget.exerciseId,
         onProgress: (sent, total) {
           setState(() {

@@ -552,38 +552,53 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   List<String> _buildFeaturesFromBackendLimits(Map<String, dynamic> limits) {
-    final workoutInterval = _toInt(limits['workout_plan_interval_weeks']);
-    final formPerWeek = _toInt(limits['form_analysis_per_week']);
-    final mealPerDay = _toInt(limits['meal_analysis_per_day']);
-    final recipesPerWeek = _toInt(limits['recipes_per_week']);
-    final customWorkouts = _toInt(limits['custom_workouts_per_period']);
-    final customPeriodWeeks = _toInt(limits['custom_workouts_period_weeks']);
-    final executePerWeek = _toInt(limits['execute_with_gigi_per_week']);
-    final shoppingListLimit = _toInt(limits['shopping_list_limit']);
-    final changeMealPerWeek = _toInt(limits['change_meal_per_week']);
-    final changeFoodPerWeek = _toInt(limits['change_food_per_week']);
-    final voiceCoaching = (limits['voice_coaching'] as bool?) ?? false;
+    final workoutPlan = _quotaEntry(limits, 'workout_plan');
+    final formAnalysis = _quotaEntry(limits, 'form_analysis');
+    final mealAnalysis = _quotaEntry(limits, 'meal_analysis');
+    final recipes = _quotaEntry(limits, 'recipes');
+    final customWorkout = _quotaEntry(limits, 'custom_workout');
+    final executeWithGigi = _quotaEntry(limits, 'execute_with_gigi');
+    final shoppingList = _quotaEntry(limits, 'shopping_list');
+    final changeMeal = _quotaEntry(limits, 'change_meal');
+    final changeFood = _quotaEntry(limits, 'change_food');
+    final pdfDiet = _quotaEntry(limits, 'pdf_diet');
+    final workoutChat = _quotaEntry(limits, 'workout_chat');
+    final exerciseAlternatives = _quotaEntry(limits, 'exercise_alternatives');
+    final similarExercises = _quotaEntry(limits, 'similar_exercises');
+    final voiceCoaching =
+        (limits['voice_coaching'] as Map<String, dynamic>?)?['enabled'] == true;
 
     return [
-      workoutInterval == 0
+      _toInt(workoutPlan['interval_weeks']) == 0
           ? 'Piani workout AI: illimitati'
-          : 'Piani workout AI: 1 ogni ${_weekLabel(workoutInterval)}',
-      'Form Check AI: ${_limitLabel(formPerWeek)} / settimana',
-      'Analisi pasti AI: ${_limitLabel(mealPerDay)} / giorno',
-      'Ricette AI: ${_limitLabel(recipesPerWeek)} / settimana',
-      customWorkouts == -1
+          : 'Piani workout AI: 1 ogni ${_weekLabel(_toInt(workoutPlan["interval_weeks"]))}',
+      'Form Check AI: ${_describeQuota(formAnalysis)}',
+      'Snap & Track AI: ${_describeQuota(mealAnalysis)}',
+      'Chef AI: ${_describeQuota(recipes)}',
+      _toInt(customWorkout['limit']) == -1
           ? 'Workout custom: illimitati'
-          : 'Workout custom: $customWorkouts ogni ${_weekLabel(customPeriodWeeks)}',
-      'Execute con Gigi: ${_limitLabel(executePerWeek)} / settimana',
-      shoppingListLimit == -1
+          : 'Workout custom: ${_toInt(customWorkout["limit"])} ogni ${_weekLabel(_toInt(customWorkout["interval_weeks"]))}',
+      'Analisi PDF Dieta: ${_describeQuota(pdfDiet)}',
+      'Chat AI: ${_describeQuota(workoutChat)}',
+      'Execute con Gigi: ${_describeQuota(executeWithGigi)}',
+      _toInt(shoppingList['limit']) == -1
           ? 'Lista spesa AI: illimitata'
-          : 'Lista spesa AI: $shoppingListLimit totale',
-      'Cambio pasto: ${_limitLabel(changeMealPerWeek)} / settimana',
-      'Sostituzione alimento: ${_limitLabel(changeFoodPerWeek)} / settimana',
+          : 'Lista spesa AI: ${_describeQuota(shoppingList)}',
+      'Cambio pasto: ${_describeQuota(changeMeal)}',
+      'Smart Swap: ${_describeQuota(changeFood)}',
+      'Unlock AI Alternatives: ${_describeQuota(exerciseAlternatives)}',
+      'Esercizi simili: ${_describeQuota(similarExercises)}',
       voiceCoaching
           ? 'Voice Coaching realtime incluso'
           : 'Voice Coaching realtime non incluso',
     ];
+  }
+
+  Map<String, dynamic> _quotaEntry(Map<String, dynamic> limits, String key) {
+    final value = limits[key];
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return const {};
   }
 
   int _toInt(dynamic value, {int fallback = 0}) {
@@ -597,6 +612,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
   String _limitLabel(int limit) {
     if (limit == -1) return 'illimitate';
     return '$limit';
+  }
+
+  String _describeQuota(Map<String, dynamic> entry) {
+    final limit = _toInt(entry['limit']);
+    final period = (entry['period'] as String?) ?? '';
+
+    if (limit == -1 || period == 'unlimited') return 'illimitato';
+
+    final suffix = switch (period) {
+      'day' => '/ giorno',
+      'week' => '/ settimana',
+      'month' => '/ mese',
+      'lifetime' => ' una tantum',
+      _ => '',
+    };
+
+    return '${_limitLabel(limit)}$suffix';
   }
 
   String _weekLabel(int weeks) {

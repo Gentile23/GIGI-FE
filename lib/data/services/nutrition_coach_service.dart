@@ -5,7 +5,7 @@ import 'api_client.dart';
 
 class NutritionCoachService {
   final ApiClient _client;
-  static const int _maxPdfSizeBytes = 15 * 1024 * 1024; // 15 MB
+  static const int _maxPdfSizeBytes = ValidationUtils.maxPdfUploadBytes;
 
   NutritionCoachService({ApiClient? client}) : _client = client ?? ApiClient();
 
@@ -19,7 +19,7 @@ class NutritionCoachService {
       if (file.size <= 0 || file.size > _maxPdfSizeBytes) {
         return {
           'success': false,
-          'message': 'File non valido: dimensione massima 15MB',
+          'message': 'File non valido: dimensione massima 10MB',
         };
       }
 

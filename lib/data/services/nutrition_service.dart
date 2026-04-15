@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/utils/validation_utils.dart';
 import '../models/nutrition_model.dart';
 import 'api_client.dart';
 
@@ -16,6 +17,14 @@ class NutritionService {
     int? grams,
   }) async {
     try {
+      final imageSize = await imageFile.length();
+      if (imageSize <= 0 || imageSize > ValidationUtils.maxMealPhotoBytes) {
+        throw Exception('Immagine non valida: dimensione massima 10MB');
+      }
+      if (grams != null && (grams < 1 || grams > 3000)) {
+        throw Exception('Grammi non validi');
+      }
+
       MultipartFile photoPart;
 
       if (kIsWeb) {
@@ -429,10 +438,30 @@ class NutritionService {
     Map<String, bool>? answers,
   }) async {
     try {
+      final sanitizedIngredients = ingredients
+          .map(
+            (ingredient) => ValidationUtils.sanitizeFreeText(
+              ingredient,
+              maxLength: ValidationUtils.maxIngredientLength,
+            ),
+          )
+          .where((ingredient) => ingredient.isNotEmpty)
+          .toSet()
+          .toList();
+
+      if (sanitizedIngredients.isEmpty ||
+          sanitizedIngredients.length >
+              ValidationUtils.maxIngredientsPerChefRequest ||
+          sanitizedIngredients.any(
+            ValidationUtils.containsSuspiciousMarkup,
+          )) {
+        throw Exception('Ingredienti non validi');
+      }
+
       final response = await _apiClient.post(
         '/nutrition/what-to-cook',
         body: {
-          'ingredients': ingredients,
+          'ingredients': sanitizedIngredients,
           if (maxTimeMinutes != null) 'max_time_minutes': maxTimeMinutes,
           if (dietType != null) 'diet_type': dietType,
           if (mode != null) 'mode': mode,

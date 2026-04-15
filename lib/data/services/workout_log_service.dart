@@ -181,6 +181,16 @@ class WorkoutLogService extends ApiService {
     );
   }
 
+  Future<void> deleteSetLog(String setLogId) async {
+    final response = await delete('set-logs/$setLogId');
+
+    if (!_isSuccessResponse(response)) {
+      throw Exception(
+        _extractErrorMessage(response, fallback: 'Failed to delete set log'),
+      );
+    }
+  }
+
   /// Get workout logs list
   Future<List<WorkoutLog>> getWorkoutLogs({
     DateTime? startDate,
@@ -201,9 +211,10 @@ class WorkoutLogService extends ApiService {
     }
 
     final response = await get('workout-logs', queryParameters: queryParams);
+    final rawLogs = response['logs'] ?? response['data'];
 
-    if (response['data'] != null) {
-      return (response['data'] as List)
+    if (rawLogs is List) {
+      return rawLogs
           .map((e) => WorkoutLog.fromJson(e))
           .toList();
     } else {

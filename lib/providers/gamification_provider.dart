@@ -12,8 +12,8 @@ class GamificationProvider with ChangeNotifier {
   final List<Achievement> _recentlyUnlocked = [];
   bool _isLoading = false;
 
-  GamificationProvider()
-    : _gamificationService = GamificationService(ApiClient());
+  GamificationProvider(ApiClient apiClient)
+    : _gamificationService = GamificationService(apiClient);
 
   UserStats? get stats => _stats;
   List<Achievement> get unlockedAchievements => _unlockedAchievements;

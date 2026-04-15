@@ -83,6 +83,8 @@ class SetLoggingWidget extends StatefulWidget {
 }
 
 class SetLoggingWidgetState extends State<SetLoggingWidget> {
+  int get totalSets => widget.exercise.sets;
+
   // --- Public methods to access controllers from overlay ---
   TextEditingController? getWeightController(int setNumber) =>
       _weightControllers[setNumber];
@@ -92,7 +94,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
   List<SetCompletionData> getCompletedSetEntries() {
     final entries = <SetCompletionData>[];
-    for (int setNumber = 1; setNumber <= widget.exercise.sets; setNumber++) {
+    for (int setNumber = 1; setNumber <= totalSets; setNumber++) {
       if (!(_completedSets[setNumber] ?? false)) continue;
       entries.add(
         SetCompletionData(
@@ -101,11 +103,45 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           reps: _reps[setNumber],
           rpe: _rpe[setNumber],
           previousWeightKg: null,
-          isLastSet: setNumber == widget.exercise.sets,
+          isLastSet: setNumber == totalSets,
         ),
       );
     }
     return entries;
+  }
+
+  Future<bool> removeLastSet() async {
+    if (totalSets <= 1) return false;
+
+    final setNumber = totalSets;
+    final existingLog = widget.exerciseLog?.setLogs.firstWhere(
+      (s) => s.setNumber == setNumber,
+      orElse: () => SetLogModel(
+        id: '',
+        exerciseLogId: '',
+        setNumber: setNumber,
+        reps: 0,
+        completed: false,
+      ),
+    );
+
+    if (!widget.isTrial && existingLog != null && existingLog.id.isNotEmpty) {
+      await context.read<WorkoutLogProvider>().deleteSetLog(
+        setLogId: existingLog.id,
+        exerciseLogId: existingLog.exerciseLogId,
+      );
+    }
+
+    if (_restTimerService?.state.isActive == true &&
+        _restTimerService?.state.exerciseId == widget.restTimerId &&
+        _restTimerService?.state.workoutDayId == widget.workoutDayId &&
+        _restTimerService?.state.setNumber == setNumber) {
+      await _stopRestTimer();
+    }
+
+    _removeRuntimeSetState(setNumber);
+    _notifyCompletionChanged();
+    return true;
   }
 
   void updateRpe(int setNumber, int value) {
@@ -144,6 +180,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   int get _defaultRestSeconds =>
       widget.exercise.restSeconds > 0 ? widget.exercise.restSeconds : 60;
 
+  int _getRestSecondsForSet(int setNumber) {
+    final perSet = widget.exercise.restSecondsPerSet;
+    if (perSet == null || perSet.isEmpty) {
+      return _defaultRestSeconds;
+    }
+
+    final index = (setNumber - 1).clamp(0, perSet.length - 1);
+    final candidate = perSet[index];
+    if (candidate < 0) return _defaultRestSeconds;
+    return candidate;
+  }
+
   String _formatWeightForInput(double weight) {
     if (weight % 1 == 0) return weight.toInt().toString();
     return weight.toStringAsFixed(1).replaceAll('.', ',');
@@ -158,6 +206,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       return null;
     }
     return double.tryParse(normalized);
+  }
+
+  int? _parseIntFlexible(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty) return null;
+      return int.tryParse(trimmed) ?? double.tryParse(trimmed)?.round();
+    }
+    return null;
   }
 
   @override
@@ -175,12 +235,32 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   @override
   void didUpdateWidget(SetLoggingWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.exercise.sets != oldWidget.exercise.sets) {
+      _syncRuntimeSetCount(oldWidget.exercise.sets, widget.exercise.sets);
+    }
     // If the exercise log has been updated from outside (e.g. backend refresh)
     // and we are not currently editing, sync local state.
     if (widget.exerciseLog != oldWidget.exerciseLog &&
         widget.exerciseLog != null) {
       _syncStateWithLog();
     }
+  }
+
+  void _syncRuntimeSetCount(int oldCount, int newCount) {
+    if (newCount == oldCount) return;
+
+    if (newCount > oldCount) {
+      for (int setNumber = oldCount + 1; setNumber <= newCount; setNumber++) {
+        _appendRuntimeSetState(setNumber);
+      }
+      _notifyCompletionChanged();
+      return;
+    }
+
+    for (int setNumber = oldCount; setNumber > newCount; setNumber--) {
+      _removeRuntimeSetState(setNumber);
+    }
+    _notifyCompletionChanged();
   }
 
   @override
@@ -218,6 +298,89 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     }
   }
 
+  void _appendRuntimeSetState(int setNumber) {
+    final sourceSetNumber = math.max(1, setNumber - 1);
+    final inheritedWeight = _weights[sourceSetNumber];
+    final inheritedReps =
+        _reps[sourceSetNumber] ??
+        _parseIntFlexible(_presetReps[sourceSetNumber]) ??
+        0;
+    final inheritedRpe = _rpe[sourceSetNumber] ?? 7;
+    final inheritedPreset = _presetReps[sourceSetNumber] ?? '10';
+
+    _weights[setNumber] = inheritedWeight ?? 0;
+    _reps[setNumber] = inheritedReps;
+    _rpe[setNumber] = inheritedRpe;
+    _completedSets[setNumber] = false;
+    _presetReps[setNumber] = inheritedPreset;
+
+    final weightController = TextEditingController(
+      text: inheritedWeight != null && inheritedWeight > 0
+          ? _formatWeightForInput(inheritedWeight)
+          : '',
+    );
+    weightController.addListener(() {
+      final text = weightController.text;
+      final parsed = _parseWeightInput(text);
+
+      if (parsed != null && parsed > 0 && parsed != _weights[setNumber]) {
+        setState(() {
+          _weights[setNumber] = parsed;
+          _handleWeightChange(setNumber, parsed);
+        });
+      } else if (text == '0' && _weights[setNumber] != 0) {
+        setState(() {
+          _weights[setNumber] = 0;
+          _handleWeightChange(setNumber, 0);
+        });
+      }
+    });
+    _weightControllers[setNumber] = weightController;
+
+    final repsController = TextEditingController(
+      text: inheritedReps > 0 ? inheritedReps.toString() : '',
+    );
+    repsController.addListener(() {
+      final text = repsController.text;
+      final parsed = int.tryParse(text);
+      if (parsed != null && parsed != _reps[setNumber]) {
+        setState(() {
+          _reps[setNumber] = parsed;
+          _manuallyEditedReps.add(setNumber);
+        });
+        _scheduleAutoSave(setNumber);
+      } else if (text.isEmpty && _reps[setNumber] != 0) {
+        setState(() {
+          _reps[setNumber] = 0;
+          _manuallyEditedReps.add(setNumber);
+        });
+        _scheduleAutoSave(setNumber);
+      }
+    });
+    _repsControllers[setNumber] = repsController;
+  }
+
+  void _removeRuntimeSetState(int setNumber) {
+    _weights.remove(setNumber);
+    _reps.remove(setNumber);
+    _rpe.remove(setNumber);
+    _completedSets.remove(setNumber);
+    _presetReps.remove(setNumber);
+    _manuallyEditedWeights.remove(setNumber);
+    _manuallyEditedReps.remove(setNumber);
+    _autoSaveTimers.remove(setNumber)?.cancel();
+    _weightControllers.remove(setNumber)?.dispose();
+    _repsControllers.remove(setNumber)?.dispose();
+  }
+
+  void _notifyCompletionChanged() {
+    final allCompleted = List.generate(
+      totalSets,
+      (index) => index + 1,
+    ).every((setNumber) => _completedSets[setNumber] == true);
+    widget.onCompletionChanged(allCompleted);
+  }
+
   void _syncStateWithLog() {
     if (widget.exerciseLog == null) return;
 
@@ -252,7 +415,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
 
   /// Create persistent TextEditingControllers for each set — called once in initState
   void _initializeControllers() {
-    for (int i = 1; i <= widget.exercise.sets; i++) {
+    for (int i = 1; i <= totalSets; i++) {
       // Weight controller
       final weightVal = _weights[i];
       final weightText = weightVal != null && weightVal > 0
@@ -319,7 +482,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _manuallyEditedWeights.add(setNumber);
 
     // Auto-fill subsequent sets that haven't been manually edited
-    for (int i = setNumber + 1; i <= widget.exercise.sets; i++) {
+    for (int i = setNumber + 1; i <= totalSets; i++) {
       if (!_manuallyEditedWeights.contains(i)) {
         _weights[i] = weight;
         final controller = _weightControllers[i];
@@ -393,7 +556,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         .map((s) => s.trim())
         .toList();
 
-    for (int i = 1; i <= widget.exercise.sets; i++) {
+    for (int i = 1; i <= totalSets; i++) {
       int defaultReps = 0;
       String currentTargetValue = '10';
       if (repsList.isNotEmpty) {
@@ -444,6 +607,11 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         final previousMap = <int, Map<String, dynamic>>{};
 
         for (var set in sets) {
+          final parsedSetNumber = _parseIntFlexible(set['set_number']);
+          if (parsedSetNumber == null || parsedSetNumber <= 0) {
+            continue;
+          }
+
           // Safely parse weight_kg which may come as String or num from API
           dynamic weightValue = set['weight_kg'];
           double? parsedWeight;
@@ -453,10 +621,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
             parsedWeight = _parseWeightInput(weightValue);
           }
 
-          previousMap[set['set_number'] as int] = {
-            'reps': set['reps'],
+          previousMap[parsedSetNumber] = {
+            'reps': _parseIntFlexible(set['reps']),
             'weight_kg': parsedWeight,
-            'rpe': set['rpe'],
+            'rpe': _parseIntFlexible(set['rpe']),
           };
         }
 
@@ -467,7 +635,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
             for (var entry in previousMap.entries) {
               final setNum = entry.key;
               final prevWeight = entry.value['weight_kg'];
-              final prevReps = entry.value['reps'];
+              final prevReps = _parseIntFlexible(entry.value['reps']);
 
               // Sync Weight
               if (_weightControllers.containsKey(setNum) &&
@@ -519,6 +687,11 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   }
 
   Future<void> _startRestTimer(int setNumber) async {
+    final restSeconds = _getRestSecondsForSet(setNumber);
+    if (restSeconds <= 0) {
+      return;
+    }
+
     setState(() {
       _isRestTimerActive = true;
     });
@@ -527,7 +700,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       workoutDayId: widget.workoutDayId,
       exerciseId: widget.restTimerId,
       setNumber: setNumber,
-      totalSeconds: _defaultRestSeconds,
+      totalSeconds: restSeconds,
     );
   }
 
@@ -701,7 +874,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
             ),
           ),
 
-          ...List.generate(widget.exercise.sets, (index) {
+          ...List.generate(totalSets, (index) {
             final setNumber = index + 1;
             return _buildSetRow(setNumber);
           }),
@@ -889,17 +1062,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                   style: GoogleFonts.outfit(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
-                                    color: isCompleted
-                                        ? CleanTheme.accentGreen
-                                        : (!_manuallyEditedWeights.contains(
-                                                    setNumber,
-                                                  ) &&
-                                                  _weightControllers[setNumber]!
-                                                      .text
-                                                      .isNotEmpty
-                                              ? CleanTheme.textSecondary
-                                                    .withValues(alpha: 0.5)
-                                              : CleanTheme.textPrimary),
+                                    color: CleanTheme.textPrimary,
                                   ),
                                   decoration: InputDecoration(
                                     border: InputBorder.none,
@@ -992,17 +1155,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 style: GoogleFonts.outfit(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
-                                  color: isCompleted
-                                      ? CleanTheme.accentGreen
-                                      : (!_manuallyEditedReps.contains(
-                                                  setNumber,
-                                                ) &&
-                                                _repsControllers[setNumber]!
-                                                    .text
-                                                    .isNotEmpty
-                                            ? CleanTheme.textSecondary
-                                                  .withValues(alpha: 0.5)
-                                            : CleanTheme.textPrimary),
+                                  color: CleanTheme.textPrimary,
                                 ),
                                 decoration: InputDecoration(
                                   border: InputBorder.none,
@@ -1037,13 +1190,14 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                               GestureDetector(
                                 onTap: () => _showRPEPicker(setNumber),
                                 child: Container(
+                                  width: 44,
                                   height: 44,
                                   decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
                                     color: _getRPEColor(_rpe[setNumber] ?? 7)
                                         .withValues(
                                           alpha: isCompleted ? 0.08 : 0.12,
                                         ),
-                                    borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: _getRPEColor(
                                         _rpe[setNumber] ?? 7,
@@ -1056,10 +1210,8 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                       '${_rpe[setNumber] ?? 7}',
                                       style: GoogleFonts.outfit(
                                         fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: _getRPEColor(
-                                          _rpe[setNumber] ?? 7,
-                                        ),
+                                        fontWeight: FontWeight.w800,
+                                        color: CleanTheme.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -1242,7 +1394,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _scheduleAutoSave(setNumber);
 
     // Start rest timer IMMEDIATELY after checking the set for instant feedback
-    if (value && setNumber <= widget.exercise.sets && !_isRestTimerActive) {
+    if (value && setNumber <= totalSets && !_isRestTimerActive) {
       // Sound is now handled in onTap for faster response
       _startRestTimer(setNumber);
     }
@@ -1259,17 +1411,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
             reps: _reps[setNumber],
             rpe: _rpe[setNumber],
             previousWeightKg: previousSet?['weight_kg'] as double?,
-            isLastSet: setNumber == widget.exercise.sets,
+            isLastSet: setNumber == totalSets,
           ),
         );
       }
 
       // Update completion status
-      final allCompleted =
-          _completedSets.values.where((v) => v).length == widget.exercise.sets;
-      widget.onCompletionChanged(allCompleted);
+      _notifyCompletionChanged();
 
-      if (allCompleted && _showCoachingControls) {
+      if (List.generate(totalSets, (index) => index + 1).every(
+            (currentSetNumber) => _completedSets[currentSetNumber] == true,
+          ) &&
+          _showCoachingControls) {
         _stopRestTimer();
       }
       return;
@@ -1309,14 +1462,16 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           reps: _reps[setNumber],
           rpe: _rpe[setNumber],
           previousWeightKg: previousSet?['weight_kg'] as double?,
-          isLastSet: setNumber == widget.exercise.sets,
+          isLastSet: setNumber == totalSets,
         ),
       );
     }
 
-    final allCompleted =
-        _completedSets.values.where((v) => v).length == widget.exercise.sets;
-    widget.onCompletionChanged(allCompleted);
+    final allCompleted = List.generate(
+      totalSets,
+      (index) => index + 1,
+    ).every((currentSetNumber) => _completedSets[currentSetNumber] == true);
+    _notifyCompletionChanged();
 
     if (allCompleted && _showCoachingControls) {
       _stopRestTimer(); // Stop timer if all sets complete

@@ -61,19 +61,15 @@ class HealthIntegrationService {
 
   /// Initialize the health service
   Future<void> initialize() async {
-    if (_isInitialized || !isAvailable) return;
+    if (!isAvailable) return;
 
     try {
-      // Configure the health plugin
-      await _health.configure();
-      _isInitialized = true;
-
-      if (_isIOS) {
-        _isAuthorized = await _loadIosConnectedState();
-      } else {
-        // Android can report real authorization state.
-        _isAuthorized = await _health.hasPermissions(_readTypes) ?? false;
+      // Configure plugin once, refresh authorization on every initialize call.
+      if (!_isInitialized) {
+        await _health.configure();
+        _isInitialized = true;
       }
+      await _refreshAuthorizationState();
 
       debugPrint(
         'HealthIntegrationService initialized. Authorized: $_isAuthorized',
@@ -88,25 +84,16 @@ class HealthIntegrationService {
     if (!isAvailable) return false;
 
     try {
-      // Ensure plugin is configured before requesting permissions.
-      if (!_isInitialized) {
-        await initialize();
-      }
+      await initialize();
 
       // Avoid requesting permissions again once already connected.
-      if (_isAuthorized) {
+      if (await _refreshAuthorizationState()) {
         return true;
       }
 
       // Build a single, deduplicated list of data types with matching access list.
       // health.requestAuthorization requires one permission entry per data type.
-      final accessByType = <HealthDataType, HealthDataAccess>{};
-      for (final type in _readTypes) {
-        accessByType[type] = HealthDataAccess.READ;
-      }
-      for (final type in _writeTypes) {
-        accessByType[type] = HealthDataAccess.READ_WRITE;
-      }
+      final accessByType = _buildAccessByType();
 
       final types = accessByType.keys.toList(growable: false);
       final permissions = types
@@ -152,14 +139,28 @@ class HealthIntegrationService {
 
   /// Get steps for today
   Future<int?> getStepsToday() async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final now = DateTime.now();
       final midnight = DateTime(now.year, now.month, now.day);
-
+      final stepPoints = await _health.getHealthDataFromTypes(
+        types: [HealthDataType.STEPS],
+        startTime: midnight,
+        endTime: now,
+      );
+      if (stepPoints.isEmpty) return null;
       final steps = await _health.getTotalStepsInInterval(midnight, now);
-      return steps;
+      if (steps != null) return steps;
+
+      double total = 0;
+      for (final point in stepPoints) {
+        final value = point.value;
+        if (value is NumericHealthValue) {
+          total += value.numericValue;
+        }
+      }
+      return total.round();
     } catch (e) {
       debugPrint('Error getting steps: $e');
       await _handlePotentialPermissionRevocation(e);
@@ -169,13 +170,29 @@ class HealthIntegrationService {
 
   /// Get steps for a specific date
   Future<int?> getStepsForDate(DateTime date) async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
+      final stepPoints = await _health.getHealthDataFromTypes(
+        types: [HealthDataType.STEPS],
+        startTime: startOfDay,
+        endTime: endOfDay,
+      );
+      if (stepPoints.isEmpty) return null;
 
-      return await _health.getTotalStepsInInterval(startOfDay, endOfDay);
+      final steps = await _health.getTotalStepsInInterval(startOfDay, endOfDay);
+      if (steps != null) return steps;
+
+      double total = 0;
+      for (final point in stepPoints) {
+        final value = point.value;
+        if (value is NumericHealthValue) {
+          total += value.numericValue;
+        }
+      }
+      return total.round();
     } catch (e) {
       debugPrint('Error getting steps for date: $e');
       await _handlePotentialPermissionRevocation(e);
@@ -186,7 +203,7 @@ class HealthIntegrationService {
   /// Get heart rate (most recent reading)
   /// Note: Uses regular HEART_RATE since RESTING_HEART_RATE permission was removed
   Future<int?> getRestingHeartRate() async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final now = DateTime.now();
@@ -199,11 +216,12 @@ class HealthIntegrationService {
       );
 
       if (data.isNotEmpty) {
-        // Get the most recent value
-        final latest = data.last;
-        final value = latest.value;
-        if (value is NumericHealthValue) {
-          return value.numericValue.toInt();
+        data.sort((a, b) => a.dateTo.compareTo(b.dateTo));
+        for (final point in data.reversed) {
+          final value = point.value;
+          if (value is NumericHealthValue) {
+            return value.numericValue.round();
+          }
         }
       }
       return null;
@@ -216,27 +234,46 @@ class HealthIntegrationService {
 
   /// Get sleep hours for a specific date
   Future<double?> getSleepHours(DateTime date) async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final startOfDay = DateTime(date.year, date.month, date.day);
       final endOfDay = startOfDay.add(const Duration(days: 1));
+      // Sleep sessions often cross midnight; widen query window and clip
+      // to the target day to avoid missing overnight sleep.
+      final queryStart = startOfDay.subtract(const Duration(hours: 12));
+      final queryEnd = endOfDay.add(const Duration(hours: 12));
 
       final data = await _health.getHealthDataFromTypes(
         types: [HealthDataType.SLEEP_ASLEEP, HealthDataType.SLEEP_IN_BED],
-        startTime: startOfDay,
-        endTime: endOfDay,
+        startTime: queryStart,
+        endTime: queryEnd,
       );
 
       if (data.isEmpty) return null;
 
-      // Sum up sleep duration in hours
+      final asleepPoints = data
+          .where((point) => point.type == HealthDataType.SLEEP_ASLEEP)
+          .toList(growable: false);
+      final inBedPoints = data
+          .where((point) => point.type == HealthDataType.SLEEP_IN_BED)
+          .toList(growable: false);
+      final relevantPoints = asleepPoints.isNotEmpty
+          ? asleepPoints
+          : inBedPoints;
+      if (relevantPoints.isEmpty) return null;
+
       double totalMinutes = 0;
-      for (final point in data) {
-        final duration = point.dateTo.difference(point.dateFrom);
-        totalMinutes += duration.inMinutes;
+      for (final point in relevantPoints) {
+        totalMinutes += _getOverlapDuration(
+          rangeStart: point.dateFrom,
+          rangeEnd: point.dateTo,
+          windowStart: startOfDay,
+          windowEnd: endOfDay,
+        ).inMinutes;
       }
 
+      if (totalMinutes <= 0) return null;
       return totalMinutes / 60;
     } catch (e) {
       debugPrint('Error getting sleep: $e');
@@ -247,7 +284,7 @@ class HealthIntegrationService {
 
   /// Get active calories burned today
   Future<double?> getActiveCaloriesToday() async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final now = DateTime.now();
@@ -268,7 +305,6 @@ class HealthIntegrationService {
           total += value.numericValue;
         }
       }
-
       return total;
     } catch (e) {
       debugPrint('Error getting calories: $e');
@@ -279,7 +315,7 @@ class HealthIntegrationService {
 
   /// Get current weight (most recent)
   Future<double?> getCurrentWeight() async {
-    if (!_isAuthorized) return null;
+    if (!await _ensureAuthorized()) return null;
 
     try {
       final now = DateTime.now();
@@ -292,10 +328,12 @@ class HealthIntegrationService {
       );
 
       if (data.isNotEmpty) {
-        final latest = data.last;
-        final value = latest.value;
-        if (value is NumericHealthValue) {
-          return value.numericValue.toDouble();
+        data.sort((a, b) => a.dateTo.compareTo(b.dateTo));
+        for (final point in data.reversed) {
+          final value = point.value;
+          if (value is NumericHealthValue) {
+            return value.numericValue.toDouble();
+          }
         }
       }
       return null;
@@ -317,7 +355,7 @@ class HealthIntegrationService {
     required int caloriesBurned,
     String workoutType = 'strength_training',
   }) async {
-    if (!_isAuthorized) return false;
+    if (!await _ensureAuthorized()) return false;
 
     try {
       // Map workout type to HealthWorkoutActivityType
@@ -390,17 +428,67 @@ class HealthIntegrationService {
     debugPrint('Health integration disconnected');
   }
 
-  Future<void> _setAuthorizedState(bool value) async {
-    _isAuthorized = value;
-    if (_isIOS) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_iosConnectedKey, value);
+  Map<HealthDataType, HealthDataAccess> _buildAccessByType() {
+    final accessByType = <HealthDataType, HealthDataAccess>{};
+    for (final type in _readTypes) {
+      accessByType[type] = HealthDataAccess.READ;
+    }
+    for (final type in _writeTypes) {
+      accessByType[type] = HealthDataAccess.READ_WRITE;
+    }
+    return accessByType;
+  }
+
+  Future<bool> _refreshAuthorizationState() async {
+    if (!_isInitialized) return false;
+
+    try {
+      // Consider the integration connected when at least one core metric
+      // permission is granted (users may deny optional metrics like weight).
+      final hasSteps = await _health.hasPermissions([HealthDataType.STEPS]);
+      final hasHeartRate = await _health.hasPermissions([
+        HealthDataType.HEART_RATE,
+      ]);
+      final hasSleepAsleep = await _health.hasPermissions([
+        HealthDataType.SLEEP_ASLEEP,
+      ]);
+      final hasSleepInBed = await _health.hasPermissions([
+        HealthDataType.SLEEP_IN_BED,
+      ]);
+      final hasWorkout = await _health.hasPermissions([HealthDataType.WORKOUT]);
+
+      final isConnected =
+          (hasSteps ?? false) ||
+          (hasHeartRate ?? false) ||
+          (hasSleepAsleep ?? false) ||
+          (hasSleepInBed ?? false) ||
+          (hasWorkout ?? false);
+      await _setAuthorizedState(isConnected);
+      return isConnected;
+    } catch (e) {
+      debugPrint('Error checking health permissions: $e');
+      return _isAuthorized;
     }
   }
 
-  Future<bool> _loadIosConnectedState() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_iosConnectedKey) ?? false;
+  Future<bool> _ensureAuthorized() async {
+    if (!isAvailable) return false;
+    if (!_isInitialized) {
+      await initialize();
+    }
+    if (!_isAuthorized) {
+      return _refreshAuthorizationState();
+    }
+    return true;
+  }
+
+  Future<void> _setAuthorizedState(bool value) async {
+    final stateChanged = _isAuthorized != value;
+    _isAuthorized = value;
+    if (_isIOS && stateChanged) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_iosConnectedKey, value);
+    }
   }
 
   bool _looksLikePermissionError(Object error) {
@@ -416,5 +504,22 @@ class HealthIntegrationService {
     if (_looksLikePermissionError(error)) {
       await _setAuthorizedState(false);
     }
+  }
+
+  Duration _getOverlapDuration({
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required DateTime windowStart,
+    required DateTime windowEnd,
+  }) {
+    final overlapStart = rangeStart.isAfter(windowStart)
+        ? rangeStart
+        : windowStart;
+    final overlapEnd = rangeEnd.isBefore(windowEnd) ? rangeEnd : windowEnd;
+
+    if (!overlapEnd.isAfter(overlapStart)) {
+      return Duration.zero;
+    }
+    return overlapEnd.difference(overlapStart);
   }
 }

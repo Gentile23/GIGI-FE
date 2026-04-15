@@ -35,12 +35,13 @@ class QuotaService {
       return QuotaCheckResult.fromJson(response);
     } catch (e) {
       debugPrint('QuotaService.canPerformAction error: $e');
-      // In caso di errore, permettiamo l'azione (fail-open)
+      // Per le feature AI costose blocchiamo in caso di stato quota incerto.
       return QuotaCheckResult(
-        canPerform: true,
-        reason: '',
+        canPerform: false,
+        reason:
+            'Impossibile verificare i limiti in questo momento. Riprova tra poco.',
         upgradeNeeded: false,
-        subscriptionTier: 'free',
+        subscriptionTier: 'unknown',
       );
     }
   }
@@ -82,7 +83,11 @@ enum QuotaAction {
   executeWithGigi('execute_with_gigi'),
   shoppingList('shopping_list'),
   changeMeal('change_meal'),
-  changeFood('change_food');
+  changeFood('change_food'),
+  pdfDiet('pdf_diet'),
+  workoutChat('workout_chat'),
+  exerciseAlternatives('exercise_alternatives'),
+  similarExercises('similar_exercises');
 
   final String value;
   const QuotaAction(this.value);

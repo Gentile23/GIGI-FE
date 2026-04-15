@@ -9,7 +9,7 @@ class GamificationService {
 
   Future<UserStats?> getStats() async {
     try {
-      final response = await _apiClient.dio.get('/gamification/stats');
+      final response = await _apiClient.dio.get('gamification/stats');
       return UserStats.fromJson(response.data['stats']);
     } catch (e) {
       debugPrint('Error fetching stats: $e');
@@ -19,7 +19,7 @@ class GamificationService {
 
   Future<Map<String, List<Achievement>>?> getAchievements() async {
     try {
-      final response = await _apiClient.dio.get('/gamification/achievements');
+      final response = await _apiClient.dio.get('gamification/achievements');
 
       final unlocked = (response.data['unlocked'] as List)
           .map((json) => Achievement.fromJson(json))
@@ -41,7 +41,7 @@ class GamificationService {
   }) async {
     try {
       final response = await _apiClient.dio.get(
-        '/gamification/leaderboard',
+        'gamification/leaderboard',
         queryParameters: {'period': period},
       );
 

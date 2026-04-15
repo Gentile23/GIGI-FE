@@ -1,5 +1,11 @@
 class ValidationUtils {
   static const int maxFreeTextLength = 500;
+  static const int maxAiLabelLength = 80;
+  static const int maxIngredientLength = 50;
+  static const int maxIngredientsPerChefRequest = 10;
+  static const int maxPdfUploadBytes = 10 * 1024 * 1024;
+  static const int maxMealPhotoBytes = 10 * 1024 * 1024;
+  static const int maxFormVideoBytes = 50 * 1024 * 1024;
   static final RegExp _controlCharsRegex = RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]');
   static final RegExp _scriptLikeRegex = RegExp(
     r'(<\s*script|javascript:|onerror\s*=|onload\s*=|<\s*iframe|data:text/html)',
@@ -23,6 +29,14 @@ class ValidationUtils {
 
   static bool containsSuspiciousMarkup(String value) {
     return _scriptLikeRegex.hasMatch(value);
+  }
+
+  static bool isReasonableAiText(
+    String value, {
+    int maxLength = maxAiLabelLength,
+  }) {
+    final sanitized = sanitizeFreeText(value, maxLength: maxLength);
+    return sanitized.isNotEmpty && !containsSuspiciousMarkup(sanitized);
   }
 
   static String sanitizeFileName(
