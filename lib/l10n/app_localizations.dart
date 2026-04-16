@@ -553,7 +553,7 @@ abstract class AppLocalizations {
   /// No description provided for @back.
   ///
   /// In it, this message translates to:
-  /// **'Indietro'**
+  /// **'Schiena'**
   String get back;
 
   /// No description provided for @done.
@@ -6363,6 +6363,30 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Nel punto più largo, in piedi'**
   String get calfDesc;
+
+  /// No description provided for @neck.
+  ///
+  /// In it, this message translates to:
+  /// **'Collo'**
+  String get neck;
+
+  /// No description provided for @shoulders.
+  ///
+  /// In it, this message translates to:
+  /// **'Spalle'**
+  String get shoulders;
+
+  /// No description provided for @triceps.
+  ///
+  /// In it, this message translates to:
+  /// **'Tricipiti'**
+  String get triceps;
+
+  /// No description provided for @forearm.
+  ///
+  /// In it, this message translates to:
+  /// **'Avambracci'**
+  String get forearm;
 
   /// No description provided for @bodyMeasurements.
   ///

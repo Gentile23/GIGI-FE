@@ -47,9 +47,11 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     mapChange('chest_cm', ['CHEST']);
     mapChange('bicep_left_cm', ['BICEPS_LEFT']);
     mapChange('bicep_right_cm', ['BICEPS_RIGHT']);
+    mapChange('triceps_cm', ['TRICEPS']);
     mapChange('forearm_cm', ['FOREARMS']);
     mapChange('waist_cm', ['ABDOMINALS', 'OBLIQUES'], isWaist: true);
     mapChange('hips_cm', ['GLUTES']); // Approx
+    mapChange('back_cm', ['BACK']);
     mapChange('thigh_left_cm', ['QUADRICEPS_LEFT', 'HAMSTRINGS_LEFT']);
     mapChange('thigh_right_cm', ['QUADRICEPS_RIGHT', 'HAMSTRINGS_RIGHT']);
     mapChange('calf_cm', ['CALVES']);
@@ -62,28 +64,53 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     return Column(
       children: [
         // Toggle front/back
-        Row(mainAxisAlignment: MainAxisAlignment.center),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              widget.showFront ? 'Vista Frontale' : 'Vista Posteriore',
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
 
-        // Body silhouette
-        SizedBox(
-          height: 400,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Body SVG with highlighting
-              AnatomicalMuscleView(
-                height: 380,
-                muscleGroups: const [], // Using colorMap instead
-                colorMap: _buildColorMap(),
+        // Body silhouette with responsive hotspots
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // SVG Original ViewBox: 535 x 462
+            const double refWidth = 535.0;
+            const double refHeight = 462.0;
+            
+            // Calculate scale to fit width while maintaining aspect ratio
+            final double actualWidth = constraints.maxWidth;
+            final double scale = actualWidth / refWidth;
+            final double actualHeight = refHeight * scale;
+
+            return SizedBox(
+              width: actualWidth,
+              height: actualHeight,
+              child: Stack(
+                children: [
+                  // Body SVG with highlighting
+                  Center(
+                    child: AnatomicalMuscleView(
+                      height: actualHeight,
+                      muscleGroups: const [],
+                      colorMap: _buildColorMap(),
+                    ),
+                  ),
+
+                  // Measurement labels / Hotspots
+                  ..._buildMeasurementLabels(scale),
+                ],
               ),
-
-              // Body parts overlay removed - SVG handles coloring
-
-              // Measurement labels
-              ..._buildMeasurementLabels(),
-            ],
-          ),
+            );
+          },
         ),
 
         // Legend
@@ -225,27 +252,46 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     return CleanTheme.accentRed;
   }
 
-  List<Widget> _buildMeasurementLabels() {
-    return [
-      // Upper Body
-      _buildHotspot(top: 40, left: 185, size: 30, partId: 'neck_cm'),
-      _buildHotspot(top: 70, left: 140, width: 120, height: 40, partId: 'shoulders_cm'),
-      _buildHotspot(top: 100, left: 160, width: 80, height: 50, partId: 'chest_cm'),
-      
-      // Arms
-      _buildHotspot(top: 110, left: 125, size: 40, partId: 'bicep_left_cm'),
-      _buildHotspot(top: 110, left: 235, size: 40, partId: 'bicep_right_cm'),
-      
-      // Mid Section
-      _buildHotspot(top: 155, left: 165, width: 70, height: 60, partId: 'waist_cm'),
-      _buildHotspot(top: 215, left: 165, width: 70, height: 40, partId: 'hips_cm'),
-      
-      // Legs
-      _buildHotspot(top: 260, left: 150, width: 45, height: 80, partId: 'thigh_left_cm'),
-      _buildHotspot(top: 260, left: 205, width: 45, height: 80, partId: 'thigh_right_cm'),
-      _buildHotspot(top: 350, left: 155, width: 40, height: 30, partId: 'calf_cm'),
-      _buildHotspot(top: 350, left: 205, width: 40, height: 30, partId: 'calf_cm'),
-    ];
+  List<Widget> _buildMeasurementLabels(double scale) {
+    if (widget.showFront) {
+      return [
+        // FRONT VIEW (Center ~115)
+        _buildHotspot(top: 40, left: 100, size: 30, partId: 'neck_cm', scale: scale),
+        _buildHotspot(top: 75, left: 55, width: 120, height: 45, partId: 'shoulders_cm', scale: scale),
+        _buildHotspot(top: 95, left: 75, width: 80, height: 50, partId: 'chest_cm', scale: scale),
+        
+        // Biceps: Left arm (Viewer Right) & Right arm (Viewer Left)
+        _buildHotspot(top: 110, left: 150, width: 45, height: 65, partId: 'bicep_left_cm', scale: scale),
+        _buildHotspot(top: 110, left: 35, width: 45, height: 65, partId: 'bicep_right_cm', scale: scale),
+        
+        // Forearms
+        _buildHotspot(top: 180, left: 170, width: 40, height: 75, partId: 'forearm_cm', scale: scale),
+        _buildHotspot(top: 180, left: 20, width: 40, height: 75, partId: 'forearm_cm', scale: scale),
+        
+        _buildHotspot(top: 145, left: 95, width: 45, height: 85, partId: 'waist_cm', scale: scale),
+        
+        // Legs: Left Leg (Viewer Right) & Right Leg (Viewer Left)
+        _buildHotspot(top: 240, left: 115, width: 60, height: 110, partId: 'thigh_left_cm', scale: scale),
+        _buildHotspot(top: 240, left: 55, width: 60, height: 110, partId: 'thigh_right_cm', scale: scale),
+      ];
+    } else {
+      return [
+        // BACK VIEW (Center ~411)
+        _buildHotspot(top: 40, left: 395, size: 30, partId: 'neck_cm', scale: scale), // Neck also visible from back
+        _buildHotspot(top: 90, left: 360, width: 100, height: 110, partId: 'back_cm', scale: scale),
+        
+        // Triceps
+        _buildHotspot(top: 110, left: 340, width: 40, height: 70, partId: 'triceps_cm', scale: scale),
+        _buildHotspot(top: 110, left: 440, width: 40, height: 70, partId: 'triceps_cm', scale: scale),
+        
+        // Glutes
+        _buildHotspot(top: 195, left: 365, width: 90, height: 65, partId: 'hips_cm', scale: scale),
+        
+        // Calves
+        _buildHotspot(top: 340, left: 360, width: 45, height: 85, partId: 'calf_cm', scale: scale),
+        _buildHotspot(top: 340, left: 415, width: 45, height: 85, partId: 'calf_cm', scale: scale),
+      ];
+    }
   }
 
   Widget _buildHotspot({
@@ -255,11 +301,12 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     double? width,
     double? height,
     required String partId,
+    required double scale,
   }) {
     final isSelected = _selectedPart == partId;
     return Positioned(
-      top: top,
-      left: left,
+      top: top * scale,
+      left: left * scale,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
@@ -289,11 +336,11 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
           widget.onBodyPartTap?.call(partId);
         },
         child: Container(
-          width: size ?? width,
-          height: size ?? height,
+          width: (size ?? width ?? 0) * scale,
+          height: (size ?? height ?? 0) * scale,
           decoration: BoxDecoration(
             color: isSelected ? CleanTheme.primaryColor.withValues(alpha: 0.2) : Colors.transparent,
-            borderRadius: BorderRadius.circular(size != null ? size / 2 : 8),
+            borderRadius: BorderRadius.circular((size != null ? size / 2 : 8) * scale),
             border: isSelected ? Border.all(color: CleanTheme.primaryColor, width: 2) : null,
           ),
         ),

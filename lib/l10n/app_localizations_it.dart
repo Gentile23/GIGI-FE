@@ -240,7 +240,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get next => 'Prossimo';
 
   @override
-  String get back => 'Indietro';
+  String get back => 'Schiena';
 
   @override
   String get done => 'Fatto';
@@ -3329,6 +3329,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get calfDesc => 'Nel punto più largo, in piedi';
+
+  @override
+  String get neck => 'Collo';
+
+  @override
+  String get shoulders => 'Spalle';
+
+  @override
+  String get triceps => 'Tricipiti';
+
+  @override
+  String get forearm => 'Avambracci';
 
   @override
   String get bodyMeasurements => 'Misure Corporee';

@@ -100,6 +100,50 @@ class _StatsScreenState extends State<StatsScreen> {
     return uniqueDays.length;
   }
 
+  Map<String, int> _calculateMuscleDistribution(List<WorkoutLog> history) {
+    final distribution = <String, int>{};
+    
+    // Localization map for common muscle groups (fallback)
+    const muscleMap = {
+      'chest': 'Petto',
+      'back': 'Schiena',
+      'shoulders': 'Spalle',
+      'biceps': 'Bicipiti',
+      'triceps': 'Tricipiti',
+      'quadriceps': 'Quadricipiti',
+      'hamstrings': 'Femorali',
+      'glutes': 'Glutei',
+      'calves': 'Polpacci',
+      'abs': 'Addominali',
+      'forearms': 'Avambracci',
+      'trapezius': 'Trapezio',
+      'lats': 'Dorsali',
+      'lower back': 'Zona Lombare',
+    };
+
+    for (final log in history) {
+      for (final exerciseLog in log.exerciseLogs) {
+        final exercise = exerciseLog.exercise;
+        if (exercise == null) continue;
+
+        // Primary muscle groups
+        for (final muscle in exercise.muscleGroups) {
+          final normalized = muscle.toLowerCase().trim();
+          final localized = muscleMap[normalized] ?? muscle;
+          distribution[localized] = (distribution[localized] ?? 0) + 1;
+        }
+
+        // Secondary muscle groups
+        for (final muscle in exercise.secondaryMuscleGroups) {
+          final normalized = muscle.toLowerCase().trim();
+          final localized = muscleMap[normalized] ?? muscle;
+          distribution[localized] = (distribution[localized] ?? 0) + 1;
+        }
+      }
+    }
+    return distribution;
+  }
+
   double _avgWorkoutsPerWeek(List<WorkoutLog> logs) {
     if (logs.isEmpty) return 0;
     final now = DateTime.now();
@@ -399,7 +443,11 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 28),
                 CleanSectionHeader(title: 'Distribuzione Muscolare'),
                 const SizedBox(height: 14),
-                _buildMuscleDistribution(stats.mostTrainedMuscles),
+                _buildMuscleDistribution(
+                  stats.mostTrainedMuscles.isEmpty
+                      ? _calculateMuscleDistribution(provider.workoutHistory)
+                      : stats.mostTrainedMuscles,
+                ),
                 const SizedBox(height: 24),
               ],
             ),

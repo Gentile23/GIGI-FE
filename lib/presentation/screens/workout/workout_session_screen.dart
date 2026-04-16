@@ -2134,9 +2134,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final showSetDetails = currentType != 'cardio' && currentType != 'mobility';
 
     return Positioned.fill(
-      child: Listener(
+      child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onPointerDown: (_) {},
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 300),
           opacity: 1.0,
@@ -2154,155 +2154,173 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ),
             ),
             child: SafeArea(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
                 children: [
-                  const Spacer(flex: 1),
-
-                  // Label
-                  Row(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                      const Spacer(flex: 1),
+
+                      // Label
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isUrgent
+                                  ? CleanTheme.accentRed
+                                  : CleanTheme.accentBlue,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      (isUrgent
+                                              ? CleanTheme.accentRed
+                                              : CleanTheme.accentBlue)
+                                          .withValues(alpha: 0.6),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'RECUPERO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 4,
+                              color: CleanTheme.textOnDark.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Huge Timer
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        style: GoogleFonts.outfit(
+                          fontSize: 72,
+                          fontWeight: FontWeight.w800,
                           color: isUrgent
                               ? CleanTheme.accentRed
-                              : CleanTheme.accentBlue,
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (isUrgent
-                                          ? CleanTheme.accentRed
-                                          : CleanTheme.accentBlue)
-                                      .withValues(alpha: 0.6),
-                              blurRadius: 8,
-                              spreadRadius: 2,
+                              : CleanTheme.textOnDark,
+                          letterSpacing: 4,
+                        ),
+                        child: Text(
+                          '$minutes:${seconds.toString().padLeft(2, '0')}',
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Progress Bar
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 48),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            backgroundColor: CleanTheme.textOnDark.withValues(
+                              alpha: 0.1,
+                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              isUrgent
+                                  ? CleanTheme.accentRed
+                                  : CleanTheme.accentBlue,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const Spacer(flex: 1),
+
+                      if (showSetDetails) ...[
+                        // Set Details View (Previous and Next)
+                        Flexible(
+                          flex: 6,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildSetDetailOverlayCard(
+                                    title: 'ULTIMO SET',
+                                    exerciseId: _restingExerciseId!,
+                                    setNumber: _restingSetNumber,
+                                    isNext: false,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildNextSetOverlayCard(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Skip Button
+                      TextButton(
+                        onPressed: _skipRestTimerOverlay,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                            side: BorderSide(
+                              color: CleanTheme.textOnDark.withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Salta',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.skip_next_rounded,
+                              size: 20,
+                              color: CleanTheme.textOnDark.withValues(alpha: 0.7),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'RECUPERO',
-                        style: GoogleFonts.outfit(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 4,
-                          color: CleanTheme.textOnDark.withValues(alpha: 0.6),
-                        ),
-                      ),
+
+                      const Spacer(flex: 1),
                     ],
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // Huge Timer
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 200),
-                    style: GoogleFonts.outfit(
-                      fontSize: 72,
-                      fontWeight: FontWeight.w800,
-                      color: isUrgent
-                          ? CleanTheme.accentRed
-                          : CleanTheme.textOnDark,
-                      letterSpacing: 4,
-                    ),
-                    child: Text(
-                      '$minutes:${seconds.toString().padLeft(2, '0')}',
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Progress Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 48),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 6,
-                        backgroundColor: CleanTheme.textOnDark.withValues(
-                          alpha: 0.1,
-                        ),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isUrgent
-                              ? CleanTheme.accentRed
-                              : CleanTheme.accentBlue,
+                  if (MediaQuery.of(context).viewInsets.bottom > 0)
+                    Positioned(
+                      top: 10,
+                      right: 15,
+                      child: IconButton(
+                        onPressed:
+                            () => FocusManager.instance.primaryFocus?.unfocus(),
+                        icon: const Icon(
+                          Icons.keyboard_hide_rounded,
+                          color: CleanTheme.textOnDark,
+                          size: 28,
                         ),
                       ),
                     ),
-                  ),
-
-                  const Spacer(flex: 1),
-
-                  if (showSetDetails) ...[
-                    // Set Details View (Previous and Next)
-                    Flexible(
-                      flex: 6,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildSetDetailOverlayCard(
-                                title: 'ULTIMO SET',
-                                exerciseId: _restingExerciseId!,
-                                setNumber: _restingSetNumber,
-                                isNext: false,
-                              ),
-                              const SizedBox(height: 10),
-                              _buildNextSetOverlayCard(),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Skip Button
-                  TextButton(
-                    onPressed: _skipRestTimerOverlay,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(100),
-                        side: BorderSide(
-                          color: CleanTheme.textOnDark.withValues(alpha: 0.2),
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Salta',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: CleanTheme.textOnDark.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.skip_next_rounded,
-                          size: 20,
-                          color: CleanTheme.textOnDark.withValues(alpha: 0.7),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Spacer(flex: 1),
                 ],
               ),
             ),

@@ -69,7 +69,19 @@ class HealthIntegrationService {
         await _health.configure();
         _isInitialized = true;
       }
-      await _refreshAuthorizationState();
+
+      // On iOS, we rely more on our saved state because hasPermissions is unreliable for READ types.
+      if (_isIOS) {
+        final prefs = await SharedPreferences.getInstance();
+        _isAuthorized = prefs.getBool(_iosConnectedKey) ?? false;
+        
+        // Even if we think we are authorized, we try to refresh state 
+        // but we don't necessarily trust a 'false' return on iOS if we were previously true.
+        final refreshed = await _refreshAuthorizationState();
+        if (refreshed) _isAuthorized = true;
+      } else {
+        await _refreshAuthorizationState();
+      }
 
       debugPrint(
         'HealthIntegrationService initialized. Authorized: $_isAuthorized',
@@ -106,10 +118,15 @@ class HealthIntegrationService {
       );
 
       // On iOS, requestAuthorization returns true if the dialog was shown.
-      // We should check if we actually have at least some permissions.
+      // We should check if we actually have at least some permissions,
+      // but on iOS hasPermissions is unreliable, so if authorized is true, 
+      // we assume success for the connection flow.
       bool actuallyAuthorized = authorized;
       if (_isIOS && authorized) {
-        actuallyAuthorized = await _refreshAuthorizationState();
+        // Try to refresh but don't let a false from hasPermissions override 'authorized'.
+        await _refreshAuthorizationState();
+        await _setAuthorizedState(true);
+        actuallyAuthorized = true;
       } else {
         await _setAuthorizedState(authorized);
       }
@@ -471,6 +488,13 @@ class HealthIntegrationService {
           (hasSleepAsleep ?? false) ||
           (hasSleepInBed ?? false) ||
           (hasWorkout ?? false);
+
+      // On iOS, if we can't confirm permissions but we previously had them,
+      // we don't revoke it here because hasPermissions is unreliable for READ types.
+      if (_isIOS && !isConnected && _isAuthorized) {
+        return true;
+      }
+
       await _setAuthorizedState(isConnected);
       return isConnected;
     } catch (e) {

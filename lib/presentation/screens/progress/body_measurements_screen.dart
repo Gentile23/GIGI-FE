@@ -35,12 +35,17 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   final Map<String, (double, double)> _validRanges = {
     'bicep_right_cm': (15.0, 70.0),
     'bicep_left_cm': (15.0, 70.0),
+    'triceps_cm': (15.0, 70.0),
     'chest_cm': (50.0, 180.0),
     'waist_cm': (40.0, 180.0),
     'hips_cm': (50.0, 200.0),
+    'neck_cm': (20.0, 70.0),
+    'shoulders_cm': (30.0, 100.0),
+    'back_cm': (40.0, 150.0),
     'thigh_right_cm': (20.0, 110.0),
     'thigh_left_cm': (20.0, 110.0),
     'calf_cm': (15.0, 70.0),
+    'forearm_cm': (15.0, 60.0),
   };
 
   @override
@@ -66,9 +71,14 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
 
   final _bicepRightController = TextEditingController();
   final _bicepLeftController = TextEditingController();
+  final _tricepsController = TextEditingController();
+  final _forearmController = TextEditingController();
   final _chestController = TextEditingController();
   final _waistController = TextEditingController();
   final _hipsController = TextEditingController();
+  final _neckController = TextEditingController();
+  final _shouldersController = TextEditingController();
+  final _backController = TextEditingController();
   final _thighRightController = TextEditingController();
   final _thighLeftController = TextEditingController();
   final _calfController = TextEditingController();
@@ -77,9 +87,14 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
   void dispose() {
     _bicepRightController.dispose();
     _bicepLeftController.dispose();
+    _tricepsController.dispose();
+    _forearmController.dispose();
     _chestController.dispose();
     _waistController.dispose();
     _hipsController.dispose();
+    _neckController.dispose();
+    _shouldersController.dispose();
+    _backController.dispose();
     _thighRightController.dispose();
     _thighLeftController.dispose();
     _calfController.dispose();
@@ -149,15 +164,74 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.triceps,
+                      controller: _tricepsController,
+                      apiKey: 'triceps_cm',
+                      icon: Icons.fitness_center,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.forearm,
+                      controller: _forearmController,
+                      apiKey: 'forearm_cm',
+                      icon: Icons.handyman,
+                    ),
+                  ),
+                ],
+              ),
 
               const SizedBox(height: 24),
               _buildModernGroupHeader(l10n.torso, Icons.accessibility),
               const SizedBox(height: 12),
-              _buildModernInputCard(
-                label: l10n.chest,
-                controller: _chestController,
-                apiKey: 'chest_cm',
-                icon: Icons.straighten,
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.neck,
+                      controller: _neckController,
+                      apiKey: 'neck_cm',
+                      icon: Icons.person_outline,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.shoulders,
+                      controller: _shouldersController,
+                      apiKey: 'shoulders_cm',
+                      icon: Icons.width_wide,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.chest,
+                      controller: _chestController,
+                      apiKey: 'chest_cm',
+                      icon: Icons.straighten,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildModernInputCard(
+                      label: l10n.back,
+                      controller: _backController,
+                      apiKey: 'back_cm',
+                      icon: Icons.accessibility_new,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Row(
@@ -579,18 +653,17 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
     try {
       final data = {
         'measurement_date': DateTime.now().toIso8601String().split('T')[0],
-        'bicep_right_cm': parseValue(
-          _bicepRightController.text,
-          'bicep_right_cm',
-        ),
+        'bicep_right_cm': parseValue(_bicepRightController.text, 'bicep_right_cm'),
         'bicep_left_cm': parseValue(_bicepLeftController.text, 'bicep_left_cm'),
+        'triceps_cm': parseValue(_tricepsController.text, 'triceps_cm'),
+        'forearm_cm': parseValue(_forearmController.text, 'forearm_cm'),
         'chest_cm': parseValue(_chestController.text, 'chest_cm'),
         'waist_cm': parseValue(_waistController.text, 'waist_cm'),
         'hips_cm': parseValue(_hipsController.text, 'hips_cm'),
-        'thigh_right_cm': parseValue(
-          _thighRightController.text,
-          'thigh_right_cm',
-        ),
+        'neck_cm': parseValue(_neckController.text, 'neck_cm'),
+        'shoulders_cm': parseValue(_shouldersController.text, 'shoulders_cm'),
+        'back_cm': parseValue(_backController.text, 'back_cm'),
+        'thigh_right_cm': parseValue(_thighRightController.text, 'thigh_right_cm'),
         'thigh_left_cm': parseValue(_thighLeftController.text, 'thigh_left_cm'),
         'calf_cm': parseValue(_calfController.text, 'calf_cm'),
       };
@@ -631,20 +704,26 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
           if (e.response?.statusCode == 422) {
             final errors = e.response?.data['errors'] as Map<String, dynamic>?;
             if (errors != null && errors.isNotEmpty) {
+              final l10n = AppLocalizations.of(context)!;
               // Prendi il primo errore e rendilo leggibile
               String field = errors.keys.first;
               String rawMessage = errors.values.first[0].toString();
 
               // Traduzione dei nomi dei campi per l'utente
               final fieldTranslations = {
-                'bicep_right_cm': 'Bicipite destro',
-                'bicep_left_cm': 'Bicipite sinistro',
-                'chest_cm': 'Petto',
-                'waist_cm': 'Vita',
-                'hips_cm': 'Fianchi',
-                'thigh_right_cm': 'Coscia destra',
-                'thigh_left_cm': 'Coscia sinistra',
-                'calf_cm': 'Polpaccio',
+                'neck_cm': l10n.neck,
+                'shoulders_cm': l10n.shoulders,
+                'chest_cm': l10n.chest,
+                'back_cm': l10n.back,
+                'waist_cm': l10n.waist,
+                'hips_cm': l10n.hips,
+                'bicep_right_cm': l10n.bicepRight,
+                'bicep_left_cm': l10n.bicepLeft,
+                'triceps_cm': l10n.triceps,
+                'forearm_cm': l10n.forearm,
+                'thigh_right_cm': l10n.thighRight,
+                'thigh_left_cm': l10n.thighLeft,
+                'calf_cm': l10n.calf,
                 'measurement_date': 'Data misurazione',
               };
 

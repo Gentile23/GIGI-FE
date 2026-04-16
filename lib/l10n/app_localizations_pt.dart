@@ -3315,6 +3315,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calfDesc => 'No ponto mais largo, de pé';
 
   @override
+  String get neck => 'Collo';
+
+  @override
+  String get shoulders => 'Spalle';
+
+  @override
+  String get triceps => 'Tricipiti';
+
+  @override
+  String get forearm => 'Avambracci';
+
+  @override
   String get bodyMeasurements => 'Medidas corporais';
 
   @override

@@ -3,8 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:xml/xml.dart' as xml;
 
-import '../../../core/constants/muscle_groups.dart';
-
 class AnatomicalMuscleView extends StatefulWidget {
   final List<String> muscleGroups;
   final double height;
@@ -125,24 +123,17 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
     // This allows us to support the "Fixed Names" requested by the user
     // while maintaining some backward compatibility with common variations if needed.
     final Map<String, List<String>> muscleMap = {
-      // Standard Fixed Names
-      MuscleGroups.chest.toLowerCase(): ['CHEST'],
-      MuscleGroups.back.toLowerCase(): ['BACK', 'TRAPS'],
-      MuscleGroups.shoulders.toLowerCase(): ['SHOULDERS'],
-      MuscleGroups.biceps.toLowerCase(): ['BICEPS'],
-      MuscleGroups.triceps.toLowerCase(): ['TRICEPS'],
-      MuscleGroups.forearms.toLowerCase(): ['FOREARMS'],
-      MuscleGroups.abs.toLowerCase(): ['ABDOMINALS'],
-      MuscleGroups.obliques.toLowerCase(): ['OBLIQUES'],
-      MuscleGroups.quads.toLowerCase(): ['QUADRICEPS'],
-      MuscleGroups.hamstrings.toLowerCase(): ['HAMSTRINGS'],
-      MuscleGroups.glutes.toLowerCase(): ['GLUTES'],
-      MuscleGroups.calves.toLowerCase(): ['CALVES'],
-      MuscleGroups.traps.toLowerCase(): ['TRAPS'],
-      'neck': ['TRAPS'], // Approximate
-      // Common Variations (mapped to standard)
-      'pectorals': ['CHEST'],
-      'deltoids': ['SHOULDERS'],
+      // Standard Fixed Names (Direct matches)
+      'chest': ['CHEST'],
+      'back': ['BACK'],
+      'shoulders': ['SHOULDERS'],
+      'biceps': ['BICEPS'],
+      'triceps': ['TRICEPS'],
+      'forearms': ['FOREARMS'],
+      'abs': ['ABDOMINALS'],
+      'abdominals': ['ABDOMINALS'],
+      'obliques': ['OBLIQUES'],
+      'quads': ['QUADRICEPS'],
       'lats': ['BACK'],
       'legs': ['QUADRICEPS', 'HAMSTRINGS', 'CALVES', 'GLUTES'],
       'core': ['ABDOMINALS', 'OBLIQUES'],
@@ -254,16 +245,19 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
             // Front View: 
             // Viewer Left (x > frontMidline) is Anatomical Right
             // Viewer Right (x < frontMidline) is Anatomical Left
+            // Front View: midline = 115
+            // Viewer Left (x < midline) is Anatomical Right
+            // Viewer Right (x > midline) is Anatomical Left
             const double frontMidline = 115.0;
             if (x < frontMidline - 5) {
-              isLeft = true;
-            } else if (x > frontMidline + 5) {
               isRight = true;
+            } else if (x > frontMidline + 5) {
+              isLeft = true;
             }
           } else {
-            // Back View:
-            // Viewer Left (x < backMidline) is Anatomical Left
-            // Viewer Right (x > backMidline) is Anatomical Right
+            // Back View: midline = 411
+            // Viewer Left (x < midline) is Anatomical Left
+            // Viewer Right (x > midline) is Anatomical Right
             const double backMidline = 411.0;
             if (x < backMidline - 5) {
               isLeft = true;

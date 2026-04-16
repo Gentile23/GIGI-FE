@@ -3338,6 +3338,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get calfDesc => 'Au point le plus large, debout';
 
   @override
+  String get neck => 'Collo';
+
+  @override
+  String get shoulders => 'Spalle';
+
+  @override
+  String get triceps => 'Tricipiti';
+
+  @override
+  String get forearm => 'Avambracci';
+
+  @override
   String get bodyMeasurements => 'Mensurations corporelles';
 
   @override

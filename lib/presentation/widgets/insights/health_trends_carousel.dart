@@ -351,7 +351,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                                   )!.installHealthConnect),
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
-                          height: 1.2,
+                          height: 1.3,
                         ),
                       ),
               ),

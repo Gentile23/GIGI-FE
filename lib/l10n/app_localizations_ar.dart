@@ -3295,6 +3295,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calfDesc => 'في أوسع نقطة، واقفاً';
 
   @override
+  String get neck => 'Collo';
+
+  @override
+  String get shoulders => 'Spalle';
+
+  @override
+  String get triceps => 'Tricipiti';
+
+  @override
+  String get forearm => 'Avambracci';
+
+  @override
   String get bodyMeasurements => 'قياسات الجسم';
 
   @override

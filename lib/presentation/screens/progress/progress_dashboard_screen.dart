@@ -127,38 +127,13 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.progressStatsTitle,
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  HapticService.lightTap();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const StatsScreen()),
-                  );
-                },
-                icon: const Icon(Icons.analytics_outlined, size: 18),
-                label: Text(
-                  'Vedi di più',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: TextButton.styleFrom(
-                  foregroundColor: CleanTheme.primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
-            ],
+          child: Text(
+            AppLocalizations.of(context)!.progressStatsTitle,
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.textPrimary,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -201,6 +176,33 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               unit: 'giorni consecutivi',
             ),
           ],
+        ),
+        const SizedBox(height: 20),
+        Center(
+          child: TextButton.icon(
+            onPressed: () {
+              HapticService.lightTap();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StatsScreen()),
+              );
+            },
+            icon: const Icon(Icons.analytics_outlined, size: 18),
+            label: Text(
+              'Vedi di più',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: CleanTheme.primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: CleanTheme.primaryColor.withValues(alpha: 0.2)),
+              ),
+            ),
+          ),
         ),
       ],
     );

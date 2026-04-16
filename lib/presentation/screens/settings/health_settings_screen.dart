@@ -416,17 +416,16 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                       ),
                     )
                   : Text(
-                      _isConnected
-                          ? AppLocalizations.of(context)!.disconnect
-                          : AppLocalizations.of(
-                              context,
-                            )!.connectTo(_healthService.platformName),
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w600,
-                        height: 1.2,
-                      ),
+                    _isConnected
+                        ? AppLocalizations.of(context)!.disconnect
+                        : AppLocalizations.of(
+                            context,
+                          )!.connectTo(_healthService.platformName),
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
                     ),
-            ),
+                  ),            ),
           ),
         ],
       ),
