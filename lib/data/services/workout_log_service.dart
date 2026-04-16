@@ -5,6 +5,20 @@ import 'package:gigi/data/services/api_service.dart';
 class WorkoutLogService extends ApiService {
   WorkoutLogService(super.apiClient);
 
+  String _normalizeExerciseType(String exerciseType) {
+    switch (exerciseType.trim().toLowerCase()) {
+      case 'strength':
+        return 'main';
+      case 'main':
+      case 'cardio':
+      case 'mobility':
+      case 'warmup':
+        return exerciseType.trim().toLowerCase();
+      default:
+        return 'main';
+    }
+  }
+
   /// Start a new workout session
   Future<WorkoutLog> startWorkout({
     String? workoutPlanId,
@@ -94,7 +108,7 @@ class WorkoutLogService extends ApiService {
       body: {
         'exercise_id': exerciseId,
         'order_index': orderIndex,
-        'exercise_type': exerciseType,
+        'exercise_type': _normalizeExerciseType(exerciseType),
         if (notes != null) 'notes': notes,
       },
     );

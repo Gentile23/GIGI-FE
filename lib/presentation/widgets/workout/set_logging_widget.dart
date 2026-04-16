@@ -163,6 +163,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   // Persistent TextEditingControllers — created once, never recreated on rebuild
   final Map<int, TextEditingController> _weightControllers = {};
   final Map<int, TextEditingController> _repsControllers = {};
+  final Map<int, FocusNode> _weightFocusNodes = {};
+  final Map<int, FocusNode> _repsFocusNodes = {};
+  OverlayEntry? _keyboardAccessoryEntry;
+  int? _activeInputSetNumber;
 
   // Previous workout data
   Map<int, Map<String, dynamic>>? _previousData;
@@ -336,6 +340,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       }
     });
     _weightControllers[setNumber] = weightController;
+    _weightFocusNodes[setNumber] = _createInputFocusNode(setNumber);
 
     final repsController = TextEditingController(
       text: inheritedReps > 0 ? inheritedReps.toString() : '',
@@ -358,6 +363,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       }
     });
     _repsControllers[setNumber] = repsController;
+    _repsFocusNodes[setNumber] = _createInputFocusNode(setNumber);
   }
 
   void _removeRuntimeSetState(int setNumber) {
@@ -371,6 +377,8 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _autoSaveTimers.remove(setNumber)?.cancel();
     _weightControllers.remove(setNumber)?.dispose();
     _repsControllers.remove(setNumber)?.dispose();
+    _weightFocusNodes.remove(setNumber)?.dispose();
+    _repsFocusNodes.remove(setNumber)?.dispose();
   }
 
   void _notifyCompletionChanged() {
@@ -444,6 +452,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           });
         }
       });
+      _weightFocusNodes[i] = _createInputFocusNode(i);
 
       // Reps controller
       final repsVal = _reps[i];
@@ -468,7 +477,117 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           _scheduleAutoSave(i);
         }
       });
+      _repsFocusNodes[i] = _createInputFocusNode(i);
     }
+  }
+
+  FocusNode _createInputFocusNode(int setNumber) {
+    final node = FocusNode(debugLabel: 'set_logging_input_$setNumber');
+    node.addListener(() => _handleInputFocusChange(setNumber));
+    return node;
+  }
+
+  void _handleInputFocusChange(int setNumber) {
+    final hasFocusedInput =
+        _weightFocusNodes[setNumber]?.hasFocus == true ||
+        _repsFocusNodes[setNumber]?.hasFocus == true;
+
+    if (hasFocusedInput) {
+      _activeInputSetNumber = setNumber;
+      _showKeyboardAccessory();
+      return;
+    }
+
+    if (_hasAnyActiveInputFocus()) {
+      _keyboardAccessoryEntry?.markNeedsBuild();
+      return;
+    }
+
+    _activeInputSetNumber = null;
+    _removeKeyboardAccessory();
+  }
+
+  bool _hasAnyActiveInputFocus() {
+    return _weightFocusNodes.values.any((node) => node.hasFocus) ||
+        _repsFocusNodes.values.any((node) => node.hasFocus);
+  }
+
+  void _showKeyboardAccessory() {
+    if (!mounted) return;
+
+    if (_keyboardAccessoryEntry == null) {
+      _keyboardAccessoryEntry = OverlayEntry(
+        builder: (overlayContext) {
+          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+          if (!_hasAnyActiveInputFocus() || bottomInset <= 0) {
+            return const SizedBox.shrink();
+          }
+
+          return Positioned(
+            left: 0,
+            right: 0,
+            bottom: bottomInset,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                height: 48,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: CleanTheme.surfaceColor,
+                  border: Border(
+                    top: BorderSide(
+                      color: CleanTheme.borderSecondary.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: _dismissKeyboardAndSave,
+                      child: Text(
+                        'Salva',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: CleanTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      Overlay.of(context, rootOverlay: true).insert(_keyboardAccessoryEntry!);
+      return;
+    }
+
+    _keyboardAccessoryEntry?.markNeedsBuild();
+  }
+
+  void _removeKeyboardAccessory() {
+    _keyboardAccessoryEntry?.remove();
+    _keyboardAccessoryEntry = null;
+  }
+
+  Future<void> _dismissKeyboardAndSave() async {
+    final setNumber = _activeInputSetNumber;
+    if (setNumber != null) {
+      _autoSaveTimers[setNumber]?.cancel();
+      await _persistSetData(setNumber);
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   // Map to track manual overrides to auto-fill
@@ -677,6 +796,13 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     for (final c in _repsControllers.values) {
       c.dispose();
     }
+    for (final node in _weightFocusNodes.values) {
+      node.dispose();
+    }
+    for (final node in _repsFocusNodes.values) {
+      node.dispose();
+    }
+    _removeKeyboardAccessory();
     _restTimerService?.removeListener(_handleRestTimerServiceChanged);
     _coachingPlayer.dispose();
     _successAudioPlayer.dispose();
@@ -1027,15 +1153,18 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                 child: TextField(
                                   textAlign: TextAlign.center,
                                   controller: _weightControllers[setNumber],
+                                  focusNode: _weightFocusNodes[setNumber],
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
+                                  textInputAction: TextInputAction.done,
                                   inputFormatters: [
                                     FilteringTextInputFormatter.allow(
                                       RegExp(r'^\d*([,.]\d*)?$'),
                                     ),
                                   ],
+                                  onSubmitted: (_) => _dismissKeyboardAndSave(),
                                   scrollPadding: const EdgeInsets.only(
                                     bottom: 120,
                                   ),
@@ -1129,10 +1258,13 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                               child: TextField(
                                 textAlign: TextAlign.center,
                                 controller: _repsControllers[setNumber],
+                                focusNode: _repsFocusNodes[setNumber],
                                 keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.done,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
+                                onSubmitted: (_) => _dismissKeyboardAndSave(),
                                 onTap: () {
                                   final isGhost =
                                       !_manuallyEditedReps.contains(

@@ -26,6 +26,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   bool _isConnecting = false;
   bool _isInstalling = false;
   bool _healthConnectInstalled = true;
+  bool _isConnected = false;
 
   @override
   void initState() {
@@ -39,12 +40,14 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       final healthConnectInstalled = isAndroid
           ? await _insightsService.isHealthConnectInstalled()
           : true;
+      final isConnected = await _insightsService.initialize();
       final report = await _insightsService.generateWeeklyReport();
 
       if (mounted) {
         setState(() {
           _report = report;
           _healthConnectInstalled = healthConnectInstalled;
+          _isConnected = isConnected;
           _isLoading = false;
         });
       }
@@ -686,14 +689,18 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.health_and_safety_outlined,
+            Icon(
+              _isConnected
+                  ? Icons.sync_problem_rounded
+                  : Icons.health_and_safety_outlined,
               size: 80,
               color: CleanTheme.textTertiary,
             ),
             const SizedBox(height: 24),
             Text(
-              AppLocalizations.of(context)!.noDataAvailable,
+              _isConnected
+                  ? 'Nessun dato trovato'
+                  : AppLocalizations.of(context)!.noDataAvailable,
               style: GoogleFonts.outfit(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -702,23 +709,27 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _healthConnectInstalled
-                  ? (_insightsService.isAndroidPlatform
-                        ? AppLocalizations.of(context)!.syncHealthConnect
-                        : AppLocalizations.of(context)!.syncAppleHealth)
-                  : AppLocalizations.of(context)!.installHealthConnectInfo,
+              _isConnected
+                  ? 'Abbiamo i permessi ma non troviamo dati per questa settimana. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
+                  : (_healthConnectInstalled
+                      ? (_insightsService.isAndroidPlatform
+                          ? AppLocalizations.of(context)!.syncHealthConnect
+                          : AppLocalizations.of(context)!.syncAppleHealth)
+                      : AppLocalizations.of(context)!.installHealthConnectInfo),
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isConnecting || _isInstalling
                     ? null
-                    : (_healthConnectInstalled
-                          ? _connectHealth
-                          : _installHealthConnect),
+                    : (_isConnected
+                        ? _loadReport
+                        : (_healthConnectInstalled
+                            ? _connectHealth
+                            : _installHealthConnect)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CleanTheme.primaryColor,
                   foregroundColor: CleanTheme.textOnDark,
@@ -734,13 +745,15 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         ),
                       )
                     : Text(
-                        _healthConnectInstalled
-                            ? AppLocalizations.of(
-                                context,
-                              )!.connectTo(_insightsService.platformName)
-                            : AppLocalizations.of(
-                                context,
-                              )!.installHealthConnect,
+                        _isConnected
+                            ? 'Riprova sincronizzazione'
+                            : (_healthConnectInstalled
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.connectTo(_insightsService.platformName)
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.installHealthConnect),
                       ),
               ),
             ),

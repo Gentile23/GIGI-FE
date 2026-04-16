@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gigi/core/theme/clean_theme.dart';
+import 'package:gigi/core/services/workout_refresh_notifier.dart';
 import 'package:gigi/data/models/workout_log_model.dart';
 import 'package:gigi/presentation/widgets/clean_widgets.dart';
 import 'package:gigi/presentation/widgets/history/workout_calendar_widget.dart';
@@ -19,13 +20,32 @@ class StatsScreen extends StatefulWidget {
 
 class _StatsScreenState extends State<StatsScreen> {
   String _selectedPeriod = 'month';
+  late final WorkoutRefreshNotifier _workoutRefreshNotifier;
 
   @override
   void initState() {
     super.initState();
+    _workoutRefreshNotifier = Provider.of<WorkoutRefreshNotifier>(
+      context,
+      listen: false,
+    );
+    _workoutRefreshNotifier.addListener(_handleWorkoutRefresh);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchStats(refreshHistory: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _workoutRefreshNotifier.removeListener(_handleWorkoutRefresh);
+    super.dispose();
+  }
+
+  void _handleWorkoutRefresh() {
+    debugPrint(
+      'StatsScreen: received workout refresh v${_workoutRefreshNotifier.version}',
+    );
+    _fetchStats(refreshHistory: true);
   }
 
   Future<void> _fetchStats({bool refreshHistory = false}) async {

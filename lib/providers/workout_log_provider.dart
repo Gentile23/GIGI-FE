@@ -33,12 +33,19 @@ class WorkoutLogProvider with ChangeNotifier {
   bool get hasActiveWorkout =>
       _currentWorkoutLog != null && _currentWorkoutLog!.completedAt == null;
 
+  void clearError() {
+    if (_error == null) return;
+    _error = null;
+    notifyListeners();
+  }
+
   /// Start a new workout session
   Future<void> startWorkout({
     String? workoutPlanId,
     String? workoutDayId,
   }) async {
     _setLoading(true);
+    _error = null;
     try {
       debugPrint(
         'DEBUG Provider: Calling startWorkout with dayId=$workoutDayId',
@@ -50,6 +57,7 @@ class WorkoutLogProvider with ChangeNotifier {
       debugPrint(
         'DEBUG Provider: Workout log created: ${_currentWorkoutLog?.id}',
       );
+      _error = null;
       _recentRecords = []; // Reset records for new session
       notifyListeners();
     } catch (e) {
@@ -96,9 +104,15 @@ class WorkoutLogProvider with ChangeNotifier {
     String exerciseType = 'main',
     String? notes,
   }) async {
-    if (_currentWorkoutLog == null) return null;
+    if (_currentWorkoutLog == null) {
+      _setError(
+        'Sessione workout non inizializzata. Impossibile salvare l\'esercizio.',
+      );
+      return null;
+    }
 
     try {
+      _error = null;
       final exerciseLog = await _logService.addExerciseLog(
         workoutLogId: _currentWorkoutLog!.id,
         exerciseId: exerciseId,
@@ -113,6 +127,7 @@ class WorkoutLogProvider with ChangeNotifier {
 
       return exerciseLog;
     } catch (e) {
+      _setError(e.toString());
       debugPrint('Error adding exercise log: $e');
       return null;
     }
@@ -129,6 +144,7 @@ class WorkoutLogProvider with ChangeNotifier {
     bool completed = true,
   }) async {
     try {
+      _error = null;
       final result = await _logService.addSetLog(
         exerciseLogId: exerciseLogId,
         setNumber: setNumber,
@@ -202,6 +218,7 @@ class WorkoutLogProvider with ChangeNotifier {
     bool? completed,
   }) async {
     try {
+      _error = null;
       final updatedSet = await _logService.updateSetLog(
         setLogId,
         reps: reps,
@@ -215,6 +232,7 @@ class WorkoutLogProvider with ChangeNotifier {
       _updateLocalSetLog(exerciseLogId, updatedSet);
       notifyListeners();
     } catch (e) {
+      _setError(e.toString());
       debugPrint('Error updating set log: $e');
     }
   }

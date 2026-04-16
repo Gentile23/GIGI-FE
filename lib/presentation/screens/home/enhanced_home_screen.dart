@@ -11,7 +11,6 @@ import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/workout_log_provider.dart';
-import '../../../providers/gamification_provider.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
@@ -51,8 +50,29 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   bool _showCelebration = false;
   late final CustomWorkoutService _customWorkoutService;
   List<CustomWorkoutPlan> _customPlans = [];
+  Map<String, dynamic>? _overviewStats;
   final CelebrationStyle _celebrationStyle = CelebrationStyle.confetti;
   VoidCallback? _onGenerationComplete;
+
+  int _asInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  double _asDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value) ?? 0;
+    }
+    return 0;
+  }
 
   @override
   void initState() {
@@ -445,10 +465,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   Widget _buildStreakMotivator() {
-    return Consumer<GamificationProvider>(
-      builder: (context, provider, _) {
-        final streak = provider.stats?.currentStreak ?? 0;
-        final isActive = streak > 0;
+    final streak = _asInt(_overviewStats?['current_streak']);
+    final isActive = streak > 0;
 
         if (isActive) {
           return Container(
@@ -620,8 +638,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
               duration: 600.ms,
               curve: Curves.easeOutQuint,
             );
-      },
-    );
+    
   }
 
   // 4. Immersive Hero Card
@@ -902,40 +919,48 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   }
 
   Widget _buildQuickStatsRow() {
-    return Consumer<GamificationProvider>(
-      builder: (context, provider, _) {
-        final stats = provider.stats;
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                '🎯',
-                AppLocalizations.of(context)!.goal,
-                '${stats?.totalWorkouts ?? 0}/5',
-                const Color(0xFF000000),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                '🏆',
-                AppLocalizations.of(context)!.level,
-                '${stats?.level ?? 1}',
-                const Color(0xFF3A3A3C),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                '⚡',
-                'XP',
-                '${stats?.totalXp ?? 0}',
-                const Color(0xFF636366),
-              ),
-            ),
-          ],
-        );
-      },
+    final overviewStats = _overviewStats;
+    final totalWorkouts = _asInt(overviewStats?['total_workouts']);
+    final totalSets = _asInt(overviewStats?['total_sets']);
+    final totalMinutes = _asInt(overviewStats?['total_time_minutes']);
+    final totalVolume = _asDouble(overviewStats?['total_volume_kg']);
+    final timeLabel = totalMinutes >= 60
+        ? '${totalMinutes ~/ 60}h ${(totalMinutes % 60)}m'
+        : '${totalMinutes}m';
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            '🏋️',
+            AppLocalizations.of(context)!.progressWorkouts,
+            '$totalWorkouts',
+            const Color(0xFF000000),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            '📊',
+            AppLocalizations.of(context)!.progressTotalSets,
+            '$totalSets',
+            const Color(0xFF3A3A3C),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            totalVolume > 0 ? '🏔️' : '⏱️',
+            totalVolume > 0
+                ? 'Volume'
+                : AppLocalizations.of(context)!.progressTotalTime,
+            totalVolume > 0
+                ? '${totalVolume.toStringAsFixed(0)}kg'
+                : timeLabel,
+            const Color(0xFF636366),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1157,13 +1182,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     if (!mounted) return;
     await _loadCustomWorkouts();
 
-    // Refresh Gamification
+    final overviewResponse = await ApiClient().dio.get('/stats/overview');
     if (!mounted) return;
-    final gamificationProvider = Provider.of<GamificationProvider>(
-      context,
-      listen: false,
-    );
-    gamificationProvider.refresh();
+    _overviewStats = overviewResponse.data['stats'] is Map<String, dynamic>
+        ? overviewResponse.data['stats']
+        : null;
 
     if (mounted) setState(() {});
   }

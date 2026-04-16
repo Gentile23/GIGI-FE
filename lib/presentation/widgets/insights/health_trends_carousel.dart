@@ -32,6 +32,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
   bool _isConnecting = false;
   bool _isInstalling = false;
   bool _healthConnectInstalled = true;
+  bool _isConnected = false;
 
   @override
   void initState() {
@@ -45,12 +46,14 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
       final healthConnectInstalled = isAndroid
           ? await _insightsService.isHealthConnectInstalled()
           : true;
+      final isConnected = await _insightsService.initialize();
       final insights = await _insightsService.getTrendInsights();
 
       if (mounted) {
         setState(() {
           _insights = insights;
           _healthConnectInstalled = healthConnectInstalled;
+          _isConnected = isConnected;
           _isLoading = false;
         });
       }
@@ -97,6 +100,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
     );
 
     if (authorized) {
+      setState(() => _isLoading = true);
       await _loadInsights();
     }
   }
@@ -271,16 +275,20 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.health_and_safety_outlined,
+            Icon(
+              _isConnected
+                  ? Icons.sync_problem_rounded
+                  : Icons.health_and_safety_outlined,
               size: 48,
               color: CleanTheme.textTertiary,
             ),
             const SizedBox(height: 12),
             Text(
-              AppLocalizations.of(
-                context,
-              )!.connectTo(_insightsService.platformName),
+              _isConnected
+                  ? 'Nessun dato trovato'
+                  : AppLocalizations.of(
+                      context,
+                    )!.connectTo(_insightsService.platformName),
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -289,11 +297,13 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
             ),
             const SizedBox(height: 4),
             Text(
-              _healthConnectInstalled
-                  ? (_insightsService.isAndroidPlatform
-                        ? AppLocalizations.of(context)!.syncHealthConnect
-                        : AppLocalizations.of(context)!.syncAppleHealth)
-                  : AppLocalizations.of(context)!.installHealthConnectInfo,
+              _isConnected
+                  ? 'Abbiamo i permessi ma non troviamo dati per oggi. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
+                  : (_healthConnectInstalled
+                      ? (_insightsService.isAndroidPlatform
+                          ? AppLocalizations.of(context)!.syncHealthConnect
+                          : AppLocalizations.of(context)!.syncAppleHealth)
+                      : AppLocalizations.of(context)!.installHealthConnectInfo),
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textSecondary,
@@ -307,9 +317,11 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
               child: ElevatedButton(
                 onPressed: _isConnecting || _isInstalling
                     ? null
-                    : (_healthConnectInstalled
-                          ? _connectHealth
-                          : _installHealthConnect),
+                    : (_isConnected
+                        ? _loadInsights
+                        : (_healthConnectInstalled
+                            ? _connectHealth
+                            : _installHealthConnect)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CleanTheme.primaryColor,
                   foregroundColor: CleanTheme.textOnDark,
@@ -328,14 +340,19 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                         ),
                       )
                     : Text(
-                        _healthConnectInstalled
-                            ? AppLocalizations.of(
-                                context,
-                              )!.connectTo(_insightsService.platformName)
-                            : AppLocalizations.of(
-                                context,
-                              )!.installHealthConnect,
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        _isConnected
+                            ? 'Riprova sincronizzazione'
+                            : (_healthConnectInstalled
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.connectTo(_insightsService.platformName)
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.installHealthConnect),
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                        ),
                       ),
               ),
             ),

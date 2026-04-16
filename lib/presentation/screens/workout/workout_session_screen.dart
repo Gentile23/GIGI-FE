@@ -30,9 +30,9 @@ import '../../../data/models/workout_chat_model.dart';
 import '../../../data/services/workout_chat_service.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../providers/gamification_provider.dart';
 import '../../../core/services/sound_service.dart';
 import '../../../core/services/rest_timer_service.dart';
+import '../../../core/services/workout_refresh_notifier.dart';
 import '../../../core/services/workout_lock_screen_service.dart';
 import '../../../data/services/quota_service.dart';
 import '../paywall/paywall_screen.dart';
@@ -80,6 +80,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   bool _sessionRegistered = false;
   bool _registrationInProgress = false;
   Timer? _registrationRetryTimer;
+  String? _sessionRegistrationError;
 
   // Flag to allow pop (bypass PopScope)
   bool _allowPop = false;
@@ -660,6 +661,49 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  String _normalizeExerciseType(String exerciseType) {
+    switch (exerciseType.trim().toLowerCase()) {
+      case 'strength':
+        return 'main';
+      case 'main':
+      case 'cardio':
+      case 'mobility':
+      case 'warmup':
+        return exerciseType.trim().toLowerCase();
+      default:
+        return 'main';
+    }
+  }
+
+  int _getExerciseOrderIndex(String uniqueId) {
+    final orderedExercises = _getOrderedExercisePointers();
+    final index = orderedExercises.indexWhere(
+      (entry) => entry.exerciseId == uniqueId,
+    );
+    return index >= 0 ? index : 0;
+  }
+
+  ExerciseLogModel? _findExerciseLogForEntry(
+    WorkoutLogProvider provider,
+    String uniqueId,
+    WorkoutExercise exercise,
+  ) {
+    final logs = provider.currentWorkoutLog?.exerciseLogs;
+    if (logs == null) return null;
+
+    final orderIndex = _getExerciseOrderIndex(uniqueId);
+    for (final log in logs) {
+      if (log.exerciseId == exercise.exercise.id &&
+          log.orderIndex == orderIndex &&
+          _normalizeExerciseType(log.exerciseType) ==
+              _normalizeExerciseType(exercise.exerciseType)) {
+        return log;
+      }
+    }
+
+    return null;
+  }
+
   List<_OrderedExercisePointer> _getOrderedExercisePointers() {
     final pointers = <_OrderedExercisePointer>[];
 
@@ -831,9 +875,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     setState(() {
       _registrationInProgress = true;
+      _sessionRegistrationError = null;
     });
 
     final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+    provider.clearError();
     debugPrint(
       'DEBUG: Registering workout session for day ID: ${widget.workoutDay.id}',
     );
@@ -847,12 +893,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             setState(() {
               _sessionRegistered = true;
               _registrationInProgress = false;
+              _sessionRegistrationError = null;
             });
           }
           return; // Success
         }
       } catch (e) {
-        debugPrint('Session registration failed (attempt $attempt)');
+        debugPrint('Session registration failed (attempt $attempt): $e');
       }
       // Exponential backoff
       if (attempt < 3 && mounted) {
@@ -862,8 +909,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     // All retries exhausted — start background retry every 10 seconds
     if (mounted) {
+      final providerError = provider.error?.trim() ?? '';
       setState(() {
         _registrationInProgress = false;
+        _sessionRegistrationError = providerError.isNotEmpty
+            ? providerError
+            : 'Impossibile registrare la sessione workout sul server.';
       });
       _startRegistrationRetryLoop();
     }
@@ -879,22 +930,28 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         timer.cancel();
         return;
       }
+      final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
       try {
-        final provider = Provider.of<WorkoutLogProvider>(
-          context,
-          listen: false,
-        );
+        provider.clearError();
         await provider.startWorkout(workoutDayId: widget.workoutDay.id);
         if (provider.currentWorkoutLog != null) {
           if (mounted) {
             setState(() {
               _sessionRegistered = true;
+              _sessionRegistrationError = null;
             });
           }
           timer.cancel();
         }
       } catch (e) {
-        // Silent background fail
+        if (mounted) {
+          final providerError = provider.error?.trim() ?? '';
+          setState(() {
+            _sessionRegistrationError = providerError.isNotEmpty
+                ? providerError
+                : e.toString().replaceFirst('Exception: ', '').trim();
+          });
+        }
       }
     });
   }
@@ -1048,6 +1105,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                       child: Text(
                                         _registrationInProgress
                                             ? "Registrazione sessione in corso..."
+                                            : _sessionRegistrationError
+                                                      ?.trim()
+                                                      .isNotEmpty ==
+                                                  true
+                                            ? _sessionRegistrationError!.trim()
                                             : AppLocalizations.of(
                                                 context,
                                               )!.sessionNotRecorded,
@@ -1058,6 +1120,27 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                         ),
                                       ),
                                     ),
+                                    if (!_registrationInProgress)
+                                      TextButton(
+                                        onPressed: _registerSessionWithBackend,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor:
+                                              CleanTheme.accentOrange,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                          ),
+                                          minimumSize: const Size(0, 32),
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: Text(
+                                          'Riprova',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
                                     if (_registrationInProgress)
                                       SizedBox(
                                         width: 16,
@@ -3242,18 +3325,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Consumer<WorkoutLogProvider>(
           builder: (context, provider, child) {
             final displayExercise = _getExerciseById(uniqueId) ?? exercise;
-            final exerciseLog = provider.currentWorkoutLog?.exerciseLogs
-                .firstWhere(
-                  (e) => e.exerciseId == displayExercise.exercise.id,
-                  orElse: () => ExerciseLogModel(
-                    id: '',
-                    workoutLogId: '',
-                    exerciseId: displayExercise.exercise.id,
-                    orderIndex: 0,
-                    exerciseType: 'main',
-                    setLogs: [],
-                  ),
-                );
+            final exerciseLog = _findExerciseLogForEntry(
+              provider,
+              uniqueId,
+              displayExercise,
+            );
 
             final isCompleted = _completedExercises.contains(
               displayExercise.exercise.id,
@@ -3748,7 +3824,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
 
     final navigator = Navigator.of(context);
-    final gamificationProvider = Provider.of<GamificationProvider>(
+    final workoutRefreshNotifier = Provider.of<WorkoutRefreshNotifier>(
       context,
       listen: false,
     );
@@ -3775,11 +3851,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         throw Exception(message);
       }
 
-      try {
-        await gamificationProvider.refresh();
-      } catch (e, st) {
-        debugPrint('WARNING: Failed to refresh gamification stats: $e\n$st');
-      }
+      debugPrint('WorkoutSessionScreen: emitting workout refresh event');
+      workoutRefreshNotifier.notifyWorkoutCompleted();
 
       if (!mounted) return;
       navigator.pop(); // Close loading dialog
@@ -3865,14 +3938,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     WorkoutLogProvider provider,
   ) async {
     if (provider.currentWorkoutLog == null) {
+      debugPrint(
+        'WorkoutSessionScreen: no active workout log, attempting late registration for workoutDayId=${widget.workoutDay.id}',
+      );
+      provider.clearError();
       await provider.startWorkout(workoutDayId: widget.workoutDay.id);
     }
 
     if (provider.currentWorkoutLog == null) {
+      final providerError = provider.error?.trim() ?? '';
       throw Exception(
-        provider.error?.trim().isNotEmpty == true
-            ? provider.error!.trim()
-            : 'Sessione workout non disponibile per il salvataggio.',
+        providerError.isNotEmpty
+            ? providerError
+            : 'Sessione workout non disponibile per il salvataggio. workoutDayId=${widget.workoutDay.id}',
       );
     }
 
@@ -3893,18 +3971,17 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       final completedSets = setState.getCompletedSetEntries();
       if (completedSets.isEmpty) continue;
 
-      var exerciseLog = _findExerciseLogByExerciseId(
+      var exerciseLog = _findExerciseLogForEntry(
         provider,
-        exercise.exercise.id,
+        uniqueId,
+        exercise,
       );
 
       if (exerciseLog == null) {
-        final orderIndex = widget.workoutDay.exercises.indexWhere(
-          (entry) => entry.exercise.id == exercise.exercise.id,
-        );
+        final orderIndex = _getExerciseOrderIndex(uniqueId);
         final newLog = await provider.addExerciseLog(
           exerciseId: exercise.exercise.id,
-          orderIndex: orderIndex >= 0 ? orderIndex : 0,
+          orderIndex: orderIndex,
           exerciseType: exercise.exerciseType,
         );
         if (newLog == null) {
@@ -3950,18 +4027,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         existingSetNumbers.add(setEntry.setNumber);
       }
     }
-  }
-
-  ExerciseLogModel? _findExerciseLogByExerciseId(
-    WorkoutLogProvider provider,
-    String exerciseId,
-  ) {
-    final logs = provider.currentWorkoutLog?.exerciseLogs;
-    if (logs == null) return null;
-    for (final log in logs) {
-      if (log.exerciseId == exerciseId) return log;
-    }
-    return null;
   }
 
   int _resolveSafeRepsForSave({

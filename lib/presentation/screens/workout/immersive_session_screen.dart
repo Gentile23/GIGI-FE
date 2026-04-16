@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/services/health_integration_service.dart';
+import '../../../core/services/workout_refresh_notifier.dart';
 import '../../../data/models/workout_model.dart';
+import '../../../data/models/workout_log_model.dart';
 import '../../../providers/workout_log_provider.dart';
-import '../../../providers/gamification_provider.dart';
 import '../../widgets/workout/session_timer_widget.dart';
 import '../../widgets/workout/exercise_focus_card.dart';
 import '../../widgets/workout/rest_period_overlay.dart';
@@ -57,10 +58,48 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   WorkoutExercise get _currentExercise => _mainExercises[_currentExerciseIndex];
 
+  String _normalizeExerciseType(String exerciseType) {
+    switch (exerciseType.trim().toLowerCase()) {
+      case 'strength':
+        return 'main';
+      case 'main':
+      case 'cardio':
+      case 'mobility':
+      case 'warmup':
+        return exerciseType.trim().toLowerCase();
+      default:
+        return 'main';
+    }
+  }
+
+  String _exerciseEntryId(WorkoutExercise exercise, int index) =>
+      exercise.id ?? 'main_${exercise.exercise.id}_$index';
+
+  ExerciseLogModel? _findExerciseLogForEntry(
+    WorkoutLogProvider provider,
+    WorkoutExercise exercise,
+    int index,
+  ) {
+    final logs = provider.currentWorkoutLog?.exerciseLogs;
+    if (logs == null) return null;
+
+    for (final log in logs) {
+      if (log.exerciseId == exercise.exercise.id &&
+          log.orderIndex == index &&
+          _normalizeExerciseType(log.exerciseType) ==
+              _normalizeExerciseType(exercise.exerciseType)) {
+        return log;
+      }
+    }
+
+    return null;
+  }
+
   int get _completedExerciseCount {
     int completed = 0;
-    for (final exercise in _mainExercises) {
-      final sets = _completedSets[exercise.exercise.id];
+    for (int index = 0; index < _mainExercises.length; index++) {
+      final exercise = _mainExercises[index];
+      final sets = _completedSets[_exerciseEntryId(exercise, index)];
       if (sets != null && sets.length >= exercise.sets) {
         completed++;
       }
@@ -119,11 +158,14 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
   void _onSetComplete(int reps, double? weight) {
     // Record the set
-    final exerciseId = _currentExercise.exercise.id;
-    if (!_completedSets.containsKey(exerciseId)) {
-      _completedSets[exerciseId] = [];
+    final exerciseEntryId = _exerciseEntryId(
+      _currentExercise,
+      _currentExerciseIndex,
+    );
+    if (!_completedSets.containsKey(exerciseEntryId)) {
+      _completedSets[exerciseEntryId] = [];
     }
-    _completedSets[exerciseId]!.add({
+    _completedSets[exerciseEntryId]!.add({
       'setNumber': _currentSetNumber,
       'reps': reps,
       'weight': weight,
@@ -182,7 +224,7 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
       context,
       listen: false,
     );
-    final gamificationProvider = Provider.of<GamificationProvider>(
+    final workoutRefreshNotifier = Provider.of<WorkoutRefreshNotifier>(
       context,
       listen: false,
     );
@@ -198,11 +240,8 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
       if (!mounted) return;
 
-      try {
-        await gamificationProvider.refresh();
-      } catch (e) {
-        debugPrint('Error refreshing gamification after immersive workout: $e');
-      }
+      debugPrint('ImmersiveSessionScreen: emitting workout refresh event');
+      workoutRefreshNotifier.notifyWorkoutCompleted();
 
       await _syncWorkoutToHealth();
 
@@ -239,13 +278,16 @@ class _ImmersiveSessionScreenState extends State<ImmersiveSessionScreen>
 
     for (int index = 0; index < _mainExercises.length; index++) {
       final workoutExercise = _mainExercises[index];
-      final completedSets = _completedSets[workoutExercise.exercise.id];
+      final completedSets = _completedSets[
+        _exerciseEntryId(workoutExercise, index)
+      ];
       if (completedSets == null || completedSets.isEmpty) continue;
 
-      final existingExerciseLog = currentWorkoutLog.exerciseLogs
-          .where((log) => log.exerciseId == workoutExercise.exercise.id)
-          .cast<dynamic>()
-          .firstWhere((log) => true, orElse: () => null);
+      final existingExerciseLog = _findExerciseLogForEntry(
+        provider,
+        workoutExercise,
+        index,
+      );
 
       final exerciseLog =
           existingExerciseLog ??

@@ -7,11 +7,12 @@ import '../../../core/services/haptic_service.dart';
 import '../../widgets/progress/interactive_body_silhouette.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
+import '../../../core/services/workout_refresh_notifier.dart';
 import 'body_measurements_screen.dart';
 import '../../widgets/progress/body_part_detail_sheet.dart';
+import '../history/stats_screen.dart'; // Add import for StatsScreen
 
 import 'package:provider/provider.dart';
-import '../../../providers/gamification_provider.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
@@ -26,25 +27,60 @@ class ProgressDashboardScreen extends StatefulWidget {
 class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   final _apiClient = ApiClient();
   bool _isLoading = true;
+  late final WorkoutRefreshNotifier _workoutRefreshNotifier;
 
   // Data
   Map<String, dynamic>? _latestMeasurements;
   Map<String, dynamic>? _changes;
+  Map<String, dynamic>? _overviewStats;
+
+  int _asInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  double _asDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value) ?? 0;
+    }
+    return 0;
+  }
 
   @override
   void initState() {
     super.initState();
+    _workoutRefreshNotifier = Provider.of<WorkoutRefreshNotifier>(
+      context,
+      listen: false,
+    );
+    _workoutRefreshNotifier.addListener(_handleWorkoutRefresh);
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _workoutRefreshNotifier.removeListener(_handleWorkoutRefresh);
+    super.dispose();
+  }
+
+  void _handleWorkoutRefresh() {
+    debugPrint(
+      'ProgressDashboardScreen: received workout refresh v${_workoutRefreshNotifier.version}',
+    );
     _loadData();
   }
 
   Future<void> _loadData() async {
-    final gamificationProvider = Provider.of<GamificationProvider>(
-      context,
-      listen: false,
-    );
-
     try {
-      await gamificationProvider.loadStats();
+      final overviewResponse = await _apiClient.dio.get('/stats/overview');
 
       // Fetch measurements data independently from workout stats
       final measurementsResponse = await _apiClient.dio.get(
@@ -56,6 +92,9 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       final measurementsData = measurementsResponse.data;
 
       setState(() {
+        _overviewStats = overviewResponse.data['stats'] is Map<String, dynamic>
+            ? overviewResponse.data['stats']
+            : null;
         _latestMeasurements = measurementsData['latest'] is Map<String, dynamic>
             ? measurementsData['latest']
             : null;
@@ -68,6 +107,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _overviewStats = null;
           _latestMeasurements = null;
           _changes = {};
         });
@@ -76,125 +116,169 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
   }
 
   Widget _buildWorkoutStatsSection() {
-    return Consumer<GamificationProvider>(
-      builder: (context, provider, _) {
-        final stats = provider.stats;
-        final totalWorkouts = stats?.totalWorkouts ?? 0;
-        final totalSets = stats?.totalSetsCompleted ?? 0;
-        final totalMinutes = stats?.totalMinutesTrained ?? 0;
-        final totalWeight = stats?.totalWeightLifted ?? 0;
+    final overviewStats = _overviewStats;
+    final totalWorkouts = _asInt(overviewStats?['total_workouts']);
+    final totalSets = _asInt(overviewStats?['total_sets']);
+    final totalWeight = _asDouble(overviewStats?['total_volume_kg']);
+    final currentStreak = _asInt(overviewStats?['current_streak']);
 
-        final hours = totalMinutes ~/ 60;
-        final mins = totalMinutes % 60;
-        final timeStr = hours > 0 ? '${hours}h ${mins}m' : '${mins}m';
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.progressStatsTitle,
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  HapticService.lightTap();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const StatsScreen()),
+                  );
+                },
+                icon: const Icon(Icons.analytics_outlined, size: 18),
+                label: Text(
+                  'Vedi di più',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: CleanTheme.primaryColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.1,
           children: [
-            Text(
-              AppLocalizations.of(context)!.progressStatsTitle,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: CleanTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
+            _buildWowStatCard(
+              label: AppLocalizations.of(context)!.progressWorkouts,
+              value: '$totalWorkouts',
+              icon: Icons.fitness_center_rounded,
+              color: CleanTheme.accentBlue,
+              unit: 'sessioni',
             ),
-            const SizedBox(height: 12),
-            CleanCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildWorkoutStatItem(
-                          '$totalWorkouts',
-                          AppLocalizations.of(context)!.progressWorkouts,
-                          Icons.fitness_center_outlined,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildWorkoutStatItem(
-                          '$totalSets',
-                          AppLocalizations.of(context)!.progressTotalSets,
-                          Icons.layers_outlined,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildWorkoutStatItem(
-                          '${totalWeight.toStringAsFixed(0)}kg',
-                          'Peso Totale',
-                          Icons.monitor_weight_outlined,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildWorkoutStatItem(
-                          timeStr,
-                          AppLocalizations.of(context)!.progressTotalTime,
-                          Icons.timer_outlined,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            _buildWowStatCard(
+              label: AppLocalizations.of(context)!.progressTotalSets,
+              value: '$totalSets',
+              icon: Icons.layers_rounded,
+              color: CleanTheme.accentOrange,
+              unit: 'serie completate',
+            ),
+            _buildWowStatCard(
+              label: 'Volume Totale',
+              value: totalWeight >= 1000 
+                ? (totalWeight / 1000).toStringAsFixed(1) 
+                : totalWeight.toStringAsFixed(0),
+              icon: Icons.monitor_weight_rounded,
+              color: CleanTheme.accentGreen,
+              unit: totalWeight >= 1000 ? 'tonnellate' : 'kg sollevati',
+            ),
+            _buildWowStatCard(
+              label: 'Costanza',
+              value: '$currentStreak',
+              icon: Icons.local_fire_department_rounded,
+              color: CleanTheme.accentRed,
+              unit: 'giorni consecutivi',
             ),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 
-  Widget _buildWorkoutStatItem(String value, String label, IconData icon) {
+  Widget _buildWowStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required String unit,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CleanTheme.primaryColor.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(16),
+        color: CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: CleanTheme.borderSecondary.withValues(alpha: 0.5),
+          color: CleanTheme.borderPrimary.withValues(alpha: 0.1),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: CleanTheme.primaryColor,
-              shape: BoxShape.circle,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 16, color: CleanTheme.textOnPrimary),
+            child: Icon(icon, color: color, size: 24),
           ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.primaryColor,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                unit.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: color,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: GoogleFonts.inter(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: CleanTheme.textSecondary,
             ),
-            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

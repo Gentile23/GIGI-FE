@@ -7,6 +7,7 @@ import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/injury_model.dart';
 import '../../../data/models/training_preferences_model.dart';
 import '../main_screen.dart';
+import '../auth/landing_screen.dart';
 
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
@@ -262,6 +263,27 @@ class _UnifiedQuestionnaireScreenState
     });
   }
 
+  void _handleBackNavigation() {
+    if (_currentStep > 0) {
+      _previousPage();
+      return;
+    }
+
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+
+    final fallbackScreen = widget.isOnboarding
+        ? const LandingScreen()
+        : const MainScreen();
+
+    navigator.pushReplacement(
+      MaterialPageRoute(builder: (_) => fallbackScreen),
+    );
+  }
+
   // --- Helper Methods ---
 
   // --- Core Actions ---
@@ -496,8 +518,12 @@ class _UnifiedQuestionnaireScreenState
         height: _height,
         weight: _weight,
         gender: _selectedGender?.toString().split('.').last,
-        dateOfBirth: _age != null 
-            ? DateTime(DateTime.now().year - _age!, 1, 1).toIso8601String().split('T').first 
+        dateOfBirth: _age != null
+            ? DateTime(
+                DateTime.now().year - _age!,
+                1,
+                1,
+              ).toIso8601String().split('T').first
             : null,
         bodyShape: _selectedBodyShape?.toString().split('.').last,
         workoutType: _selectedWorkoutType?.toString().split('.').last,
@@ -553,9 +579,7 @@ class _UnifiedQuestionnaireScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.unexpectedError,
-            ),
+            content: Text(AppLocalizations.of(context)!.unexpectedError),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -592,223 +616,226 @@ class _UnifiedQuestionnaireScreenState
       totalPages += 1; // Workout type only
     }
 
-    return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top Bar with Dot Progress Indicator (one dot per page)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 16.0,
-              ),
-              child: Row(
-                children: [
-                  // Back button
-                  IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: CleanTheme.textPrimary,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBackNavigation();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: CleanTheme.backgroundColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Top Bar with Dot Progress Indicator (one dot per page)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 16.0,
+                ),
+                child: Row(
+                  children: [
+                    // Back button
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: CleanTheme.textPrimary,
+                      ),
+                      onPressed: _handleBackNavigation,
                     ),
-                    onPressed: () {
-                      if (_currentStep > 0) {
-                        _previousPage();
-                      } else {
-                        Navigator.pop(context);
-                      }
-                    },
-                  ),
 
-                  // Dot Progress Indicator (centered)
-                  Expanded(
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(totalPages, (index) {
-                          final isActive = index == _currentStep;
-                          final isCompleted = index < _currentStep;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            width: isActive ? 20 : 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: isActive || isCompleted
-                                  ? CleanTheme.textPrimary
-                                  : CleanTheme.borderSecondary,
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                          );
-                        }),
+                    // Dot Progress Indicator (centered)
+                    Expanded(
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(totalPages, (index) {
+                            final isActive = index == _currentStep;
+                            final isCompleted = index < _currentStep;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              width: isActive ? 20 : 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: isActive || isCompleted
+                                    ? CleanTheme.textPrimary
+                                    : CleanTheme.borderSecondary,
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                            );
+                          }),
+                        ),
                       ),
                     ),
-                  ),
 
-                  // Placeholder for symmetry
-                  const SizedBox(width: 48),
-                ],
+                    // Placeholder for symmetry
+                    const SizedBox(width: 48),
+                  ],
+                ),
               ),
-            ),
 
-            // Main Content
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics:
-                    const NeverScrollableScrollPhysics(), // Strictly controlled navigation
-                onPageChanged: (index) => setState(() => _currentStep = index),
-                children: [
-                  // 0. GIGI WELCOME PAGE (First step)
-                  _buildGigiWelcomePage(),
+              // Main Content
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Strictly controlled navigation
+                  onPageChanged: (index) =>
+                      setState(() => _currentStep = index),
+                  children: [
+                    // 0. GIGI WELCOME PAGE (First step)
+                    _buildGigiWelcomePage(),
 
-                  // 1. Height & Weight ("Parlaci di te")
-                  _buildHeightWeightPage(),
+                    // 1. Height & Weight ("Parlaci di te")
+                    _buildHeightWeightPage(),
 
-                  // 2. Gender & Age
-                  if (widget.isOnboarding) _buildGenderAgePage(),
+                    // 2. Gender & Age
+                    if (widget.isOnboarding) _buildGenderAgePage(),
 
-                  // 3. Body Fat Percentage
-                  if (_selectedGender != null) _buildBodyFatPage(),
+                    // 3. Body Fat Percentage
+                    if (_selectedGender != null) _buildBodyFatPage(),
 
-                  // 4. Goal (Multi-select) - RESTORED
-                  _buildMultiSelectionPage(
-                    title: AppLocalizations.of(context)!.questionGoal,
-                    subtitle: AppLocalizations.of(
-                      context,
-                    )!.questionGoalSubtitle,
-                    options: FitnessGoal.values
-                        .where((g) => g != FitnessGoal.toning)
-                        .map(
-                          (g) => _Option(
-                            label: _getGoalLabel(g),
-                            icon: _getGoalIcon(g),
-                            isSelected: _selectedGoals.contains(g),
-                            onTap: () {
-                              setState(() {
-                                if (_selectedGoals.contains(g)) {
-                                  _selectedGoals.remove(g);
-                                } else {
-                                  if (g == FitnessGoal.weightLoss) {
-                                    _selectedGoals.remove(
-                                      FitnessGoal.muscleGain,
-                                    );
-                                  } else if (g == FitnessGoal.muscleGain) {
-                                    _selectedGoals.remove(
-                                      FitnessGoal.weightLoss,
-                                    );
+                    // 4. Goal (Multi-select) - RESTORED
+                    _buildMultiSelectionPage(
+                      title: AppLocalizations.of(context)!.questionGoal,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.questionGoalSubtitle,
+                      options: FitnessGoal.values
+                          .where((g) => g != FitnessGoal.toning)
+                          .map(
+                            (g) => _Option(
+                              label: _getGoalLabel(g),
+                              icon: _getGoalIcon(g),
+                              isSelected: _selectedGoals.contains(g),
+                              onTap: () {
+                                setState(() {
+                                  if (_selectedGoals.contains(g)) {
+                                    _selectedGoals.remove(g);
+                                  } else {
+                                    if (g == FitnessGoal.weightLoss) {
+                                      _selectedGoals.remove(
+                                        FitnessGoal.muscleGain,
+                                      );
+                                    } else if (g == FitnessGoal.muscleGain) {
+                                      _selectedGoals.remove(
+                                        FitnessGoal.weightLoss,
+                                      );
+                                    }
+                                    _selectedGoals.add(g);
                                   }
-                                  _selectedGoals.add(g);
-                                }
-                              });
-                            },
-                          ),
-                        )
-                        .toList(),
-                    canContinue: _selectedGoals.isNotEmpty,
-                    onContinue: _nextPage,
-                  ),
+                                });
+                              },
+                            ),
+                          )
+                          .toList(),
+                      canContinue: _selectedGoals.isNotEmpty,
+                      onContinue: _nextPage,
+                    ),
 
-                  // 5. Experience Level - RESTORED
-                  _buildSelectionPage(
-                    title: AppLocalizations.of(context)!.questionLevel,
-                    subtitle: AppLocalizations.of(
-                      context,
-                    )!.questionLevelSubtitle,
-                    options: ExperienceLevel.values
-                        .map(
-                          (l) => _Option(
-                            label: _getLevelLabel(l),
-                            icon: _getLevelIcon(l),
-                            isSelected: _selectedLevel == l,
-                            onTap: () {
-                              setState(() => _selectedLevel = l);
-                            },
-                          ),
-                        )
-                        .toList(),
-                    onContinue: _nextPage,
-                    canContinue: _selectedLevel != null,
-                  ),
+                    // 5. Experience Level - RESTORED
+                    _buildSelectionPage(
+                      title: AppLocalizations.of(context)!.questionLevel,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.questionLevelSubtitle,
+                      options: ExperienceLevel.values
+                          .map(
+                            (l) => _Option(
+                              label: _getLevelLabel(l),
+                              icon: _getLevelIcon(l),
+                              isSelected: _selectedLevel == l,
+                              onTap: () {
+                                setState(() => _selectedLevel = l);
+                              },
+                            ),
+                          )
+                          .toList(),
+                      onContinue: _nextPage,
+                      canContinue: _selectedLevel != null,
+                    ),
 
-                  // 5.5 Training Split (Moved here to be available for all users)
-                  _buildTrainingSplitPage(),
+                    // 5.5 Training Split (Moved here to be available for all users)
+                    _buildTrainingSplitPage(),
 
-                  // 6. Frequency & Preferred Days
-                  _buildWeeklyFrequencyPage(),
+                    // 6. Frequency & Preferred Days
+                    _buildWeeklyFrequencyPage(),
 
-                  // 2.5 Time Preference (New)
-                  _buildTimePreferencePage(),
+                    // 2.5 Time Preference (New)
+                    _buildTimePreferencePage(),
 
-                  // 3. Location
-                  _buildSelectionPage(
-                    title: AppLocalizations.of(context)!.questionLocation,
-                    subtitle: AppLocalizations.of(
-                      context,
-                    )!.questionLocationSubtitle,
-                    options: TrainingLocation.values
-                        .map(
-                          (l) => _Option(
-                            label: _getLocationLabel(l),
-                            icon: _getLocationIcon(l),
-                            isSelected: _selectedLocation == l,
-                            onTap: () {
-                              setState(() => _selectedLocation = l);
-                            },
-                          ),
-                        )
-                        .toList(),
-                    onContinue: _nextPage,
-                    canContinue: _selectedLocation != null,
-                  ),
+                    // 3. Location
+                    _buildSelectionPage(
+                      title: AppLocalizations.of(context)!.questionLocation,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.questionLocationSubtitle,
+                      options: TrainingLocation.values
+                          .map(
+                            (l) => _Option(
+                              label: _getLocationLabel(l),
+                              icon: _getLocationIcon(l),
+                              isSelected: _selectedLocation == l,
+                              onTap: () {
+                                setState(() => _selectedLocation = l);
+                              },
+                            ),
+                          )
+                          .toList(),
+                      onContinue: _nextPage,
+                      canContinue: _selectedLocation != null,
+                    ),
 
-                  // 4. Equipment
-                  _buildEquipmentPage(),
+                    // 4. Equipment
+                    _buildEquipmentPage(),
 
-                  // 4.5 Bodyweight Type (Conditional - only if ONLY bodyweight selected, without machines)
-                  if (_selectedEquipment.contains(Equipment.bodyweight) &&
-                      !_selectedEquipment.contains(Equipment.machines))
-                    _buildBodyweightTypePage(),
+                    // 4.5 Bodyweight Type (Conditional - only if ONLY bodyweight selected, without machines)
+                    if (_selectedEquipment.contains(Equipment.bodyweight) &&
+                        !_selectedEquipment.contains(Equipment.machines))
+                      _buildBodyweightTypePage(),
 
-                  // 4.6 Specific Machines (Conditional - only for non-gym locations)
-                  if (_selectedEquipment.contains(Equipment.machines) &&
-                      _selectedLocation != TrainingLocation.gym)
-                    _buildSpecificMachinesPage(),
+                    // 4.6 Specific Machines (Conditional - only for non-gym locations)
+                    if (_selectedEquipment.contains(Equipment.machines) &&
+                        _selectedLocation != TrainingLocation.gym)
+                      _buildSpecificMachinesPage(),
 
-                  // 5. Has Injuries? (Gateway to Injury Flow)
-                  _buildHasInjuriesPage(),
+                    // 5. Has Injuries? (Gateway to Injury Flow)
+                    _buildHasInjuriesPage(),
 
-                  // 6. Injury Category (Conditional)
-                  if (_hasInjuries == true) _buildInjuryCategoryPage(),
+                    // 6. Injury Category (Conditional)
+                    if (_hasInjuries == true) _buildInjuryCategoryPage(),
 
-                  // 7. Injury Area (Conditional)
-                  if (_hasInjuries == true) _buildInjuryAreaPage(),
+                    // 7. Injury Area (Conditional)
+                    if (_hasInjuries == true) _buildInjuryAreaPage(),
 
-                  // 8. Injury Details (Conditional)
-                  if (_hasInjuries == true) _buildInjuryDetailsPage(),
+                    // 8. Injury Details (Conditional)
+                    if (_hasInjuries == true) _buildInjuryDetailsPage(),
 
-                  // 9. Duration
-                  _buildDurationPage(),
+                    // 9. Duration
+                    _buildDurationPage(),
 
-                  // 10. Sleep & Recovery (New)
-                  _buildSleepRecoveryPage(),
+                    // 10. Sleep & Recovery (New)
+                    _buildSleepRecoveryPage(),
 
-                  // 10.5 Nutrition Approach (New)
-                  _buildNutritionApproachPage(),
+                    // 10.5 Nutrition Approach (New)
+                    _buildNutritionApproachPage(),
 
-                  // 11. Cardio & Mobility
-                  _buildCardioMobilityPage(),
+                    // 11. Cardio & Mobility
+                    _buildCardioMobilityPage(),
 
-                  // 12. Workout Type (Only for Advanced)
-                  if (_selectedLevel == ExperienceLevel.advanced)
-                    _buildWorkoutTypePage(),
+                    // 12. Workout Type (Only for Advanced)
+                    if (_selectedLevel == ExperienceLevel.advanced)
+                      _buildWorkoutTypePage(),
 
-                  // 14. Final Notes
-                  _buildFinalNotesPage(),
-                ],
+                    // 14. Final Notes
+                    _buildFinalNotesPage(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -2020,11 +2047,7 @@ class _UnifiedQuestionnaireScreenState
                 }),
                 child: Row(
                   children: [
-                    Icon(
-                      t.icon,
-                      size: 24,
-                      color: CleanTheme.primaryColor,
-                    ),
+                    Icon(t.icon, size: 24, color: CleanTheme.primaryColor),
                     const SizedBox(width: 16),
                     Text(
                       t.getLocalizedName(context),
@@ -2177,11 +2200,7 @@ class _UnifiedQuestionnaireScreenState
                 onTap: () => setState(() => _tempInjurySeverity = s),
                 child: Row(
                   children: [
-                    Icon(
-                      s.icon,
-                      size: 24,
-                      color: CleanTheme.primaryColor,
-                    ),
+                    Icon(s.icon, size: 24, color: CleanTheme.primaryColor),
                     const SizedBox(width: 16),
                     Text(
                       s.getLocalizedName(context),

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,13 +8,13 @@ import '../../screens/workout/workout_summary_screen.dart';
 
 class WorkoutShareCard extends StatelessWidget {
   final WorkoutSummaryData summaryData;
-  final File? photo;
+  final Uint8List? photoBytes;
   final String? userName;
 
   const WorkoutShareCard({
     super.key,
     required this.summaryData,
-    this.photo,
+    this.photoBytes,
     this.userName,
   });
 
@@ -31,18 +31,19 @@ class WorkoutShareCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            if (photo != null)
+            if (photoBytes != null)
               Positioned.fill(
-                child: Image.file(
-                  photo!,
+                child: Image.memory(
+                  photoBytes!,
                   fit: BoxFit.cover,
+                  gaplessPlayback: true,
                   errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 ),
               ),
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: photo != null
+                  gradient: photoBytes != null
                       ? LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -52,7 +53,7 @@ class WorkoutShareCard extends StatelessWidget {
                           ],
                         )
                       : null,
-                  color: photo == null ? CleanTheme.backgroundColor : null,
+                  color: photoBytes == null ? CleanTheme.backgroundColor : null,
                 ),
               ),
             ),
@@ -70,7 +71,7 @@ class WorkoutShareCard extends StatelessWidget {
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: photo == null
+                            color: photoBytes == null
                                 ? CleanTheme.primaryColor
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(6),
@@ -114,12 +115,12 @@ class WorkoutShareCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: photo == null
+                      color: photoBytes == null
                           ? CleanTheme.surfaceColor
                           : Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: photo == null
+                        color: photoBytes == null
                             ? CleanTheme.borderSecondary
                             : Colors.white.withValues(alpha: 0.2),
                       ),
@@ -177,7 +178,7 @@ class WorkoutShareCard extends StatelessWidget {
                         ),
                         child: Icon(
                           Icons.person_rounded,
-                          color: photo == null
+                          color: photoBytes == null
                               ? CleanTheme.textOnDark
                               : CleanTheme.primaryColor,
                           size: 20,
@@ -210,9 +211,9 @@ class WorkoutShareCard extends StatelessWidget {
   }
 
   Color get _textColor =>
-      photo == null ? CleanTheme.textPrimary : CleanTheme.textOnDark;
+      photoBytes == null ? CleanTheme.textPrimary : CleanTheme.textOnDark;
 
-  Color get _mutedTextColor => photo == null
+  Color get _mutedTextColor => photoBytes == null
       ? CleanTheme.textSecondary
       : CleanTheme.textOnDark.withValues(alpha: 0.72);
 

@@ -77,9 +77,11 @@ class _AuthScreenState extends State<AuthScreen>
     if (!mounted || _hasNavigated) return;
 
     final isAuthenticated = _authProvider?.isAuthenticated ?? false;
-    final isLoading = _isLoading;
 
-    if (isAuthenticated && !isLoading) {
+    if (isAuthenticated) {
+      debugPrint(
+        'AuthScreen: authenticated user detected, starting post-auth navigation',
+      );
       _hasNavigated = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -89,6 +91,7 @@ class _AuthScreenState extends State<AuthScreen>
 
         if (widget.onComplete != null) {
           try {
+            debugPrint('AuthScreen: invoking onComplete callback');
             widget.onComplete!.call();
             return;
           } catch (e) {
@@ -97,8 +100,10 @@ class _AuthScreenState extends State<AuthScreen>
         }
 
         if (navigator.canPop()) {
+          debugPrint('AuthScreen: popping back to first route');
           navigator.popUntil((route) => route.isFirst);
         } else {
+          debugPrint('AuthScreen: replacing with root route');
           navigator.pushReplacementNamed('/');
         }
       });
@@ -1050,9 +1055,14 @@ class _AuthScreenState extends State<AuthScreen>
   }
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    debugPrint('AuthScreen: starting Google Sign In');
     final success = await authProvider.signInWithGoogle();
+    debugPrint('AuthScreen: Google Sign In completed. success=$success');
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -1060,14 +1070,18 @@ class _AuthScreenState extends State<AuthScreen>
           _errorMessage = _translateError(authProvider.error);
         }
       });
-      if (success) widget.onComplete?.call();
     }
   }
 
   Future<void> _handleAppleSignIn() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    debugPrint('AuthScreen: starting Apple Sign In');
     final success = await authProvider.signInWithApple();
+    debugPrint('AuthScreen: Apple Sign In completed. success=$success');
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -1075,7 +1089,6 @@ class _AuthScreenState extends State<AuthScreen>
           _errorMessage = _translateError(authProvider.error);
         }
       });
-      if (success) widget.onComplete?.call();
     }
   }
 

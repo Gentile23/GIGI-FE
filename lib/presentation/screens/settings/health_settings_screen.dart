@@ -421,7 +421,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                           : AppLocalizations.of(
                               context,
                             )!.connectTo(_healthService.platformName),
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
                     ),
             ),
           ),

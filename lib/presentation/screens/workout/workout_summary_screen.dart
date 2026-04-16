@@ -99,7 +99,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   late final ConfettiController _confettiController;
 
   bool _isGeneratingImage = false;
-  File? _selectedPhoto;
+  Uint8List? _selectedPhotoBytes;
 
   @override
   void initState() {
@@ -227,7 +227,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       width: 360,
                       child: WorkoutShareCard(
                         summaryData: data,
-                        photo: _selectedPhoto,
+                        photoBytes: _selectedPhotoBytes,
                         userName: Provider.of<AuthProvider>(
                           context,
                           listen: false,
@@ -683,12 +683,12 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   String _getSummaryMessage(WorkoutSummaryData data) {
     if (data.completionPercentage >= 100) {
-      return 'Hai chiuso la sessione completa. Stesso linguaggio premium della nutrizione, ma dedicato alla performance.';
+      return '';
     }
     if (data.completedExercises > 0) {
-      return 'Sessione registrata con i dati reali completati. Hai comunque lasciato traccia concreta del lavoro svolto.';
+      return '';
     }
-    return 'Sessione chiusa senza esercizi completati. Puoi uscire o condividere comunque il riepilogo.';
+    return '';
   }
 
   Widget _buildShareCTA() {
@@ -866,12 +866,13 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       if (image == null) return;
       if (!mounted) return;
 
-      final selectedPhoto = File(image.path);
+      final selectedPhotoBytes = await image.readAsBytes();
+      if (!mounted) return;
 
-      await precacheImage(FileImage(selectedPhoto), context);
+      await precacheImage(MemoryImage(selectedPhotoBytes), context);
 
       setState(() {
-        _selectedPhoto = selectedPhoto;
+        _selectedPhotoBytes = selectedPhotoBytes;
       });
 
       await _waitForShareCardToPaint();
@@ -959,8 +960,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Future<void> _waitForShareCardToPaint() async {
     RenderRepaintBoundary? boundary;
 
-    for (var attempt = 0; attempt < 12; attempt++) {
+    for (var attempt = 0; attempt < 20; attempt++) {
       await WidgetsBinding.instance.endOfFrame;
+      await Future<void>.delayed(const Duration(milliseconds: 16));
 
       final boundaryContext = _shareCardKey.currentContext;
       final renderObject = boundaryContext?.findRenderObject();

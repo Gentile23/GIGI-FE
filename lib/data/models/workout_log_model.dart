@@ -304,6 +304,7 @@ class WorkoutStats {
   final int totalWorkouts;
   final int totalTimeMinutes;
   final int totalExercises;
+  final int totalSets;
   final double totalVolumeKg;
   final int currentStreak;
   final int longestStreak;
@@ -316,6 +317,7 @@ class WorkoutStats {
     required this.totalWorkouts,
     required this.totalTimeMinutes,
     required this.totalExercises,
+    required this.totalSets,
     required this.totalVolumeKg,
     required this.currentStreak,
     required this.longestStreak,
@@ -330,6 +332,7 @@ class WorkoutStats {
       totalWorkouts: _asIntOrNull(json['total_workouts']) ?? 0,
       totalTimeMinutes: _asIntOrNull(json['total_time_minutes']) ?? 0,
       totalExercises: _asIntOrNull(json['total_exercises']) ?? 0,
+      totalSets: _asIntOrNull(json['total_sets']) ?? 0,
       totalVolumeKg: _asDoubleOrNull(json['total_volume_kg']) ?? 0,
       currentStreak: _asIntOrNull(json['current_streak']) ?? 0,
       longestStreak: _asIntOrNull(json['longest_streak']) ?? 0,

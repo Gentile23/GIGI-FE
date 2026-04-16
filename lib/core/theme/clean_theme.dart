@@ -263,6 +263,7 @@ class CleanTheme {
           textStyle: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w600,
+            height: 1.2,
           ),
         ),
       ),

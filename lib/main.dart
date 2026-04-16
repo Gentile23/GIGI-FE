@@ -28,6 +28,7 @@ import 'providers/nutrition_coach_provider.dart';
 import 'core/services/payment_service.dart';
 import 'core/services/music_integration_service.dart';
 import 'core/services/rest_timer_service.dart';
+import 'core/services/workout_refresh_notifier.dart';
 import 'package:audio_session/audio_session.dart' as session;
 
 void main() async {
@@ -125,6 +126,7 @@ class GigiApp extends StatelessWidget {
           create: (_) => MusicIntegrationService()..initialize(),
         ),
         ChangeNotifierProvider(create: (_) => RestTimerService()..initialize()),
+        ChangeNotifierProvider(create: (_) => WorkoutRefreshNotifier()),
       ],
       child: MaterialApp(
         title: 'GIGI',

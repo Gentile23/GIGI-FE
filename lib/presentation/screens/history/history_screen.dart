@@ -9,6 +9,7 @@ import 'package:gigi/presentation/screens/history/stats_screen.dart';
 import 'package:gigi/presentation/screens/history/workout_history_detail_screen.dart';
 import 'package:gigi/presentation/widgets/history/workout_calendar_widget.dart';
 import 'package:gigi/presentation/widgets/clean_widgets.dart';
+import 'package:gigi/core/services/workout_refresh_notifier.dart';
 import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -19,14 +20,40 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  late final WorkoutRefreshNotifier _workoutRefreshNotifier;
+
   @override
   void initState() {
     super.initState();
+    _workoutRefreshNotifier = Provider.of<WorkoutRefreshNotifier>(
+      context,
+      listen: false,
+    );
+    _workoutRefreshNotifier.addListener(_handleWorkoutRefresh);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
       provider.fetchWorkoutHistory();
       provider.fetchOverviewStats();
     });
+  }
+
+  @override
+  void dispose() {
+    _workoutRefreshNotifier.removeListener(_handleWorkoutRefresh);
+    super.dispose();
+  }
+
+  void _handleWorkoutRefresh() {
+    debugPrint(
+      'HistoryScreen: received workout refresh v${_workoutRefreshNotifier.version}',
+    );
+    _reloadHistoryData();
+  }
+
+  Future<void> _reloadHistoryData() async {
+    final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+    await provider.fetchWorkoutHistory(refresh: true);
+    await provider.fetchOverviewStats();
   }
 
   @override

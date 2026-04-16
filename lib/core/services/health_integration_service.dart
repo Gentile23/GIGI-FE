@@ -105,9 +105,17 @@ class HealthIntegrationService {
         permissions: permissions,
       );
 
-      await _setAuthorizedState(authorized);
-      debugPrint('Health permissions granted: $authorized');
-      return authorized;
+      // On iOS, requestAuthorization returns true if the dialog was shown.
+      // We should check if we actually have at least some permissions.
+      bool actuallyAuthorized = authorized;
+      if (_isIOS && authorized) {
+        actuallyAuthorized = await _refreshAuthorizationState();
+      } else {
+        await _setAuthorizedState(authorized);
+      }
+
+      debugPrint('Health permissions granted: $actuallyAuthorized');
+      return actuallyAuthorized;
     } catch (e) {
       debugPrint('Error requesting health permissions: $e');
       return false;
