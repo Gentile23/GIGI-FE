@@ -92,6 +92,16 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       _repsControllers[setNumber];
   int getRpe(int setNumber) => _rpe[setNumber] ?? 7;
 
+  int getPendingSetsCount() {
+    int pending = 0;
+    for (int setNumber = 1; setNumber <= totalSets; setNumber++) {
+      if (!(_completedSets[setNumber] ?? false)) {
+        pending++;
+      }
+    }
+    return pending;
+  }
+
   List<SetCompletionData> getCompletedSetEntries() {
     final entries = <SetCompletionData>[];
     for (int setNumber = 1; setNumber <= totalSets; setNumber++) {
@@ -222,6 +232,59 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       return int.tryParse(trimmed) ?? double.tryParse(trimmed)?.round();
     }
     return null;
+  }
+
+  int _resolveDefaultRepsForSet(int setNumber) {
+    final preset = _presetReps[setNumber] ?? '';
+    final parsed = _parseIntFlexible(preset);
+    if (parsed != null && parsed > 0) return parsed;
+    return _reps[setNumber] != null && (_reps[setNumber] ?? 0) > 0
+        ? _reps[setNumber]!
+        : 10;
+  }
+
+  void _ensureDefaultsForSet(int setNumber) {
+    final currentReps = _reps[setNumber] ?? 0;
+    if (currentReps <= 0) {
+      _reps[setNumber] = _resolveDefaultRepsForSet(setNumber);
+      final controller = _repsControllers[setNumber];
+      if (controller != null) {
+        controller.value = TextEditingValue(
+          text: _reps[setNumber]!.toString(),
+          selection: TextSelection.collapsed(
+            offset: _reps[setNumber]!.toString().length,
+          ),
+        );
+      }
+    }
+
+    final currentRpe = _rpe[setNumber] ?? 0;
+    if (currentRpe <= 0) {
+      _rpe[setNumber] = 7;
+    }
+  }
+
+  Future<void> completeAllSetsQuick() async {
+    final pendingSets = <int>[];
+    for (int setNumber = 1; setNumber <= totalSets; setNumber++) {
+      if (!(_completedSets[setNumber] ?? false)) {
+        pendingSets.add(setNumber);
+      }
+    }
+    if (pendingSets.isEmpty) return;
+
+    if (_isRestTimerActive) {
+      await _stopRestTimer();
+    }
+
+    for (final setNumber in pendingSets) {
+      setState(() {
+        _ensureDefaultsForSet(setNumber);
+      });
+      await _toggleSet(setNumber, true, skipRestTimer: true);
+    }
+
+    _notifyCompletionChanged();
   }
 
   @override
@@ -661,12 +724,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   }
 
   void _initializeCoaching() {
-    if (widget.exercise.exercise.voiceCoaching?.isMultiPhase == true) {
-      _coachingPlayer.setCoaching(
-        widget.exercise.exercise.voiceCoaching!.multiPhase,
-      );
-      _showCoachingControls = true;
-    }
+    // Legacy in-card coaching controls disabled.
+    // Guided execution now managed by session-level controller only.
+    _showCoachingControls = false;
   }
 
   void _initializeData() {
@@ -913,7 +973,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
               ),
             ),
 
-          if (_showCoachingControls) _buildCoachingControls(),
+          // In-card coaching controls disabled (single global control plane).
 
           // Rest Timer is now rendered fullscreen by parent via onRestTimerStateChanged
 
@@ -1516,7 +1576,11 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     );
   }
 
-  Future<void> _toggleSet(int setNumber, bool? value) async {
+  Future<void> _toggleSet(
+    int setNumber,
+    bool? value, {
+    bool skipRestTimer = false,
+  }) async {
     if (value == null) return;
 
     setState(() {
@@ -1526,7 +1590,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     _scheduleAutoSave(setNumber);
 
     // Start rest timer IMMEDIATELY after checking the set for instant feedback
-    if (value && setNumber <= totalSets && !_isRestTimerActive) {
+    if (!skipRestTimer &&
+        value &&
+        setNumber <= totalSets &&
+        !_isRestTimerActive) {
       // Sound is now handled in onTap for faster response
       _startRestTimer(setNumber);
     }
@@ -1615,6 +1682,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     }
   }
 
+  // ignore: unused_element
   Widget _buildCoachingControls() {
     return ListenableBuilder(
       listenable: _coachingPlayer,

@@ -104,32 +104,39 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     if (_report == null) return;
 
-    final hasHealthData = _report!.hasHealthData;
-    final sleepValue = hasHealthData
-        ? '${_report!.sleep.avgHours.toStringAsFixed(1)}h${AppLocalizations.of(context)!.perNight}'
-        : AppLocalizations.of(context)!.noDataAvailable;
-    final stepsValue = hasHealthData
-        ? '${_report!.activity.avgDailySteps}${AppLocalizations.of(context)!.perDay}'
-        : AppLocalizations.of(context)!.noDataAvailable;
-    final hrValue = hasHealthData
-        ? '${_report!.heartRate.restingAvg} bpm'
-        : AppLocalizations.of(context)!.noDataAvailable;
+    final lines = <String>[
+      '📊 ${AppLocalizations.of(context)!.myWeeklyReport}',
+      '',
+    ];
 
-    final text =
-        '''
-📊 ${AppLocalizations.of(context)!.myWeeklyReport}
+    if (_report!.hasSleepData) {
+      lines.add(
+        '😴 ${AppLocalizations.of(context)!.sleep}: ${_report!.sleep.avgHours.toStringAsFixed(1)}h${AppLocalizations.of(context)!.perNight}',
+      );
+    }
+    if (_report!.hasStepsData) {
+      lines.add(
+        '🚶 ${AppLocalizations.of(context)!.steps}: ${_report!.activity.avgDailySteps}${AppLocalizations.of(context)!.perDay}',
+      );
+    }
+    if (_report!.hasWorkoutData) {
+      lines.add(
+        '💪 ${AppLocalizations.of(context)!.workouts}: ${_report!.activity.workoutsCompleted} ${AppLocalizations.of(context)!.completed}',
+      );
+    }
+    if (_report!.hasHeartRateData) {
+      lines.add(
+        '❤️ ${AppLocalizations.of(context)!.heartRate}: ${_report!.heartRate.restingAvg} bpm',
+      );
+    }
 
-😴 ${AppLocalizations.of(context)!.sleep}: $sleepValue
-🚶 ${AppLocalizations.of(context)!.steps}: $stepsValue  
-💪 ${AppLocalizations.of(context)!.workouts}: ${_report!.activity.workoutsCompleted} ${AppLocalizations.of(context)!.completed}
-❤️ ${AppLocalizations.of(context)!.heartRate}: $hrValue
+    lines
+      ..add('')
+      ..add('💡 ${_report!.aiTip}')
+      ..add('')
+      ..add('#GIGI #Fitness #HealthTracking');
 
-💡 ${_report!.aiTip}
-
-#GIGI #Fitness #HealthTracking
-''';
-
-    SharePlus.instance.share(ShareParams(text: text));
+    SharePlus.instance.share(ShareParams(text: lines.join('\n')));
   }
 
   @override
@@ -233,25 +240,25 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 // Stats grid
                 _buildStatsGrid(),
 
-                const SizedBox(height: 24),
+                if (_report!.hasSleepData) ...[
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(
+                    '😴',
+                    AppLocalizations.of(context)!.sleepTrend,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSleepChart(),
+                ],
 
-                // Sleep chart
-                _buildSectionTitle(
-                  '😴',
-                  AppLocalizations.of(context)!.sleepTrend,
-                ),
-                const SizedBox(height: 12),
-                _buildSleepChart(),
-
-                const SizedBox(height: 24),
-
-                // Activity summary
-                _buildSectionTitle(
-                  '🚶',
-                  AppLocalizations.of(context)!.activity,
-                ),
-                const SizedBox(height: 12),
-                _buildActivityCard(),
+                if (_report!.hasStepsData) ...[
+                  const SizedBox(height: 24),
+                  _buildSectionTitle(
+                    '🚶',
+                    AppLocalizations.of(context)!.activity,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActivityCard(),
+                ],
 
                 const SizedBox(height: 24),
 
@@ -286,7 +293,65 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildStatsGrid() {
-    final hasHealthData = _report!.hasHealthData;
+    final stats = <Widget>[];
+
+    if (_report!.hasSleepData) {
+      stats.add(
+        _buildStatItem(
+          '😴',
+          '${_report!.sleep.avgHours.toStringAsFixed(1)}h',
+          AppLocalizations.of(context)!.avgSleep,
+          _getTrendIcon(_report!.sleep.trend),
+        ),
+      );
+    }
+
+    if (_report!.hasStepsData) {
+      stats.add(
+        _buildStatItem(
+          '🚶',
+          '${(_report!.activity.avgDailySteps / 1000).toStringAsFixed(1)}k',
+          AppLocalizations.of(context)!.stepsPerDay,
+          null,
+        ),
+      );
+    }
+
+    if (_report!.hasWorkoutData) {
+      stats.add(
+        _buildStatItem(
+          '💪',
+          '${_report!.activity.workoutsCompleted}',
+          AppLocalizations.of(context)!.workouts,
+          null,
+        ),
+      );
+    }
+
+    if (_report!.hasHeartRateData) {
+      stats.add(
+        _buildStatItem(
+          '❤️',
+          '${_report!.heartRate.restingAvg}',
+          AppLocalizations.of(context)!.hrBpm,
+          null,
+        ),
+      );
+    }
+
+    if (stats.isEmpty) {
+      return _buildMissingHealthDataCard(
+        message: 'Nessuna metrica disponibile per questa settimana.',
+      );
+    }
+
+    final rowChildren = <Widget>[];
+    for (int index = 0; index < stats.length; index++) {
+      if (index > 0) {
+        rowChildren.add(_buildDivider());
+      }
+      rowChildren.add(stats[index]);
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -303,39 +368,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(
-            '😴',
-            hasHealthData
-                ? '${_report!.sleep.avgHours.toStringAsFixed(1)}h'
-                : '-',
-            AppLocalizations.of(context)!.avgSleep,
-            hasHealthData ? _getTrendIcon(_report!.sleep.trend) : null,
-          ),
-          _buildDivider(),
-          _buildStatItem(
-            '🚶',
-            hasHealthData
-                ? '${(_report!.activity.avgDailySteps / 1000).toStringAsFixed(1)}k'
-                : '-',
-            AppLocalizations.of(context)!.stepsPerDay,
-            null,
-          ),
-          _buildDivider(),
-          _buildStatItem(
-            '💪',
-            '${_report!.activity.workoutsCompleted}',
-            AppLocalizations.of(context)!.workouts,
-            null,
-          ),
-          _buildDivider(),
-          _buildStatItem(
-            '❤️',
-            hasHealthData ? '${_report!.heartRate.restingAvg}' : '-',
-            AppLocalizations.of(context)!.hrBpm,
-            null,
-          ),
-        ],
+        children: rowChildren,
       ),
     );
   }
@@ -414,12 +447,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildSleepChart() {
-    if (!_report!.hasHealthData) {
-      return _buildMissingHealthDataCard(
-        message: 'Nessun dato sonno disponibile questa settimana.',
-      );
-    }
-
     final sleepData = _report!.sleep.dailyHours.values.toList();
     final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
 
@@ -506,12 +533,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildActivityCard() {
-    if (!_report!.hasHealthData) {
-      return _buildMissingHealthDataCard(
-        message: 'Nessun dato passi disponibile questa settimana.',
-      );
-    }
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -561,6 +582,8 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   }
 
   Widget _buildInsightsList() {
+    final showWorkoutError =
+        !_report!.hasWorkoutData && _report!.workoutDataStatus == 'error';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -568,38 +591,63 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        children: _report!.insights
-            .map(
-              (insight) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.only(top: 6),
-                      decoration: const BoxDecoration(
-                        color: CleanTheme.primaryColor,
-                        shape: BoxShape.circle,
+        children: [
+          if (showWorkoutError)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: CleanTheme.accentOrange,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Workout settimanali non disponibili al momento. Riprova sincronizzazione.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        insight,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: CleanTheme.textPrimary,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            )
-            .toList(),
+            ),
+          ..._report!.insights.map(
+            (insight) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(top: 6),
+                    decoration: const BoxDecoration(
+                      color: CleanTheme.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      insight,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textPrimary,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -712,10 +760,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
               _isConnected
                   ? 'Abbiamo i permessi ma non troviamo dati per questa settimana. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
                   : (_healthConnectInstalled
-                      ? (_insightsService.isAndroidPlatform
-                          ? AppLocalizations.of(context)!.syncHealthConnect
-                          : AppLocalizations.of(context)!.syncAppleHealth)
-                      : AppLocalizations.of(context)!.installHealthConnectInfo),
+                        ? (_insightsService.isAndroidPlatform
+                              ? AppLocalizations.of(context)!.syncHealthConnect
+                              : AppLocalizations.of(context)!.syncAppleHealth)
+                        : AppLocalizations.of(
+                            context,
+                          )!.installHealthConnectInfo),
               style: GoogleFonts.inter(color: CleanTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -726,10 +776,10 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 onPressed: _isConnecting || _isInstalling
                     ? null
                     : (_isConnected
-                        ? _loadReport
-                        : (_healthConnectInstalled
-                            ? _connectHealth
-                            : _installHealthConnect)),
+                          ? _loadReport
+                          : (_healthConnectInstalled
+                                ? _connectHealth
+                                : _installHealthConnect)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CleanTheme.primaryColor,
                   foregroundColor: CleanTheme.textOnDark,
@@ -748,12 +798,12 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                         _isConnected
                             ? 'Riprova sincronizzazione'
                             : (_healthConnectInstalled
-                                ? AppLocalizations.of(
-                                    context,
-                                  )!.connectTo(_insightsService.platformName)
-                                : AppLocalizations.of(
-                                    context,
-                                  )!.installHealthConnect),
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.connectTo(_insightsService.platformName)
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.installHealthConnect),
                       ),
               ),
             ),

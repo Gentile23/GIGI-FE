@@ -5,6 +5,7 @@ import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../data/models/user_profile_model.dart';
 import '../../../data/models/training_preferences_model.dart';
+import '../../../data/models/injury_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
@@ -26,6 +27,7 @@ class EditPreferencesScreen extends StatefulWidget {
 
 class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   bool _isLoading = false;
 
   // User preferences
@@ -44,6 +46,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   int? _age;
   DateTime? _dateOfBirth;
   BodyFatPercentage? _bodyFatPercentage;
+  List<InjuryModel> _injuries = [];
 
   @override
   void initState() {
@@ -51,12 +54,20 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     _loadCurrentPreferences();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   void _loadCurrentPreferences() {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user != null) {
       setState(() {
+        _nameController.text = user.name;
         _height = user.height;
         _weight = user.weight;
+        _injuries = List<InjuryModel>.from(user.detailedInjuries);
 
         if (user.dateOfBirth != null) {
           _dateOfBirth = user.dateOfBirth;
@@ -177,8 +188,16 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final detailedInjuries = _injuries.map((i) => i.toJson()).toList();
+      final limitations = _injuries
+          .map(
+            (i) =>
+                '${i.category.getLocalizedName(context)}: ${i.area.getLocalizedName(context)} (${i.severity.getLocalizedName(context)})',
+          )
+          .toList();
 
       final success = await authProvider.updateProfile(
+        name: _nameController.text.trim(),
         height: _height,
         weight: _weight,
         dateOfBirth: _dateOfBirth?.toIso8601String().split('T')[0],
@@ -194,6 +213,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         weeklyFrequency: _weeklyFrequency,
         location: _location?.toString().split('.').last,
         equipment: _equipment.map((e) => e.toString().split('.').last).toList(),
+        limitations: limitations,
+        detailedInjuries: detailedInjuries,
         trainingSplit: _trainingSplit?.toString().split('.').last,
         sessionDuration: _sessionDuration,
         cardioPreference: _cardioPreference?.toString().split('.').last,
@@ -230,7 +251,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Si è verificato un errore durante il salvataggio. Riprova.'),
+            content: Text(
+              'Si è verificato un errore durante il salvataggio. Riprova.',
+            ),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -253,25 +276,23 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             child: Form(
               key: _formKey,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (widget.showGenerateButton) _buildInstructionsCard(),
-                    
+
                     _buildGigiHeader(
-                      AppLocalizations.of(context)!.personalInfo,
-                      AppLocalizations.of(context)!.sectionAboutYouSubtitle,
+                      'Profilo Fitness',
+                      'Dati personali, obiettivi, preferenze e infortuni',
                     ),
                     _buildPersonalInfoCard(),
                     const SizedBox(height: 24),
                     _buildBodyFatSelector(),
-                    
-                    const SizedBox(height: 32),
-                    _buildGigiHeader(
-                      AppLocalizations.of(context)!.trainingGoals,
-                      AppLocalizations.of(context)!.questionGoalSubtitle,
-                    ),
+                    const SizedBox(height: 24),
                     _buildGoalsSelector(),
                     const SizedBox(height: 24),
                     _buildExperienceLevelSelector(),
@@ -297,6 +318,8 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                     _buildDurationSlider(),
                     const SizedBox(height: 24),
                     _buildCardioMobilitySelectors(),
+                    const SizedBox(height: 32),
+                    _buildInjuriesSection(),
 
                     const SizedBox(height: 48),
                     _buildActionButtons(),
@@ -321,7 +344,7 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       title: Text(
         widget.showGenerateButton
             ? AppLocalizations.of(context)!.reviewPreferences
-            : AppLocalizations.of(context)!.fitnessGoals,
+            : 'Profilo Fitness',
         style: GoogleFonts.outfit(
           fontWeight: FontWeight.w700,
           color: CleanTheme.textPrimary,
@@ -329,7 +352,11 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       ),
       centerTitle: true,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: CleanTheme.textPrimary, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: CleanTheme.textPrimary,
+          size: 20,
+        ),
         onPressed: () => Navigator.pop(context),
       ),
     );
@@ -397,6 +424,13 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
       padding: const EdgeInsets.all(0),
       child: Column(
         children: [
+          _buildEditableTextInfoTile(
+            label: AppLocalizations.of(context)!.fullName,
+            icon: Icons.person_outline,
+            controller: _nameController,
+            hintText: AppLocalizations.of(context)!.enterYourName,
+          ),
+          _buildDivider(),
           _buildInfoTile(
             AppLocalizations.of(context)!.height,
             '${_height?.toStringAsFixed(0) ?? '-'} cm',
@@ -427,9 +461,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           _buildDivider(),
           _buildInfoTile(
             AppLocalizations.of(context)!.age,
-            _dateOfBirth != null 
-              ? '${_age ?? '-'} ${AppLocalizations.of(context)!.years}'
-              : 'Seleziona data',
+            _dateOfBirth != null
+                ? '${_age ?? '-'} ${AppLocalizations.of(context)!.years}'
+                : 'Seleziona data',
             Icons.cake_outlined,
             onTap: _showDatePicker,
           ),
@@ -451,7 +485,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     );
   }
 
-  Widget _buildInfoTile(String label, String value, IconData icon, {VoidCallback? onTap}) {
+  Widget _buildInfoTile(
+    String label,
+    String value,
+    IconData icon, {
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -479,10 +518,66 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             ),
             if (onTap != null) ...[
               const SizedBox(width: 12),
-              const Icon(Icons.chevron_right, size: 18, color: CleanTheme.textTertiary),
+              const Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: CleanTheme.textTertiary,
+              ),
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEditableTextInfoTile({
+    required String label,
+    required IconData icon,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: CleanTheme.textSecondary),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: TextFormField(
+              controller: controller,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textPrimary,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                hintText: hintText,
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textTertiary,
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return AppLocalizations.of(context)!.enterYourName;
+                }
+                return null;
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -555,7 +650,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                 child: SizedBox(
                   width: 100, // Fixed width for centering
                   child: CleanCard(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 8,
+                    ),
                     isSelected: isSelected,
                     onTap: () {
                       HapticService.selectionClick();
@@ -566,7 +664,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                       children: [
                         Icon(
                           _getLevelIcon(lvl),
-                          color: isSelected ? CleanTheme.primaryColor : CleanTheme.textTertiary,
+                          color: isSelected
+                              ? CleanTheme.primaryColor
+                              : CleanTheme.textTertiary,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -574,8 +674,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? CleanTheme.textPrimary
+                                : CleanTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -592,9 +696,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
   IconData _getLevelIcon(ExperienceLevel lvl) {
     switch (lvl) {
-      case ExperienceLevel.beginner: return Icons.spoke_outlined;
-      case ExperienceLevel.intermediate: return Icons.trending_up;
-      case ExperienceLevel.advanced: return Icons.workspace_premium;
+      case ExperienceLevel.beginner:
+        return Icons.spoke_outlined;
+      case ExperienceLevel.intermediate:
+        return Icons.trending_up;
+      case ExperienceLevel.advanced:
+        return Icons.workspace_premium;
     }
   }
 
@@ -616,7 +723,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: CleanTheme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -670,7 +780,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             child: SizedBox(
               width: 100, // Fixed width for centering
               child: CleanCard(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 8,
+                ),
                 isSelected: isSelected,
                 onTap: () {
                   HapticService.selectionClick();
@@ -682,7 +795,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                     Icon(
                       _getLocationIcon(loc),
                       size: 28,
-                      color: isSelected ? CleanTheme.primaryColor : CleanTheme.textTertiary,
+                      color: isSelected
+                          ? CleanTheme.primaryColor
+                          : CleanTheme.textTertiary,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -690,8 +805,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? CleanTheme.textPrimary
+                            : CleanTheme.textSecondary,
                       ),
                     ),
                   ],
@@ -706,9 +825,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
 
   IconData _getLocationIcon(TrainingLocation loc) {
     switch (loc) {
-      case TrainingLocation.gym: return Icons.fitness_center;
-      case TrainingLocation.home: return Icons.home_filled;
-      case TrainingLocation.outdoor: return Icons.forest;
+      case TrainingLocation.gym:
+        return Icons.fitness_center;
+      case TrainingLocation.home:
+        return Icons.home_filled;
+      case TrainingLocation.outdoor:
+        return Icons.forest;
     }
   }
 
@@ -749,7 +871,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         child: DropdownButton<T>(
           value: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: CleanTheme.textSecondary),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: CleanTheme.textSecondary,
+          ),
           dropdownColor: CleanTheme.surfaceColor,
           borderRadius: BorderRadius.circular(16),
           items: items.map((item) {
@@ -840,7 +965,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           Icons.directions_run,
           () => _showPrefPicker<CardioPreference>(
             AppLocalizations.of(context)!.cardioPreference,
-            CardioPreference.values.where((p) => p != CardioPreference.separateSession).toList(),
+            CardioPreference.values
+                .where((p) => p != CardioPreference.separateSession)
+                .toList(),
             _cardioPreference,
             (v) => setState(() => _cardioPreference = v),
             itemLabel: (p) => p.displayName,
@@ -853,7 +980,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           Icons.accessibility_new,
           () => _showPrefPicker<MobilityPreference>(
             AppLocalizations.of(context)!.mobilityPreference,
-            MobilityPreference.values.where((p) => p != MobilityPreference.dedicatedSession).toList(),
+            MobilityPreference.values
+                .where((p) => p != MobilityPreference.dedicatedSession)
+                .toList(),
             _mobilityPreference,
             (v) => setState(() => _mobilityPreference = v),
             itemLabel: (p) => p.displayName,
@@ -863,7 +992,12 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     );
   }
 
-  Widget _buildPrefRow(String label, String value, IconData icon, VoidCallback onTap) {
+  Widget _buildPrefRow(
+    String label,
+    String value,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return CleanCard(
       padding: const EdgeInsets.all(16),
       onTap: onTap,
@@ -873,7 +1007,10 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           const SizedBox(width: 16),
           Text(
             label,
-            style: GoogleFonts.inter(fontSize: 15, color: CleanTheme.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: CleanTheme.textSecondary,
+            ),
           ),
           const Spacer(),
           Text(
@@ -885,10 +1022,416 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.keyboard_arrow_down, size: 18, color: CleanTheme.textTertiary),
+          const Icon(
+            Icons.keyboard_arrow_down,
+            size: 18,
+            color: CleanTheme.textTertiary,
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildInjuriesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.injuriesTitle,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        CleanCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _injuries.isEmpty
+                          ? 'Nessun infortunio inserito'
+                          : '${_injuries.length} infortun${_injuries.length == 1 ? 'io' : 'i'} registrat${_injuries.length == 1 ? 'o' : 'i'}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _openInjuryEditor(),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Aggiungi'),
+                  ),
+                ],
+              ),
+              if (_injuries.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Divider(color: CleanTheme.borderSecondary),
+                ...List.generate(_injuries.length, (index) {
+                  final injury = _injuries[index];
+                  return Column(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          injury.category.icon,
+                          color: CleanTheme.primaryColor,
+                        ),
+                        title: Text(
+                          injury.area.getLocalizedName(context),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${injury.severity.getLocalizedName(context)} · ${injury.status.getLocalizedName(context)} · ${_getTimingLabel(injury.timing)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: CleanTheme.textSecondary,
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () =>
+                                  _openInjuryEditor(editIndex: index),
+                              icon: const Icon(
+                                Icons.edit_outlined,
+                                size: 20,
+                                color: CleanTheme.textSecondary,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                setState(() => _injuries.removeAt(index));
+                              },
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                size: 20,
+                                color: CleanTheme.accentRed,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (index != _injuries.length - 1)
+                        const Divider(color: CleanTheme.borderSecondary),
+                    ],
+                  );
+                }),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openInjuryEditor({int? editIndex}) {
+    final existing = editIndex != null ? _injuries[editIndex] : null;
+    final painfulController = TextEditingController(
+      text: existing?.painfulExercises ?? '',
+    );
+    final notesController = TextEditingController(text: existing?.notes ?? '');
+
+    InjuryCategory selectedCategory =
+        existing?.category ?? InjuryCategory.muscular;
+    InjuryArea? selectedArea = existing?.area;
+    InjuryTiming selectedTiming = existing?.timing ?? InjuryTiming.current;
+    InjuryStatus selectedStatus = existing?.status ?? InjuryStatus.active;
+    InjurySeverity selectedSeverity = existing?.severity ?? InjurySeverity.mild;
+    String selectedSide = existing?.side ?? 'bilateral';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: CleanTheme.backgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final areas = InjuryArea.values
+                .where((a) => a.category == selectedCategory)
+                .toList();
+
+            if (selectedArea != null && !areas.contains(selectedArea)) {
+              selectedArea = null;
+            }
+
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                20 + MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      editIndex == null
+                          ? 'Nuovo infortunio'
+                          : 'Modifica infortunio',
+                      style: GoogleFonts.outfit(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<InjuryCategory>(
+                      initialValue: selectedCategory,
+                      decoration: const InputDecoration(
+                        labelText: 'Categoria',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: InjuryCategory.values
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c.getLocalizedName(context)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setModalState(() {
+                          selectedCategory = value;
+                          selectedArea = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<InjuryArea>(
+                      initialValue: selectedArea,
+                      decoration: const InputDecoration(
+                        labelText: 'Area',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: areas
+                          .map(
+                            (a) => DropdownMenuItem(
+                              value: a,
+                              child: Text(a.getLocalizedName(context)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setModalState(() => selectedArea = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<InjuryTiming>(
+                      initialValue: selectedTiming,
+                      decoration: const InputDecoration(
+                        labelText: 'Quando',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: InjuryTiming.values
+                          .map(
+                            (t) => DropdownMenuItem(
+                              value: t,
+                              child: Text(_getTimingLabel(t)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setModalState(() => selectedTiming = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<InjuryStatus>(
+                      initialValue: selectedStatus,
+                      decoration: const InputDecoration(
+                        labelText: 'Stato',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: InjuryStatus.values
+                          .map(
+                            (s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(s.getLocalizedName(context)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setModalState(() => selectedStatus = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<InjurySeverity>(
+                      initialValue: selectedSeverity,
+                      decoration: const InputDecoration(
+                        labelText: 'Gravità',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: InjurySeverity.values
+                          .map(
+                            (s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(s.getLocalizedName(context)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setModalState(() => selectedSeverity = value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    if (selectedArea != null &&
+                        _isSideApplicable(selectedArea!))
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedSide,
+                        decoration: const InputDecoration(
+                          labelText: 'Lato',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'left',
+                            child: Text('Sinistro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'right',
+                            child: Text('Destro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'bilateral',
+                            child: Text('Bilaterale'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setModalState(() => selectedSide = value);
+                        },
+                      ),
+                    if (selectedArea != null &&
+                        _isSideApplicable(selectedArea!))
+                      const SizedBox(height: 12),
+                    TextFormField(
+                      controller: painfulController,
+                      decoration: const InputDecoration(
+                        labelText: 'Esercizi dolorosi (opzionale)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: notesController,
+                      minLines: 2,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Note (opzionale)',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    CleanButton(
+                      text: editIndex == null
+                          ? 'Salva infortunio'
+                          : 'Aggiorna infortunio',
+                      width: double.infinity,
+                      onPressed: () {
+                        if (selectedArea == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Seleziona una zona specifica'),
+                              backgroundColor: CleanTheme.accentRed,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final injury = InjuryModel(
+                          id:
+                              existing?.id ??
+                              'injury_${DateTime.now().microsecondsSinceEpoch}',
+                          category: selectedCategory,
+                          area: selectedArea!,
+                          severity: selectedSeverity,
+                          status: selectedStatus,
+                          timing: selectedTiming,
+                          side: _isSideApplicable(selectedArea!)
+                              ? selectedSide
+                              : null,
+                          isOvercome: selectedStatus == InjuryStatus.resolved,
+                          painfulExercises:
+                              painfulController.text.trim().isEmpty
+                              ? null
+                              : painfulController.text.trim(),
+                          notes: notesController.text.trim().isEmpty
+                              ? null
+                              : notesController.text.trim(),
+                          reportedAt: existing?.reportedAt ?? DateTime.now(),
+                        );
+
+                        setState(() {
+                          if (editIndex == null) {
+                            _injuries.add(injury);
+                          } else {
+                            _injuries[editIndex] = injury;
+                          }
+                        });
+
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      painfulController.dispose();
+      notesController.dispose();
+    });
+  }
+
+  bool _isSideApplicable(InjuryArea area) {
+    const midlineAreas = {
+      InjuryArea.neck,
+      InjuryArea.abs,
+      InjuryArea.obliques,
+      InjuryArea.lowerBack,
+      InjuryArea.upperBack,
+      InjuryArea.cervicalSpine,
+      InjuryArea.thoracicSpine,
+      InjuryArea.lumbarSpine,
+      InjuryArea.sacroiliac,
+      InjuryArea.vertebrae,
+      InjuryArea.pelvis,
+      InjuryArea.sternum,
+      InjuryArea.ribs,
+      InjuryArea.temporomandibular,
+    };
+    return !midlineAreas.contains(area);
+  }
+
+  String _getTimingLabel(InjuryTiming timing) {
+    switch (timing) {
+      case InjuryTiming.current:
+        return AppLocalizations.of(context)!.injuryTimingCurrent;
+      case InjuryTiming.past:
+        return AppLocalizations.of(context)!.injuryTimingPast;
+    }
   }
 
   void _showNumberPicker(
@@ -903,7 +1446,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: CleanTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Container(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
@@ -912,18 +1457,28 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
             children: [
               Text(
                 title,
-                style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+                style: GoogleFonts.outfit(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textPrimary,
+                ),
               ),
               const SizedBox(height: 32),
               Text(
                 '$currentValue $unit',
-                style: GoogleFonts.outfit(fontSize: 48, fontWeight: FontWeight.w800, color: CleanTheme.primaryColor),
+                style: GoogleFonts.outfit(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 24),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: CleanTheme.primaryColor,
-                  inactiveTrackColor: CleanTheme.primaryColor.withValues(alpha: 0.1),
+                  inactiveTrackColor: CleanTheme.primaryColor.withValues(
+                    alpha: 0.1,
+                  ),
                   thumbColor: CleanTheme.primaryColor,
                   overlayColor: CleanTheme.primaryColor.withValues(alpha: 0.1),
                 ),
@@ -964,7 +1519,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: CleanTheme.backgroundColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
         child: Column(
@@ -973,7 +1530,11 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           children: [
             Text(
               title,
-              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 24),
             ...items.map((item) {
@@ -995,12 +1556,20 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
                         label,
                         style: GoogleFonts.inter(
                           fontSize: 16,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected ? CleanTheme.textPrimary : CleanTheme.textSecondary,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? CleanTheme.textPrimary
+                              : CleanTheme.textSecondary,
                         ),
                       ),
                       const Spacer(),
-                      if (isSelected) const Icon(Icons.check_circle, color: CleanTheme.primaryColor),
+                      if (isSelected)
+                        const Icon(
+                          Icons.check_circle,
+                          color: CleanTheme.primaryColor,
+                        ),
                     ],
                   ),
                 ),
@@ -1081,7 +1650,9 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
         alignment: WrapAlignment.center,
         spacing: 8,
         runSpacing: 8,
-        children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((goal) {
+        children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((
+          goal,
+        ) {
           final isSelected = _goals.contains(goal);
           return CleanChip(
             label: _getGoalLabel(goal),

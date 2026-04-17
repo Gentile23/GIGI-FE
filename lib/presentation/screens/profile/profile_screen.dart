@@ -270,13 +270,13 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 _buildSettingsTile(
                   icon: Icons.person_outline,
-                  title: AppLocalizations.of(context)!.personalInfo,
-                  subtitle: 'Nome, Altezza, Peso',
+                  title: 'Profilo Fitness',
+                  subtitle: 'Dati personali, obiettivi e infortuni',
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const EditProfileScreen(),
+                        builder: (context) => const EditPreferencesScreen(),
                       ),
                     );
                   },
@@ -291,19 +291,6 @@ class ProfileScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const SecuritySettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.fitness_center_outlined,
-                  title: AppLocalizations.of(context)!.fitnessGoals,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditPreferencesScreen(),
                       ),
                     );
                   },

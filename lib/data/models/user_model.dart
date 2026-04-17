@@ -1,5 +1,6 @@
 import 'subscription_model.dart';
 import 'user_profile_model.dart';
+import 'injury_model.dart';
 import '../../core/constants/subscription_tiers.dart';
 
 /// User data model
@@ -26,6 +27,7 @@ class UserModel {
   final int? age;
   final String? bodyShape;
   final String? workoutType;
+  final List<InjuryModel> detailedInjuries;
   final DateTime? createdAt;
   final DateTime?
   lastPlanGeneration; // Track when user last generated a workout plan
@@ -63,6 +65,7 @@ class UserModel {
     this.age,
     this.bodyShape,
     this.workoutType,
+    this.detailedInjuries = const [],
     this.createdAt,
     this.lastPlanGeneration,
     this.avatarUrl,
@@ -135,6 +138,17 @@ class UserModel {
       workoutType:
           profile?['workout_type'] as String? ??
           json['workout_type'] as String?,
+      detailedInjuries: profile?['detailed_injuries'] != null
+          ? (profile!['detailed_injuries'] as List)
+                .whereType<Map>()
+                .map((e) => _injuryFromJson(Map<String, dynamic>.from(e)))
+                .toList()
+          : (json['detailed_injuries'] != null
+                ? (json['detailed_injuries'] as List)
+                      .whereType<Map>()
+                      .map((e) => _injuryFromJson(Map<String, dynamic>.from(e)))
+                      .toList()
+                : const []),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -239,6 +253,15 @@ class UserModel {
     return null;
   }
 
+  static InjuryModel _injuryFromJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+    normalized['reportedAt'] ??=
+        json['created_at'] ??
+        json['updated_at'] ??
+        DateTime.now().toIso8601String();
+    return InjuryModel.fromJson(normalized);
+  }
+
   /// Convenience getter for subscription tier
   SubscriptionTier get subscriptionTier =>
       subscription?.tier ?? SubscriptionTier.free;
@@ -317,6 +340,7 @@ class UserModel {
       'weight': weight,
       'body_shape': bodyShape,
       'workout_type': workoutType,
+      'detailed_injuries': detailedInjuries.map((i) => i.toJson()).toList(),
       'created_at': createdAt?.toIso8601String(),
       'last_plan_generation': lastPlanGeneration?.toIso8601String(),
       'avatar_url': avatarUrl,
@@ -354,6 +378,7 @@ class UserModel {
     int? age,
     String? bodyShape,
     String? workoutType,
+    List<InjuryModel>? detailedInjuries,
     DateTime? createdAt,
     DateTime? lastPlanGeneration,
     String? avatarUrl,
@@ -390,6 +415,7 @@ class UserModel {
       age: age ?? this.age,
       bodyShape: bodyShape ?? this.bodyShape,
       workoutType: workoutType ?? this.workoutType,
+      detailedInjuries: detailedInjuries ?? this.detailedInjuries,
       createdAt: createdAt ?? this.createdAt,
       lastPlanGeneration: lastPlanGeneration ?? this.lastPlanGeneration,
       avatarUrl: avatarUrl ?? this.avatarUrl,

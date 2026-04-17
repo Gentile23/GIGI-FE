@@ -1,5 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 import 'health_integration_service.dart';
 import '../../data/services/api_client.dart';
+import '../../data/services/biometric_service.dart';
+import '../../data/models/biometric_model.dart';
 import '../../data/services/workout_log_service.dart';
 
 /// ═══════════════════════════════════════════════════════════
@@ -14,6 +18,7 @@ class HealthInsightsService {
 
   final HealthIntegrationService _healthService = HealthIntegrationService();
   final WorkoutLogService _workoutLogService = WorkoutLogService(ApiClient());
+  final BiometricService _biometricService = BiometricService(ApiClient());
 
   Future<bool> initialize() async {
     await _healthService.initialize();
@@ -57,21 +62,22 @@ class HealthInsightsService {
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
 
     // Collect health metrics
-    final sleepData = await _getSleepDataForWeek(weekStart);
+    final sleepResult = await _getSleepDataForWeek(weekStart);
+    final sleepData = sleepResult.dailyHours;
     final stepsData = await _getStepsDataForWeek(weekStart);
     final heartRateData = await _getHeartRateData();
-    final hasHealthData =
-        sleepData.values.any((value) => value > 0) ||
-        stepsData.values.any((value) => value > 0) ||
-        heartRateData != null;
-    final workoutData = await _getWorkoutDataForWeek();
+    final hasSleepData = sleepResult.hasData;
+    final hasStepsData = stepsData.values.any((value) => value > 0);
+    final hasHeartRateData = heartRateData != null;
+    final workoutResult = await _getWorkoutDataForWeek();
 
     // Generate insights
     final insights = _generateInsights(
       sleepData,
       stepsData,
       heartRateData,
-      workoutData,
+      workoutResult.completedCount,
+      hasWorkoutData: workoutResult.isAvailable,
     );
 
     // Calculate trends
@@ -90,7 +96,7 @@ class HealthInsightsService {
       activity: ActivitySummary(
         totalSteps: stepsData.values.fold(0, (a, b) => a + b),
         avgDailySteps: (stepsData.values.fold(0, (a, b) => a + b) / 7).round(),
-        workoutsCompleted: workoutData,
+        workoutsCompleted: workoutResult.completedCount,
         dailySteps: stepsData,
       ),
       heartRate: HeartRateSummary(
@@ -98,8 +104,18 @@ class HealthInsightsService {
         trend: 'stable',
       ),
       insights: insights,
-      aiTip: _generateWeeklyTip(sleepData, stepsData, workoutData),
-      hasHealthData: hasHealthData,
+      aiTip: _generateWeeklyTip(
+        sleepData,
+        stepsData,
+        workoutResult.completedCount,
+      ),
+      hasHealthData: hasSleepData || hasStepsData || hasHeartRateData,
+      hasSleepData: hasSleepData,
+      hasStepsData: hasStepsData,
+      hasHeartRateData: hasHeartRateData,
+      hasWorkoutData: workoutResult.isAvailable,
+      sleepDataSource: sleepResult.source,
+      workoutDataStatus: workoutResult.isAvailable ? 'available' : 'error',
     );
   }
 
@@ -220,7 +236,41 @@ class HealthInsightsService {
   // PRIVATE HELPERS
   // ═══════════════════════════════════════════════════════════
 
-  Future<Map<String, double>> _getSleepDataForWeek(DateTime weekStart) async {
+  Future<_SleepWeekDataResult> _getSleepDataForWeek(DateTime weekStart) async {
+    final healthData = await _getSleepDataFromHealthForWeek(weekStart);
+    final hasHealthSleepData = healthData.values.any((value) => value > 0);
+    if (hasHealthSleepData) {
+      return _SleepWeekDataResult(
+        dailyHours: healthData,
+        hasData: true,
+        source: 'health',
+      );
+    }
+
+    final fallbackData = await _getSleepDataFromBackendForWeek(weekStart);
+    final hasFallbackData = fallbackData.values.any((value) => value > 0);
+
+    if (hasFallbackData) {
+      if (kDebugMode) {
+        debugPrint('health_sleep_missing -> sleep_backend_fallback_used');
+      }
+      return _SleepWeekDataResult(
+        dailyHours: fallbackData,
+        hasData: true,
+        source: 'backend_fallback',
+      );
+    }
+
+    return _SleepWeekDataResult(
+      dailyHours: healthData,
+      hasData: false,
+      source: 'none',
+    );
+  }
+
+  Future<Map<String, double>> _getSleepDataFromHealthForWeek(
+    DateTime weekStart,
+  ) async {
     final data = <String, double>{};
     final days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
@@ -229,6 +279,52 @@ class HealthInsightsService {
       final sleep = await _healthService.getSleepHours(date);
       data[days[i]] = sleep ?? 0;
     }
+    return data;
+  }
+
+  Future<Map<String, double>> _getSleepDataFromBackendForWeek(
+    DateTime weekStart,
+  ) async {
+    final data = <String, double>{};
+    final days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+    for (final day in days) {
+      data[day] = 0;
+    }
+
+    try {
+      final history = await _biometricService.getSleepHistory(days: 14);
+      final sessions = history?['sessions'] is List<SleepSession>
+          ? history!['sessions'] as List<SleepSession>
+          : <SleepSession>[];
+
+      if (sessions.isEmpty) {
+        return data;
+      }
+
+      for (int index = 0; index < 7; index++) {
+        final dayStart = DateTime(
+          weekStart.year,
+          weekStart.month,
+          weekStart.day,
+        ).add(Duration(days: index));
+        final dayEnd = dayStart.add(const Duration(days: 1));
+        double totalMinutes = 0;
+
+        for (final session in sessions) {
+          totalMinutes += _getOverlapDuration(
+            rangeStart: session.startTime,
+            rangeEnd: session.endTime,
+            windowStart: dayStart,
+            windowEnd: dayEnd,
+          ).inMinutes;
+        }
+
+        data[days[index]] = totalMinutes > 0 ? totalMinutes / 60 : 0;
+      }
+    } catch (_) {
+      return data;
+    }
+
     return data;
   }
 
@@ -248,7 +344,7 @@ class HealthInsightsService {
     return await _healthService.getRestingHeartRate();
   }
 
-  Future<int> _getWorkoutDataForWeek() async {
+  Future<_WorkoutDataResult> _getWorkoutDataForWeek() async {
     try {
       final now = DateTime.now();
       final weekStart = DateTime(
@@ -263,9 +359,15 @@ class HealthInsightsService {
         perPage: 100,
       );
 
-      return logs.where((log) => log.completedAt != null).length;
-    } catch (_) {
-      return 0;
+      return _WorkoutDataResult(
+        completedCount: logs.where((log) => log.completedAt != null).length,
+        isAvailable: true,
+      );
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('workout_logs_fetch_failed: $error');
+      }
+      return const _WorkoutDataResult(completedCount: 0, isAvailable: false);
     }
   }
 
@@ -273,8 +375,9 @@ class HealthInsightsService {
     Map<String, double> sleep,
     Map<String, int> steps,
     int? hr,
-    int workouts,
-  ) {
+    int workouts, {
+    required bool hasWorkoutData,
+  }) {
     final insights = <String>[];
 
     final hasSleepData = sleep.values.any((value) => value > 0);
@@ -309,10 +412,16 @@ class HealthInsightsService {
       insights.add('Nessun dato passi disponibile questa settimana da Health.');
     }
 
-    if (workouts >= 4) {
+    if (!hasWorkoutData) {
+      insights.add(
+        'Non siamo riusciti a recuperare i workout completati di questa settimana.',
+      );
+    } else if (workouts >= 4) {
       insights.add(
         '$workouts allenamenti completati. Sei sulla strada giusta! 💪',
       );
+    } else {
+      insights.add('Workout completati questa settimana: $workouts.');
     }
 
     if (hr != null) {
@@ -388,6 +497,23 @@ class HealthInsightsService {
     if (nonZero.isEmpty) return 0;
     return nonZero.reduce((a, b) => a + b) / nonZero.length;
   }
+
+  Duration _getOverlapDuration({
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required DateTime windowStart,
+    required DateTime windowEnd,
+  }) {
+    final overlapStart = rangeStart.isAfter(windowStart)
+        ? rangeStart
+        : windowStart;
+    final overlapEnd = rangeEnd.isBefore(windowEnd) ? rangeEnd : windowEnd;
+
+    if (!overlapEnd.isAfter(overlapStart)) {
+      return Duration.zero;
+    }
+    return overlapEnd.difference(overlapStart);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -403,6 +529,12 @@ class WeeklyHealthReport {
   final List<String> insights;
   final String aiTip;
   final bool hasHealthData;
+  final bool hasSleepData;
+  final bool hasStepsData;
+  final bool hasHeartRateData;
+  final bool hasWorkoutData;
+  final String sleepDataSource;
+  final String workoutDataStatus;
 
   WeeklyHealthReport({
     required this.periodStart,
@@ -413,6 +545,12 @@ class WeeklyHealthReport {
     required this.insights,
     required this.aiTip,
     required this.hasHealthData,
+    required this.hasSleepData,
+    required this.hasStepsData,
+    required this.hasHeartRateData,
+    required this.hasWorkoutData,
+    required this.sleepDataSource,
+    required this.workoutDataStatus,
   });
 }
 
@@ -470,3 +608,25 @@ class TrendInsight {
 }
 
 enum InsightType { positive, warning, suggestion, neutral }
+
+class _SleepWeekDataResult {
+  final Map<String, double> dailyHours;
+  final bool hasData;
+  final String source;
+
+  const _SleepWeekDataResult({
+    required this.dailyHours,
+    required this.hasData,
+    required this.source,
+  });
+}
+
+class _WorkoutDataResult {
+  final int completedCount;
+  final bool isAvailable;
+
+  const _WorkoutDataResult({
+    required this.completedCount,
+    required this.isAvailable,
+  });
+}

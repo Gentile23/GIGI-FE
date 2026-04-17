@@ -75,6 +75,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   // Keys to communicate with SetLoggingWidgets
   final Map<String, GlobalKey<SetLoggingWidgetState>> _setLoggingKeys = {};
   final Map<String, int> _runtimeSetCounts = {};
+  final Set<String> _bulkCompletingExerciseIds = {};
 
   // Session registration tracking
   bool _sessionRegistered = false;
@@ -789,6 +790,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       final isAlreadyCompleted = _completedExercises.contains(exerciseId);
       if (isAlreadyCompleted == allSetsCompleted) {
         return;
+      }
+
+      // Ensure timer/session always starts when user checks an exercise as completed,
+      // even if completion did not come through onSetCompleted callback.
+      if (allSetsCompleted) {
+        _autoStartSessionIfNeeded();
       }
 
       setState(() {
@@ -1822,6 +1829,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             inputFormatters: inputFormatters,
             textInputAction: textInputAction,
             readOnly: readOnly,
+            onTap: () {
+              if (!readOnly) {
+                _selectAllText(controller);
+              }
+            },
             onChanged: onChanged,
             style: GoogleFonts.outfit(
               fontSize: 20,
@@ -1888,6 +1900,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               textInputAction: TextInputAction.done,
+              onTap: () => _selectAllText(controller),
               onSubmitted: (value) {
                 _syncOverlayDifficultyValue(
                   value: value,
@@ -2021,6 +2034,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final existing = _overlayFocusNodes[key];
     if (existing != null) return existing;
     final node = FocusNode(debugLabel: 'rest_overlay_$key');
+    node.addListener(() {
+      if (!node.hasFocus) return;
+      _selectAllForOverlayFocusKey(key);
+    });
     _overlayFocusNodes[key] = node;
     return node;
   }
@@ -2048,6 +2065,47 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final controller = TextEditingController(text: sourceValue);
     map[key] = controller;
     return controller;
+  }
+
+  void _selectAllForOverlayFocusKey(String focusKey) {
+    const weightPrefix = 'weight_';
+    const repsPrefix = 'reps_';
+    const difficultyPrefix = 'difficulty_';
+
+    if (focusKey.startsWith(weightPrefix)) {
+      final key = focusKey.substring(weightPrefix.length);
+      final controller = _overlayWeightControllers[key];
+      if (controller != null) {
+        _selectAllText(controller);
+      }
+      return;
+    }
+
+    if (focusKey.startsWith(repsPrefix)) {
+      final key = focusKey.substring(repsPrefix.length);
+      final controller = _overlayRepsControllers[key];
+      if (controller != null) {
+        _selectAllText(controller);
+      }
+      return;
+    }
+
+    if (focusKey.startsWith(difficultyPrefix)) {
+      final key = focusKey.substring(difficultyPrefix.length);
+      final controller = _overlayDifficultyControllers[key];
+      if (controller != null) {
+        _selectAllText(controller);
+      }
+    }
+  }
+
+  void _selectAllText(TextEditingController controller) {
+    final text = controller.text;
+    if (text.isEmpty) return;
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: text.length,
+    );
   }
 
   void _disposeOverlayInputControllers() {
@@ -2121,6 +2179,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildFullscreenRestTimerOverlay() {
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardOpen = keyboardInset > 0;
     final progress = _restTimerTotal > 0
         ? _restTimerSeconds / _restTimerTotal
         : 0.0;
@@ -2156,164 +2216,175 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             child: SafeArea(
               child: Stack(
                 children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Spacer(flex: 1),
+                  AnimatedPadding(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    padding: EdgeInsets.only(bottom: keyboardInset),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: isKeyboardOpen ? 6 : 16),
 
-                      // Label
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isUrgent
-                                  ? CleanTheme.accentRed
-                                  : CleanTheme.accentBlue,
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      (isUrgent
-                                              ? CleanTheme.accentRed
-                                              : CleanTheme.accentBlue)
-                                          .withValues(alpha: 0.6),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
+                        // Label
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isUrgent
+                                    ? CleanTheme.accentRed
+                                    : CleanTheme.accentBlue,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        (isUrgent
+                                                ? CleanTheme.accentRed
+                                                : CleanTheme.accentBlue)
+                                            .withValues(alpha: 0.6),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'RECUPERO',
+                              style: GoogleFonts.outfit(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 4,
+                                color: CleanTheme.textOnDark.withValues(
+                                  alpha: 0.6,
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'RECUPERO',
-                            style: GoogleFonts.outfit(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 4,
-                              color: CleanTheme.textOnDark.withValues(alpha: 0.6),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Huge Timer
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        style: GoogleFonts.outfit(
-                          fontSize: 72,
-                          fontWeight: FontWeight.w800,
-                          color: isUrgent
-                              ? CleanTheme.accentRed
-                              : CleanTheme.textOnDark,
-                          letterSpacing: 4,
+                          ],
                         ),
-                        child: Text(
-                          '$minutes:${seconds.toString().padLeft(2, '0')}',
+
+                        SizedBox(height: isKeyboardOpen ? 8 : 20),
+
+                        // Huge Timer
+                        AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 200),
+                          style: GoogleFonts.outfit(
+                            fontSize: isKeyboardOpen ? 58 : 72,
+                            fontWeight: FontWeight.w800,
+                            color: isUrgent
+                                ? CleanTheme.accentRed
+                                : CleanTheme.textOnDark,
+                            letterSpacing: 4,
+                          ),
+                          child: Text(
+                            '$minutes:${seconds.toString().padLeft(2, '0')}',
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 16),
+                        SizedBox(height: isKeyboardOpen ? 8 : 16),
 
-                      // Progress Bar
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 48),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 6,
-                            backgroundColor: CleanTheme.textOnDark.withValues(
-                              alpha: 0.1,
-                            ),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isUrgent
-                                  ? CleanTheme.accentRed
-                                  : CleanTheme.accentBlue,
+                        // Progress Bar
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 48),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 6,
+                              backgroundColor: CleanTheme.textOnDark.withValues(
+                                alpha: 0.1,
+                              ),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isUrgent
+                                    ? CleanTheme.accentRed
+                                    : CleanTheme.accentBlue,
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      const Spacer(flex: 1),
+                        SizedBox(height: isKeyboardOpen ? 10 : 24),
 
-                      if (showSetDetails) ...[
-                        // Set Details View (Previous and Next)
-                        Flexible(
-                          flex: 6,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
+                        if (showSetDetails) ...[
+                          // Fixed no-scroll cards.
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
                               child: Column(
-                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _buildSetDetailOverlayCard(
-                                    title: 'ULTIMO SET',
-                                    exerciseId: _restingExerciseId!,
-                                    setNumber: _restingSetNumber,
-                                    isNext: false,
+                                  Expanded(
+                                    child: _buildSetDetailOverlayCard(
+                                      title: 'ULTIMO SET',
+                                      exerciseId: _restingExerciseId!,
+                                      setNumber: _restingSetNumber,
+                                      isNext: false,
+                                    ),
                                   ),
                                   const SizedBox(height: 10),
-                                  _buildNextSetOverlayCard(),
+                                  Expanded(child: _buildNextSetOverlayCard()),
                                 ],
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                          SizedBox(height: isKeyboardOpen ? 8 : 16),
+                        ],
 
-                      // Skip Button
-                      TextButton(
-                        onPressed: _skipRestTimerOverlay,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(100),
-                            side: BorderSide(
-                              color: CleanTheme.textOnDark.withValues(alpha: 0.2),
+                        // Skip Button
+                        TextButton(
+                          onPressed: _skipRestTimerOverlay,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 14,
                             ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Salta',
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: CleanTheme.textOnDark.withValues(alpha: 0.7),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(100),
+                              side: BorderSide(
+                                color: CleanTheme.textOnDark.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.skip_next_rounded,
-                              size: 20,
-                              color: CleanTheme.textOnDark.withValues(alpha: 0.7),
-                            ),
-                          ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Salta',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: CleanTheme.textOnDark.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.skip_next_rounded,
+                                size: 20,
+                                color: CleanTheme.textOnDark.withValues(
+                                  alpha: 0.7,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-
-                      const Spacer(flex: 1),
-                    ],
+                        SizedBox(height: isKeyboardOpen ? 6 : 16),
+                      ],
+                    ),
                   ),
-                  if (MediaQuery.of(context).viewInsets.bottom > 0)
+                  if (isKeyboardOpen)
                     Positioned(
                       top: 10,
                       right: 15,
                       child: IconButton(
-                        onPressed:
-                            () => FocusManager.instance.primaryFocus?.unfocus(),
+                        onPressed: () =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         icon: const Icon(
                           Icons.keyboard_hide_rounded,
                           color: CleanTheme.textOnDark,
@@ -2537,7 +2608,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         return;
       }
     } catch (_) {
-      _showGigiPaywall();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Verifica accesso non riuscita. Controlla connessione e riprova.',
+          ),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
       return;
     }
 
@@ -3325,6 +3404,101 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
+  Future<void> _completeExerciseQuick(
+    String uniqueId,
+    WorkoutExercise exercise,
+  ) async {
+    if (_bulkCompletingExerciseIds.contains(uniqueId)) return;
+
+    final setLoggingState = _setLoggingKeys[uniqueId]?.currentState;
+    if (setLoggingState == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossibile completare ora. Riprova tra un attimo.'),
+          backgroundColor: CleanTheme.accentOrange,
+        ),
+      );
+      return;
+    }
+
+    final pendingSets = setLoggingState.getPendingSetsCount();
+    if (pendingSets > 1) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: CleanTheme.surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Segnare tutto come eseguito?',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w700,
+              color: CleanTheme.textPrimary,
+            ),
+          ),
+          content: Text(
+            'Verranno completati $pendingSets set mancanti per ${exercise.exercise.name}.',
+            style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'Annulla',
+                style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Conferma',
+                style: GoogleFonts.inter(
+                  color: CleanTheme.accentGreen,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
+    _autoStartSessionIfNeeded();
+
+    setState(() {
+      _bulkCompletingExerciseIds.add(uniqueId);
+    });
+
+    try {
+      await setLoggingState.completeAllSetsQuick();
+      if (!mounted) return;
+      HapticService.mediumTap();
+      unawaited(_updateLockScreenWidget());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${exercise.exercise.name} segnato come eseguito.'),
+          backgroundColor: CleanTheme.accentGreen,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Errore completamento esercizio: $e'),
+          backgroundColor: CleanTheme.accentRed,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _bulkCompletingExerciseIds.remove(uniqueId);
+        });
+      }
+    }
+  }
+
   Widget _buildExerciseCard(
     WorkoutExercise exercise,
     int orderIndex, [
@@ -3351,6 +3525,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
             final isCompleted = _completedExercises.contains(
               displayExercise.exercise.id,
+            );
+            final isBulkCompleting = _bulkCompletingExerciseIds.contains(
+              uniqueId,
             );
 
             // Determine if this is the next exercise to perform
@@ -3618,54 +3795,77 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     // Quick Actions row
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: _buildQuickActionButton(
-                              icon: Icons.info_outline_rounded,
-                              label: AppLocalizations.of(context)!.info,
-                              color: CleanTheme.chromeGray,
-                              onTap: () =>
-                                  _navigateToExerciseDetail(displayExercise),
-                              isOutlined: isMobilityType,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildQuickActionButton(
+                                  icon: Icons.info_outline_rounded,
+                                  label: AppLocalizations.of(context)!.info,
+                                  color: CleanTheme.chromeGray,
+                                  onTap: () => _navigateToExerciseDetail(
+                                    displayExercise,
+                                  ),
+                                  isOutlined: isMobilityType,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildQuickActionButton(
+                                  icon: Icons.tune_rounded,
+                                  label: 'Serie +/-',
+                                  color: CleanTheme.accentOrange,
+                                  onTap: () => _showSetAdjustmentSheet(
+                                    uniqueId,
+                                    displayExercise,
+                                  ),
+                                  isOutlined: true,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildQuickActionButton(
+                                  icon: Icons.camera_alt_outlined,
+                                  label: AppLocalizations.of(context)!.aiCheck,
+                                  color: CleanTheme.steelDark,
+                                  isPrimary: !isMobilityType,
+                                  isOutlined: isMobilityType,
+                                  onTap: () {
+                                    final exerciseId = int.tryParse(
+                                      displayExercise.exercise.id,
+                                    );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => FormAnalysisScreen(
+                                          exerciseName:
+                                              displayExercise.exercise.name,
+                                          exerciseId: exerciseId,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
                             child: _buildQuickActionButton(
-                              icon: Icons.tune_rounded,
-                              label: 'Serie +/-',
-                              color: CleanTheme.accentOrange,
-                              onTap: () => _showSetAdjustmentSheet(
+                              icon: isBulkCompleting
+                                  ? Icons.hourglass_top_rounded
+                                  : Icons.done_all_rounded,
+                              label: isBulkCompleting
+                                  ? 'Completamento...'
+                                  : 'Segna eseguito',
+                              color: CleanTheme.accentGreen,
+                              isPrimary: true,
+                              onTap: () => _completeExerciseQuick(
                                 uniqueId,
                                 displayExercise,
                               ),
-                              isOutlined: true,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildQuickActionButton(
-                              icon: Icons.camera_alt_outlined,
-                              label: AppLocalizations.of(context)!.aiCheck,
-                              color: CleanTheme.steelDark,
-                              isPrimary: !isMobilityType,
-                              isOutlined: isMobilityType,
-                              onTap: () {
-                                final exerciseId = int.tryParse(
-                                  displayExercise.exercise.id,
-                                );
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => FormAnalysisScreen(
-                                      exerciseName:
-                                          displayExercise.exercise.name,
-                                      exerciseId: exerciseId,
-                                    ),
-                                  ),
-                                );
-                              },
                             ),
                           ),
                         ],
@@ -3678,9 +3878,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       child: ListenableBuilder(
                         listenable: _voiceController,
                         builder: (context, _) {
+                          final state = _voiceController.guidedState;
                           final isPlaying =
                               _voiceController.isGuidedExecutionPlaying;
-                          final status = _voiceController.loadingStatus;
+                          final isPaused =
+                              _voiceController.isGuidedExecutionPaused;
+                          final isLoading =
+                              state == GuidedExecutionUiState.loading ||
+                              state == GuidedExecutionUiState.ready;
                           final baseLabel = AppLocalizations.of(
                             context,
                           )!.executeWithGigi;
@@ -3688,10 +3893,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             onTap: () => _startGuidedExecution(displayExercise),
                             onPause: () => _voiceController.pauseAudio(),
                             onResume: () => _voiceController.resumeAudio(),
-                            label: isPlaying
-                                ? (status ?? 'Ascolta...')
-                                : baseLabel,
+                            label: switch (state) {
+                              GuidedExecutionUiState.loading =>
+                                'Preparazione audio...',
+                              GuidedExecutionUiState.ready => 'Audio pronto',
+                              GuidedExecutionUiState.paused => 'In pausa',
+                              GuidedExecutionUiState.error =>
+                                _voiceController.guidedError ?? 'Errore audio',
+                              _ => (isPlaying ? 'Ascolta...' : baseLabel),
+                            },
                             isPlaying: isPlaying,
+                            isPaused: isPaused,
+                            isLoading: isLoading,
                             isOutlined: isMobilityType,
                             showShimmer: isNext && !isPlaying,
                           );
@@ -3989,11 +4202,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       final completedSets = setState.getCompletedSetEntries();
       if (completedSets.isEmpty) continue;
 
-      var exerciseLog = _findExerciseLogForEntry(
-        provider,
-        uniqueId,
-        exercise,
-      );
+      var exerciseLog = _findExerciseLogForEntry(provider, uniqueId, exercise);
 
       if (exerciseLog == null) {
         final orderIndex = _getExerciseOrderIndex(uniqueId);
@@ -4171,6 +4380,8 @@ class _GigiExecuteButton extends StatefulWidget {
   final String label;
   final bool isOutlined;
   final bool isPlaying;
+  final bool isPaused;
+  final bool isLoading;
   final bool showShimmer;
 
   const _GigiExecuteButton({
@@ -4180,6 +4391,8 @@ class _GigiExecuteButton extends StatefulWidget {
     this.onResume,
     this.isOutlined = false,
     this.isPlaying = false,
+    this.isPaused = false,
+    this.isLoading = false,
     this.showShimmer = true,
   });
 
@@ -4228,6 +4441,8 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
   @override
   Widget build(BuildContext context) {
     final isPlaying = widget.isPlaying;
+    final isPaused = widget.isPaused;
+    final isLoading = widget.isLoading;
     final contentColor = widget.isOutlined ? Colors.black : Colors.white;
 
     // Border color shifts to red when playing
@@ -4305,14 +4520,21 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Spinning loader
                           SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: CleanTheme.accentRed,
-                            ),
+                            child: isLoading
+                                ? CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: CleanTheme.accentRed,
+                                  )
+                                : Icon(
+                                    isPaused
+                                        ? Icons.play_arrow_rounded
+                                        : Icons.graphic_eq_rounded,
+                                    color: CleanTheme.accentRed,
+                                    size: 18,
+                                  ),
                           ),
                           const SizedBox(width: 10),
                           Flexible(
@@ -4330,9 +4552,11 @@ class _GigiExecuteButtonState extends State<_GigiExecuteButton>
                           const SizedBox(width: 12),
                           // Pause button
                           GestureDetector(
-                            onTap: widget.onPause,
+                            onTap: isPaused ? widget.onResume : widget.onPause,
                             child: Icon(
-                              Icons.pause_rounded,
+                              isPaused
+                                  ? Icons.play_arrow_rounded
+                                  : Icons.pause_rounded,
                               color: Colors.white.withValues(alpha: 0.8),
                               size: 22,
                             ),

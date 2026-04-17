@@ -15,17 +15,9 @@ class VoiceControlsBar extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        // Only show when guided execution is active!
-        final isVisible = controller.isGuidedExecutionPlaying;
-
-        // Check if actually speaking/playing from TTS service perspective would be better,
-        // but controller state should suffice for visibility.
-        // We might want to query ttsService.isSpeaking for the play/pause icon state.
-
-        // Note: We can't easily access ttsService directly here unless exposed.
-        // But we can assume if isGuidedExecutionPlaying is true, we started it.
-        // We risk UI state desync if we rely solely on variables without polling or streams.
-        // However, SynchronizedVoiceController notifies listeners on state changes.
+        final isVisible = controller.canStop;
+        final showPause = controller.canPause;
+        final showResume = controller.canResume;
 
         return AnimatedOpacity(
           opacity: isVisible ? 1.0 : 0.0,
@@ -60,27 +52,20 @@ class VoiceControlsBar extends StatelessWidget {
                     tooltip: '-10s',
                   ),
 
-                  // Play/Pause (We need to Toggle)
-                  // Since we don't have isPaused state explicitly exposed as public getter in controller (only private or via service),
-                  // we might need to add `get isPaused` to controller or just show Pause generally when visible.
-                  // For now, let's assume if it's visible, it's playing, or we provide both.
                   IconButton(
-                    icon: const Icon(
-                      Icons.pause_rounded,
-                      color: Colors.white,
+                    icon: Icon(
+                      showResume
+                          ? Icons.play_arrow_rounded
+                          : Icons.pause_rounded,
+                      color: showResume ? CleanTheme.accentGreen : Colors.white,
                       size: 28,
                     ),
-                    onPressed: () => controller.pauseAudio(),
-                    tooltip: AppLocalizations.of(context)!.pause,
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.play_arrow_rounded,
-                      color: CleanTheme.accentGreen,
-                      size: 28,
-                    ),
-                    onPressed: () => controller.resumeAudio(),
-                    tooltip: AppLocalizations.of(context)!.resume,
+                    onPressed: showResume
+                        ? () => controller.resumeAudio()
+                        : (showPause ? () => controller.pauseAudio() : null),
+                    tooltip: showResume
+                        ? AppLocalizations.of(context)!.resume
+                        : AppLocalizations.of(context)!.pause,
                   ),
 
                   // Forward 10s

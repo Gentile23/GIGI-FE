@@ -39,6 +39,17 @@ enum GigiInteractionEvent {
   workoutCompleted, // Entire workout finished
 }
 
+/// Deterministic UI state for guided execution.
+enum GuidedExecutionUiState {
+  idle,
+  loading,
+  ready,
+  playing,
+  paused,
+  stopped,
+  error,
+}
+
 /// Preparation card shown during audio loading
 class PreparationCard {
   final String icon;
@@ -76,6 +87,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
   double _volume = 1.0;
   bool _minimalMode = true; // Non-invasive mode by default
   bool _isGuidedExecutionPlaying = false;
+  GuidedExecutionUiState _guidedState = GuidedExecutionUiState.idle;
+  int _guidedOperationId = 0;
+  String? _guidedError;
   bool _isSessionStarted = false;
   int _guidedExecutionClickCount = 0; // Track clicks for varied phrases
   List<PreparationCard>? _preparationCards; // Structured cards for UI
@@ -123,14 +137,53 @@ class SynchronizedVoiceController extends ChangeNotifier {
   UserLevel get userLevel => _userLevel;
   bool get minimalMode => _minimalMode;
   bool get isGuidedExecutionPlaying => _isGuidedExecutionPlaying;
+  GuidedExecutionUiState get guidedState => _guidedState;
+  String? get guidedError => _guidedError;
+  bool get isGuidedExecutionPaused =>
+      _guidedState == GuidedExecutionUiState.paused;
+  bool get canPause => _guidedState == GuidedExecutionUiState.playing;
+  bool get canResume => _guidedState == GuidedExecutionUiState.paused;
+  bool get canStop =>
+      _guidedState != GuidedExecutionUiState.idle &&
+      _guidedState != GuidedExecutionUiState.stopped;
   List<PreparationCard>? get preparationCards => _preparationCards;
   int get currentCardIndex => _currentCardIndex;
   bool get isAudioReady => _isAudioReady;
+
   /// Backward-compatible getter: returns current card title or null
   String? get loadingStatus {
+    if (_guidedState == GuidedExecutionUiState.loading) {
+      return 'Preparazione audio...';
+    }
+    if (_guidedState == GuidedExecutionUiState.ready) {
+      return 'Audio pronto';
+    }
+    if (_guidedState == GuidedExecutionUiState.paused) {
+      return 'In pausa';
+    }
+    if (_guidedState == GuidedExecutionUiState.error) {
+      return _guidedError ?? 'Errore audio';
+    }
     if (_preparationCards == null || _preparationCards!.isEmpty) return null;
     final idx = _currentCardIndex.clamp(0, _preparationCards!.length - 1);
     return '${_preparationCards![idx].icon} ${_preparationCards![idx].title}';
+  }
+
+  bool _isCurrentOperation(int operationId) =>
+      _guidedOperationId == operationId &&
+      _guidedState != GuidedExecutionUiState.stopped;
+
+  void _setGuidedState(GuidedExecutionUiState state, {String? error}) {
+    _guidedState = state;
+    if (error != null) _guidedError = error;
+    if (state != GuidedExecutionUiState.error && error == null) {
+      _guidedError = null;
+    }
+    _isGuidedExecutionPlaying =
+        state != GuidedExecutionUiState.idle &&
+        state != GuidedExecutionUiState.stopped &&
+        state != GuidedExecutionUiState.error;
+    notifyListeners();
   }
 
   /// Get first name only (never full name)
@@ -348,6 +401,18 @@ class SynchronizedVoiceController extends ChangeNotifier {
     _phase = VoiceCoachingPhase.idle;
     _restTimer?.cancel();
     _cueTimer?.cancel();
+    _guidedOperationId++;
+    _guidedState = GuidedExecutionUiState.idle;
+    _guidedError = null;
+    _isGuidedExecutionPlaying = false;
+    _preparationCards = null;
+    _currentCardIndex = 0;
+    _isAudioReady = false;
+    _allCardsShown = false;
+    if (_skipCompleter != null && !_skipCompleter!.isCompleted) {
+      _skipCompleter!.complete();
+    }
+    _skipCompleter = null;
     _ttsService.stop();
     notifyListeners();
   }
@@ -556,24 +621,48 @@ class SynchronizedVoiceController extends ChangeNotifier {
     if (isFirstClick) {
       // First click in session - more enthusiastic intro
       final firstClickPhrases = [
-        hasName ? '$firstName, ottima scelta! Ti guido passo passo su $shortName...' : 'Ottima scelta! Ti guido passo passo su $shortName...',
-        hasName ? 'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...' : 'Perfetto! Vediamo insieme la tecnica di $shortName...',
-        hasName ? '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...' : '$shortName è un esercizio fantastico! Ecco come farlo al meglio...',
-        hasName ? 'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...' : 'Eccellente! Preparati per $shortName, ti mostro la tecnica perfetta...',
+        hasName
+            ? '$firstName, ottima scelta! Ti guido passo passo su $shortName...'
+            : 'Ottima scelta! Ti guido passo passo su $shortName...',
+        hasName
+            ? 'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...'
+            : 'Perfetto! Vediamo insieme la tecnica di $shortName...',
+        hasName
+            ? '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...'
+            : '$shortName è un esercizio fantastico! Ecco come farlo al meglio...',
+        hasName
+            ? 'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...'
+            : 'Eccellente! Preparati per $shortName, ti mostro la tecnica perfetta...',
       ];
       return firstClickPhrases[DateTime.now().second %
           firstClickPhrases.length];
     } else {
       // Subsequent clicks - varied but connected phrases
       final subsequentPhrases = [
-        hasName ? 'Ok $firstName, $shortName! Ti ricordo i punti chiave...' : 'Ok, $shortName! Ti ricordo i punti chiave...',
-        hasName ? '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...' : '$shortName di nuovo? Perfetto, rivediamolo insieme...',
-        hasName ? 'Certo $firstName! Ecco la guida per $shortName...' : 'Certo! Ecco la guida per $shortName...',
-        hasName ? '$firstName, concentrazione su $shortName... Ti accompagno io...' : 'Massima concentrazione su $shortName... Ti accompagno io...',
-        hasName ? 'Ancora $shortName? Ottima dedizione $firstName! Vediamo...' : 'Ancora $shortName? Ottima dedizione! Vediamo...',
-        hasName ? 'Va bene $firstName, $shortName passo per passo...' : 'Va bene, $shortName passo per passo...',
-        hasName ? '$firstName pronto per $shortName? Partiamo...' : 'Tutto pronto per $shortName? Partiamo...',
-        hasName ? 'Riprendiamo $shortName $firstName, segui il mio ritmo...' : 'Riprendiamo $shortName, segui il mio ritmo...',
+        hasName
+            ? 'Ok $firstName, $shortName! Ti ricordo i punti chiave...'
+            : 'Ok, $shortName! Ti ricordo i punti chiave...',
+        hasName
+            ? '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...'
+            : '$shortName di nuovo? Perfetto, rivediamolo insieme...',
+        hasName
+            ? 'Certo $firstName! Ecco la guida per $shortName...'
+            : 'Certo! Ecco la guida per $shortName...',
+        hasName
+            ? '$firstName, concentrazione su $shortName... Ti accompagno io...'
+            : 'Massima concentrazione su $shortName... Ti accompagno io...',
+        hasName
+            ? 'Ancora $shortName? Ottima dedizione $firstName! Vediamo...'
+            : 'Ancora $shortName? Ottima dedizione! Vediamo...',
+        hasName
+            ? 'Va bene $firstName, $shortName passo per passo...'
+            : 'Va bene, $shortName passo per passo...',
+        hasName
+            ? '$firstName pronto per $shortName? Partiamo...'
+            : 'Tutto pronto per $shortName? Partiamo...',
+        hasName
+            ? 'Riprendiamo $shortName $firstName, segui il mio ritmo...'
+            : 'Riprendiamo $shortName, segui il mio ritmo...',
       ];
       return subsequentPhrases[clickIndex];
     }
@@ -590,10 +679,9 @@ class SynchronizedVoiceController extends ChangeNotifier {
     List<String>? muscleGroups,
     VoiceCoachingService? voiceCoachingService,
   }) async {
-    if (_isGuidedExecutionPlaying) return; // Prevent double-tap
-
-    _isGuidedExecutionPlaying = true;
-    notifyListeners();
+    if (_isGuidedExecutionPlaying) return;
+    final operationId = ++_guidedOperationId;
+    _setGuidedState(GuidedExecutionUiState.loading);
 
     // Load script early so we can show exercise tips during generation
     _currentScript ??= getScriptForExercise(exerciseName);
@@ -607,6 +695,7 @@ class SynchronizedVoiceController extends ChangeNotifier {
     // 0. Immediate personalized feedback to mask loading time
     final introPhrase = _getGuidedExecutionIntro(exerciseName);
     await _speak(introPhrase);
+    if (!_isCurrentOperation(operationId)) return;
 
     String? scriptToSpeak;
 
@@ -618,26 +707,30 @@ class SynchronizedVoiceController extends ChangeNotifier {
     // 2. Try API-generated script and cards if exerciseId is provided
     if (exerciseId != null && voiceCoachingService != null) {
       try {
-        final responseData = await voiceCoachingService.getGuidedExecutionScript(
-          exerciseId: exerciseId,
-        );
-        
+        final responseData = await voiceCoachingService
+            .getGuidedExecutionScript(exerciseId: exerciseId);
+        if (!_isCurrentOperation(operationId)) return;
+
         if (responseData != null) {
           scriptToSpeak = responseData['full_script'] as String?;
-          
+
           final apiCards = responseData['preparation_cards'] as List<dynamic>?;
           if (apiCards != null && apiCards.isNotEmpty) {
             _preparationCards = apiCards
-                .map((item) => PreparationCard.fromJson(item as Map<String, dynamic>))
+                .map(
+                  (item) =>
+                      PreparationCard.fromJson(item as Map<String, dynamic>),
+                )
                 .toList();
             notifyListeners();
             debugPrint('📢 Got SPECIFIC preparation cards from API');
           }
-          
+
           debugPrint('📢 Got AI-generated script from API');
         }
       } catch (e) {
         debugPrint('⚠️ API script fetch failed: $e');
+        if (!_isCurrentOperation(operationId)) return;
       }
     }
 
@@ -684,12 +777,14 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
 
         // Call backend to generate TTS audio
         final audioUrl = await voiceCoachingService.generateTTS(scriptToSpeak);
+        if (!_isCurrentOperation(operationId)) return;
 
         if (audioUrl != null && audioUrl.isNotEmpty) {
           debugPrint('🎧 Audio ready: $audioUrl');
 
           // Signal that audio is ready — shows "Salta ▶" in overlay
           _isAudioReady = true;
+          _setGuidedState(GuidedExecutionUiState.ready);
           notifyListeners();
 
           // Wait for user skip OR all cards shown
@@ -704,10 +799,13 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
           }
 
           await _skipCompleter!.future;
+          if (!_isCurrentOperation(operationId)) return;
           _skipCompleter = null;
 
           // Use speak() method which waits for completion (via _playUrlAndWait internally)
+          _setGuidedState(GuidedExecutionUiState.playing);
           await _ttsService.speakUrl(audioUrl);
+          if (!_isCurrentOperation(operationId)) return;
           playedWithHighQuality = true;
           debugPrint('✅ High-quality audio finished');
         } else {
@@ -717,6 +815,7 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
         debugPrint(
           '⚠️ High-quality TTS failed: $e. Falling back to local TTS.',
         );
+        if (!_isCurrentOperation(operationId)) return;
       }
     }
 
@@ -725,20 +824,22 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
       debugPrint('🗣️ using local TTS');
       _preparationCards = null;
       _isAudioReady = false;
+      _setGuidedState(GuidedExecutionUiState.playing);
       notifyListeners();
       await _speak(scriptToSpeak);
+      if (!_isCurrentOperation(operationId)) return;
     }
 
     // 4. PERSONALIZED CLOSING: Short phrase with user's name (local TTS only)
     await _speakPersonalizedClosing();
+    if (!_isCurrentOperation(operationId)) return;
 
-    _isGuidedExecutionPlaying = false;
+    _setGuidedState(GuidedExecutionUiState.idle);
     _preparationCards = null;
     _currentCardIndex = 0;
     _isAudioReady = false;
     _allCardsShown = false;
     _skipCompleter = null;
-    notifyListeners();
   }
 
   /// Build structured preparation cards from exercise script data
@@ -807,11 +908,21 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
   Future<void> _speakPersonalizedClosing() async {
     final hasName = firstName.isNotEmpty;
     final closingPhrases = [
-      hasName ? 'Perfetto $firstName! Ora tocca a te, dai il massimo!' : 'Perfetto! Ora tocca a te, dai il massimo!',
-      hasName ? 'Ottimo $firstName! Sei pronto, spacca tutto!' : 'Ottimo lavoro! Tutto pronto, spacca tutto!',
-      hasName ? 'Forza $firstName! Adesso mostrami cosa sai fare!' : 'Forza! Adesso mostriamo cosa sai fare!',
-      hasName ? 'Bravissimo $firstName! Ora inizia le tue serie!' : 'Eccellente! Ora inizia le tue serie!',
-      hasName ? 'Eccellente $firstName! Concentrati e vai!' : 'Ottimo! Massima concentrazione e via!',
+      hasName
+          ? 'Perfetto $firstName! Ora tocca a te, dai il massimo!'
+          : 'Perfetto! Ora tocca a te, dai il massimo!',
+      hasName
+          ? 'Ottimo $firstName! Sei pronto, spacca tutto!'
+          : 'Ottimo lavoro! Tutto pronto, spacca tutto!',
+      hasName
+          ? 'Forza $firstName! Adesso mostrami cosa sai fare!'
+          : 'Forza! Adesso mostriamo cosa sai fare!',
+      hasName
+          ? 'Bravissimo $firstName! Ora inizia le tue serie!'
+          : 'Eccellente! Ora inizia le tue serie!',
+      hasName
+          ? 'Eccellente $firstName! Concentrati e vai!'
+          : 'Ottimo! Massima concentrazione e via!',
     ];
     final index = DateTime.now().millisecond % closingPhrases.length;
     await _speak(closingPhrases[index]);
@@ -819,20 +930,18 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
 
   /// Stop guided execution if playing
   void stopGuidedExecution() {
-    if (_isGuidedExecutionPlaying) {
-      _ttsService.stop();
-      _isGuidedExecutionPlaying = false;
-      _preparationCards = null;
-      _currentCardIndex = 0;
-      _isAudioReady = false;
-      _allCardsShown = false;
-      // Complete any pending skip to unblock the async flow
-      if (_skipCompleter != null && !_skipCompleter!.isCompleted) {
-        _skipCompleter!.complete();
-      }
-      _skipCompleter = null;
-      notifyListeners();
+    _guidedOperationId++;
+    _ttsService.stop();
+    _preparationCards = null;
+    _currentCardIndex = 0;
+    _isAudioReady = false;
+    _allCardsShown = false;
+    // Complete any pending skip to unblock the async flow
+    if (_skipCompleter != null && !_skipCompleter!.isCompleted) {
+      _skipCompleter!.complete();
     }
+    _skipCompleter = null;
+    _setGuidedState(GuidedExecutionUiState.stopped);
   }
 
   /// Skip preparation cards — only works when audio is ready.
@@ -853,7 +962,9 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
   /// If audio is already ready, dismisses cards and plays audio.
   void notifyAllCardsShown() {
     _allCardsShown = true;
-    if (_isAudioReady && _skipCompleter != null && !_skipCompleter!.isCompleted) {
+    if (_isAudioReady &&
+        _skipCompleter != null &&
+        !_skipCompleter!.isCompleted) {
       _preparationCards = null;
       _isAudioReady = false;
       notifyListeners();
@@ -898,14 +1009,16 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
 
   /// Pause current audio
   Future<void> pauseAudio() async {
+    if (!canPause) return;
     await _ttsService.pause();
-    notifyListeners();
+    _setGuidedState(GuidedExecutionUiState.paused);
   }
 
   /// Resume current audio
   Future<void> resumeAudio() async {
+    if (!canResume) return;
     await _ttsService.resume();
-    notifyListeners();
+    _setGuidedState(GuidedExecutionUiState.playing);
   }
 
   /// Seek audio by offset
