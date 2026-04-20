@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -23,8 +21,8 @@ class HealthTrendsCarousel extends StatefulWidget {
 
 class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
   static const double _horizontalPadding = 24;
-  static const double _insightCardHeight = 180;
   static const double _defaultInsightCardWidth = 280;
+  static const double _maxFocusedCardWidth = 420;
 
   final HealthInsightsService _insightsService = HealthInsightsService();
   List<TrendInsight> _insights = [];
@@ -51,7 +49,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
 
       if (mounted) {
         setState(() {
-          _insights = insights;
+          _insights = insights.isEmpty ? [] : [insights.first];
           _healthConnectInstalled = healthConnectInstalled;
           _isConnected = isConnected;
           _isLoading = false;
@@ -159,62 +157,36 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
 
         const SizedBox(height: 16),
 
-        // Insights carousel
+        // Single focused insight
         if (_isLoading)
           _buildLoadingState()
         else if (_insights.isEmpty)
           _buildEmptyState()
         else
-          _buildInsightsCards(),
+          _buildFocusCard(),
       ],
     );
   }
 
-  Widget _buildInsightsCards() {
+  Widget _buildFocusCard() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final availableWidth = math.max(
-          0.0,
-          constraints.maxWidth - (_horizontalPadding * 2),
-        );
-        final centeredWidth = availableWidth > 0
-            ? math.min(_defaultInsightCardWidth, availableWidth)
+        final availableWidth = constraints.maxWidth - (_horizontalPadding * 2);
+        var focusedWidth = availableWidth > 0
+            ? availableWidth
             : _defaultInsightCardWidth;
-
-        if (_insights.length == 1) {
-          return SizedBox(
-            height: _insightCardHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _horizontalPadding,
-              ),
-              child: Center(
-                child: TrendInsightCard(
-                  insight: _insights.first,
-                  onTap: widget.onViewAllTap,
-                  width: centeredWidth,
-                ),
-              ),
-            ),
-          );
+        if (focusedWidth > _maxFocusedCardWidth) {
+          focusedWidth = _maxFocusedCardWidth;
         }
 
-        return SizedBox(
-          height: _insightCardHeight,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-            itemCount: _insights.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: TrendInsightCard(
-                  insight: _insights[index],
-                  onTap: widget.onViewAllTap,
-                  width: _defaultInsightCardWidth,
-                ),
-              );
-            },
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
+          child: Center(
+            child: TrendInsightCard(
+              insight: _insights.first,
+              onTap: widget.onViewAllTap,
+              width: focusedWidth,
+            ),
           ),
         );
       },
@@ -222,30 +194,21 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
   }
 
   Widget _buildLoadingState() {
-    return SizedBox(
-      height: _insightCardHeight,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Container(
-              width: _defaultInsightCardWidth,
-              decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: CleanTheme.primaryColor,
-                ),
-              ),
-            ),
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
+      child: Container(
+        width: double.infinity,
+        height: 180,
+        decoration: BoxDecoration(
+          color: CleanTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: CleanTheme.primaryColor,
+          ),
+        ),
       ),
     );
   }
@@ -300,10 +263,12 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
               _isConnected
                   ? 'Abbiamo i permessi ma non troviamo dati per oggi. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
                   : (_healthConnectInstalled
-                      ? (_insightsService.isAndroidPlatform
-                          ? AppLocalizations.of(context)!.syncHealthConnect
-                          : AppLocalizations.of(context)!.syncAppleHealth)
-                      : AppLocalizations.of(context)!.installHealthConnectInfo),
+                        ? (_insightsService.isAndroidPlatform
+                              ? AppLocalizations.of(context)!.syncHealthConnect
+                              : AppLocalizations.of(context)!.syncAppleHealth)
+                        : AppLocalizations.of(
+                            context,
+                          )!.installHealthConnectInfo),
               style: GoogleFonts.inter(
                 fontSize: 13,
                 color: CleanTheme.textSecondary,
@@ -318,10 +283,10 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                 onPressed: _isConnecting || _isInstalling
                     ? null
                     : (_isConnected
-                        ? _loadInsights
-                        : (_healthConnectInstalled
-                            ? _connectHealth
-                            : _installHealthConnect)),
+                          ? _loadInsights
+                          : (_healthConnectInstalled
+                                ? _connectHealth
+                                : _installHealthConnect)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CleanTheme.primaryColor,
                   foregroundColor: CleanTheme.textOnDark,
@@ -343,12 +308,12 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
                         _isConnected
                             ? 'Riprova sincronizzazione'
                             : (_healthConnectInstalled
-                                ? AppLocalizations.of(
-                                    context,
-                                  )!.connectTo(_insightsService.platformName)
-                                : AppLocalizations.of(
-                                    context,
-                                  )!.installHealthConnect),
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.connectTo(_insightsService.platformName)
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.installHealthConnect),
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           height: 1.3,

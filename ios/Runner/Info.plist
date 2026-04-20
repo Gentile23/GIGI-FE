@@ -45,6 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
 	<!-- HealthKit Integration -->
 	<key>NSHealthShareUsageDescription</key>
 	<string>GIGI legge i tuoi dati di salute per personalizzare i tuoi allenamenti e monitorare il tuo recupero.</string>
@@ -73,4 +77,3 @@
 	</array>
 </dict>
 </plist>
-

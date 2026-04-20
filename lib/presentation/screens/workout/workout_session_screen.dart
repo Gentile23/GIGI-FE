@@ -91,6 +91,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   // Voice Coaching 2.0 Controller
   late SynchronizedVoiceController _voiceController;
+  List<String> _guidedMuscleGroups = const [];
+  List<String> _guidedSecondaryMuscleGroups = const [];
 
   // Voice Coaching API Service
   late VoiceCoachingService _voiceCoachingService;
@@ -292,9 +294,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       }
     }
 
-    for (final exercise in widget.workoutDay.mainWorkout) {
-      if (!_completedExercises.contains(exercise.exercise.id)) {
-        return exercise;
+    for (final pointer in _getOrderedExercisePointers()) {
+      if (!_completedExercises.contains(pointer.exerciseId)) {
+        return pointer.exercise;
       }
     }
 
@@ -397,7 +399,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         workoutLogId: provider.currentWorkoutLog?.id,
         exerciseId: _chatContextExerciseId,
         elapsedSeconds: _elapsedTime.inSeconds,
-        completedExerciseIds: _completedExercises.toList(),
+        completedExerciseIds: _getCompletedBaseExerciseIds().toList(),
         restTimerActive: _isRestTimerOverlayVisible,
       );
 
@@ -459,7 +461,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     for (final pointer in _getOrderedExercisePointers()) {
       final exercise = _getExerciseById(pointer.exerciseId) ?? pointer.exercise;
-      if (_completedExercises.contains(exercise.exercise.id)) {
+      if (_completedExercises.contains(pointer.exerciseId)) {
         continue;
       }
       final nextPendingSet = _resolveNextPendingSetNumber(
@@ -537,9 +539,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           currentExercise?.exercise.name ?? 'Allenamento completato',
       currentSetNumber: currentPointer?.setNumber ?? 1,
       currentSetTotal: currentExercise?.sets ?? 1,
+      currentTargetReps: currentExercise != null && currentPointer != null
+          ? _getTargetReps(currentExercise, currentPointer.setNumber)
+          : null,
+      currentMuscleGroups: currentExercise?.exercise.muscleGroups ?? const [],
+      currentSecondaryMuscleGroups:
+          currentExercise?.exercise.secondaryMuscleGroups ?? const [],
       nextExerciseName: nextExercise?.exercise.name,
       nextSetNumber: nextPointer?.setNumber,
       nextSetTotal: nextExercise?.sets,
+      nextTargetReps: nextExercise != null && nextPointer != null
+          ? _getTargetReps(nextExercise, nextPointer.setNumber)
+          : null,
       isResting: isResting,
       restRemainingSeconds: isResting ? _restTimerSeconds : null,
       restTotalSeconds: isResting ? _restTimerTotal : null,
@@ -809,6 +820,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     });
   }
 
+  Set<String> _getCompletedBaseExerciseIds() {
+    return _getOrderedExercisePointers()
+        .where((entry) => _completedExercises.contains(entry.exerciseId))
+        .map((entry) => entry.exercise.exercise.id)
+        .toSet();
+  }
+
   /// Find the next uncompleted exercise after the given exerciseId
   _OrderedExercisePointer? _getNextExercisePointer(String currentExerciseId) {
     final orderedExercises = _getOrderedExercisePointers();
@@ -819,7 +837,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
       for (int j = i + 1; j < orderedExercises.length; j++) {
         final nextExercise = orderedExercises[j];
-        if (!_completedExercises.contains(nextExercise.exercise.exercise.id)) {
+        if (!_completedExercises.contains(nextExercise.exerciseId)) {
           return nextExercise;
         }
       }
@@ -1215,6 +1233,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       child: GigiPreparationOverlay(
                         cards: _voiceController.preparationCards!,
                         isAudioReady: _voiceController.isAudioReady,
+                        muscleGroups: _guidedMuscleGroups,
+                        secondaryMuscleGroups: _guidedSecondaryMuscleGroups,
                         onClose: () {
                           // X button = stop everything
                           _voiceController.stopGuidedExecution();
@@ -1803,6 +1823,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required ValueChanged<String> onChanged,
   }) {
     return Container(
+      constraints: const BoxConstraints(minHeight: 66),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.transparent,
@@ -1822,32 +1843,35 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
           ),
           const SizedBox(height: 2),
-          TextField(
-            controller: controller,
-            focusNode: focusNode,
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatters,
-            textInputAction: textInputAction,
-            readOnly: readOnly,
-            onTap: () {
-              if (!readOnly) {
-                _selectAllText(controller);
-              }
-            },
-            onChanged: onChanged,
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: CleanTheme.textOnDark,
+          SizedBox(
+            height: 34,
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              textInputAction: textInputAction,
+              readOnly: readOnly,
+              onTap: () {
+                if (!readOnly) {
+                  _selectAllText(controller);
+                }
+              },
+              onChanged: onChanged,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: CleanTheme.textOnDark,
+              ),
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                fillColor: Colors.transparent,
+              ),
+              cursorColor: CleanTheme.accentBlue,
             ),
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-              fillColor: Colors.transparent,
-            ),
-            cursorColor: CleanTheme.accentBlue,
           ),
         ],
       ),
@@ -2308,26 +2332,52 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         SizedBox(height: isKeyboardOpen ? 10 : 24),
 
                         if (showSetDetails) ...[
-                          // Fixed no-scroll cards.
                           Expanded(
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 24,
                               ),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: _buildSetDetailOverlayCard(
-                                      title: 'ULTIMO SET',
-                                      exerciseId: _restingExerciseId!,
-                                      setNumber: _restingSetNumber,
-                                      isNext: false,
+                              child: isKeyboardOpen
+                                  ? SingleChildScrollView(
+                                      keyboardDismissBehavior:
+                                          ScrollViewKeyboardDismissBehavior
+                                              .onDrag,
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Column(
+                                        children: [
+                                          SizedBox(
+                                            height: 150,
+                                            child: _buildSetDetailOverlayCard(
+                                              title: 'ULTIMO SET',
+                                              exerciseId: _restingExerciseId!,
+                                              setNumber: _restingSetNumber,
+                                              isNext: false,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          SizedBox(
+                                            height: 150,
+                                            child: _buildNextSetOverlayCard(),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Column(
+                                      children: [
+                                        Expanded(
+                                          child: _buildSetDetailOverlayCard(
+                                            title: 'ULTIMO SET',
+                                            exerciseId: _restingExerciseId!,
+                                            setNumber: _restingSetNumber,
+                                            isNext: false,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Expanded(
+                                          child: _buildNextSetOverlayCard(),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Expanded(child: _buildNextSetOverlayCard()),
-                                ],
-                              ),
                             ),
                           ),
                           SizedBox(height: isKeyboardOpen ? 8 : 16),
@@ -2629,6 +2679,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     // Haptic feedback on tap — instant confirmation
     HapticFeedback.mediumImpact();
+    _guidedMuscleGroups = exercise.exercise.muscleGroups;
+    _guidedSecondaryMuscleGroups = exercise.exercise.secondaryMuscleGroups;
 
     // Start guided execution (tries API first, then local fallback)
     await _voiceController.speakGuidedExecution(
@@ -3304,104 +3356,119 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     );
   }
 
-  Future<void> _showSetAdjustmentSheet(
-    String uniqueId,
-    WorkoutExercise exercise,
-  ) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    exercise.exercise.name,
-                    style: GoogleFonts.outfit(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: CleanTheme.textPrimary,
+  Widget _buildCompleteExerciseButton({
+    required bool isCompleted,
+    required bool isCompleting,
+    required VoidCallback onTap,
+  }) {
+    final backgroundColor = isCompleted
+        ? CleanTheme.accentGreen.withValues(alpha: 0.08)
+        : CleanTheme.accentGreen;
+    final borderColor = isCompleted
+        ? CleanTheme.accentGreen.withValues(alpha: 0.26)
+        : CleanTheme.accentGreen;
+    final foregroundColor = isCompleted
+        ? CleanTheme.accentGreen
+        : CleanTheme.textOnPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isCompleted || isCompleting ? null : onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          height: 48,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: borderColor),
+            boxShadow: isCompleted
+                ? null
+                : [
+                    BoxShadow(
+                      color: CleanTheme.accentGreen.withValues(alpha: 0.22),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Modifica le serie solo per questa sessione.',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: CleanTheme.textSecondary,
+                  ],
+          ),
+          child: Center(
+            child: isCompleting
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: foregroundColor,
                     ),
-                  ),
-                  const SizedBox(height: 18),
-                  Row(
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: _buildQuickActionButton(
-                          icon: Icons.remove_rounded,
-                          label: 'Rimuovi',
-                          color: CleanTheme.accentRed,
-                          onTap: exercise.sets > 1
-                              ? () async {
-                                  Navigator.pop(context);
-                                  await _changeExerciseSets(uniqueId, -1);
-                                }
-                              : () {},
-                          isOutlined: true,
-                        ),
+                      Icon(
+                        isCompleted
+                            ? Icons.check_circle_rounded
+                            : Icons.done_all_rounded,
+                        size: 20,
+                        color: foregroundColor,
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.chromeSubtle,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          '${exercise.sets} serie',
-                          style: GoogleFonts.outfit(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: CleanTheme.textPrimary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildQuickActionButton(
-                          icon: Icons.add_rounded,
-                          label: 'Aggiungi',
-                          color: CleanTheme.primaryColor,
-                          onTap: exercise.sets < 20
-                              ? () async {
-                                  Navigator.pop(context);
-                                  await _changeExerciseSets(uniqueId, 1);
-                                }
-                              : () {},
-                          isPrimary: true,
+                      const SizedBox(width: 8),
+                      Text(
+                        isCompleted
+                            ? 'Esercizio completato'
+                            : 'Completa esercizio',
+                        style: GoogleFonts.outfit(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: foregroundColor,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
           ),
-        );
-      },
+        ),
+      ),
     );
+  }
+
+  void _showExerciseCompletionSnackBar(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          content: Row(
+            children: [
+              Icon(
+                isError
+                    ? Icons.error_outline_rounded
+                    : Icons.check_circle_rounded,
+                color: CleanTheme.textOnPrimary,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  message,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: CleanTheme.textOnPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: isError
+              ? CleanTheme.accentRed
+              : CleanTheme.accentGreen,
+          duration: const Duration(milliseconds: 2200),
+        ),
+      );
   }
 
   Future<void> _completeExerciseQuick(
@@ -3476,19 +3543,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (!mounted) return;
       HapticService.mediumTap();
       unawaited(_updateLockScreenWidget());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${exercise.exercise.name} segnato come eseguito.'),
-          backgroundColor: CleanTheme.accentGreen,
-        ),
-      );
+      _showExerciseCompletionSnackBar('${exercise.exercise.name} completato');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Errore completamento esercizio: $e'),
-          backgroundColor: CleanTheme.accentRed,
-        ),
+      _showExerciseCompletionSnackBar(
+        'Errore completamento esercizio: $e',
+        isError: true,
       );
     } finally {
       if (mounted) {
@@ -3523,18 +3583,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               displayExercise,
             );
 
-            final isCompleted = _completedExercises.contains(
-              displayExercise.exercise.id,
-            );
-            final isBulkCompleting = _bulkCompletingExerciseIds.contains(
-              uniqueId,
-            );
+            final isCompleted = _completedExercises.contains(uniqueId);
 
             // Determine if this is the next exercise to perform
             final orderedExercises = _getOrderedExercisePointers();
             final firstUncompleted = orderedExercises.firstWhere(
-              (entry) =>
-                  !_completedExercises.contains(entry.exercise.exercise.id),
+              (entry) => !_completedExercises.contains(entry.exerciseId),
               orElse: () => _OrderedExercisePointer(
                 exerciseId: uniqueId,
                 exercise: exercise,
@@ -3542,6 +3596,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             );
             final isNext =
                 _isSessionActive && uniqueId == firstUncompleted.exerciseId;
+            final isCompleting = _bulkCompletingExerciseIds.contains(uniqueId);
 
             return AnimatedContainer(
               duration: const Duration(milliseconds: 350),
@@ -3764,7 +3819,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         isTrial: widget.workoutDay.id.startsWith('trial_'),
                         onCompletionChanged: (allSetsCompleted) {
                           _handleExerciseCompletionChanged(
-                            displayExercise.exercise.id,
+                            uniqueId,
                             allSetsCompleted,
                           );
                         },
@@ -3773,6 +3828,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           if (widget.workoutDay.id.startsWith('trial_')) {}
                           unawaited(_updateLockScreenWidget());
                         },
+                        onRemoveSet: () => _changeExerciseSets(uniqueId, -1),
+                        onAddSet: () => _changeExerciseSets(uniqueId, 1),
                         onRestTimerSkipped: () {},
                         onRestTimerStateChanged:
                             (
@@ -3792,80 +3849,54 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                     ),
 
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                      child: _buildCompleteExerciseButton(
+                        isCompleted: isCompleted,
+                        isCompleting: isCompleting,
+                        onTap: () =>
+                            _completeExerciseQuick(uniqueId, displayExercise),
+                      ),
+                    ),
+
                     // Quick Actions row
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-                      child: Column(
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildQuickActionButton(
-                                  icon: Icons.info_outline_rounded,
-                                  label: AppLocalizations.of(context)!.info,
-                                  color: CleanTheme.chromeGray,
-                                  onTap: () => _navigateToExerciseDetail(
-                                    displayExercise,
-                                  ),
-                                  isOutlined: isMobilityType,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _buildQuickActionButton(
-                                  icon: Icons.tune_rounded,
-                                  label: 'Serie +/-',
-                                  color: CleanTheme.accentOrange,
-                                  onTap: () => _showSetAdjustmentSheet(
-                                    uniqueId,
-                                    displayExercise,
-                                  ),
-                                  isOutlined: true,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _buildQuickActionButton(
-                                  icon: Icons.camera_alt_outlined,
-                                  label: AppLocalizations.of(context)!.aiCheck,
-                                  color: CleanTheme.steelDark,
-                                  isPrimary: !isMobilityType,
-                                  isOutlined: isMobilityType,
-                                  onTap: () {
-                                    final exerciseId = int.tryParse(
-                                      displayExercise.exercise.id,
-                                    );
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => FormAnalysisScreen(
-                                          exerciseName:
-                                              displayExercise.exercise.name,
-                                          exerciseId: exerciseId,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
+                          Expanded(
                             child: _buildQuickActionButton(
-                              icon: isBulkCompleting
-                                  ? Icons.hourglass_top_rounded
-                                  : Icons.done_all_rounded,
-                              label: isBulkCompleting
-                                  ? 'Completamento...'
-                                  : 'Segna eseguito',
-                              color: CleanTheme.accentGreen,
-                              isPrimary: true,
-                              onTap: () => _completeExerciseQuick(
-                                uniqueId,
-                                displayExercise,
-                              ),
+                              icon: Icons.info_outline_rounded,
+                              label: AppLocalizations.of(context)!.info,
+                              color: CleanTheme.chromeGray,
+                              onTap: () =>
+                                  _navigateToExerciseDetail(displayExercise),
+                              isOutlined: isMobilityType,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildQuickActionButton(
+                              icon: Icons.camera_alt_outlined,
+                              label: AppLocalizations.of(context)!.aiCheck,
+                              color: CleanTheme.steelDark,
+                              isPrimary: !isMobilityType,
+                              isOutlined: isMobilityType,
+                              onTap: () {
+                                final exerciseId = int.tryParse(
+                                  displayExercise.exercise.id,
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => FormAnalysisScreen(
+                                      exerciseName:
+                                          displayExercise.exercise.name,
+                                      exerciseId: exerciseId,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -3893,6 +3924,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             onTap: () => _startGuidedExecution(displayExercise),
                             onPause: () => _voiceController.pauseAudio(),
                             onResume: () => _voiceController.resumeAudio(),
+                            isLoading: isLoading,
+                            isPlaying: isPlaying,
+                            isPaused: isPaused,
                             label: switch (state) {
                               GuidedExecutionUiState.loading =>
                                 'Preparazione audio...',
@@ -3902,9 +3936,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                 _voiceController.guidedError ?? 'Errore audio',
                               _ => (isPlaying ? 'Ascolta...' : baseLabel),
                             },
-                            isPlaying: isPlaying,
-                            isPaused: isPaused,
-                            isLoading: isLoading,
                             isOutlined: isMobilityType,
                             showShimmer: isNext && !isPlaying,
                           );
@@ -4090,9 +4121,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
       // Collect muscle groups from completed exercises
       final muscleGroups = <String>{};
-      for (final exercise in widget.workoutDay.mainWorkout) {
-        if (_completedExercises.contains(exercise.exercise.id)) {
-          muscleGroups.addAll(exercise.exercise.muscleGroups);
+      for (final pointer in _getOrderedExercisePointers()) {
+        if (_completedExercises.contains(pointer.exerciseId)) {
+          muscleGroups.addAll(pointer.exercise.exercise.muscleGroups);
         }
       }
 
@@ -4295,14 +4326,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     try {
       // 1. Calculate Stats
+      final completedExerciseIds = _getCompletedBaseExerciseIds();
       final skippedExercises = widget.workoutDay.exercises
-          .where((e) => !_completedExercises.contains(e.exercise.id))
+          .where((e) => !completedExerciseIds.contains(e.exercise.id))
           .map((e) => e.exercise.id)
           .toList();
 
       // Create difficulty map (using overall difficulty for all completed exercises for now)
       final difficultyMap = <String, int>{};
-      for (final exerciseId in _completedExercises) {
+      for (final exerciseId in completedExerciseIds) {
         difficultyMap[exerciseId] = difficulty;
       }
 

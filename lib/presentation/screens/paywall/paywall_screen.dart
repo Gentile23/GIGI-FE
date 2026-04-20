@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/clean_theme.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/legal_links.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../data/models/quota_status_model.dart';
@@ -203,17 +206,89 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             const SizedBox(height: 16),
 
-            // Terms
-            Text(
-              l10n.paywallTerms, // 'Abbonandoti accetti...'
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: CleanTheme.textTertiary,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            _buildComplianceSection(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildComplianceSection() {
+    final l10n = AppLocalizations.of(context)!;
+    final selectedPeriod = _isYearly
+        ? l10n.paywallBillingYearly
+        : l10n.paywallBillingMonthly;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CleanTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CleanTheme.borderPrimary),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            '${l10n.paywallSubscriptionLengthLabel}: $selectedPeriod',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.paywallAutoRenewNotice,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.paywallTerms,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: CleanTheme.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              OutlinedButton(
+                onPressed: () => _openLegalUrl(privacyPolicyUrl),
+                child: Text(l10n.privacyPolicy),
+              ),
+              OutlinedButton(
+                onPressed: () => _openLegalUrl(appleStandardEulaUrl),
+                child: Text(l10n.paywallEulaLink),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _handleRestorePurchases,
+            child: Text(l10n.paywallRestorePurchases),
+          ),
+          Text(
+            l10n.paywallManageSubscriptionHint,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: CleanTheme.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: _openManageSubscriptions,
+            child: Text(l10n.paywallManageSubscription),
+          ),
+        ],
       ),
     );
   }
@@ -570,24 +645,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
     return [
       _toInt(workoutPlan['interval_weeks']) == 0
-          ? 'Piani workout AI: illimitati'
-          : 'Piani workout AI: 1 ogni ${_weekLabel(_toInt(workoutPlan["interval_weeks"]))}',
-      'Form Check AI: ${_describeQuota(formAnalysis)}',
-      'Snap & Track AI: ${_describeQuota(mealAnalysis)}',
-      'Chef AI: ${_describeQuota(recipes)}',
+          ? 'Piani workout AI. Il limite del tuo piano è illimitato'
+          : 'Piani workout AI. Il limite del tuo piano è 1 ogni ${_weekLabel(_toInt(workoutPlan["interval_weeks"]))}',
+      'Form Check AI. Il limite del tuo piano è ${_describeQuota(formAnalysis)}',
+      'Snap & Track AI. Il limite del tuo piano è ${_describeQuota(mealAnalysis)}',
+      'Chef AI. Il limite del tuo piano è ${_describeQuota(recipes)}',
       _toInt(customWorkout['limit']) == -1
-          ? 'Workout custom: illimitati'
-          : 'Workout custom: ${_toInt(customWorkout["limit"])} ogni ${_weekLabel(_toInt(customWorkout["interval_weeks"]))}',
-      'Analisi PDF Dieta: ${_describeQuota(pdfDiet)}',
-      'Chat AI: ${_describeQuota(workoutChat)}',
-      'Execute con Gigi: ${_describeQuota(executeWithGigi)}',
+          ? 'Workout custom. Il limite del tuo piano è illimitato'
+          : 'Workout custom. Il limite del tuo piano è ${_toInt(customWorkout["limit"])} ogni ${_weekLabel(_toInt(customWorkout["interval_weeks"]))}',
+      'Analisi PDF Dieta. Il limite del tuo piano è ${_describeQuota(pdfDiet)}',
+      'Chat AI. Il limite del tuo piano è ${_describeQuota(workoutChat)}',
+      'Execute con Gigi. Il limite del tuo piano è ${_describeQuota(executeWithGigi)}',
       _toInt(shoppingList['limit']) == -1
-          ? 'Lista spesa AI: illimitata'
-          : 'Lista spesa AI: ${_describeQuota(shoppingList)}',
-      'Cambio pasto: ${_describeQuota(changeMeal)}',
-      'Smart Swap: ${_describeQuota(changeFood)}',
-      'Unlock AI Alternatives: ${_describeQuota(exerciseAlternatives)}',
-      'Esercizi simili: ${_describeQuota(similarExercises)}',
+          ? 'Lista spesa AI. Il limite del tuo piano è illimitato'
+          : 'Lista spesa AI. Il limite del tuo piano è ${_describeQuota(shoppingList)}',
+      'Cambio pasto. Il limite del tuo piano è ${_describeQuota(changeMeal)}',
+      'Smart Swap. Il limite del tuo piano è ${_describeQuota(changeFood)}',
+      'Unlock AI Alternatives. Il limite del tuo piano è ${_describeQuota(exerciseAlternatives)}',
+      'Esercizi simili. Il limite del tuo piano è ${_describeQuota(similarExercises)}',
       voiceCoaching
           ? 'Voice Coaching realtime incluso'
           : 'Voice Coaching realtime non incluso',
@@ -689,6 +764,42 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _handleRestorePurchases() async {
+    final paymentService = Provider.of<PaymentService>(context, listen: false);
+    final success = await paymentService.restorePurchases();
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Ripristino completato.'
+              : (paymentService.errorMessage ?? 'Ripristino non riuscito.'),
+        ),
+        backgroundColor: success
+            ? CleanTheme.accentGreen
+            : CleanTheme.accentOrange,
+      ),
+    );
+  }
+
+  Future<void> _openLegalUrl(String value) async {
+    final uri = Uri.parse(value);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossibile aprire il link.')),
+      );
+    }
+  }
+
+  Future<void> _openManageSubscriptions() async {
+    final url = defaultTargetPlatform == TargetPlatform.iOS
+        ? 'https://apps.apple.com/account/subscriptions'
+        : 'https://play.google.com/store/account/subscriptions';
+    await _openLegalUrl(url);
   }
 
   Widget _buildUrgencyTimer() {

@@ -5356,6 +5356,42 @@ abstract class AppLocalizations {
   /// **'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.'**
   String get paywallTerms;
 
+  /// No description provided for @paywallSubscriptionLengthLabel.
+  ///
+  /// In it, this message translates to:
+  /// **'Durata abbonamento'**
+  String get paywallSubscriptionLengthLabel;
+
+  /// No description provided for @paywallAutoRenewNotice.
+  ///
+  /// In it, this message translates to:
+  /// **'Abbonamento con rinnovo automatico. L\'addebito avviene sul tuo account store alla conferma, salvo cancellazione almeno 24 ore prima del rinnovo.'**
+  String get paywallAutoRenewNotice;
+
+  /// No description provided for @paywallEulaLink.
+  ///
+  /// In it, this message translates to:
+  /// **'Termini di Utilizzo (EULA)'**
+  String get paywallEulaLink;
+
+  /// No description provided for @paywallRestorePurchases.
+  ///
+  /// In it, this message translates to:
+  /// **'Ripristina Acquisti'**
+  String get paywallRestorePurchases;
+
+  /// No description provided for @paywallManageSubscriptionHint.
+  ///
+  /// In it, this message translates to:
+  /// **'Puoi gestire e cancellare l\'abbonamento in qualsiasi momento dalle impostazioni del tuo account App Store.'**
+  String get paywallManageSubscriptionHint;
+
+  /// No description provided for @paywallManageSubscription.
+  ///
+  /// In it, this message translates to:
+  /// **'Gestisci Abbonamento'**
+  String get paywallManageSubscription;
+
   /// No description provided for @paywallActivateTitle.
   ///
   /// In it, this message translates to:
@@ -5403,6 +5439,18 @@ abstract class AppLocalizations {
   /// In it, this message translates to:
   /// **'Condizioni d\'uso del servizio GIGI'**
   String get termsOfServiceSubtitle;
+
+  /// No description provided for @healthKitDisclosureTitle.
+  ///
+  /// In it, this message translates to:
+  /// **'Integrazione Apple Health (HealthKit)'**
+  String get healthKitDisclosureTitle;
+
+  /// No description provided for @healthKitDisclosureBody.
+  ///
+  /// In it, this message translates to:
+  /// **'GIGI usa HealthKit per leggere metriche salute selezionate e, con il tuo consenso, scrivere gli allenamenti completati per mantenere i progressi sincronizzati.'**
+  String get healthKitDisclosureBody;
 
   /// No description provided for @mealBreakfast.
   ///

@@ -123,49 +123,52 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: score.readinessColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.favorite_rounded,
-                  color: score.readinessColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Punteggio Recupero',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                      ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: score.readinessColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    Text(
-                      '$scorePercentage%',
-                      style: GoogleFonts.outfit(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
-                        color: score.readinessColor,
-                      ),
+                    child: Icon(
+                      Icons.favorite_rounded,
+                      color: score.readinessColor,
+                      size: 40,
                     ),
-                    Text(
-                      score.readinessLabel,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: score.readinessColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Punteggio Recupero',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    '$scorePercentage%',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w800,
+                      color: score.readinessColor,
+                    ),
+                  ),
+                  Text(
+                    score.readinessLabel,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: score.readinessColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -218,53 +221,57 @@ class _BiometricDashboardScreenState extends State<BiometricDashboardScreen> {
 
     return CleanCard(
       padding: const EdgeInsets.all(20),
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: trend.trendColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(trend.trendIcon, color: trend.trendColor, size: 24),
+            child: Icon(trend.trendIcon, color: trend.trendColor, size: 28),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Trend HRV (7 giorni)',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textSecondary,
-                  ),
-                ),
-                Text(
-                  trend.trend.toUpperCase(),
-                  style: GoogleFonts.outfit(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: trend.trendColor,
-                  ),
-                ),
-                Text(
-                  'Media: ${trend.average.toStringAsFixed(1)} ms',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: CleanTheme.textTertiary,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 12),
+          Text(
+            'Trend HRV (7 giorni)',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: CleanTheme.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
           ),
           Text(
-            '${trend.changePercentage > 0 ? '+' : ''}${trend.changePercentage.toStringAsFixed(1)}%',
+            trend.trend.toUpperCase(),
+            textAlign: TextAlign.center,
             style: GoogleFonts.outfit(
               fontSize: 24,
               fontWeight: FontWeight.w700,
               color: trend.trendColor,
             ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Media: ${trend.average.toStringAsFixed(1)} ms',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: CleanTheme.textTertiary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${trend.changePercentage > 0 ? '+' : ''}${trend.changePercentage.toStringAsFixed(1)}%',
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: trend.trendColor,
+                ),
+              ),
+            ],
           ),
         ],
       ),

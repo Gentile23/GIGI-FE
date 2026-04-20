@@ -163,6 +163,9 @@ Regole fondamentali:
       if (measurements['bicep_left_cm'] != null) {
         buffer.writeln('  - Bicipite SX: ${measurements['bicep_left_cm']} cm');
       }
+      if (measurements['triceps_cm'] != null) {
+        buffer.writeln('  - Tricipite: ${measurements['triceps_cm']} cm');
+      }
       if (measurements['forearm_cm'] != null) {
         buffer.writeln('  - Avambraccio: ${measurements['forearm_cm']} cm');
       }
@@ -174,6 +177,9 @@ Regole fondamentali:
       }
       if (measurements['chest_cm'] != null) {
         buffer.writeln('  - Petto: ${measurements['chest_cm']} cm');
+      }
+      if (measurements['back_cm'] != null) {
+        buffer.writeln('  - Schiena: ${measurements['back_cm']} cm');
       }
       if (measurements['waist_cm'] != null) {
         buffer.writeln('  - Vita: ${measurements['waist_cm']} cm');

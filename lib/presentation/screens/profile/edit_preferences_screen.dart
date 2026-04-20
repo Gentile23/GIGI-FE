@@ -1646,34 +1646,52 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
   Widget _buildGoalsSelector() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 8,
-        children: FitnessGoal.values.where((g) => g != FitnessGoal.toning).map((
-          goal,
-        ) {
-          final isSelected = _goals.contains(goal);
-          return CleanChip(
-            label: _getGoalLabel(goal),
-            isSelected: isSelected,
-            onTap: () {
-              HapticService.selectionClick();
-              setState(() {
-                if (isSelected) {
-                  _goals.remove(goal);
-                } else {
-                  if (goal == FitnessGoal.weightLoss) {
-                    _goals.remove(FitnessGoal.muscleGain);
-                  } else if (goal == FitnessGoal.muscleGain) {
-                    _goals.remove(FitnessGoal.weightLoss);
-                  }
-                  _goals.add(goal);
-                }
-              });
-            },
-          );
-        }).toList(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Obiettivi',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: CleanTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: FitnessGoal.values
+                  .where((g) => g != FitnessGoal.toning)
+                  .map((goal) {
+                    final isSelected = _goals.contains(goal);
+                    return CleanChip(
+                      label: _getGoalLabel(goal),
+                      isSelected: isSelected,
+                      onTap: () {
+                        HapticService.selectionClick();
+                        setState(() {
+                          if (isSelected) {
+                            _goals.remove(goal);
+                          } else {
+                            if (goal == FitnessGoal.weightLoss) {
+                              _goals.remove(FitnessGoal.muscleGain);
+                            } else if (goal == FitnessGoal.muscleGain) {
+                              _goals.remove(FitnessGoal.weightLoss);
+                            }
+                            _goals.add(goal);
+                          }
+                        });
+                      },
+                    );
+                  })
+                  .toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1691,27 +1709,30 @@ class _EditPreferencesScreenState extends State<EditPreferencesScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: Equipment.values.map((eq) {
-            final isSelected = _equipment.contains(eq);
-            return CleanChip(
-              label: _getEquipmentLabel(eq),
-              isSelected: isSelected,
-              onTap: () {
-                HapticService.selectionClick();
-                setState(() {
-                  if (isSelected) {
-                    _equipment.remove(eq);
-                  } else {
-                    _equipment.add(eq);
-                  }
-                });
-              },
-            );
-          }).toList(),
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: Equipment.values.map((eq) {
+              final isSelected = _equipment.contains(eq);
+              return CleanChip(
+                label: _getEquipmentLabel(eq),
+                isSelected: isSelected,
+                onTap: () {
+                  HapticService.selectionClick();
+                  setState(() {
+                    if (isSelected) {
+                      _equipment.remove(eq);
+                    } else {
+                      _equipment.add(eq);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          ),
         ),
       ],
     );

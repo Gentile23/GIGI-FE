@@ -419,11 +419,13 @@ class _StatsScreenState extends State<StatsScreen> {
               children: [
                 _buildPeriodSelector(),
                 const SizedBox(height: 20),
-                Text(
-                  _periodTitle(),
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: CleanTheme.textSecondary,
+                Center(
+                  child: Text(
+                    _periodTitle(),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: CleanTheme.textSecondary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -477,46 +479,44 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildStatCard(_StatItem item) {
     return CleanCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(
-              color: item.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(item.icon, color: item.color, size: 18),
-          ),
-          const Spacer(),
+          Icon(item.icon, color: item.color.withValues(alpha: 0.8), size: 32),
+          const SizedBox(height: 10),
           Text(
             item.value,
             maxLines: 1,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.outfit(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
               color: CleanTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
-            item.label,
+            item.label.toUpperCase(),
             maxLines: 1,
+            textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.inter(
-              fontSize: 12,
-              color: CleanTheme.textSecondary,
-              fontWeight: FontWeight.w500,
+              fontSize: 10,
+              color: item.color,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
             ),
           ),
           if (item.subtitle != null && item.subtitle!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.only(top: 4),
               child: Text(
                 item.subtitle!,
                 maxLines: 1,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
                   fontSize: 11,
@@ -667,22 +667,23 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Text(
-                        entry.key,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.textPrimary,
-                        ),
+                    Text(
+                      entry.key,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textPrimary,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
-                      '${entry.value}',
+                      '(${entry.value})',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: CleanTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

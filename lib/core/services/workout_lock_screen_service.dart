@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 
 class WorkoutLockScreenSnapshot {
   final bool sessionActive;
@@ -9,9 +10,13 @@ class WorkoutLockScreenSnapshot {
   final String currentExerciseName;
   final int currentSetNumber;
   final int currentSetTotal;
+  final String? currentTargetReps;
+  final List<String> currentMuscleGroups;
+  final List<String> currentSecondaryMuscleGroups;
   final String? nextExerciseName;
   final int? nextSetNumber;
   final int? nextSetTotal;
+  final String? nextTargetReps;
   final bool isResting;
   final int? restRemainingSeconds;
   final int? restTotalSeconds;
@@ -22,9 +27,13 @@ class WorkoutLockScreenSnapshot {
     required this.currentExerciseName,
     required this.currentSetNumber,
     required this.currentSetTotal,
+    required this.currentTargetReps,
+    required this.currentMuscleGroups,
+    required this.currentSecondaryMuscleGroups,
     required this.nextExerciseName,
     required this.nextSetNumber,
     required this.nextSetTotal,
+    required this.nextTargetReps,
     required this.isResting,
     required this.restRemainingSeconds,
     required this.restTotalSeconds,
@@ -45,6 +54,12 @@ class WorkoutLockScreenService {
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
+  static const MethodChannel _iosLiveActivityChannel = MethodChannel(
+    'it.fitgenius.gigi/workout_live_activity',
+  );
+  static const MethodChannel _androidNotificationChannel = MethodChannel(
+    'it.fitgenius.gigi/workout_notification',
+  );
 
   bool _initialized = false;
   bool _permissionRequested = false;
@@ -79,20 +94,20 @@ class WorkoutLockScreenService {
       return;
     }
 
+    if (Platform.isIOS) {
+      await _updateIosLiveActivity(snapshot, isTick: isTick);
+      return;
+    }
+
     await initialize();
     if (!_initialized) return;
 
-    // iOS lock screen updates are throttled during countdown to avoid spammy updates.
-    if (Platform.isIOS && isTick) {
-      final now = DateTime.now();
-      if (_lastIosTickUpdate != null &&
-          now.difference(_lastIosTickUpdate!).inSeconds < 15) {
-        return;
-      }
-      _lastIosTickUpdate = now;
-    }
-
     await _requestPermissionsIfNeeded();
+
+    if (Platform.isAndroid) {
+      final didShowNative = await _updateAndroidCustomNotification(snapshot);
+      if (didShowNative) return;
+    }
 
     final title = snapshot.isResting
         ? 'Recupero: ${_formatTime(snapshot.restRemainingSeconds ?? 0)}'
@@ -153,12 +168,85 @@ class WorkoutLockScreenService {
 
   Future<void> clear() async {
     _lastIosTickUpdate = null;
+    if (Platform.isIOS) {
+      try {
+        await _iosLiveActivityChannel.invokeMethod<void>('endWorkoutActivity');
+      } catch (e) {
+        debugPrint('Unable to end workout Live Activity: $e');
+      }
+    }
+    if (Platform.isAndroid) {
+      try {
+        await _androidNotificationChannel.invokeMethod<void>(
+          'clearWorkoutNotification',
+        );
+      } catch (e) {
+        debugPrint('Unable to clear Android workout notification: $e');
+      }
+    }
     if (!_initialized) return;
     try {
       await _notifications.cancel(_notificationId);
     } catch (e) {
       debugPrint('Unable to clear workout lock-screen notification: $e');
     }
+  }
+
+  Future<bool> _updateAndroidCustomNotification(
+    WorkoutLockScreenSnapshot snapshot,
+  ) async {
+    try {
+      await _androidNotificationChannel.invokeMethod<void>(
+        'updateWorkoutNotification',
+        _snapshotPayload(snapshot),
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Unable to update Android workout notification: $e');
+      return false;
+    }
+  }
+
+  Future<void> _updateIosLiveActivity(
+    WorkoutLockScreenSnapshot snapshot, {
+    required bool isTick,
+  }) async {
+    if (isTick) {
+      final now = DateTime.now();
+      if (_lastIosTickUpdate != null &&
+          now.difference(_lastIosTickUpdate!).inSeconds < 15) {
+        return;
+      }
+      _lastIosTickUpdate = now;
+    }
+
+    try {
+      await _iosLiveActivityChannel.invokeMethod<void>(
+        'updateWorkoutActivity',
+        _snapshotPayload(snapshot),
+      );
+    } catch (e) {
+      debugPrint('Unable to update workout Live Activity: $e');
+    }
+  }
+
+  Map<String, Object?> _snapshotPayload(WorkoutLockScreenSnapshot snapshot) {
+    return {
+      'workoutName': snapshot.workoutName,
+      'currentExerciseName': snapshot.currentExerciseName,
+      'currentSetNumber': snapshot.currentSetNumber,
+      'currentSetTotal': snapshot.currentSetTotal,
+      'currentTargetReps': snapshot.currentTargetReps,
+      'currentMuscleGroups': snapshot.currentMuscleGroups,
+      'currentSecondaryMuscleGroups': snapshot.currentSecondaryMuscleGroups,
+      'nextExerciseName': snapshot.nextExerciseName,
+      'nextSetNumber': snapshot.nextSetNumber,
+      'nextSetTotal': snapshot.nextSetTotal,
+      'nextTargetReps': snapshot.nextTargetReps,
+      'isResting': snapshot.isResting,
+      'restRemainingSeconds': snapshot.restRemainingSeconds,
+      'restTotalSeconds': snapshot.restTotalSeconds,
+    };
   }
 
   Future<void> _requestPermissionsIfNeeded() async {

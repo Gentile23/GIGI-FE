@@ -213,52 +213,51 @@ class _GamificationScreenState extends State<GamificationScreen>
 
             // Streak Card
             CleanCard(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: CleanTheme.accentOrange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 36,
+                        color: CleanTheme.accentOrange,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.local_fire_department_rounded,
-                      size: 32,
-                      color: CleanTheme.accentOrange,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Streak Attuale',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: CleanTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Streak Attuale',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: CleanTheme.textSecondary,
-                          ),
-                        ),
-                        Text(
-                          '${_stats!.currentStreak} giorni',
-                          style: GoogleFonts.outfit(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: CleanTheme.accentOrange,
-                          ),
-                        ),
-                        Text(
-                          'Record: ${_stats!.longestStreak} giorni',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: CleanTheme.textTertiary,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_stats!.currentStreak} giorni',
+                      style: GoogleFonts.outfit(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.accentOrange,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Record: ${_stats!.longestStreak} giorni',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),

@@ -182,6 +182,44 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: CleanTheme.primaryColor.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.healthKitDisclosureTitle,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          AppLocalizations.of(context)!.healthKitDisclosureBody,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: CleanTheme.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
                   // Platform info card
                   _buildPlatformCard(),
 
@@ -416,16 +454,17 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                       ),
                     )
                   : Text(
-                    _isConnected
-                        ? AppLocalizations.of(context)!.disconnect
-                        : AppLocalizations.of(
-                            context,
-                          )!.connectTo(_healthService.platformName),
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w600,
-                      height: 1.3,
+                      _isConnected
+                          ? AppLocalizations.of(context)!.disconnect
+                          : AppLocalizations.of(
+                              context,
+                            )!.connectTo(_healthService.platformName),
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                      ),
                     ),
-                  ),            ),
+            ),
           ),
         ],
       ),

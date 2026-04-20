@@ -125,8 +125,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+        Center(
           child: Text(
             AppLocalizations.of(context)!.progressStatsTitle,
             style: GoogleFonts.outfit(
@@ -216,7 +215,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
     required String unit,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: CleanTheme.cardColor,
         borderRadius: BorderRadius.circular(24),
@@ -232,19 +231,13 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
+          Icon(icon, color: color.withValues(alpha: 0.8), size: 32),
+          const SizedBox(height: 12),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 value,
@@ -257,6 +250,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               const SizedBox(height: 2),
               Text(
                 unit.toUpperCase(),
+                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
@@ -266,8 +260,10 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -397,51 +393,44 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           width: 1,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: const Icon(
+              const Center(
+                child: Icon(
                   Icons.straighten,
                   color: CleanTheme.textOnPrimary,
-                  size: 26,
+                  size: 40,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Nuova Misura',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textOnPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Traccia i tuoi progressi',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+              const SizedBox(height: 16),
+              Text(
+                'Nuova Misura',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: CleanTheme.textOnPrimary,
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios,
-                color: CleanTheme.textOnPrimary,
-                size: 18,
+              const SizedBox(height: 4),
+              Text(
+                'Traccia i tuoi progressi corporei',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.85),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Center(
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: CleanTheme.textOnPrimary,
+                  size: 24,
+                ),
               ),
             ],
           ),

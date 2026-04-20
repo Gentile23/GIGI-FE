@@ -2816,6 +2816,26 @@ class AppLocalizationsIt extends AppLocalizations {
       'Abbonandoti accetti i nostri Termini di Servizio e Privacy Policy. L\'abbonamento si rinnova automaticamente. Puoi cancellare in qualsiasi momento.';
 
   @override
+  String get paywallSubscriptionLengthLabel => 'Durata abbonamento';
+
+  @override
+  String get paywallAutoRenewNotice =>
+      'Abbonamento con rinnovo automatico. L\'addebito avviene sul tuo account store alla conferma, salvo cancellazione almeno 24 ore prima del rinnovo.';
+
+  @override
+  String get paywallEulaLink => 'Termini di Utilizzo (EULA)';
+
+  @override
+  String get paywallRestorePurchases => 'Ripristina Acquisti';
+
+  @override
+  String get paywallManageSubscriptionHint =>
+      'Puoi gestire e cancellare l\'abbonamento in qualsiasi momento dalle impostazioni del tuo account App Store.';
+
+  @override
+  String get paywallManageSubscription => 'Gestisci Abbonamento';
+
+  @override
   String paywallActivateTitle(Object planName) {
     return 'Attiva $planName';
   }
@@ -2843,6 +2863,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get termsOfServiceSubtitle => 'Condizioni d\'uso del servizio GIGI';
+
+  @override
+  String get healthKitDisclosureTitle =>
+      'Integrazione Apple Health (HealthKit)';
+
+  @override
+  String get healthKitDisclosureBody =>
+      'GIGI usa HealthKit per leggere metriche salute selezionate e, con il tuo consenso, scrivere gli allenamenti completati per mantenere i progressi sincronizzati.';
 
   @override
   String get mealBreakfast => 'Colazione';

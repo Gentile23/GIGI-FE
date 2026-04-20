@@ -46,6 +46,7 @@ class PaymentService extends ChangeNotifier {
   PaymentService._internal();
 
   bool _isInitialized = false;
+  bool _isStoreReady = false;
   SubscriptionTier _currentPlan = SubscriptionTier.free;
   PurchaseStatus _purchaseStatus = PurchaseStatus.idle;
   String? _errorMessage;
@@ -61,6 +62,7 @@ class PaymentService extends ChangeNotifier {
   List<ProductInfo> get availableProducts => _availableProducts;
   DateTime? get expirationDate => _expirationDate;
   bool get isTrialActive => _isTrialActive;
+  bool get isStoreReady => _isStoreReady;
 
   bool get isProOrAbove =>
       _currentPlan == SubscriptionTier.pro ||
@@ -111,6 +113,10 @@ class PaymentService extends ChangeNotifier {
       debugPrint('PaymentService initialized');
     } catch (e) {
       debugPrint('Failed to initialize PaymentService: $e');
+      _isStoreReady = false;
+      _errorMessage =
+          'Configurazione acquisti non valida. Verifica RevenueCat e prodotti in App Store Connect.';
+      notifyListeners();
     }
   }
 
@@ -141,48 +147,21 @@ class PaymentService extends ChangeNotifier {
         for (var p in _availableProducts) {
           debugPrint(' - Product found: ${p.identifier} (${p.priceString})');
         }
+        _isStoreReady = _availableProducts.isNotEmpty;
       } else {
         debugPrint('RevenueCat: No current offerings found. Check dashboard.');
-        if (kDebugMode) {
-          _loadMockProducts(); // Fallback to mock only for local UI development
-        } else {
-          _availableProducts = [];
-        }
+        _availableProducts = [];
+        _isStoreReady = false;
       }
       notifyListeners();
     } catch (e) {
       debugPrint('RevenueCat: Error fetching products: $e');
-      if (kDebugMode) {
-        _loadMockProducts();
-      } else {
-        _availableProducts = [];
-      }
+      _availableProducts = [];
+      _isStoreReady = false;
+      _errorMessage =
+          'Impossibile caricare abbonamenti disponibili. Riprova più tardi.';
+      notifyListeners();
     }
-  }
-
-  /// Load mock products for development
-  void _loadMockProducts() {
-    _availableProducts = [
-      const ProductInfo(
-        identifier: ProductInfo.proMonthly,
-        title: 'GiGi Pro Mensile',
-        description: 'Coach Vocale + AI Form Check',
-        price: 14.99,
-        priceString: '€14,99',
-        currencyCode: 'EUR',
-      ),
-      const ProductInfo(
-        identifier: ProductInfo.proYearly,
-        title: 'GiGi Pro Annuale',
-        description: 'Risparmia 44%!',
-        price: 99.99,
-        priceString: '€99,99',
-        currencyCode: 'EUR',
-        introductoryPrice: '€8,33/mese',
-      ),
-      // Elite removed from user-accessible purchase list as requested.
-      // Elite tier remains in system for manual assignment.
-    ];
   }
 
   /// Purchase a product
@@ -209,6 +188,16 @@ class PaymentService extends ChangeNotifier {
       // In production:
       final offerings = await Purchases.getOfferings();
       _logOfferingsSnapshot(offerings, context: 'purchaseProduct:$productId');
+      if (offerings.current == null ||
+          offerings.current!.availablePackages.isEmpty) {
+        _purchaseStatus = PurchaseStatus.error;
+        _errorMessage =
+            'Nessun abbonamento disponibile in questo momento. Verifica configurazione store e riprova.';
+        _isStoreReady = false;
+        notifyListeners();
+        return false;
+      }
+
       final package = _findPackageForProduct(productId, offerings);
 
       if (package == null) {
@@ -226,6 +215,7 @@ class PaymentService extends ChangeNotifier {
       final purchaseResult = await Purchases.purchasePackage(package);
       _updateFromCustomerInfo(purchaseResult.customerInfo);
       _purchaseStatus = PurchaseStatus.success;
+      _isStoreReady = true;
       notifyListeners();
       debugPrint(
         'Purchase successful: ${package.storeProduct.identifier} via package ${package.identifier}',
@@ -261,11 +251,8 @@ class PaymentService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // In production:
-      // final customerInfo = await Purchases.restorePurchases();
-      // _updateFromCustomerInfo(customerInfo);
-
-      await Future.delayed(const Duration(seconds: 1));
+      final customerInfo = await Purchases.restorePurchases();
+      _updateFromCustomerInfo(customerInfo);
 
       _purchaseStatus = PurchaseStatus.success;
       notifyListeners();
@@ -345,6 +332,33 @@ class PaymentService extends ChangeNotifier {
       }
     }
 
+    final fallbackType = _expectedPackageType(productId);
+    if (fallbackType == null) {
+      return null;
+    }
+
+    for (final package in current.availablePackages) {
+      if (package.packageType == fallbackType) {
+        return package;
+      }
+    }
+
+    return null;
+  }
+
+  PackageType? _expectedPackageType(String productId) {
+    final normalized = _canonicalizeProductIdentifier(
+      _normalizeProductIdentifier(productId),
+    );
+
+    if (normalized.contains('monthly') || normalized.contains('month')) {
+      return PackageType.monthly;
+    }
+    if (normalized.contains('yearly') ||
+        normalized.contains('annual') ||
+        normalized.contains('year')) {
+      return PackageType.annual;
+    }
     return null;
   }
 

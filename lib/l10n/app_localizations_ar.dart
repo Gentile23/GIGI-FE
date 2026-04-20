@@ -2783,6 +2783,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'عند الاشتراك، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.';
 
   @override
+  String get paywallSubscriptionLengthLabel => 'مدة الاشتراك';
+
+  @override
+  String get paywallAutoRenewNotice =>
+      'اشتراك يتجدد تلقائيًا. يتم الخصم من حساب المتجر عند التأكيد ما لم يتم الإلغاء قبل 24 ساعة على الأقل من التجديد.';
+
+  @override
+  String get paywallEulaLink => 'شروط الاستخدام (EULA)';
+
+  @override
+  String get paywallRestorePurchases => 'استعادة المشتريات';
+
+  @override
+  String get paywallManageSubscriptionHint =>
+      'يمكنك إدارة الاشتراك وإلغاؤه في أي وقت من إعدادات حسابك في App Store.';
+
+  @override
+  String get paywallManageSubscription => 'إدارة الاشتراك';
+
+  @override
   String paywallActivateTitle(Object planName) {
     return 'تفعيل $planName';
   }
@@ -2810,6 +2830,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get termsOfServiceSubtitle => 'شروط استخدام خدمة GIGI';
+
+  @override
+  String get healthKitDisclosureTitle => 'تكامل Apple Health (HealthKit)';
+
+  @override
+  String get healthKitDisclosureBody =>
+      'يستخدم GIGI HealthKit لقراءة بيانات صحية محددة، وبإذن منك، لكتابة التمارين المكتملة حتى يبقى تقدمك متزامنًا.';
 
   @override
   String get mealBreakfast => 'الإفطار';

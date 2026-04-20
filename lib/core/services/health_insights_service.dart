@@ -139,9 +139,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '😴',
-            title: 'Sonno eccellente!',
+            title: 'Recupero sonno in target',
             description:
-                'Hai dormito ${sleepHours.toStringAsFixed(1)}h. Perfetto per il recupero muscolare.',
+                'Stato: ${sleepHours.toStringAsFixed(1)}h di sonno. Impatto: recupero muscolare favorito. Azione: mantieni stessa routine stasera.',
             type: InsightType.positive,
             metric: '${sleepHours.toStringAsFixed(1)}h',
           ),
@@ -150,9 +150,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '⚠️',
-            title: 'Sonno insufficiente',
+            title: 'Sonno sotto soglia',
             description:
-                'Solo ${sleepHours.toStringAsFixed(1)}h di sonno. Il recupero potrebbe essere compromesso.',
+                'Stato: ${sleepHours.toStringAsFixed(1)}h di sonno. Impatto: recupero ridotto e fatica piu alta. Azione: anticipa sonno di 45-60 min oggi.',
             type: InsightType.warning,
             metric: '${sleepHours.toStringAsFixed(1)}h',
           ),
@@ -167,8 +167,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '🚶',
-            title: 'Obiettivo passi raggiunto!',
-            description: '$steps passi oggi. Ottima attività quotidiana.',
+            title: 'Movimento giornaliero centrato',
+            description:
+                'Stato: $steps passi oggi. Impatto: buona spesa energetica quotidiana. Azione: aggiungi solo 5-10 min defaticamento serale.',
             type: InsightType.positive,
             metric: '${(steps / 1000).toStringAsFixed(1)}k',
           ),
@@ -177,9 +178,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '👟',
-            title: 'Muoviti di più',
+            title: 'Passi bassi oggi',
             description:
-                'Solo $steps passi. Una camminata di 15 min aiuterebbe.',
+                'Stato: $steps passi finora. Impatto: NEAT basso, recupero attivo ridotto. Azione: camminata da 15-20 min entro sera.',
             type: InsightType.suggestion,
             metric: '${(steps / 1000).toStringAsFixed(1)}k',
           ),
@@ -194,9 +195,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '💓',
-            title: 'Cuore da atleta',
+            title: 'Frequenza cardiaca efficiente',
             description:
-                'HR a riposo di $hr bpm. Eccellente fitness cardiovascolare!',
+                'Stato: HR a riposo $hr bpm. Impatto: segnale positivo di forma aerobica. Azione: mantieni volume previsto, senza aumenti extra oggi.',
             type: InsightType.positive,
             metric: '$hr bpm',
           ),
@@ -205,9 +206,9 @@ class HealthInsightsService {
         insights.add(
           TrendInsight(
             emoji: '❤️',
-            title: 'HR elevato',
+            title: 'HR a riposo alto',
             description:
-                'Battito a riposo $hr bpm. Possibile stress o stanchezza.',
+                'Stato: HR a riposo $hr bpm. Impatto: possibile stress/fatica sistemica. Azione: riduci intensita workout del 10-20% oggi.',
             type: InsightType.warning,
             metric: '$hr bpm',
           ),
@@ -221,13 +222,22 @@ class HealthInsightsService {
       insights.add(
         TrendInsight(
           emoji: '⚖️',
-          title: 'Peso attuale',
-          description: '${weight.toStringAsFixed(1)} kg registrato.',
+          title: 'Peso monitorato',
+          description:
+              'Stato: ${weight.toStringAsFixed(1)} kg registrati. Impatto: dato utile se visto su trend, non su singolo giorno. Azione: confronta media 7 giorni.',
           type: InsightType.neutral,
           metric: '${weight.toStringAsFixed(1)}kg',
         ),
       );
     }
+
+    insights.sort((a, b) {
+      final priorityCompare = _getInsightPriority(
+        a.type,
+      ).compareTo(_getInsightPriority(b.type));
+      if (priorityCompare != 0) return priorityCompare;
+      return a.title.compareTo(b.title);
+    });
 
     return insights;
   }
@@ -385,15 +395,17 @@ class HealthInsightsService {
       final avgSleep = _average(sleep.values.toList());
       if (avgSleep < 7) {
         insights.add(
-          'Il tuo sonno medio è ${avgSleep.toStringAsFixed(1)}h. Punta a 7-8 ore per massimizzare il recupero.',
+          'Stato: sonno medio ${avgSleep.toStringAsFixed(1)}h. Impatto: recupero incompleto. Azione: programma 7-8h con orario sonno fisso per 3 notti.',
         );
       } else {
         insights.add(
-          'Ottimo! Dormi in media ${avgSleep.toStringAsFixed(1)}h a notte. Continua così!',
+          'Stato: sonno medio ${avgSleep.toStringAsFixed(1)}h. Impatto: recupero in linea. Azione: mantieni routine pre-sonno uguale anche nel weekend.',
         );
       }
     } else {
-      insights.add('Nessun dato sonno disponibile questa settimana da Health.');
+      insights.add(
+        'Stato: dati sonno assenti da Health. Impatto: recovery poco leggibile. Azione: verifica permessi sonno e sincronizza app Health.',
+      );
     }
 
     final hasStepsData = steps.values.any((value) => value > 0);
@@ -401,31 +413,37 @@ class HealthInsightsService {
       final avgSteps = steps.values.fold(0, (a, b) => a + b) ~/ 7;
       if (avgSteps >= 10000) {
         insights.add(
-          'Media di $avgSteps passi/giorno. Eccellente livello di attività!',
+          'Stato: media $avgSteps passi/giorno. Impatto: attivita quotidiana ottima. Azione: conserva questo volume nei prossimi 3 giorni.',
         );
       } else {
         insights.add(
-          'Media di $avgSteps passi/giorno. Prova ad aggiungere una camminata di 15 min.',
+          'Stato: media $avgSteps passi/giorno. Impatto: dispendio giornaliero basso. Azione: aggiungi 15-20 min camminata dopo pranzo.',
         );
       }
     } else {
-      insights.add('Nessun dato passi disponibile questa settimana da Health.');
+      insights.add(
+        'Stato: dati passi assenti da Health. Impatto: trend attivita incompleto. Azione: abilita lettura passi in Apple Health.',
+      );
     }
 
     if (!hasWorkoutData) {
       insights.add(
-        'Non siamo riusciti a recuperare i workout completati di questa settimana.',
+        'Stato: workout settimanali non recuperati. Impatto: progressione parziale. Azione: riprova sync cronologia allenamenti.',
       );
     } else if (workouts >= 4) {
       insights.add(
-        '$workouts allenamenti completati. Sei sulla strada giusta! 💪',
+        'Stato: $workouts workout completati. Impatto: frequenza forte. Azione: pianifica 1 giorno recupero attivo per consolidare.',
       );
     } else {
-      insights.add('Workout completati questa settimana: $workouts.');
+      insights.add(
+        'Stato: $workouts workout completati. Impatto: frequenza sotto target. Azione: blocca ora in agenda per prossimo allenamento.',
+      );
     }
 
     if (hr != null) {
-      insights.add('Frequenza cardiaca a riposo rilevata: $hr bpm.');
+      insights.add(
+        'Stato: frequenza cardiaca a riposo $hr bpm. Impatto: indicatore pronto carico interno. Azione: se resta alta 2+ giorni, riduci intensita.',
+      );
     }
 
     return insights;
@@ -513,6 +531,19 @@ class HealthInsightsService {
       return Duration.zero;
     }
     return overlapEnd.difference(overlapStart);
+  }
+
+  int _getInsightPriority(InsightType type) {
+    switch (type) {
+      case InsightType.warning:
+        return 0;
+      case InsightType.suggestion:
+        return 1;
+      case InsightType.positive:
+        return 2;
+      case InsightType.neutral:
+        return 3;
+    }
   }
 }
 

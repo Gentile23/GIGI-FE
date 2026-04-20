@@ -42,6 +42,7 @@ class TrendInsightCard extends StatelessWidget {
           ],
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header row
@@ -86,16 +87,12 @@ class TrendInsightCard extends StatelessWidget {
             const SizedBox(height: 8),
 
             // Description
-            Expanded(
-              child: Text(
-                insight.description,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.9),
-                  height: 1.4,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+            Text(
+              insight.description,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textOnPrimary.withValues(alpha: 0.9),
+                height: 1.4,
               ),
             ),
 

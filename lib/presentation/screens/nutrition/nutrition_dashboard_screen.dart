@@ -143,6 +143,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
               child: CustomScrollView(
                 key: const PageStorageKey<String>('nutrition_dashboard_scroll'),
                 controller: _scrollController,
+                cacheExtent: 900,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   // Premium App Bar
@@ -280,7 +281,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       },
       child: LiquidSteelContainer(
         borderRadius: 20,
-        enableShine: true,
+        enableShine: false,
         colors: const [
           CleanTheme.steelDark,
           CleanTheme.steelMid,
@@ -357,7 +358,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         // Header: Piano Attivo
         LiquidSteelContainer(
           borderRadius: 20,
-          enableShine: true,
+          enableShine: false,
           colors: const [
             CleanTheme.steelDark,
             CleanTheme.steelMid,
@@ -547,11 +548,11 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
         const SizedBox(height: 24),
 
         // Pannello Strumenti AI
-        _buildFoodDuelCard(),
+        RepaintBoundary(child: _buildFoodDuelCard()),
         const SizedBox(height: 12),
-        _buildTrackCaloriesCompact(),
+        RepaintBoundary(child: _buildTrackCaloriesCompact()),
         const SizedBox(height: 12),
-        _buildChefAiCard(),
+        RepaintBoundary(child: _buildChefAiCard()),
         const SizedBox(height: 24),
 
         Row(
@@ -677,7 +678,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       },
       child: LiquidSteelContainer(
         borderRadius: 16,
-        enableShine: true,
+        enableShine: false,
         border: Border.all(
           color: CleanTheme.textOnDark.withValues(alpha: 0.3),
           width: 1,
@@ -752,7 +753,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       },
       child: LiquidSteelContainer(
         borderRadius: 16,
-        enableShine: true,
+        enableShine: false,
         colors: const [
           Color(0xFFE5E5EA), // Chrome Light
           Color(0xFFD1D1D6), // Chrome Mid
@@ -837,7 +838,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
       },
       child: LiquidSteelContainer(
         borderRadius: 16,
-        enableShine: true,
+        enableShine: false,
         colors: const [
           Color(0xFF1C1C1E),
           Color(0xFF2C2C2E),

@@ -698,9 +698,12 @@ class SynchronizedVoiceController extends ChangeNotifier {
     if (!_isCurrentOperation(operationId)) return;
 
     String? scriptToSpeak;
+    String? guidedAudioUrl;
 
     // 1. Show preparation cards immediately (always — user can skip with "Salta")
-    _preparationCards = _getPreparationCards(exerciseName);
+    _preparationCards = _deduplicatePreparationCards(
+      _getPreparationCards(exerciseName),
+    );
     _currentCardIndex = 0;
     notifyListeners();
 
@@ -713,15 +716,18 @@ class SynchronizedVoiceController extends ChangeNotifier {
 
         if (responseData != null) {
           scriptToSpeak = responseData['full_script'] as String?;
+          guidedAudioUrl = responseData['audio_url'] as String?;
 
           final apiCards = responseData['preparation_cards'] as List<dynamic>?;
           if (apiCards != null && apiCards.isNotEmpty) {
-            _preparationCards = apiCards
-                .map(
-                  (item) =>
-                      PreparationCard.fromJson(item as Map<String, dynamic>),
-                )
-                .toList();
+            _preparationCards = _deduplicatePreparationCards(
+              apiCards
+                  .map(
+                    (item) =>
+                        PreparationCard.fromJson(item as Map<String, dynamic>),
+                  )
+                  .toList(),
+            );
             notifyListeners();
             debugPrint('📢 Got SPECIFIC preparation cards from API');
           }
@@ -745,18 +751,23 @@ class SynchronizedVoiceController extends ChangeNotifier {
         '''
 ${firstName.isNotEmpty ? '$firstName, eseguiamo' : 'Eseguiamo'} insieme 2 ripetizioni perfette di $exerciseName.
 
-Posizionati correttamente, mantieni una postura stabile.
+Partiamo dalla posizione: ti guido io, un dettaglio alla volta.
 
-PRIMA RIPETIZIONE:
-Esegui il movimento lentamente, concentrandoti sulla tecnica.
-Inspira nella fase di allungamento, espira nello sforzo.
+Sistema l'appoggio in modo stabile. Trova la presa o il contatto delle mani.
+Allunga la schiena, abbassa le spalle, attiva il core e tieni la testa neutra.
+
+Immagina di muoverti dentro due binari: niente scatti, niente slancio, solo controllo.
+
+Prima ripetizione: inspira... parti lento... accompagna il movimento contando uno... due... tre.
+Fermati un istante nel punto finale senza perdere la postura.
+Ora torna espirando, con spalle e schiena ferme.
 
 ... pausa ...
 
-SECONDA RIPETIZIONE:
-Stessa tecnica perfetta. Controllo totale del movimento.
+Seconda ripetizione: stesso setup. Se il corpo scappa, rallenta.
+Controlla l'andata... senti i muscoli giusti lavorare... ritorna senza rimbalzare.
 
-${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo lavoro! Ora tutto è pronto'} per le tue serie!
+${firstName.isNotEmpty ? 'Perfetto $firstName.' : 'Ottimo lavoro.'} Questa è la traiettoria. Ora ripeti così nelle tue serie.
 ''';
 
     // Attempt to use high-quality TTS (ElevenLabs) via API
@@ -770,13 +781,9 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
           notifyListeners();
         }
 
-        debugPrint('🎙️ Generating high-quality audio with ElevenLabs...');
-        debugPrint(
-          '📝 Script to speak: ${scriptToSpeak.substring(0, scriptToSpeak.length.clamp(0, 100))}...',
-        );
-
-        // Call backend to generate TTS audio
-        final audioUrl = await voiceCoachingService.generateTTS(scriptToSpeak);
+        final audioUrl = guidedAudioUrl?.isNotEmpty == true
+            ? guidedAudioUrl
+            : await voiceCoachingService.generateTTS(scriptToSpeak);
         if (!_isCurrentOperation(operationId)) return;
 
         if (audioUrl != null && audioUrl.isNotEmpty) {
@@ -902,6 +909,25 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName! Ora tutto è pronto' : 'Ottimo la
         body: 'Gigi sta preparando la tua guida vocale',
       ),
     ];
+  }
+
+  List<PreparationCard> _deduplicatePreparationCards(
+    List<PreparationCard> cards,
+  ) {
+    final seen = <String>{};
+    final unique = <PreparationCard>[];
+
+    for (final card in cards) {
+      final key = '${card.title}|${card.body}'
+          .toLowerCase()
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      if (key.isEmpty || seen.contains(key)) continue;
+      seen.add(key);
+      unique.add(card);
+    }
+
+    return unique;
   }
 
   /// Speak a short personalized closing phrase using local TTS

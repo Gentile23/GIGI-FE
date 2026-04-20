@@ -116,6 +116,21 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
       structured = null;
     }
 
+    final workoutProvider = Provider.of<WorkoutProvider>(
+      context,
+      listen: false,
+    );
+    final workoutLogProvider = Provider.of<WorkoutLogProvider>(
+      context,
+      listen: false,
+    );
+    final nextSuggestion = NextWorkoutSelector.resolve(
+      aiPlan: workoutProvider.currentPlan,
+      customPlans: _customPlans,
+      workoutHistory: workoutLogProvider.workoutHistory,
+    );
+    final nextWorkout = nextSuggestion?.workoutDay;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -125,6 +140,25 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           structured: structured,
           rawNotes: notes,
           mapIcon: _mapAnalysisIcon,
+          onStartTraining: nextWorkout == null
+              ? null
+              : () {
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          WorkoutSessionScreen(workoutDay: nextWorkout),
+                    ),
+                  ).then((_) {
+                    if (!mounted) return;
+                    Provider.of<WorkoutLogProvider>(
+                      context,
+                      listen: false,
+                    ).fetchWorkoutHistory();
+                    _loadCustomWorkouts();
+                  });
+                },
         );
       },
     );
@@ -697,7 +731,7 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Limite Free: 1 scheda ogni $intervalWeeks settimane',
+                                      'Il limite del tuo piano è 1 scheda ogni $intervalWeeks settimane.',
                                       style: GoogleFonts.inter(
                                         fontSize: 14,
                                         color: CleanTheme.accentOrange,
@@ -1629,11 +1663,13 @@ class _GiGiAnalysisSheet extends StatefulWidget {
   final Map<String, dynamic>? structured;
   final String rawNotes;
   final IconData Function(String) mapIcon;
+  final VoidCallback? onStartTraining;
 
   const _GiGiAnalysisSheet({
     required this.structured,
     required this.rawNotes,
     required this.mapIcon,
+    required this.onStartTraining,
   });
 
   @override
@@ -1692,11 +1728,12 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
     return valid;
   }
 
-  // Total sections: header + greeting + N analysis cards + promise + closing + CTA
+  // Total sections: header + greeting + N analysis cards + promise + closing + optional CTA
   int get _totalSections {
+    final ctaCount = widget.onStartTraining == null ? 0 : 1;
     if (widget.structured == null) {
       final rawNotes = _cleanText(widget.rawNotes);
-      return rawNotes.isEmpty ? 2 : 3; // header, [text], CTA
+      return 1 + (rawNotes.isEmpty ? 0 : 1) + ctaCount;
     }
 
     final data = widget.structured!;
@@ -1706,7 +1743,7 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
     final promise = _cleanText(data['promise']);
     final closing = _cleanText(data['closing']);
 
-    var total = 2; // header + CTA
+    var total = 1 + ctaCount; // header + optional CTA
     if (greeting.isNotEmpty) total++;
     total += points.length;
     if (rehabNote.isNotEmpty) total++;
@@ -1889,9 +1926,11 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
       );
     }
 
-    children.add(const SizedBox(height: 28));
-    children.add(_buildAnimatedSection(sectionIndex++, _buildCTA()));
-    children.add(const SizedBox(height: 12));
+    if (widget.onStartTraining != null) {
+      children.add(const SizedBox(height: 28));
+      children.add(_buildAnimatedSection(sectionIndex++, _buildCTA()));
+      children.add(const SizedBox(height: 12));
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2100,6 +2139,9 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
   }
 
   Widget _buildCTA() {
+    final onStartTraining = widget.onStartTraining;
+    if (onStartTraining == null) return const SizedBox.shrink();
+
     return ScaleTransition(
       scale: _ctaScale,
       child: SizedBox(
@@ -2125,6 +2167,9 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
               onTap: () {
                 HapticService.mediumTap();
                 Navigator.pop(context);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  onStartTraining();
+                });
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -2186,9 +2231,11 @@ class _GiGiAnalysisSheetState extends State<_GiGiAnalysisSheet>
             ),
           ),
         ],
-        const SizedBox(height: 28),
-        _buildAnimatedSection(sectionIndex++, _buildCTA()),
-        const SizedBox(height: 12),
+        if (widget.onStartTraining != null) ...[
+          const SizedBox(height: 28),
+          _buildAnimatedSection(sectionIndex++, _buildCTA()),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }

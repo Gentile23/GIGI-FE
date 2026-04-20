@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -94,7 +92,6 @@ class WorkoutSummaryScreen extends StatefulWidget {
 }
 
 class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
-  final GlobalKey _shareCardKey = GlobalKey();
   final ImagePicker _picker = ImagePicker();
   late final ConfettiController _confettiController;
 
@@ -216,29 +213,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           _buildConfettiLayer(Alignment.topCenter, 0),
           _buildConfettiLayer(Alignment.topLeft, math.pi / 14),
           _buildConfettiLayer(Alignment.topRight, math.pi - (math.pi / 14)),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Opacity(
-                opacity: 0.001,
-                child: Center(
-                  child: RepaintBoundary(
-                    key: _shareCardKey,
-                    child: SizedBox(
-                      width: 360,
-                      child: WorkoutShareCard(
-                        summaryData: data,
-                        photoBytes: _selectedPhotoBytes,
-                        userName: Provider.of<AuthProvider>(
-                          context,
-                          listen: false,
-                        ).user?.name,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -875,8 +849,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         _selectedPhotoBytes = selectedPhotoBytes;
       });
 
-      await _waitForShareCardToPaint();
-
       await _generateAndShareImage();
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -897,51 +869,51 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       _isGeneratingImage = true;
     });
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(color: CleanTheme.accentOrange),
-      ),
-    );
+    var loadingDialogShown = false;
 
     try {
-      await _waitForShareCardToPaint();
+      final ui.Image image = await _captureShareCardImage(pixelRatio: 3.0);
+      if (!mounted) return;
 
-      final boundaryContext = _shareCardKey.currentContext;
-      final renderObject = boundaryContext?.findRenderObject();
-      if (renderObject is! RenderRepaintBoundary) {
-        throw StateError('Share card non pronta');
-      }
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: CleanTheme.accentOrange),
+        ),
+      );
+      loadingDialogShown = true;
 
-      await _waitForShareCardToPaint();
-
-      final ui.Image image = await renderObject.toImage(pixelRatio: 3.0);
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      final tempDir = await getTemporaryDirectory();
-      final file = await File(
-        '${tempDir.path}/gigi_workout_share.png',
-      ).create();
-      await file.writeAsBytes(pngBytes);
-
       if (mounted) {
-        Navigator.pop(context);
+        if (loadingDialogShown) {
+          Navigator.pop(context);
+          loadingDialogShown = false;
+        }
 
         await SharePlus.instance.share(
           ShareParams(
-            files: [XFile(file.path)],
-            text: 'Ho appena spaccato con GiGi! 🔥 #GiGiWorkout #OgniSetConta',
+            files: [
+              XFile.fromData(
+                pngBytes,
+                mimeType: 'image/png',
+                name: 'gigi_workout_share.png',
+              ),
+            ],
+            text: _buildSocialShareText(),
           ),
         );
       }
     } catch (e) {
       debugPrint('Error generating image: $e');
       if (mounted) {
-        Navigator.pop(context);
+        if (loadingDialogShown) {
+          Navigator.pop(context);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Errore durante la generazione dell\'immagine'),
@@ -957,28 +929,108 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     }
   }
 
-  Future<void> _waitForShareCardToPaint() async {
-    RenderRepaintBoundary? boundary;
+  String _buildSocialShareText() {
+    final data = widget.summaryData;
+    final lines = <String>[
+      'Workout completato con GIGI.',
+      '${data.workoutName} | ${data.formattedDuration}',
+    ];
 
-    for (var attempt = 0; attempt < 20; attempt++) {
-      await WidgetsBinding.instance.endOfFrame;
-      await Future<void>.delayed(const Duration(milliseconds: 16));
+    final highlights = <String>[];
+    if (data.totalKgLifted > 0) {
+      highlights.add('Volume ${data.formattedKg}');
+    }
+    if (data.completedSets > 0) {
+      highlights.add('${data.completedSets} serie');
+    }
+    if (data.totalReps > 0) {
+      highlights.add('${data.totalReps} reps');
+    }
+    if (data.estimatedCalories > 0) {
+      highlights.add('${data.estimatedCalories} kcal');
+    }
+    if (data.avgRpe != null) {
+      highlights.add('RPE medio ${data.avgRpe!.toStringAsFixed(1)}');
+    }
 
-      final boundaryContext = _shareCardKey.currentContext;
-      final renderObject = boundaryContext?.findRenderObject();
+    if (highlights.isNotEmpty) {
+      lines.add(highlights.take(4).join(' • '));
+    }
 
-      if (renderObject is RenderRepaintBoundary) {
-        boundary = renderObject;
-        if (!renderObject.debugNeedsLayout && !renderObject.debugNeedsPaint) {
-          return;
+    lines.add('#GIGIWorkout #OgniSetConta #FitnessJourney');
+    return lines.join('\n');
+  }
+
+  Future<ui.Image> _captureShareCardImage({required double pixelRatio}) async {
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final captureKey = GlobalKey();
+    final userName = context.read<AuthProvider>().user?.name;
+    Object? lastError;
+    late final OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (_) => Positioned.fill(
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: 0.01,
+            child: Material(
+              color: Colors.transparent,
+              child: Center(
+                child: RepaintBoundary(
+                  key: captureKey,
+                  child: SizedBox(
+                    width: 360,
+                    child: WorkoutShareCard(
+                      summaryData: widget.summaryData,
+                      photoBytes: _selectedPhotoBytes,
+                      userName: userName,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    try {
+      for (var attempt = 0; attempt < 60; attempt++) {
+        WidgetsBinding.instance.scheduleFrame();
+        await WidgetsBinding.instance.endOfFrame;
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+
+        final boundaryContext = captureKey.currentContext;
+        final renderObject = boundaryContext?.findRenderObject();
+
+        if (renderObject is! RenderRepaintBoundary) {
+          lastError = StateError('Share card non pronta');
+          continue;
+        }
+
+        if (renderObject.debugNeedsLayout || renderObject.debugNeedsPaint) {
+          lastError = StateError('Share card non ha completato il paint');
+          WidgetsBinding.instance.scheduleFrame();
+          continue;
+        }
+
+        try {
+          return await renderObject.toImage(pixelRatio: pixelRatio);
+        } catch (e) {
+          lastError = e;
+          if (!e.toString().contains('debugNeedsPaint')) {
+            rethrow;
+          }
         }
       }
-    }
 
-    if (boundary == null) {
-      throw StateError('Share card non pronta');
+      throw StateError(
+        'Share card non pronta dopo il rendering: ${lastError ?? 'timeout'}',
+      );
+    } finally {
+      overlayEntry.remove();
     }
-
-    throw StateError('Share card non ha completato il paint');
   }
 }

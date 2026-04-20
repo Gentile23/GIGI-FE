@@ -25,6 +25,10 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
   String? _svgContent;
   bool _hasError = false;
 
+  static final RegExp _pathTokenPattern = RegExp(
+    r'[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?',
+  );
+
   @override
   void initState() {
     super.initState();
@@ -110,13 +114,19 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
     // Check for side suffixes
     String suffix = '';
     String normalizedGroup = group.toUpperCase().trim();
-    
+
     if (normalizedGroup.endsWith('_LEFT')) {
       suffix = '_LEFT';
-      normalizedGroup = normalizedGroup.substring(0, normalizedGroup.length - 5);
+      normalizedGroup = normalizedGroup.substring(
+        0,
+        normalizedGroup.length - 5,
+      );
     } else if (normalizedGroup.endsWith('_RIGHT')) {
       suffix = '_RIGHT';
-      normalizedGroup = normalizedGroup.substring(0, normalizedGroup.length - 6);
+      normalizedGroup = normalizedGroup.substring(
+        0,
+        normalizedGroup.length - 6,
+      );
     }
 
     // Strict mapping using the defined constants
@@ -125,6 +135,7 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
     final Map<String, List<String>> muscleMap = {
       // Standard Fixed Names (Direct matches)
       'chest': ['CHEST'],
+      'traps': ['TRAPS'],
       'back': ['BACK'],
       'shoulders': ['SHOULDERS'],
       'biceps': ['BICEPS'],
@@ -134,6 +145,10 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
       'abdominals': ['ABDOMINALS'],
       'obliques': ['OBLIQUES'],
       'quads': ['QUADRICEPS'],
+      'quadriceps': ['QUADRICEPS'],
+      'hamstrings': ['HAMSTRINGS'],
+      'glutes': ['GLUTES'],
+      'calves': ['CALVES'],
       'lats': ['BACK'],
       'legs': ['QUADRICEPS', 'HAMSTRINGS', 'CALVES', 'GLUTES'],
       'core': ['ABDOMINALS', 'OBLIQUES'],
@@ -231,45 +246,15 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
         element.setAttribute('stroke-width', '1');
         element.setAttribute('opacity', '1');
 
-        // Determine the side of the path based on its coordinates
+        // Determine the side of the path based on all its x coordinates.
         final pathData = element.getAttribute('d') ?? '';
-        bool isLeft = false;
-        bool isRight = false;
-        
-        // Heuristic: determine side based on view (Front/Back) and midline
-        final match = RegExp(r'[Mm]\s+([\d.]+)').firstMatch(pathData);
-        if (match != null) {
-          final x = double.tryParse(match.group(1)!) ?? svgCenter;
-          
-          if (x < svgCenter) {
-            // Front View: 
-            // Viewer Left (x > frontMidline) is Anatomical Right
-            // Viewer Right (x < frontMidline) is Anatomical Left
-            // Front View: midline = 115
-            // Viewer Left (x < midline) is Anatomical Right
-            // Viewer Right (x > midline) is Anatomical Left
-            const double frontMidline = 115.0;
-            if (x < frontMidline - 5) {
-              isRight = true;
-            } else if (x > frontMidline + 5) {
-              isLeft = true;
-            }
-          } else {
-            // Back View: midline = 411
-            // Viewer Left (x < midline) is Anatomical Left
-            // Viewer Right (x > midline) is Anatomical Right
-            const double backMidline = 411.0;
-            if (x < backMidline - 5) {
-              isLeft = true;
-            } else if (x > backMidline + 5) {
-              isRight = true;
-            }
-          }
-        }
+        final side = _estimateAnatomicalSide(pathData, svgCenter: svgCenter);
+        final isLeft = side == _AnatomicalSide.left;
+        final isRight = side == _AnatomicalSide.right;
 
         // Selection logic for colors
         Color? selectedColor;
-        
+
         if (isLeft && elementColors.containsKey('${dataElem}_LEFT')) {
           selectedColor = elementColors['${dataElem}_LEFT'];
         } else if (isRight && elementColors.containsKey('${dataElem}_RIGHT')) {
@@ -279,12 +264,166 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
         }
 
         if (selectedColor != null) {
-          final hex = '#${selectedColor.toARGB32().toRadixString(16).substring(2, 8)}';
+          final hex =
+              '#${selectedColor.toARGB32().toRadixString(16).substring(2, 8)}';
           element.setAttribute('fill', hex);
           element.setAttribute('opacity', selectedColor.a.toString());
         }
       }
     }
+  }
+
+  _AnatomicalSide? _estimateAnatomicalSide(
+    String pathData, {
+    required double svgCenter,
+  }) {
+    final xCoordinates = _extractPathXCoordinates(pathData);
+    if (xCoordinates.isEmpty) return null;
+
+    final minX = xCoordinates.reduce((a, b) => a < b ? a : b);
+    final maxX = xCoordinates.reduce((a, b) => a > b ? a : b);
+    final pathCenterX = (minX + maxX) / 2;
+
+    if (pathCenterX < svgCenter) {
+      // Front view: viewer-left is anatomical right, viewer-right is left.
+      const double frontMidline = 115.0;
+      if (pathCenterX < frontMidline - 5) return _AnatomicalSide.right;
+      if (pathCenterX > frontMidline + 5) return _AnatomicalSide.left;
+    } else {
+      // Back view: viewer-left is anatomical left, viewer-right is right.
+      const double backMidline = 411.0;
+      if (pathCenterX < backMidline - 5) return _AnatomicalSide.left;
+      if (pathCenterX > backMidline + 5) return _AnatomicalSide.right;
+    }
+
+    return null;
+  }
+
+  List<double> _extractPathXCoordinates(String pathData) {
+    final tokens = _pathTokenPattern
+        .allMatches(pathData)
+        .map((match) => match.group(0)!)
+        .toList();
+    final coordinates = <double>[];
+    var command = '';
+    var currentX = 0.0;
+    var currentY = 0.0;
+    var subpathStartX = 0.0;
+    var subpathStartY = 0.0;
+
+    for (var i = 0; i < tokens.length;) {
+      final token = tokens[i];
+      if (_isSvgPathCommand(token)) {
+        command = token;
+        i++;
+
+        if (command == 'Z' || command == 'z') {
+          currentX = subpathStartX;
+          currentY = subpathStartY;
+          continue;
+        }
+      }
+
+      final segmentLength = _pathCommandSegmentLength(command);
+      if (segmentLength == 0 || i + segmentLength > tokens.length) break;
+
+      final segment = tokens
+          .skip(i)
+          .take(segmentLength)
+          .map(double.tryParse)
+          .toList();
+      if (segment.any((value) => value == null)) break;
+
+      final values = segment.cast<double>();
+      final isRelative = command == command.toLowerCase();
+
+      switch (command.toUpperCase()) {
+        case 'M':
+          final x = _absoluteX(values[0], currentX, isRelative);
+          final y = _absoluteY(values[1], currentY, isRelative);
+          coordinates.add(x);
+          currentX = x;
+          currentY = y;
+          subpathStartX = x;
+          subpathStartY = y;
+          command = isRelative ? 'l' : 'L';
+          break;
+        case 'L':
+        case 'T':
+          final x = _absoluteX(values[0], currentX, isRelative);
+          coordinates.add(x);
+          currentX = x;
+          currentY = _absoluteY(values[1], currentY, isRelative);
+          break;
+        case 'H':
+          final x = _absoluteX(values[0], currentX, isRelative);
+          coordinates.add(x);
+          currentX = x;
+          break;
+        case 'V':
+          currentY = _absoluteY(values[0], currentY, isRelative);
+          break;
+        case 'C':
+          coordinates
+            ..add(_absoluteX(values[0], currentX, isRelative))
+            ..add(_absoluteX(values[2], currentX, isRelative))
+            ..add(_absoluteX(values[4], currentX, isRelative));
+          currentX = _absoluteX(values[4], currentX, isRelative);
+          currentY = _absoluteY(values[5], currentY, isRelative);
+          break;
+        case 'S':
+        case 'Q':
+          coordinates
+            ..add(_absoluteX(values[0], currentX, isRelative))
+            ..add(_absoluteX(values[2], currentX, isRelative));
+          currentX = _absoluteX(values[2], currentX, isRelative);
+          currentY = _absoluteY(values[3], currentY, isRelative);
+          break;
+        case 'A':
+          final x = _absoluteX(values[5], currentX, isRelative);
+          coordinates.add(x);
+          currentX = x;
+          currentY = _absoluteY(values[6], currentY, isRelative);
+          break;
+      }
+
+      i += segmentLength;
+    }
+
+    return coordinates;
+  }
+
+  bool _isSvgPathCommand(String token) {
+    return token.length == 1 && RegExp(r'[A-Za-z]').hasMatch(token);
+  }
+
+  int _pathCommandSegmentLength(String command) {
+    switch (command.toUpperCase()) {
+      case 'M':
+      case 'L':
+      case 'T':
+        return 2;
+      case 'H':
+      case 'V':
+        return 1;
+      case 'C':
+        return 6;
+      case 'S':
+      case 'Q':
+        return 4;
+      case 'A':
+        return 7;
+      default:
+        return 0;
+    }
+  }
+
+  double _absoluteX(double value, double currentX, bool isRelative) {
+    return isRelative ? currentX + value : value;
+  }
+
+  double _absoluteY(double value, double currentY, bool isRelative) {
+    return isRelative ? currentY + value : value;
   }
 
   @override
@@ -341,3 +480,5 @@ class _AnatomicalMuscleViewState extends State<AnatomicalMuscleView> {
     );
   }
 }
+
+enum _AnatomicalSide { left, right }

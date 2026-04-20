@@ -57,6 +57,10 @@ class SetLoggingWidget extends StatefulWidget {
   )?
   onRestTimerStateChanged;
 
+  /// Runtime set controls shown in the set table header.
+  final Future<void> Function()? onAddSet;
+  final Future<void> Function()? onRemoveSet;
+
   /// Whether this is a trial workout (athletic assessment)
   /// If true, logs are not sent to backend immediately, but timer and callbacks still fire.
   final bool isTrial;
@@ -74,6 +78,8 @@ class SetLoggingWidget extends StatefulWidget {
     this.onSetCompleted,
     this.onRestTimerSkipped,
     this.onRestTimerStateChanged,
+    this.onAddSet,
+    this.onRemoveSet,
     this.isTrial = false,
     this.debounceTime = const Duration(milliseconds: 500),
   });
@@ -976,6 +982,69 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           // In-card coaching controls disabled (single global control plane).
 
           // Rest Timer is now rendered fullscreen by parent via onRestTimerStateChanged
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 2),
+            child: Row(
+              children: [
+                Text(
+                  'Serie',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: CleanTheme.chromeSubtle.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: CleanTheme.chromeGray.withValues(alpha: 0.14),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _SetCountButton(
+                        icon: Icons.remove_rounded,
+                        tooltip: 'Rimuovi ultima serie',
+                        color: CleanTheme.accentRed,
+                        onTap: totalSets > 1 && widget.onRemoveSet != null
+                            ? () async {
+                                await widget.onRemoveSet!.call();
+                              }
+                            : null,
+                      ),
+                      SizedBox(
+                        width: 34,
+                        child: Text(
+                          '$totalSets',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.outfit(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: CleanTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      _SetCountButton(
+                        icon: Icons.add_rounded,
+                        tooltip: 'Aggiungi serie',
+                        color: CleanTheme.primaryColor,
+                        onTap: totalSets < 20 && widget.onAddSet != null
+                            ? () async {
+                                await widget.onAddSet!.call();
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           // Header — columns change based on exercise type
           Padding(
@@ -1129,6 +1198,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                 ),
                 const SizedBox(width: 8),
+
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -2034,6 +2104,47 @@ class _PremiumCheckboxState extends State<_PremiumCheckbox>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SetCountButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final Color color;
+  final Future<void> Function()? onTap;
+
+  const _SetCountButton({
+    required this.icon,
+    required this.tooltip,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onTap != null;
+    final effectiveColor = isEnabled ? color : CleanTheme.textTertiary;
+
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(13),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 32,
+          height: 34,
+          decoration: BoxDecoration(
+            color: effectiveColor.withValues(alpha: isEnabled ? 0.12 : 0.06),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: effectiveColor.withValues(alpha: isEnabled ? 0.35 : 0.18),
+            ),
+          ),
+          child: Icon(icon, size: 19, color: effectiveColor),
+        ),
       ),
     );
   }

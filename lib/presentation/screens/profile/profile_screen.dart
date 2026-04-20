@@ -311,8 +311,9 @@ class ProfileScreen extends StatelessWidget {
                 _buildSettingsDivider(),
                 _buildSettingsTile(
                   icon: Icons.monitor_heart_outlined,
-                  title: AppLocalizations.of(context)!.healthFitness,
-                  subtitle: AppLocalizations.of(context)!.healthFitnessSubtitle,
+                  title: AppLocalizations.of(context)!.healthKitDisclosureTitle,
+                  subtitle:
+                      '${AppLocalizations.of(context)!.healthFitnessSubtitle} • HealthKit',
                   color: CleanTheme.accentRed,
                   onTap: () {
                     Navigator.push(

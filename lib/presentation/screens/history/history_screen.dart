@@ -265,43 +265,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
           const SizedBox(height: 16),
           // Streak Card
           CleanCard(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: CleanTheme.accentOrange.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.local_fire_department_rounded,
-                    color: CleanTheme.accentOrange,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${stats.currentStreak} Giorni di Streak',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
                     ),
-                    Text(
-                      'Continua così! Record: ${stats.longestStreak}',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        color: CleanTheme.textSecondary,
-                      ),
+                    child: const Icon(
+                      Icons.local_fire_department_rounded,
+                      color: CleanTheme.accentOrange,
+                      size: 32,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '${stats.currentStreak} Giorni di Streak',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: CleanTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Continua così! Record: ${stats.longestStreak}',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: CleanTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
