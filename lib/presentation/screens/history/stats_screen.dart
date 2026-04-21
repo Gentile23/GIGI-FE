@@ -443,12 +443,35 @@ class _StatsScreenState extends State<StatsScreen> {
                 const SizedBox(height: 14),
                 _buildActivityTrendChart(trendBuckets),
                 const SizedBox(height: 28),
+                const SizedBox(height: 28),
                 CleanSectionHeader(title: 'Distribuzione Muscolare'),
                 const SizedBox(height: 14),
                 _buildMuscleDistribution(
                   stats.mostTrainedMuscles.isEmpty
                       ? _calculateMuscleDistribution(provider.workoutHistory)
                       : stats.mostTrainedMuscles,
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.favorite_rounded,
+                        size: 14,
+                        color: CleanTheme.accentRed.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Powered by Apple Health',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: CleanTheme.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
               ],

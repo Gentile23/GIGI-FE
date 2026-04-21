@@ -184,10 +184,10 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                 children: [
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: CleanTheme.primaryColor.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: CleanTheme.primaryColor.withValues(alpha: 0.25),
                       ),
@@ -195,23 +195,40 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.health_and_safety_rounded,
+                              color: CleanTheme.primaryColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Integrazione Apple Health',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: CleanTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
                         Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.healthKitDisclosureTitle,
-                          style: GoogleFonts.outfit(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: CleanTheme.textPrimary,
+                          'GIGI utilizza Apple Health per sincronizzare passi, battito cardiaco, sonno e peso. Questi dati permettono al tuo Coach AI di personalizzare il piano di allenamento e monitorare i tuoi progressi reali.',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: CleanTheme.textSecondary,
+                            height: 1.45,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 12),
                         Text(
-                          AppLocalizations.of(context)!.healthKitDisclosureBody,
+                          'I tuoi dati sanitari sono trattati con la massima privacy e non vengono mai condivisi con terze parti senza il tuo esplicito consenso.',
                           style: GoogleFonts.inter(
                             fontSize: 12,
-                            color: CleanTheme.textSecondary,
-                            height: 1.35,
+                            fontStyle: FontStyle.italic,
+                            color: CleanTheme.textTertiary,
                           ),
                         ),
                       ],

@@ -20,6 +20,9 @@ import 'edit_preferences_screen.dart';
 import 'privacy_settings_screen.dart';
 import 'security_settings_screen.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/legal_links.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -323,6 +326,33 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     );
                   },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          const SizedBox(height: 24),
+
+          // Legal section
+          CleanSectionHeader(title: 'Note Legali'),
+          const SizedBox(height: 12),
+
+          CleanCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                _buildSettingsTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: AppLocalizations.of(context)!.privacyPolicy,
+                  onTap: () => _launchUrl(privacyPolicyUrl),
+                ),
+                _buildSettingsDivider(),
+                _buildSettingsTile(
+                  icon: Icons.description_outlined,
+                  title: 'Termini di Servizio (EULA)',
+                  onTap: () => _launchUrl(appleStandardEulaUrl),
                 ),
               ],
             ),
@@ -931,6 +961,13 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
   }
 }
 

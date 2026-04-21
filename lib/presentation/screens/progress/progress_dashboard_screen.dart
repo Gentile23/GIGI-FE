@@ -176,6 +176,28 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.favorite_rounded,
+                size: 14,
+                color: CleanTheme.accentRed.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Dati sincronizzati con Apple Health',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: CleanTheme.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 20),
         Center(
           child: TextButton.icon(

@@ -434,15 +434,24 @@ class PaymentService extends ChangeNotifier {
 
   /// Identify user for RevenueCat (call after login)
   Future<void> identifyUser(String userId) async {
-    // In production:
-    // await Purchases.logIn(userId);
-    debugPrint('User identified: $userId');
+    if (kIsWeb) return;
+    try {
+      await Purchases.logIn(userId);
+      debugPrint('RevenueCat: User identified as $userId');
+    } catch (e) {
+      debugPrint('RevenueCat: Error identifying user: $e');
+    }
   }
 
   /// Logout from RevenueCat
   Future<void> logout() async {
-    // In production:
-    // await Purchases.logOut();
+    if (kIsWeb) return;
+    try {
+      await Purchases.logOut();
+      debugPrint('RevenueCat: User logged out');
+    } catch (e) {
+      debugPrint('RevenueCat: Error logging out: $e');
+    }
     _currentPlan = SubscriptionTier.free;
     _expirationDate = null;
     _isTrialActive = false;
