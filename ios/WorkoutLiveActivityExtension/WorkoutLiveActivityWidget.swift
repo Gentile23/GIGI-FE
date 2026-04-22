@@ -44,8 +44,8 @@ struct WorkoutLiveActivityWidget: Widget {
         if state.restCompleted {
             Text("FINITO")
                 .font(.caption2.weight(.bold))
-        } else if state.isResting, let endsAt = state.restEndsAt, endsAt > Date.now {
-            Text(timerInterval: Date.now...endsAt, countsDown: true)
+        } else if state.isResting, let endsAt = state.restEndsAt, endsAt > Date() {
+            Text(timerInterval: Date()...endsAt, countsDown: true)
                 .font(.caption2.weight(.bold))
                 .monospacedDigit()
         } else if state.isResting {
@@ -98,13 +98,16 @@ private struct WorkoutLockScreenView: View {
                     Spacer()
                     
                     if context.state.restCompleted {
-                        Label("PRONTO", systemName: "checkmark.circle.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.green)
-                    } else if context.state.isResting, let endsAt = context.state.restEndsAt, endsAt > Date.now {
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("PRONTO")
+                        }
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.green)
+                    } else if context.state.isResting, let endsAt = context.state.restEndsAt, endsAt > Date() {
                         HStack(spacing: 4) {
                             Image(systemName: "timer")
-                            Text(timerInterval: Date.now...endsAt, countsDown: true)
+                            Text(timerInterval: Date()...endsAt, countsDown: true)
                                 .monospacedDigit()
                         }
                         .font(.system(size: 14, weight: .bold))
