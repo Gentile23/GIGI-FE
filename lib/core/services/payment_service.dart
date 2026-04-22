@@ -16,6 +16,7 @@ class ProductInfo {
   final double price;
   final String priceString;
   final String currencyCode;
+  final String? packageIdentifier;
   final bool isSubscription;
   final String? introductoryPrice;
   final String? trialDuration;
@@ -27,17 +28,18 @@ class ProductInfo {
     required this.price,
     required this.priceString,
     required this.currencyCode,
+    this.packageIdentifier,
     this.isSubscription = true,
     this.introductoryPrice,
     this.trialDuration,
   });
 
-  // GIGI product identifiers (configure in RevenueCat)
-  // Format: subscriptionId:basePlanId
-  static const String proMonthly = 'gigi_pro_monthly:pro-monthly-base';
-  static const String proYearly = 'gigi_pro_yearly:pro-yearly-base';
-  static const String eliteMonthly = 'gigi_elite_monthly:elite-monthly-base';
-  static const String eliteYearly = 'gigi_elite_yearly:elite-yearly-base';
+  // Logical product identifiers used inside the app. RevenueCat resolves these
+  // to the platform-specific store products through the current Offering.
+  static const String proMonthly = 'gigi_pro_monthly';
+  static const String proYearly = 'gigi_pro_yearly';
+  static const String eliteMonthly = 'gigi_elite_monthly';
+  static const String eliteYearly = 'gigi_elite_yearly';
 }
 
 class PaymentService extends ChangeNotifier {
@@ -62,6 +64,7 @@ class PaymentService extends ChangeNotifier {
   List<ProductInfo> get availableProducts => _availableProducts;
   DateTime? get expirationDate => _expirationDate;
   bool get isTrialActive => _isTrialActive;
+  bool get isInitialized => _isInitialized;
   bool get isStoreReady => _isStoreReady;
 
   bool get isProOrAbove =>
@@ -69,33 +72,82 @@ class PaymentService extends ChangeNotifier {
       _currentPlan == SubscriptionTier.elite;
   bool get isElite => _currentPlan == SubscriptionTier.elite;
 
+  ProductInfo? productInfoFor(String productId) {
+    if (_availableProducts.isEmpty) return null;
+
+    final targetIdentifiers = _productIdentifierCandidates(productId);
+    final canonicalTargets = targetIdentifiers
+        .map(_canonicalizeProductIdentifier)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    for (final product in _availableProducts) {
+      final productIdentifiers = {
+        product.identifier,
+        _normalizeProductIdentifier(product.identifier),
+        if (product.packageIdentifier != null) product.packageIdentifier!,
+      };
+
+      final isDirectMatch = productIdentifiers.any(targetIdentifiers.contains);
+      final isCanonicalMatch = productIdentifiers
+          .map(_canonicalizeProductIdentifier)
+          .any(canonicalTargets.contains);
+
+      if (isDirectMatch || isCanonicalMatch) {
+        return product;
+      }
+    }
+
+    final expectedType = _expectedPackageType(productId);
+    if (expectedType == null) return null;
+
+    final periodMatches = _availableProducts.where((product) {
+      final identifier = _canonicalizeProductIdentifier(product.identifier);
+      return switch (expectedType) {
+        PackageType.monthly =>
+          identifier.contains('monthly') || identifier.contains('month'),
+        PackageType.annual =>
+          identifier.contains('yearly') ||
+              identifier.contains('annual') ||
+              identifier.contains('year'),
+        _ => false,
+      };
+    }).toList();
+
+    return periodMatches.length == 1 ? periodMatches.single : null;
+  }
+
   /// Initialize RevenueCat
   Future<void> initialize() async {
     if (_isInitialized) return;
 
     try {
-      // In production:
       await Purchases.setLogLevel(kDebugMode ? LogLevel.debug : LogLevel.info);
 
       if (kIsWeb) {
-        debugPrint(
-          'RevenueCat: RevenueCat is not supported on Web in this configuration.',
-        );
+        debugPrint('RevenueCat: Not supported on Web.');
         _isInitialized = true;
+        notifyListeners();
         return;
       }
 
       final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
       final isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
+      String? apiKey;
       if (isIOS) {
-        await Purchases.configure(
-          PurchasesConfiguration('appl_nePauXVrjcKdmdldVWVmBGVLfiH'),
-        );
+        apiKey = 'appl_nePauXVrjcKdmdldVWVmBGVLfiH';
       } else if (isAndroid) {
-        await Purchases.configure(
-          PurchasesConfiguration('goog_JEcfJpSFtqYfgXvLTyYPyVaJESr'),
+        apiKey = 'goog_JEcfJpSFtqYfgXvLTyYPyVaJESr';
+      }
+
+      if (apiKey != null) {
+        debugPrint(
+          'RevenueCat: Configuring with API Key: ${apiKey.substring(0, 8)}...',
         );
+        await Purchases.configure(PurchasesConfiguration(apiKey));
+      } else {
+        debugPrint('RevenueCat: No API Key for this platform.');
       }
 
       // Listen to customer info updates
@@ -109,13 +161,20 @@ class PaymentService extends ChangeNotifier {
       await _fetchProducts();
 
       _isInitialized = true;
-
-      debugPrint('PaymentService initialized');
+      notifyListeners();
+      debugPrint('PaymentService initialized successfully');
     } catch (e) {
-      debugPrint('Failed to initialize PaymentService: $e');
+      debugPrint('🚨 PaymentService Initialization Failed: $e');
+      _isInitialized = true;
       _isStoreReady = false;
-      _errorMessage =
-          'Configurazione acquisti non valida. Verifica RevenueCat e prodotti in App Store Connect.';
+
+      if (e is PlatformException) {
+        _errorMessage = 'Errore configurazione store (${e.code}): ${e.message}';
+      } else {
+        _errorMessage =
+            'Errore inizializzazione pagamenti. Verifica la connessione.';
+      }
+
       notifyListeners();
     }
   }
@@ -123,10 +182,16 @@ class PaymentService extends ChangeNotifier {
   /// Fetch products from RevenueCat Offerings
   Future<void> _fetchProducts() async {
     try {
+      debugPrint('RevenueCat: Fetching offerings...');
       final offerings = await Purchases.getOfferings();
       _logOfferingsSnapshot(offerings, context: '_fetchProducts');
+
       if (offerings.current != null) {
         final packages = offerings.current!.availablePackages;
+        if (packages.isEmpty) {
+          debugPrint('⚠️ RevenueCat: Current offering has NO packages.');
+        }
+
         _availableProducts = packages.map((package) {
           final product = package.storeProduct;
           return ProductInfo(
@@ -136,30 +201,38 @@ class PaymentService extends ChangeNotifier {
             price: product.price,
             priceString: product.priceString,
             currencyCode: product.currencyCode,
-            trialDuration:
-                product.introductoryPrice?.period, // Semplificato per ora
+            packageIdentifier: package.identifier,
+            trialDuration: product.introductoryPrice?.period,
           );
         }).toList();
 
-        debugPrint(
-          'RevenueCat: Loaded ${_availableProducts.length} real products',
-        );
-        for (var p in _availableProducts) {
-          debugPrint(' - Product found: ${p.identifier} (${p.priceString})');
-        }
+        debugPrint('RevenueCat: Loaded ${_availableProducts.length} products');
         _isStoreReady = _availableProducts.isNotEmpty;
+
+        if (!_isStoreReady) {
+          _errorMessage =
+              'Nessun prodotto disponibile. Verifica configurazione StoreKit/App Store Connect.';
+        }
       } else {
-        debugPrint('RevenueCat: No current offerings found. Check dashboard.');
+        debugPrint(
+          '❌ RevenueCat: No current offerings found. Check Offerings tab in RevenueCat dashboard.',
+        );
         _availableProducts = [];
         _isStoreReady = false;
+        _errorMessage = 'Nessuna offerta configurata su RevenueCat.';
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('RevenueCat: Error fetching products: $e');
+      debugPrint('🚨 RevenueCat: Error fetching products: $e');
       _availableProducts = [];
       _isStoreReady = false;
-      _errorMessage =
-          'Impossibile caricare abbonamenti disponibili. Riprova più tardi.';
+
+      if (e is PlatformException) {
+        _errorMessage = 'Errore store (${e.code}): ${e.message}';
+      } else {
+        _errorMessage =
+            'Impossibile caricare gli abbonamenti. Riprova più tardi.';
+      }
       notifyListeners();
     }
   }
@@ -311,21 +384,25 @@ class PaymentService extends ChangeNotifier {
       return null;
     }
 
-    final normalizedTarget = _normalizeProductIdentifier(productId);
-    final canonicalTarget = _canonicalizeProductIdentifier(normalizedTarget);
+    final targetIdentifiers = _productIdentifierCandidates(productId);
+    final canonicalTargets = targetIdentifiers
+        .map(_canonicalizeProductIdentifier)
+        .where((id) => id.isNotEmpty)
+        .toSet();
 
     for (final package in current.availablePackages) {
       final storeIdentifier = package.storeProduct.identifier;
       final normalizedStoreId = _normalizeProductIdentifier(storeIdentifier);
-      final canonicalStoreId = _canonicalizeProductIdentifier(
+      final packageIdentifiers = {
+        package.identifier,
+        storeIdentifier,
         normalizedStoreId,
-      );
-      final isDirectMatch =
-          storeIdentifier == productId || normalizedStoreId == normalizedTarget;
-      final isCanonicalMatch =
-          canonicalStoreId == canonicalTarget ||
-          canonicalStoreId.endsWith('_$canonicalTarget') ||
-          canonicalStoreId.contains('_${canonicalTarget}_');
+      };
+
+      final isDirectMatch = packageIdentifiers.any(targetIdentifiers.contains);
+      final isCanonicalMatch = packageIdentifiers
+          .map(_canonicalizeProductIdentifier)
+          .any(canonicalTargets.contains);
 
       if (isDirectMatch || isCanonicalMatch) {
         return package;
@@ -337,13 +414,57 @@ class PaymentService extends ChangeNotifier {
       return null;
     }
 
-    for (final package in current.availablePackages) {
-      if (package.packageType == fallbackType) {
-        return package;
-      }
+    final fallbackMatches = current.availablePackages
+        .where((package) => package.packageType == fallbackType)
+        .toList();
+
+    if (fallbackMatches.length == 1) {
+      return fallbackMatches.single;
+    }
+
+    if (fallbackMatches.length > 1) {
+      debugPrint(
+        'RevenueCat: Ambiguous ${fallbackType.name} packages for $productId. '
+        'Configure explicit package identifiers or store product IDs.',
+      );
     }
 
     return null;
+  }
+
+  Set<String> _productIdentifierCandidates(String productId) {
+    final candidates = <String>{productId};
+
+    // Aggiungiamo varianti comuni per cross-compatibility tra Dashboard RevenueCat
+    // e Store Product IDs (Apple/Google)
+    switch (productId) {
+      case ProductInfo.proMonthly:
+        candidates.addAll({
+          'pro_monthly',
+          'gigi_pro_monthly',
+          'gigi_pro_monthly:pro-monthly-base', // Google Play Specific
+        });
+      case ProductInfo.proYearly:
+        candidates.addAll({
+          'pro_yearly',
+          'gigi_pro_yearly',
+          'gigi_pro_yearly:pro-yearly-base', // Google Play Specific
+        });
+      case ProductInfo.eliteMonthly:
+        candidates.addAll({
+          'elite_monthly',
+          'gigi_elite_monthly',
+          'gigi_elite_monthly:elite-monthly-base', // Google Play Specific (Assumption)
+        });
+      case ProductInfo.eliteYearly:
+        candidates.addAll({
+          'elite_yearly',
+          'gigi_elite_yearly',
+          'gigi_elite_yearly:elite-yearly-base', // Google Play Specific (Assumption)
+        });
+    }
+
+    return candidates.where((id) => id.isNotEmpty).toSet();
   }
 
   PackageType? _expectedPackageType(String productId) {

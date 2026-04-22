@@ -7,11 +7,14 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Build
+import android.os.SystemClock
+import android.util.Base64
 import android.view.View
 import android.widget.RemoteViews
 import io.flutter.embedding.android.FlutterActivity
@@ -62,6 +65,10 @@ class MainActivity : FlutterActivity() {
         val nextTargetReps = payload["nextTargetReps"] as? String
         val isResting = payload["isResting"] as? Boolean ?: false
         val restRemainingSeconds = (payload["restRemainingSeconds"] as? Number)?.toInt()
+        val restEndsAtMillis = (payload["restEndsAtMillis"] as? Number)?.toLong()
+            ?: (payload["restEndsAt"] as? Number)?.toLong()
+        val restCompleted = payload["restCompleted"] as? Boolean ?: false
+        val bodyImageBase64 = payload["bodyImageBase64"] as? String
         val primaryMuscles = stringList(payload["currentMuscleGroups"])
         val secondaryMuscles = stringList(payload["currentSecondaryMuscleGroups"])
 
@@ -76,11 +83,30 @@ class MainActivity : FlutterActivity() {
             remoteViews.setTextViewText(R.id.current_reps, "$currentTargetReps reps")
         }
 
-        if (isResting && restRemainingSeconds != null) {
+        if (restCompleted) {
             remoteViews.setViewVisibility(R.id.rest_timer, View.VISIBLE)
-            remoteViews.setTextViewText(R.id.rest_timer, formatSeconds(restRemainingSeconds))
+            remoteViews.setChronometer(R.id.rest_timer, SystemClock.elapsedRealtime(), null, false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                remoteViews.setChronometerCountDown(R.id.rest_timer, false)
+            }
+            remoteViews.setTextViewText(R.id.rest_timer, "FINITO")
+        } else if (isResting && (restEndsAtMillis != null || restRemainingSeconds != null)) {
+            val remainingMillis = restEndsAtMillis?.let {
+                (it - System.currentTimeMillis()).coerceAtLeast(0L)
+            } ?: ((restRemainingSeconds ?: 0) * 1000L)
+            remoteViews.setViewVisibility(R.id.rest_timer, View.VISIBLE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                remoteViews.setChronometerCountDown(R.id.rest_timer, true)
+            }
+            remoteViews.setChronometer(
+                R.id.rest_timer,
+                SystemClock.elapsedRealtime() + remainingMillis,
+                null,
+                true
+            )
         } else {
             remoteViews.setViewVisibility(R.id.rest_timer, View.GONE)
+            remoteViews.setChronometer(R.id.rest_timer, SystemClock.elapsedRealtime(), null, false)
         }
 
         val nextLine = if (nextExercise != null && nextSetNumber != null && nextSetTotal != null) {
@@ -90,7 +116,10 @@ class MainActivity : FlutterActivity() {
             "Prossima: fine allenamento"
         }
         remoteViews.setTextViewText(R.id.next_set, nextLine)
-        remoteViews.setImageViewBitmap(R.id.body_image, createBodyBitmap(primaryMuscles, secondaryMuscles))
+        remoteViews.setImageViewBitmap(
+            R.id.body_image,
+            decodeBodyImage(bodyImageBase64) ?: createBodyBitmap(primaryMuscles, secondaryMuscles)
+        )
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -102,7 +131,9 @@ class MainActivity : FlutterActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = if (isResting && restRemainingSeconds != null) {
+        val title = if (restCompleted) {
+            "Recupero finito"
+        } else if (isResting && restRemainingSeconds != null) {
             "Recupero: ${formatSeconds(restRemainingSeconds)}"
         } else {
             "$currentExercise • Set $currentSetNumber/$currentSetTotal"
@@ -155,6 +186,16 @@ class MainActivity : FlutterActivity() {
         val minutes = seconds / 60
         val remaining = seconds % 60
         return "$minutes:${remaining.toString().padStart(2, '0')}"
+    }
+
+    private fun decodeBodyImage(bodyImageBase64: String?): Bitmap? {
+        if (bodyImageBase64.isNullOrBlank()) return null
+        return try {
+            val bytes = Base64.decode(bodyImageBase64, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } catch (_: IllegalArgumentException) {
+            null
+        }
     }
 
     private fun createBodyBitmap(primaryMuscles: List<String>, secondaryMuscles: List<String>): Bitmap {

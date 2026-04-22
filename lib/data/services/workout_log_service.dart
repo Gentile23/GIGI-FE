@@ -165,6 +165,42 @@ class WorkoutLogService extends ApiService {
     );
   }
 
+  /// Add multiple sets in bulk
+  Future<Map<String, dynamic>> addBulkSets({
+    required String exerciseLogId,
+    required List<Map<String, dynamic>> sets,
+  }) async {
+    final response = await post(
+      'exercise-logs/$exerciseLogId/bulk-sets',
+      body: {'sets': sets},
+    );
+
+    if (_isSuccessResponse(response)) {
+      final rawSets = response['set_logs'] as List? ?? [];
+      final setLogs = rawSets
+          .map((e) => _asMap(e))
+          .whereType<Map<String, dynamic>>()
+          .map(SetLogModel.fromJson)
+          .toList();
+
+      final rawRecords = response['new_records'] as List? ?? [];
+      final newRecords = rawRecords
+          .map((e) => _asMap(e))
+          .whereType<Map<String, dynamic>>()
+          .map(PersonalRecord.fromJson)
+          .toList();
+
+      return {
+        'set_logs': setLogs,
+        'new_records': newRecords,
+      };
+    }
+
+    throw Exception(
+      _extractErrorMessage(response, fallback: 'Failed to add bulk sets'),
+    );
+  }
+
   /// Update a set log
   Future<SetLogModel> updateSetLog(
     String setLogId, {

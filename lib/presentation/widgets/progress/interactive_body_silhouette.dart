@@ -33,10 +33,19 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     final measurements = widget.measurements ?? {};
 
     void mapMeasurement(
-      String key,
+      Object keyOrKeys,
       List<String> muscles, {
       bool isWaist = false,
     }) {
+      final keys = keyOrKeys is String
+          ? [keyOrKeys]
+          : keyOrKeys as List<String>;
+      final key = keys.firstWhere(
+        (candidate) =>
+            _asNum(changes[candidate]) != null ||
+            _hasMeasurementValue(measurements[candidate]),
+        orElse: () => keys.first,
+      );
       final change = _asNum(changes[key]);
       final hasMeasurement = _hasMeasurementValue(measurements[key]);
 
@@ -56,7 +65,10 @@ class _InteractiveBodySilhouetteState extends State<InteractiveBodySilhouette> {
     mapMeasurement('back_cm', ['BACK']);
     mapMeasurement('bicep_left_cm', ['BICEPS_LEFT']);
     mapMeasurement('bicep_right_cm', ['BICEPS_RIGHT']);
-    mapMeasurement('triceps_cm', ['TRICEPS']);
+    mapMeasurement(
+      const ['triceps_cm', 'tricep_cm', 'tricipite_cm'],
+      ['TRICEPS', 'TRICEPS_LEFT', 'TRICEPS_RIGHT'],
+    );
     mapMeasurement('forearm_cm', ['FOREARMS']);
     mapMeasurement('waist_cm', ['ABDOMINALS', 'OBLIQUES'], isWaist: true);
     mapMeasurement('hips_cm', ['GLUTES']);

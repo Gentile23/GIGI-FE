@@ -128,7 +128,12 @@ class _GigiCoachMessageState extends State<GigiCoachMessage> {
 
   Widget _buildShell({required Widget child}) {
     return Container(
-      padding: EdgeInsets.all(widget.isCompact ? 12 : 16),
+      padding: EdgeInsets.fromLTRB(
+        widget.isCompact ? 12 : 16,
+        widget.isCompact ? 12 : 16,
+        widget.isCompact ? 12 : 16,
+        widget.isCompact ? 16 : 24, // More space at bottom
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -284,8 +289,9 @@ class _GigiCoachMessageState extends State<GigiCoachMessage> {
           softWrap: true,
         ),
         if (widget.action != null) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 16), // Increased from 12
           widget.action!,
+          const SizedBox(height: 4), // Extra breathing room
         ],
       ],
     );

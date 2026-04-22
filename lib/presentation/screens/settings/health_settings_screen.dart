@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
@@ -17,7 +17,8 @@ class HealthSettingsScreen extends StatefulWidget {
   State<HealthSettingsScreen> createState() => _HealthSettingsScreenState();
 }
 
-class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
+class _HealthSettingsScreenState extends State<HealthSettingsScreen>
+    with WidgetsBindingObserver {
   final HealthIntegrationService _healthService = HealthIntegrationService();
 
   bool _isLoading = true;
@@ -31,16 +32,34 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   double? _sleepHours;
   double? _weight;
 
+  bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeHealth();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshHealthState();
+    }
   }
 
   Future<void> _initializeHealth() async {
     await _healthService.initialize();
 
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       _healthConnectInstalled = await _healthService.isHealthConnectInstalled();
     }
 
@@ -50,6 +69,27 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     });
 
     if (_isConnected) {
+      _loadHealthData();
+    }
+  }
+
+  Future<void> _refreshHealthState() async {
+    await _healthService.initialize();
+    if (!mounted) return;
+
+    final wasConnected = _isConnected;
+    final isConnected = _healthService.isAuthorized;
+    setState(() {
+      _isConnected = isConnected;
+      if (!isConnected) {
+        _stepsToday = null;
+        _heartRate = null;
+        _sleepHours = null;
+        _weight = null;
+      }
+    });
+
+    if (isConnected && !wasConnected) {
       _loadHealthData();
     }
   }
@@ -76,15 +116,17 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
     setState(() => _isConnecting = true);
     HapticService.mediumTap();
 
-    final authorized = await _healthService.requestPermissions();
+    await _healthService.requestPermissions();
+    await _healthService.initialize();
+    final isConnected = _healthService.isAuthorized;
 
     if (mounted) {
       setState(() {
-        _isConnected = authorized;
+        _isConnected = isConnected;
         _isConnecting = false;
       });
 
-      if (authorized) {
+      if (isConnected) {
         HapticService.celebrationPattern();
         _loadHealthData();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -277,9 +319,9 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
   }
 
   Widget _buildPlatformCard() {
-    final icon = Platform.isIOS ? '🍎' : '💚';
+    final icon = _isIOS ? '🍎' : '💚';
     final name = _healthService.platformName;
-    final description = Platform.isIOS
+    final description = _isIOS
         ? AppLocalizations.of(context)!.syncAppleHealth
         : AppLocalizations.of(context)!.syncHealthConnect;
 
@@ -287,7 +329,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: Platform.isIOS
+          colors: _isIOS
               ? [const Color(0xFF000000), const Color(0xFF333333)]
               : [
                   CleanTheme.accentGreen,
@@ -330,7 +372,7 @@ class _HealthSettingsScreenState extends State<HealthSettingsScreen> {
 
   Widget _buildConnectionCard() {
     // Health Connect not installed (Android only)
-    if (Platform.isAndroid && !_healthConnectInstalled) {
+    if (_isAndroid && !_healthConnectInstalled) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

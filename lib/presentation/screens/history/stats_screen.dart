@@ -102,7 +102,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Map<String, int> _calculateMuscleDistribution(List<WorkoutLog> history) {
     final distribution = <String, int>{};
-    
+
     // Localization map for common muscle groups (fallback)
     const muscleMap = {
       'chest': 'Petto',
@@ -451,29 +451,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       ? _calculateMuscleDistribution(provider.workoutHistory)
                       : stats.mostTrainedMuscles,
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.favorite_rounded,
-                        size: 14,
-                        color: CleanTheme.accentRed.withValues(alpha: 0.7),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Powered by Apple Health',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: CleanTheme.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 60), // Increased to clear navigation bar
               ],
             ),
           );
@@ -488,7 +466,7 @@ class _StatsScreenState extends State<StatsScreen> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.08,
+        childAspectRatio: 1.15,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
@@ -501,52 +479,65 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   Widget _buildStatCard(_StatItem item) {
-    return CleanCard(
+    return Container(
       padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CleanTheme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: CleanTheme.borderPrimary.withValues(alpha: 0.1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: item.color.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(item.icon, color: item.color.withValues(alpha: 0.8), size: 32),
-          const SizedBox(height: 10),
-          Text(
-            item.value,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            item.label.toUpperCase(),
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              color: item.color,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
-            ),
-          ),
-          if (item.subtitle != null && item.subtitle!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                item.subtitle!,
-                maxLines: 1,
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                item.value,
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textPrimary,
+                ),
                 textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                item.label.toUpperCase(),
+                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: CleanTheme.textTertiary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  color: item.color,
                 ),
               ),
+            ],
+          ),
+          if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              item.subtitle!,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: CleanTheme.textSecondary,
+              ),
             ),
+          ],
         ],
       ),
     );

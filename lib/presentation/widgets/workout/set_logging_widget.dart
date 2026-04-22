@@ -279,18 +279,65 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
     }
     if (pendingSets.isEmpty) return;
 
-    if (_isRestTimerActive) {
-      await _stopRestTimer();
-    }
-
-    for (final setNumber in pendingSets) {
-      setState(() {
+    // --- OPTIMISTIC UI START ---
+    // 1. Instantly update all checkboxes and set defaults
+    setState(() {
+      for (final setNumber in pendingSets) {
         _ensureDefaultsForSet(setNumber);
-      });
-      await _toggleSet(setNumber, true, skipRestTimer: true);
+        _completedSets[setNumber] = true;
+      }
+      _isRestTimerActive = false;
+    });
+
+    // 2. Play a single success sound & haptic
+    unawaited(_successAudioPlayer.resume());
+    HapticService.mediumTap();
+
+    // 3. Stop rest timer globally
+    if (_restTimerService?.state.isActive == true) {
+      unawaited(_stopRestTimer());
     }
 
+    // 4. Notify parent immediately
     _notifyCompletionChanged();
+    // --- OPTIMISTIC UI END ---
+
+    if (widget.isTrial) return;
+
+    try {
+      final provider = Provider.of<WorkoutLogProvider>(context, listen: false);
+      String? exerciseLogId = widget.exerciseLog?.id;
+
+      // Ensure exercise log exists
+      if (exerciseLogId == null) {
+        final newLog = await provider.addExerciseLog(
+          exerciseId: widget.exercise.exercise.id,
+          orderIndex: 0, // Parent should ideally provide correct index
+          exerciseType: widget.exercise.exerciseType,
+        );
+        exerciseLogId = newLog?.id;
+      }
+
+      if (exerciseLogId != null) {
+        final bulkData = pendingSets.map((setNumber) {
+          return {
+            'set_number': setNumber,
+            'reps': _reps[setNumber] ?? 0,
+            'weight_kg': _weights[setNumber],
+            'rpe': _rpe[setNumber],
+            'completed': true,
+          };
+        }).toList();
+
+        await provider.addBulkSets(
+          exerciseLogId: exerciseLogId,
+          sets: bulkData,
+        );
+      }
+    } catch (e) {
+      debugPrint('🚨 Bulk completion sync failed: $e');
+      // We keep the optimistic state unless it's a structural error
+    }
   }
 
   @override

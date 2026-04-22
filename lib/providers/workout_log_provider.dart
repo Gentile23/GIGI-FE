@@ -175,6 +175,39 @@ class WorkoutLogProvider with ChangeNotifier {
     }
   }
 
+  /// Add multiple sets in bulk
+  Future<bool> addBulkSets({
+    required String exerciseLogId,
+    required List<Map<String, dynamic>> sets,
+  }) async {
+    try {
+      _error = null;
+      final result = await _logService.addBulkSets(
+        exerciseLogId: exerciseLogId,
+        sets: sets,
+      );
+
+      final List<SetLogModel> setLogs = result['set_logs'];
+      final List<PersonalRecord> newRecords = result['new_records'];
+
+      // Update local state for each set
+      for (final setLog in setLogs) {
+        _updateLocalSetLog(exerciseLogId, setLog);
+      }
+
+      if (newRecords.isNotEmpty) {
+        _recentRecords.addAll(newRecords);
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      debugPrint('Error adding bulk sets: $e');
+      return false;
+    }
+  }
+
   /// Fetch workout history
   Future<void> fetchWorkoutHistory({bool refresh = false}) async {
     if (_workoutHistory.isNotEmpty && !refresh) return;

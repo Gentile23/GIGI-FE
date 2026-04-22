@@ -60,7 +60,10 @@ import ActivityKit
       nextTargetReps: payload["nextTargetReps"] as? String,
       isResting: payload["isResting"] as? Bool ?? false,
       restRemainingSeconds: payload["restRemainingSeconds"] as? Int,
-      restTotalSeconds: payload["restTotalSeconds"] as? Int
+      restTotalSeconds: payload["restTotalSeconds"] as? Int,
+      restEndsAtMillis: (payload["restEndsAtMillis"] as? Int) ?? (payload["restEndsAt"] as? Int),
+      restCompleted: payload["restCompleted"] as? Bool ?? false,
+      bodyImageBase64: payload["bodyImageBase64"] as? String
     )
 
     Task {

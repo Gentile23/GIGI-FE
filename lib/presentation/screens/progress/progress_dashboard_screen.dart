@@ -142,7 +142,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 1.1,
+          childAspectRatio: 1.15, // Slightly taller to avoid label clipping
           children: [
             _buildWowStatCard(
               label: AppLocalizations.of(context)!.progressWorkouts,
@@ -160,9 +160,9 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             ),
             _buildWowStatCard(
               label: 'Volume Totale',
-              value: totalWeight >= 1000 
-                ? (totalWeight / 1000).toStringAsFixed(1) 
-                : totalWeight.toStringAsFixed(0),
+              value: totalWeight >= 1000
+                  ? (totalWeight / 1000).toStringAsFixed(1)
+                  : totalWeight.toStringAsFixed(0),
               icon: Icons.monitor_weight_rounded,
               color: CleanTheme.accentGreen,
               unit: totalWeight >= 1000 ? 'tonnellate' : 'kg sollevati',
@@ -176,29 +176,7 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.favorite_rounded,
-                size: 14,
-                color: CleanTheme.accentRed.withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'Dati sincronizzati con Apple Health',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: CleanTheme.textTertiary,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24), // Increased spacing
         Center(
           child: TextButton.icon(
             onPressed: () {
@@ -211,16 +189,16 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
             icon: const Icon(Icons.analytics_outlined, size: 18),
             label: Text(
               'Vedi di più',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-              ),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
             ),
             style: TextButton.styleFrom(
               foregroundColor: CleanTheme.primaryColor,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: CleanTheme.primaryColor.withValues(alpha: 0.2)),
+                side: BorderSide(
+                  color: CleanTheme.primaryColor.withValues(alpha: 0.2),
+                ),
               ),
             ),
           ),
@@ -291,14 +269,12 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
               fontWeight: FontWeight.w500,
               color: CleanTheme.textSecondary,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            // No maxLines to prevent clipping label
           ),
         ],
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -415,44 +391,51 @@ class _ProgressDashboardScreenState extends State<ProgressDashboardScreen> {
           width: 1,
         ),
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              const Center(
-                child: Icon(
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: const Icon(
                   Icons.straighten,
                   color: CleanTheme.textOnPrimary,
-                  size: 40,
+                  size: 26,
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Nuova Misura',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: CleanTheme.textOnPrimary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.newMeasurement,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: CleanTheme.textOnPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Traccia i tuoi progressi corporei',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Traccia i tuoi progressi corporei',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.85),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Center(
-                child: Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  color: CleanTheme.textOnPrimary,
-                  size: 24,
-                ),
+              const Icon(
+                Icons.arrow_forward_ios,
+                color: CleanTheme.textOnPrimary,
+                size: 18,
               ),
             ],
           ),

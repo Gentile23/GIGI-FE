@@ -660,13 +660,27 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
           String timeAgoText = '';
           if (lastPlanDate != null) {
             final difference = DateTime.now().difference(lastPlanDate);
-            if (difference.inDays == 0) {
+            final daysSince = difference.inDays;
+
+            if (daysSince == 0) {
               timeAgoText = 'Hai generato la tua ultima scheda oggi.';
-            } else if (difference.inDays == 1) {
+            } else if (daysSince == 1) {
               timeAgoText = 'Hai generato la tua ultima scheda ieri.';
             } else {
-              timeAgoText =
-                  'Hai generato la tua ultima scheda ${difference.inDays} giorni fa.';
+              timeAgoText = 'Hai generato la tua ultima scheda $daysSince giorni fa.';
+            }
+
+            // Aggiungi countdown per utenti non premium
+            if (!isPremium) {
+              final intervalDays = intervalWeeks * 7;
+              final daysRemaining = intervalDays - daysSince;
+
+              if (daysRemaining <= 0) {
+                timeAgoText += ' Puoi generare una nuova scheda ora.';
+              } else {
+                final textGiorno = daysRemaining == 1 ? 'giorno' : 'giorni';
+                timeAgoText += ' Ti mancano $daysRemaining $textGiorno alla prossima.';
+              }
             }
           }
 
@@ -856,32 +870,36 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                         );
                                       }
                                     },
-                                    child: Stack(
-                                      alignment: Alignment.center,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Switch(
-                                          value: isPremium
-                                              ? includeHistory
-                                              : false,
-                                          onChanged: isPremium
-                                              ? (val) => setState(
-                                                  () => includeHistory = val,
-                                                )
-                                              : null,
-                                          activeThumbColor: Colors.white,
-                                          activeTrackColor:
-                                              CleanTheme.accentOrange,
-                                          inactiveThumbColor: isPremium
-                                              ? Colors.white54
-                                              : Colors.white24,
-                                          inactiveTrackColor: Colors.white10,
-                                        ),
                                         if (!isPremium)
-                                          const Icon(
-                                            Icons.lock,
-                                            size: 14,
-                                            color: Colors.white70,
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 4),
+                                            child: Icon(
+                                              Icons.lock,
+                                              size: 16,
+                                              color: Colors.white.withValues(alpha: 0.5),
+                                            ),
                                           ),
+                                        Transform.scale(
+                                          scale: 0.75,
+                                          child: Switch(
+                                            value: isPremium ? includeHistory : false,
+                                            onChanged: isPremium
+                                                ? (val) => setState(
+                                                    () => includeHistory = val,
+                                                  )
+                                                : null,
+                                            activeThumbColor: Colors.white,
+                                            activeTrackColor:
+                                                CleanTheme.accentOrange,
+                                            inactiveThumbColor: isPremium
+                                                ? Colors.white54
+                                                : Colors.white24,
+                                            inactiveTrackColor: Colors.white10,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),

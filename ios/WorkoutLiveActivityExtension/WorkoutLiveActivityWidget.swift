@@ -1,6 +1,7 @@
 import ActivityKit
 import Foundation
 import SwiftUI
+import UIKit
 import WidgetKit
 
 struct WorkoutLiveActivityWidget: Widget {
@@ -16,8 +17,7 @@ struct WorkoutLiveActivityWidget: Widget {
                         .font(.caption.weight(.semibold))
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(context.state.isResting ? restLabel(context.state.restRemainingSeconds) : "GIGI")
-                        .font(.caption.weight(.bold))
+                    restStatusView(for: context.state, fallback: "GIGI")
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     Text(context.state.currentExerciseName)
@@ -28,8 +28,7 @@ struct WorkoutLiveActivityWidget: Widget {
                 Text("\(context.state.currentSetNumber)/\(context.state.currentSetTotal)")
                     .font(.caption2.weight(.bold))
             } compactTrailing: {
-                Text(context.state.isResting ? restLabel(context.state.restRemainingSeconds) : "G")
-                    .font(.caption2.weight(.bold))
+                restStatusView(for: context.state, fallback: "G")
             } minimal: {
                 Text("\(context.state.currentSetNumber)")
                     .font(.caption2.weight(.bold))
@@ -37,9 +36,26 @@ struct WorkoutLiveActivityWidget: Widget {
         }
     }
 
-    private func restLabel(_ seconds: Int?) -> String {
-        guard let seconds else { return "Rec" }
-        return "\(seconds / 60):\(String(format: "%02d", seconds % 60))"
+    @ViewBuilder
+    private func restStatusView(
+        for state: WorkoutActivityAttributes.ContentState,
+        fallback: String
+    ) -> some View {
+        if state.restCompleted {
+            Text("FINITO")
+                .font(.caption2.weight(.bold))
+        } else if state.isResting, let endsAt = state.restEndsAt, endsAt > Date.now {
+            Text(timerInterval: Date.now...endsAt, countsDown: true)
+                .font(.caption2.weight(.bold))
+                .monospacedDigit()
+        } else if state.isResting {
+            Text("0:00")
+                .font(.caption2.weight(.bold))
+                .monospacedDigit()
+        } else {
+            Text(fallback)
+                .font(.caption2.weight(.bold))
+        }
     }
 }
 
@@ -48,7 +64,8 @@ private struct WorkoutLockScreenView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            MiniAnatomyView(
+            AnatomyImageView(
+                bodyImageBase64: context.state.bodyImageBase64,
                 primaryMuscles: context.state.currentMuscleGroups,
                 secondaryMuscles: context.state.currentSecondaryMuscleGroups
             )
@@ -61,8 +78,17 @@ private struct WorkoutLockScreenView: View {
                         .foregroundStyle(.white.opacity(0.62))
                         .lineLimit(1)
                     Spacer(minLength: 4)
-                    if context.state.isResting {
-                        Text(restLabel(context.state.restRemainingSeconds))
+                    if context.state.restCompleted {
+                        Text("FINITO")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Color(red: 0.2, green: 0.78, blue: 0.35))
+                    } else if context.state.isResting, let endsAt = context.state.restEndsAt, endsAt > Date.now {
+                        Text(timerInterval: Date.now...endsAt, countsDown: true)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(Color(red: 1.0, green: 0.72, blue: 0.1))
+                            .monospacedDigit()
+                    } else if context.state.isResting {
+                        Text("0:00")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(Color(red: 1.0, green: 0.72, blue: 0.1))
                             .monospacedDigit()
@@ -123,9 +149,39 @@ private struct WorkoutLockScreenView: View {
         .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
     }
 
-    private func restLabel(_ seconds: Int?) -> String {
-        guard let seconds else { return "Recupero" }
-        return "\(seconds / 60):\(String(format: "%02d", seconds % 60))"
+}
+
+private extension WorkoutActivityAttributes.ContentState {
+    var restEndsAt: Date? {
+        guard let restEndsAtMillis else { return nil }
+        return Date(timeIntervalSince1970: TimeInterval(restEndsAtMillis) / 1000)
+    }
+}
+
+private struct AnatomyImageView: View {
+    let bodyImageBase64: String?
+    let primaryMuscles: [String]
+    let secondaryMuscles: [String]
+
+    var body: some View {
+        if let uiImage = decodedImage {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFit()
+        } else {
+            MiniAnatomyView(
+                primaryMuscles: primaryMuscles,
+                secondaryMuscles: secondaryMuscles
+            )
+        }
+    }
+
+    private var decodedImage: UIImage? {
+        guard let bodyImageBase64,
+              let data = Data(base64Encoded: bodyImageBase64) else {
+            return nil
+        }
+        return UIImage(data: data)
     }
 }
 

@@ -34,6 +34,7 @@ import '../../../core/services/sound_service.dart';
 import '../../../core/services/rest_timer_service.dart';
 import '../../../core/services/workout_refresh_notifier.dart';
 import '../../../core/services/workout_lock_screen_service.dart';
+import '../../../core/utils/anatomical_muscle_svg.dart';
 import '../../../data/services/quota_service.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/voice_coaching/gigi_preparation_overlay.dart';
@@ -60,6 +61,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   // Fullscreen Rest Timer Overlay
   bool _isRestTimerOverlayVisible = false;
+  bool _restTimerCompleted = false;
   int _restTimerSeconds = 0;
   int _restTimerTotal = 0;
   String? _restingExerciseId;
@@ -67,6 +69,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   RestTimerService? _restTimerService;
   final WorkoutLockScreenService _lockScreenService =
       WorkoutLockScreenService();
+  String? _lockScreenBodyImageKey;
+  String? _lockScreenBodyImageBase64;
   final Map<String, TextEditingController> _overlayWeightControllers = {};
   final Map<String, TextEditingController> _overlayRepsControllers = {};
   final Map<String, TextEditingController> _overlayDifficultyControllers = {};
@@ -188,6 +192,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (requiresUpdate) {
         setState(() {
           _isRestTimerOverlayVisible = true;
+          _restTimerCompleted = false;
           _restingExerciseId = state.exerciseId;
           _restingSetNumber = state.setNumber;
           _restTimerSeconds = nextSeconds;
@@ -199,16 +204,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     if (state.completed && isCurrentWorkout) {
-      _disposeOverlayInputControllers();
-      setState(() {
-        _isRestTimerOverlayVisible = false;
-        _restingExerciseId = null;
-        _restingSetNumber = 0;
-        _restTimerSeconds = 0;
-        _restTimerTotal = 0;
-      });
+      final requiresUpdate =
+          !_isRestTimerOverlayVisible ||
+          !_restTimerCompleted ||
+          _restTimerSeconds != 0 ||
+          _restingExerciseId != state.exerciseId ||
+          _restingSetNumber != state.setNumber ||
+          _restTimerTotal != state.totalSeconds;
+      if (requiresUpdate) {
+        setState(() {
+          _isRestTimerOverlayVisible = true;
+          _restTimerCompleted = true;
+          _restingExerciseId = state.exerciseId;
+          _restingSetNumber = state.setNumber;
+          _restTimerSeconds = 0;
+          _restTimerTotal = state.totalSeconds;
+        });
+      }
       unawaited(_updateLockScreenWidget());
-      Future.microtask(restTimerService.acknowledgeCompletion);
       return;
     }
 
@@ -216,6 +229,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
+        _restTimerCompleted = false;
         _restingExerciseId = null;
         _restingSetNumber = 0;
         _restTimerSeconds = 0;
@@ -527,10 +541,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         ? null
         : _getExerciseById(nextPointer.exerciseId);
 
+    final restTimerState = _restTimerService?.state;
     final isResting =
         _isRestTimerOverlayVisible &&
+        !_restTimerCompleted &&
         _restingExerciseId != null &&
         _restTimerSeconds > 0;
+    final restCompleted =
+        _isRestTimerOverlayVisible &&
+        _restTimerCompleted &&
+        restTimerState?.workoutDayId == widget.workoutDay.id;
+    final bodyImageBase64 = await _resolveLockScreenBodyImageBase64(
+      currentExercise,
+    );
 
     final snapshot = WorkoutLockScreenSnapshot(
       sessionActive: true,
@@ -554,9 +577,30 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       isResting: isResting,
       restRemainingSeconds: isResting ? _restTimerSeconds : null,
       restTotalSeconds: isResting ? _restTimerTotal : null,
+      restEndsAt: isResting || restCompleted ? restTimerState?.endsAt : null,
+      restCompleted: restCompleted,
+      bodyImageBase64: bodyImageBase64,
     );
 
     await _lockScreenService.updateSession(snapshot, isTick: isTick);
+  }
+
+  Future<String?> _resolveLockScreenBodyImageBase64(
+    WorkoutExercise? currentExercise,
+  ) async {
+    final primary = currentExercise?.exercise.muscleGroups ?? const <String>[];
+    final secondary =
+        currentExercise?.exercise.secondaryMuscleGroups ?? const <String>[];
+    final key = '${primary.join('|')}::${secondary.join('|')}';
+    if (_lockScreenBodyImageKey == key) return _lockScreenBodyImageBase64;
+
+    _lockScreenBodyImageKey = key;
+    _lockScreenBodyImageBase64 =
+        await AnatomicalMuscleSvg.buildHighlightedPngBase64(
+          primaryMuscleGroups: primary,
+          secondaryMuscleGroups: secondary,
+        );
+    return _lockScreenBodyImageBase64;
   }
 
   Widget _buildSessionStat(String emoji, String value, String label) {
@@ -601,6 +645,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       final uniqueKey = exerciseId;
       setState(() {
         _isRestTimerOverlayVisible = true;
+        _restTimerCompleted = false;
         _restingExerciseId = uniqueKey;
         _restingSetNumber = setNumber;
         _restTimerSeconds = secondsRemaining;
@@ -611,6 +656,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
+        _restTimerCompleted = false;
       });
       unawaited(_updateLockScreenWidget());
     }
@@ -854,6 +900,22 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     _disposeOverlayInputControllers();
     setState(() {
       _isRestTimerOverlayVisible = false;
+      _restTimerCompleted = false;
+      _restingExerciseId = null;
+      _restingSetNumber = 0;
+      _restTimerSeconds = 0;
+      _restTimerTotal = 0;
+    });
+    unawaited(_updateLockScreenWidget());
+  }
+
+  void _acknowledgeRestCompletionOverlay() {
+    context.read<RestTimerService>().acknowledgeCompletion();
+    _disposeOverlayInputControllers();
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _isRestTimerOverlayVisible = false;
+      _restTimerCompleted = false;
       _restingExerciseId = null;
       _restingSetNumber = 0;
       _restTimerSeconds = 0;
@@ -2211,6 +2273,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final minutes = _restTimerSeconds ~/ 60;
     final seconds = _restTimerSeconds % 60;
     final isUrgent = _restTimerSeconds <= 3 && _restTimerSeconds > 0;
+    final statusColor = _restTimerCompleted
+        ? CleanTheme.accentGreen
+        : isUrgent
+        ? CleanTheme.accentRed
+        : CleanTheme.accentBlue;
     final currentExercise = _restingExerciseId != null
         ? _getExerciseById(_restingExerciseId!)
         : null;
@@ -2218,153 +2285,132 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final showSetDetails = currentType != 'cardio' && currentType != 'mobility';
 
     return Positioned.fill(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
-          opacity: 1.0,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  CleanTheme.steelDark,
-                  CleanTheme.primaryColor.withValues(alpha: 0.95),
-                  CleanTheme.steelDark,
-                ],
-                stops: const [0.0, 0.5, 1.0],
-              ),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: 1.0,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                CleanTheme.steelDark,
+                CleanTheme.primaryColor.withValues(alpha: 0.95),
+                CleanTheme.steelDark,
+              ],
+              stops: const [0.0, 0.5, 1.0],
             ),
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  AnimatedPadding(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    padding: EdgeInsets.only(bottom: keyboardInset),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(height: isKeyboardOpen ? 6 : 16),
+          ),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  ),
+                ),
+                AnimatedPadding(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  padding: EdgeInsets.only(bottom: keyboardInset),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: isKeyboardOpen ? 6 : 16),
 
-                        // Label
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isUrgent
-                                    ? CleanTheme.accentRed
-                                    : CleanTheme.accentBlue,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color:
-                                        (isUrgent
-                                                ? CleanTheme.accentRed
-                                                : CleanTheme.accentBlue)
-                                            .withValues(alpha: 0.6),
-                                    blurRadius: 8,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              'RECUPERO',
-                              style: GoogleFonts.outfit(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 4,
-                                color: CleanTheme.textOnDark.withValues(
-                                  alpha: 0.6,
+                      // Label
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withValues(alpha: 0.6),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-
-                        SizedBox(height: isKeyboardOpen ? 8 : 20),
-
-                        // Huge Timer
-                        AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 200),
-                          style: GoogleFonts.outfit(
-                            fontSize: isKeyboardOpen ? 58 : 72,
-                            fontWeight: FontWeight.w800,
-                            color: isUrgent
-                                ? CleanTheme.accentRed
-                                : CleanTheme.textOnDark,
-                            letterSpacing: 4,
                           ),
-                          child: Text(
-                            '$minutes:${seconds.toString().padLeft(2, '0')}',
-                          ),
-                        ),
-
-                        SizedBox(height: isKeyboardOpen ? 8 : 16),
-
-                        // Progress Bar
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 6,
-                              backgroundColor: CleanTheme.textOnDark.withValues(
-                                alpha: 0.1,
-                              ),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isUrgent
-                                    ? CleanTheme.accentRed
-                                    : CleanTheme.accentBlue,
+                          const SizedBox(width: 10),
+                          Text(
+                            _restTimerCompleted
+                                ? 'RECUPERO FINITO'
+                                : 'RECUPERO',
+                            style: GoogleFonts.outfit(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 4,
+                              color: CleanTheme.textOnDark.withValues(
+                                alpha: 0.6,
                               ),
                             ),
                           ),
+                        ],
+                      ),
+
+                      SizedBox(height: isKeyboardOpen ? 8 : 20),
+
+                      // Huge Timer
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        style: GoogleFonts.outfit(
+                          fontSize: isKeyboardOpen ? 58 : 72,
+                          fontWeight: FontWeight.w800,
+                          color: _restTimerCompleted
+                              ? CleanTheme.accentGreen
+                              : isUrgent
+                              ? CleanTheme.accentRed
+                              : CleanTheme.textOnDark,
+                          letterSpacing: 4,
                         ),
+                        child: Text(
+                          '$minutes:${seconds.toString().padLeft(2, '0')}',
+                        ),
+                      ),
 
-                        SizedBox(height: isKeyboardOpen ? 10 : 24),
+                      SizedBox(height: isKeyboardOpen ? 8 : 16),
 
-                        if (showSetDetails) ...[
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              child: isKeyboardOpen
-                                  ? SingleChildScrollView(
-                                      keyboardDismissBehavior:
-                                          ScrollViewKeyboardDismissBehavior
-                                              .onDrag,
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Column(
-                                        children: [
-                                          SizedBox(
-                                            height: 150,
-                                            child: _buildSetDetailOverlayCard(
-                                              title: 'ULTIMO SET',
-                                              exerciseId: _restingExerciseId!,
-                                              setNumber: _restingSetNumber,
-                                              isNext: false,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          SizedBox(
-                                            height: 150,
-                                            child: _buildNextSetOverlayCard(),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Column(
+                      // Progress Bar
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 48),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 6,
+                            backgroundColor: CleanTheme.textOnDark.withValues(
+                              alpha: 0.1,
+                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              statusColor,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: isKeyboardOpen ? 10 : 24),
+
+                      if (showSetDetails) ...[
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: isKeyboardOpen
+                                ? SingleChildScrollView(
+                                    keyboardDismissBehavior:
+                                        ScrollViewKeyboardDismissBehavior
+                                            .onDrag,
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Column(
                                       children: [
-                                        Expanded(
+                                        SizedBox(
+                                          height: 150,
                                           child: _buildSetDetailOverlayCard(
                                             title: 'ULTIMO SET',
                                             exerciseId: _restingExerciseId!,
@@ -2373,77 +2419,100 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                           ),
                                         ),
                                         const SizedBox(height: 10),
-                                        Expanded(
+                                        SizedBox(
+                                          height: 150,
                                           child: _buildNextSetOverlayCard(),
                                         ),
                                       ],
                                     ),
-                            ),
-                          ),
-                          SizedBox(height: isKeyboardOpen ? 8 : 16),
-                        ],
-
-                        // Skip Button
-                        TextButton(
-                          onPressed: _skipRestTimerOverlay,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(100),
-                              side: BorderSide(
-                                color: CleanTheme.textOnDark.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Salta',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: CleanTheme.textOnDark.withValues(
-                                    alpha: 0.7,
+                                  )
+                                : Column(
+                                    children: [
+                                      Expanded(
+                                        child: _buildSetDetailOverlayCard(
+                                          title: 'ULTIMO SET',
+                                          exerciseId: _restingExerciseId!,
+                                          setNumber: _restingSetNumber,
+                                          isNext: false,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Expanded(
+                                        child: _buildNextSetOverlayCard(),
+                                      ),
+                                    ],
                                   ),
-                                ),
+                          ),
+                        ),
+                        SizedBox(height: isKeyboardOpen ? 8 : 16),
+                      ],
+
+                      // Completion/skip button
+                      TextButton(
+                        onPressed: _restTimerCompleted
+                            ? _acknowledgeRestCompletionOverlay
+                            : _skipRestTimerOverlay,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(100),
+                            side: BorderSide(
+                              color: CleanTheme.textOnDark.withValues(
+                                alpha: 0.2,
                               ),
-                              const SizedBox(width: 8),
-                              Icon(
-                                Icons.skip_next_rounded,
-                                size: 20,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _restTimerCompleted
+                                  ? 'Inizia prossimo set'
+                                  : 'Salta',
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                                 color: CleanTheme.textOnDark.withValues(
                                   alpha: 0.7,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: isKeyboardOpen ? 6 : 16),
-                      ],
-                    ),
-                  ),
-                  if (isKeyboardOpen)
-                    Positioned(
-                      top: 10,
-                      right: 15,
-                      child: IconButton(
-                        onPressed: () =>
-                            FocusManager.instance.primaryFocus?.unfocus(),
-                        icon: const Icon(
-                          Icons.keyboard_hide_rounded,
-                          color: CleanTheme.textOnDark,
-                          size: 28,
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _restTimerCompleted
+                                  ? Icons.play_arrow_rounded
+                                  : Icons.skip_next_rounded,
+                              size: 20,
+                              color: CleanTheme.textOnDark.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      SizedBox(height: isKeyboardOpen ? 6 : 16),
+                    ],
+                  ),
+                ),
+                if (isKeyboardOpen)
+                  Positioned(
+                    top: 10,
+                    right: 15,
+                    child: IconButton(
+                      onPressed: () =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
+                      icon: const Icon(
+                        Icons.keyboard_hide_rounded,
+                        color: CleanTheme.textOnDark,
+                        size: 28,
+                      ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -3543,7 +3612,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       if (!mounted) return;
       HapticService.mediumTap();
       unawaited(_updateLockScreenWidget());
-      _showExerciseCompletionSnackBar('${exercise.exercise.name} completato');
+      // Success snackbar removed as per user request
     } catch (e) {
       if (!mounted) return;
       _showExerciseCompletionSnackBar(

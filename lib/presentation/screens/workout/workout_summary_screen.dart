@@ -668,7 +668,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Widget _buildShareCTA() {
     return _buildSurfaceCard(
       eyebrow: 'Share',
-      title: 'Condividi il riepilogo',
+      title: 'Condividi i tuoi progressi',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -872,9 +872,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     var loadingDialogShown = false;
 
     try {
-      final ui.Image image = await _captureShareCardImage(pixelRatio: 3.0);
-      if (!mounted) return;
-
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -883,6 +880,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         ),
       );
       loadingDialogShown = true;
+
+      final ui.Image image = await _captureShareCardImage(pixelRatio: 2.5);
+      if (!mounted) return;
 
       final ByteData? byteData = await image.toByteData(
         format: ui.ImageByteFormat.png,
@@ -972,7 +972,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       builder: (_) => Positioned.fill(
         child: IgnorePointer(
           child: Opacity(
-            opacity: 0.01,
+            opacity: 0.1, // Leggermente superiore per forzare il paint su iOS Impeller
             child: Material(
               color: Colors.transparent,
               child: Center(
@@ -997,10 +997,15 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     overlay.insert(overlayEntry);
 
     try {
+      // Delay iniziale per permettere agli asset e all'overlay di assestarsi
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
       for (var attempt = 0; attempt < 60; attempt++) {
         WidgetsBinding.instance.scheduleFrame();
         await WidgetsBinding.instance.endOfFrame;
-        await Future<void>.delayed(const Duration(milliseconds: 16));
+        
+        // Su iOS rilasciamo il controllo per un tempo sufficiente al decoding delle immagini
+        await Future<void>.delayed(const Duration(milliseconds: 32));
 
         final boundaryContext = captureKey.currentContext;
         final renderObject = boundaryContext?.findRenderObject();

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/utils/next_workout_selector.dart';
+import '../../../core/services/health_integration_service.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
@@ -45,9 +46,12 @@ class EnhancedHomeScreen extends StatefulWidget {
   State<EnhancedHomeScreen> createState() => _EnhancedHomeScreenState();
 }
 
-class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
+class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
+    with WidgetsBindingObserver {
   static const String _customWorkoutOrderKey = 'custom_workout_order_v1';
+  final HealthIntegrationService _healthService = HealthIntegrationService();
   bool _showCelebration = false;
+  bool _isHealthConnected = false;
   late final CustomWorkoutService _customWorkoutService;
   List<CustomWorkoutPlan> _customPlans = [];
   Map<String, dynamic>? _overviewStats;
@@ -77,6 +81,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _customWorkoutService = CustomWorkoutService(ApiClient());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,6 +123,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Clean up callback - use try-catch to avoid deactivated widget error
     try {
       if (_onGenerationComplete != null && mounted) {
@@ -133,6 +139,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
       // Widget already disposed, ignore
     }
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshHealthConnectionState();
+    }
   }
 
   @override
@@ -264,6 +277,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     _buildQuickStatsRow(),
+                                    if (_isHealthConnected) ...[
+                                      const SizedBox(height: 12),
+                                      _buildHealthSyncBadge(),
+                                    ],
 
                                     const SizedBox(height: 24),
                                     _buildStreakMotivator(),
@@ -468,136 +485,53 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
     final streak = _asInt(_overviewStats?['current_streak']);
     final isActive = streak > 0;
 
-        if (isActive) {
-          return Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF000000), // Nera come la sidebar
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: CleanTheme.textOnPrimary.withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CleanTheme.accentOrange.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      spreadRadius: -2,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: CleanTheme.accentOrange.withValues(
-                            alpha: 0.15,
-                          ),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: CleanTheme.accentOrange.withValues(
-                              alpha: 0.3,
-                            ),
-                          ),
-                        ),
-                        child: const Text('🔥', style: TextStyle(fontSize: 24))
-                            .animate(
-                              onPlay: (controller) => controller.repeat(),
-                            )
-                            .shimmer(duration: 1500.ms, color: Colors.white)
-                            .scaleXY(
-                              begin: 1.0,
-                              end: 1.15,
-                              duration: 600.ms,
-                              curve: Curves.easeInOut,
-                            )
-                            .then()
-                            .scaleXY(
-                              begin: 1.15,
-                              end: 1.0,
-                              duration: 600.ms,
-                              curve: Curves.easeInOut,
-                            ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)!.streakDays(streak),
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: CleanTheme.textOnPrimary,
-                                letterSpacing: 1.0,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withValues(alpha: 0.8),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              AppLocalizations.of(context)!.streakKeepGoing,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                color: CleanTheme.textOnPrimary.withValues(
-                                  alpha: 0.9,
-                                ),
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-              .animate()
-              .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-              .slideY(
-                begin: 0.1,
-                end: 0,
-                duration: 600.ms,
-                curve: Curves.easeOutQuint,
-              )
-              .shimmer(delay: 800.ms, duration: 1500.ms, color: Colors.white10);
-        }
-
-        return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF000000), // Nera come la sidebar
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
-                ),
+    if (isActive) {
+      return Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF000000), // Nera come la sidebar
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: CleanTheme.textOnPrimary.withValues(alpha: 0.15),
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: CleanTheme.accentOrange.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: -2,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+                      color: CleanTheme.accentOrange.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                      ),
                     ),
-                    child: const Text('🔥', style: TextStyle(fontSize: 20))
-                        .animate(
-                          onPlay: (controller) =>
-                              controller.repeat(reverse: true),
+                    child: const Text('🔥', style: TextStyle(fontSize: 24))
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .shimmer(duration: 1500.ms, color: Colors.white)
+                        .scaleXY(
+                          begin: 1.0,
+                          end: 1.15,
+                          duration: 600.ms,
+                          curve: Curves.easeInOut,
                         )
-                        .shimmer(duration: 2000.ms, color: Colors.white54),
+                        .then()
+                        .scaleXY(
+                          begin: 1.15,
+                          end: 1.0,
+                          duration: 600.ms,
+                          curve: Curves.easeInOut,
+                        ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -605,21 +539,28 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context)!.streakStart,
+                          AppLocalizations.of(context)!.streakDays(streak),
                           style: GoogleFonts.outfit(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
                             color: CleanTheme.textOnPrimary,
                             letterSpacing: 1.0,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.8),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          AppLocalizations.of(context)!.streakStartToday,
+                          AppLocalizations.of(context)!.streakKeepGoing,
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             color: CleanTheme.textOnPrimary.withValues(
-                              alpha: 0.8,
+                              alpha: 0.9,
                             ),
                             height: 1.4,
                           ),
@@ -629,16 +570,79 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
                   ),
                 ],
               ),
-            )
-            .animate()
-            .fadeIn(duration: 600.ms)
-            .slideY(
-              begin: 0.1,
-              end: 0,
-              duration: 600.ms,
-              curve: Curves.easeOutQuint,
-            );
-    
+            ),
+          )
+          .animate()
+          .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+          .slideY(
+            begin: 0.1,
+            end: 0,
+            duration: 600.ms,
+            curve: Curves.easeOutQuint,
+          )
+          .shimmer(delay: 800.ms, duration: 1500.ms, color: Colors.white10);
+    }
+
+    return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF000000), // Nera come la sidebar
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.textOnPrimary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Text('🔥', style: TextStyle(fontSize: 20))
+                    .animate(
+                      onPlay: (controller) => controller.repeat(reverse: true),
+                    )
+                    .shimmer(duration: 2000.ms, color: Colors.white54),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.streakStart,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: CleanTheme.textOnPrimary,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppLocalizations.of(context)!.streakStartToday,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: CleanTheme.textOnPrimary.withValues(alpha: 0.8),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 600.ms)
+        .slideY(
+          begin: 0.1,
+          end: 0,
+          duration: 600.ms,
+          curve: Curves.easeOutQuint,
+        );
   }
 
   // 4. Immersive Hero Card
@@ -954,13 +958,45 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
             totalVolume > 0
                 ? 'Volume'
                 : AppLocalizations.of(context)!.progressTotalTime,
-            totalVolume > 0
-                ? '${totalVolume.toStringAsFixed(0)}kg'
-                : timeLabel,
+            totalVolume > 0 ? '${totalVolume.toStringAsFixed(0)}kg' : timeLabel,
             const Color(0xFF636366),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildHealthSyncBadge() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: CleanTheme.accentRed.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: CleanTheme.accentRed.withValues(alpha: 0.18),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.favorite_rounded,
+              size: 14,
+              color: CleanTheme.accentRed.withValues(alpha: 0.8),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Dati sincronizzati con Apple Health',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: CleanTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1161,7 +1197,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
   Future<void> _loadData() async {
     if (!mounted) return;
 
+    await _refreshHealthConnectionState(updateUi: false);
+
     // Refresh User Data
+    if (!mounted) return;
     await Provider.of<AuthProvider>(context, listen: false).fetchUser();
 
     // Refresh Workout Data
@@ -1189,6 +1228,19 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen> {
         : null;
 
     if (mounted) setState(() {});
+  }
+
+  Future<void> _refreshHealthConnectionState({bool updateUi = true}) async {
+    await _healthService.initialize();
+    if (!mounted) return;
+
+    final isConnected = _healthService.isAuthorized;
+    if (_isHealthConnected == isConnected) return;
+
+    _isHealthConnected = isConnected;
+    if (updateUi) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadCustomWorkouts() async {

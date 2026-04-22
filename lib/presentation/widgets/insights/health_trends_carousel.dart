@@ -220,7 +220,7 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
       child: Container(
-        height: cardHeight,
+        constraints: BoxConstraints(minHeight: cardHeight),
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -235,93 +235,105 @@ class _HealthTrendsCarouselState extends State<HealthTrendsCarousel> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _isConnected
-                  ? Icons.sync_problem_rounded
-                  : Icons.health_and_safety_outlined,
-              size: 48,
-              color: CleanTheme.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _isConnected
-                  ? 'Nessun dato trovato'
-                  : AppLocalizations.of(
-                      context,
-                    )!.connectTo(_insightsService.platformName),
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _isConnected
+                    ? Icons.sync_problem_rounded
+                    : Icons.health_and_safety_outlined,
+                size: 48,
+                color: CleanTheme.textTertiary,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _isConnected
-                  ? 'Abbiamo i permessi ma non troviamo dati per oggi. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
-                  : (_healthConnectInstalled
-                        ? (_insightsService.isAndroidPlatform
-                              ? AppLocalizations.of(context)!.syncHealthConnect
-                              : AppLocalizations.of(context)!.syncAppleHealth)
-                        : AppLocalizations.of(
-                            context,
-                          )!.installHealthConnectInfo),
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                color: CleanTheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: _isConnecting || _isInstalling
-                    ? null
-                    : (_isConnected
-                          ? _loadInsights
-                          : (_healthConnectInstalled
-                                ? _connectHealth
-                                : _installHealthConnect)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: CleanTheme.primaryColor,
-                  foregroundColor: CleanTheme.textOnDark,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              const SizedBox(height: 12),
+              Text(
+                _isConnected
+                    ? 'Nessun dato trovato'
+                    : AppLocalizations.of(
+                        context,
+                      )!.connectTo(_insightsService.platformName),
+                style: GoogleFonts.outfit(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: CleanTheme.textPrimary,
                 ),
-                child: _isConnecting || _isInstalling
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: CleanTheme.textOnDark,
-                        ),
-                      )
-                    : Text(
-                        _isConnected
-                            ? 'Riprova sincronizzazione'
-                            : (_healthConnectInstalled
-                                  ? AppLocalizations.of(
-                                      context,
-                                    )!.connectTo(_insightsService.platformName)
-                                  : AppLocalizations.of(
-                                      context,
-                                    )!.installHealthConnect),
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
-                      ),
+                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                _isConnected
+                    ? 'Abbiamo i permessi ma non troviamo dati per oggi. Assicurati che i dati siano presenti in ${_insightsService.platformName}.'
+                    : (_healthConnectInstalled
+                          ? (_insightsService.isAndroidPlatform
+                                ? AppLocalizations.of(context)!.syncHealthConnect
+                                : AppLocalizations.of(context)!.syncAppleHealth)
+                          : AppLocalizations.of(
+                              context,
+                            )!.installHealthConnectInfo),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: CleanTheme.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Container(
+                constraints: const BoxConstraints(
+                  minHeight: 48,
+                  minWidth: double.infinity,
+                ),
+                child: ElevatedButton(
+                  onPressed: _isConnecting || _isInstalling
+                      ? null
+                      : (_isConnected
+                            ? _loadInsights
+                            : (_healthConnectInstalled
+                                  ? _connectHealth
+                                  : _installHealthConnect)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: CleanTheme.textOnDark,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: _isConnecting || _isInstalling
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: CleanTheme.textOnDark,
+                          ),
+                        )
+                      : Text(
+                          _isConnected
+                              ? 'Riprova sincronizzazione'
+                              : (_healthConnectInstalled
+                                    ? AppLocalizations.of(
+                                        context,
+                                      )!.connectTo(_insightsService.platformName)
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.installHealthConnect),
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -20,6 +20,9 @@ class WorkoutLockScreenSnapshot {
   final bool isResting;
   final int? restRemainingSeconds;
   final int? restTotalSeconds;
+  final DateTime? restEndsAt;
+  final bool restCompleted;
+  final String? bodyImageBase64;
 
   const WorkoutLockScreenSnapshot({
     required this.sessionActive,
@@ -37,6 +40,9 @@ class WorkoutLockScreenSnapshot {
     required this.isResting,
     required this.restRemainingSeconds,
     required this.restTotalSeconds,
+    required this.restEndsAt,
+    required this.restCompleted,
+    required this.bodyImageBase64,
   });
 }
 
@@ -65,7 +71,11 @@ class WorkoutLockScreenService {
   bool _permissionRequested = false;
   DateTime? _lastIosTickUpdate;
 
+  bool get _isIOS => !kIsWeb && Platform.isIOS;
+  bool get _isAndroid => !kIsWeb && Platform.isAndroid;
+
   Future<void> initialize() async {
+    if (kIsWeb) return;
     if (_initialized) return;
 
     const settings = InitializationSettings(
@@ -94,7 +104,9 @@ class WorkoutLockScreenService {
       return;
     }
 
-    if (Platform.isIOS) {
+    if (kIsWeb) return;
+
+    if (_isIOS) {
       await _updateIosLiveActivity(snapshot, isTick: isTick);
       return;
     }
@@ -104,12 +116,14 @@ class WorkoutLockScreenService {
 
     await _requestPermissionsIfNeeded();
 
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       final didShowNative = await _updateAndroidCustomNotification(snapshot);
       if (didShowNative) return;
     }
 
-    final title = snapshot.isResting
+    final title = snapshot.restCompleted
+        ? 'Recupero finito'
+        : snapshot.isResting
         ? 'Recupero: ${_formatTime(snapshot.restRemainingSeconds ?? 0)}'
         : '${snapshot.currentExerciseName} • Set ${snapshot.currentSetNumber}/${snapshot.currentSetTotal}';
 
@@ -168,14 +182,15 @@ class WorkoutLockScreenService {
 
   Future<void> clear() async {
     _lastIosTickUpdate = null;
-    if (Platform.isIOS) {
+    if (kIsWeb) return;
+    if (_isIOS) {
       try {
         await _iosLiveActivityChannel.invokeMethod<void>('endWorkoutActivity');
       } catch (e) {
         debugPrint('Unable to end workout Live Activity: $e');
       }
     }
-    if (Platform.isAndroid) {
+    if (_isAndroid) {
       try {
         await _androidNotificationChannel.invokeMethod<void>(
           'clearWorkoutNotification',
@@ -246,6 +261,10 @@ class WorkoutLockScreenService {
       'isResting': snapshot.isResting,
       'restRemainingSeconds': snapshot.restRemainingSeconds,
       'restTotalSeconds': snapshot.restTotalSeconds,
+      'restEndsAt': snapshot.restEndsAt?.millisecondsSinceEpoch,
+      'restEndsAtMillis': snapshot.restEndsAt?.millisecondsSinceEpoch,
+      'restCompleted': snapshot.restCompleted,
+      'bodyImageBase64': snapshot.bodyImageBase64,
     };
   }
 

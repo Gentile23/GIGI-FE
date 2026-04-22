@@ -13,6 +13,20 @@ import '../../../data/services/quota_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
+class _PriceDetails {
+  final String billedAmount;
+  final String billedPeriod;
+  final String effectiveMonthlyAmount;
+
+  const _PriceDetails({
+    required this.billedAmount,
+    required this.billedPeriod,
+    required this.effectiveMonthlyAmount,
+  });
+
+  String get billedLabel => '$billedAmount/$billedPeriod';
+}
+
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
 
@@ -74,6 +88,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final paymentService = context.watch<PaymentService>();
+    final isPaidTierSelected = _selectedTier != SubscriptionTier.free;
+    final isStoreUnavailable =
+        paymentService.isInitialized &&
+        isPaidTierSelected &&
+        (_selectedStoreProductUnavailable(paymentService) ||
+            !paymentService.isStoreReady);
+
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
@@ -173,6 +195,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
               config: SubscriptionTierConfig.pro,
               isPopular: true,
               accentColor: CleanTheme.primaryColor,
+              paymentService: paymentService,
             ),
 
             const SizedBox(height: 16),
@@ -183,22 +206,24 @@ class _PaywallScreenState extends State<PaywallScreen> {
               config: SubscriptionTierConfig.free,
               isPopular: false,
               accentColor: CleanTheme.textSecondary,
+              paymentService: paymentService,
             ),
 
             const SizedBox(height: 32),
+
+            if (isStoreUnavailable) ...[
+              _buildStoreUnavailableNotice(paymentService),
+              const SizedBox(height: 16),
+            ],
 
             // Subscribe button
             CleanButton(
               text: _selectedTier == SubscriptionTier.free
                   ? l10n.paywallCurrentPlan
-                  : _isYearly
-                  ? l10n.paywallSubscribeButtonYearly(
-                      _getSelectedConfig().priceYearly.toStringAsFixed(2),
-                    )
-                  : l10n.paywallSubscribeButtonMonthly(
-                      _getSelectedConfig().priceMonthly.toStringAsFixed(2),
-                    ),
-              onPressed: _selectedTier == SubscriptionTier.free
+                  : isStoreUnavailable
+                  ? 'Abbonamenti non disponibili'
+                  : 'Abbonati - ${_billedPriceLabel(_getSelectedConfig(), paymentService)}',
+              onPressed: !isPaidTierSelected || isStoreUnavailable
                   ? null
                   : _handleSubscribe,
               width: double.infinity,
@@ -390,9 +415,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
     required SubscriptionTierConfig config,
     required bool isPopular,
     required Color accentColor,
+    required PaymentService paymentService,
   }) {
     final isSelected = _selectedTier == config.tier;
-    final price = _isYearly ? config.priceYearly : config.priceMonthly;
+    final price = _priceDetails(config, paymentService);
     final period = config.tier == SubscriptionTier.free
         ? 'sempre'
         : _isYearly
@@ -483,7 +509,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       Text(
                         config.tier == SubscriptionTier.free
                             ? '€0'
-                            : '€${price.toStringAsFixed(2)}',
+                            : price.billedAmount,
                         style: GoogleFonts.outfit(
                           fontSize: 32,
                           fontWeight: FontWeight.w700,
@@ -503,20 +529,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                       if (_isYearly &&
                           config.tier != SubscriptionTier.free) ...[
-                        const SizedBox(width: 12),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Text(
-                            '€${config.effectiveMonthlyPrice.toStringAsFixed(2)}/mese',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: CleanTheme.textTertiary,
-                            ),
-                          ),
-                        ),
+                        const SizedBox(width: 8),
                       ],
                     ],
                   ),
+                  if (_isYearly && config.tier != SubscriptionTier.free) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${price.effectiveMonthlyAmount}/mese equivalente',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: CleanTheme.textTertiary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                   ...displayedFeatures.map((feature) {
                     return Padding(
@@ -598,6 +625,134 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   SubscriptionTierConfig _getSelectedConfig() {
     return SubscriptionTierConfig.fromTier(_selectedTier);
+  }
+
+  Widget _buildStoreUnavailableNotice(PaymentService paymentService) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CleanTheme.accentOrange.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CleanTheme.accentOrange.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, color: CleanTheme.accentOrange, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              paymentService.errorMessage ??
+                  'Gli abbonamenti non sono disponibili in questo momento. Riprova più tardi.',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _billedPriceLabel(
+    SubscriptionTierConfig config,
+    PaymentService paymentService,
+  ) {
+    return _priceDetails(config, paymentService).billedLabel;
+  }
+
+  _PriceDetails _priceDetails(
+    SubscriptionTierConfig config,
+    PaymentService paymentService,
+  ) {
+    final billedPeriod = _isYearly ? 'anno' : 'mese';
+    final staticBilledPrice = _isYearly
+        ? config.priceYearly
+        : config.priceMonthly;
+    final staticEffectiveMonthlyPrice = _isYearly
+        ? config.effectiveMonthlyPrice
+        : config.priceMonthly;
+    final productId = _productIdFor(config.tier, yearly: _isYearly);
+    final product = productId == null
+        ? null
+        : paymentService.productInfoFor(productId);
+
+    if (product != null) {
+      final effectiveMonthlyPrice = _isYearly
+          ? product.price / 12
+          : product.price;
+      return _PriceDetails(
+        billedAmount: product.priceString,
+        billedPeriod: billedPeriod,
+        effectiveMonthlyAmount: _formatLikeStorePriceString(
+          effectiveMonthlyPrice,
+          product,
+        ),
+      );
+    }
+
+    return _PriceDetails(
+      billedAmount: _formatStaticEuroPrice(staticBilledPrice),
+      billedPeriod: billedPeriod,
+      effectiveMonthlyAmount: _formatStaticEuroPrice(
+        staticEffectiveMonthlyPrice,
+      ),
+    );
+  }
+
+  bool _selectedStoreProductUnavailable(PaymentService paymentService) {
+    final productId = _productIdFor(_selectedTier, yearly: _isYearly);
+    if (productId == null) return false;
+    return paymentService.productInfoFor(productId) == null;
+  }
+
+  String? _productIdFor(SubscriptionTier tier, {required bool yearly}) {
+    switch (tier) {
+      case SubscriptionTier.pro:
+        return yearly ? ProductInfo.proYearly : ProductInfo.proMonthly;
+      case SubscriptionTier.elite:
+        return yearly ? ProductInfo.eliteYearly : ProductInfo.eliteMonthly;
+      case SubscriptionTier.free:
+        return null;
+    }
+  }
+
+  String _formatStaticEuroPrice(double price) {
+    return '€${price.toStringAsFixed(2)}';
+  }
+
+  String _formatLikeStorePriceString(double price, ProductInfo product) {
+    final decimalSeparator = product.priceString.contains(',') ? ',' : '.';
+    final amount = price.toStringAsFixed(2).replaceAll('.', decimalSeparator);
+
+    if (product.priceString.trimLeft().startsWith(product.currencyCode)) {
+      return '${product.currencyCode} $amount';
+    }
+
+    final currencySymbol = _currencySymbolFor(product.currencyCode);
+    if (currencySymbol != null) {
+      return '$currencySymbol$amount';
+    }
+
+    return '$amount ${product.currencyCode}';
+  }
+
+  String? _currencySymbolFor(String currencyCode) {
+    switch (currencyCode.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return r'$';
+      case 'GBP':
+        return '£';
+      default:
+        return null;
+    }
   }
 
   List<String> _resolveFeaturesForTier(SubscriptionTierConfig config) {
@@ -714,16 +869,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   Future<void> _handleSubscribe() async {
     final paymentService = Provider.of<PaymentService>(context, listen: false);
+    final productId = _productIdFor(_selectedTier, yearly: _isYearly);
+    if (productId == null) {
+      return;
+    }
 
-    // Determine product ID
-    String productId;
-    if (_selectedTier == SubscriptionTier.pro) {
-      productId = _isYearly ? ProductInfo.proYearly : ProductInfo.proMonthly;
-    } else if (_selectedTier == SubscriptionTier.elite) {
-      productId = _isYearly
-          ? ProductInfo.eliteYearly
-          : ProductInfo.eliteMonthly;
-    } else {
+    if (paymentService.isInitialized &&
+        (!paymentService.isStoreReady ||
+            paymentService.productInfoFor(productId) == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            paymentService.errorMessage ??
+                'Abbonamento non disponibile in questo momento.',
+          ),
+          backgroundColor: CleanTheme.accentOrange,
+        ),
+      );
       return;
     }
 
