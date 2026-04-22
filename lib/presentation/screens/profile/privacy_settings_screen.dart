@@ -4,10 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../core/constants/legal_links.dart';
 import '../../../data/services/api_client.dart';
 import '../../widgets/clean_widgets.dart';
 import '../legal/privacy_policy_screen.dart';
-import '../legal/terms_of_service_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
@@ -152,13 +152,8 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 _buildDivider(),
                 _buildNavigationTile(
                   icon: Icons.description_outlined,
-                  title: 'Termini di Servizio',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const TermsOfServiceScreen(),
-                    ),
-                  ),
+                  title: 'Termini di Servizio (EULA)',
+                  onTap: _openAppleEula,
                 ),
               ],
             ),
@@ -231,7 +226,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Contattaci a: privacy@GIGI.app',
+                  'Contattaci a: contact@g2dev.it',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: CleanTheme.textSecondary,
@@ -280,6 +275,13 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
         activeTrackColor: CleanTheme.primaryColor,
       ),
     );
+  }
+
+  Future<void> _openAppleEula() async {
+    final uri = Uri.parse(appleStandardEulaUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildNavigationTile({
@@ -362,7 +364,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
 
       if (response['success'] == true) {
         final downloadUrl = response['download_url'];
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -389,7 +391,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Si è verificato un errore durante l\'esportazione dei dati. Riprova.'),
+            content: Text(
+              'Si è verificato un errore durante l\'esportazione dei dati. Riprova.',
+            ),
             backgroundColor: CleanTheme.accentRed,
           ),
         );
@@ -498,7 +502,9 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Si è verificato un errore durante l\'eliminazione dell\'account. Riprova.'),
+            content: Text(
+              'Si è verificato un errore durante l\'eliminazione dell\'account. Riprova.',
+            ),
             backgroundColor: CleanTheme.accentRed,
           ),
         );

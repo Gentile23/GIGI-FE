@@ -22,7 +22,8 @@ class WorkoutLockScreenSnapshot {
   final int? restTotalSeconds;
   final DateTime? restEndsAt;
   final bool restCompleted;
-  final String? bodyImageBase64;
+  final int totalExercises;
+  final int currentExerciseIndex;
 
   const WorkoutLockScreenSnapshot({
     required this.sessionActive,
@@ -42,7 +43,8 @@ class WorkoutLockScreenSnapshot {
     required this.restTotalSeconds,
     required this.restEndsAt,
     required this.restCompleted,
-    required this.bodyImageBase64,
+    required this.totalExercises,
+    required this.currentExerciseIndex,
   });
 }
 
@@ -264,7 +266,8 @@ class WorkoutLockScreenService {
       'restEndsAt': snapshot.restEndsAt?.millisecondsSinceEpoch,
       'restEndsAtMillis': snapshot.restEndsAt?.millisecondsSinceEpoch,
       'restCompleted': snapshot.restCompleted,
-      'bodyImageBase64': snapshot.bodyImageBase64,
+      'totalExercises': snapshot.totalExercises,
+      'currentExerciseIndex': snapshot.currentExerciseIndex,
     };
   }
 

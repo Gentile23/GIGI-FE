@@ -4,16 +4,16 @@ const String privacyPolicyText = '''
 INFORMATIVA SULLA PRIVACY
 GIGI - App di Fitness Personalizzato
 
-Ultimo aggiornamento: Dicembre 2024
+Ultimo aggiornamento: 22 Aprile 2026
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 1. TITOLARE DEL TRATTAMENTO
 
 Il Titolare del trattamento dei dati personali è:
-[NOME AZIENDA/SVILUPPATORE]
-Email: privacy@GIGI.app
-Indirizzo: [INDIRIZZO LEGALE]
+G2DEV
+Email: contact@g2dev.it
+Contatto: contact@g2dev.it
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -126,7 +126,7 @@ Hai diritto di:
 
 Per esercitare questi diritti:
 • Vai a Profilo → Privacy & Sicurezza nell'app
-• Invia email a: privacy@GIGI.app
+• Invia email a: contact@g2dev.it
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -177,7 +177,7 @@ www.garanteprivacy.it
 CONTATTI
 
 Per domande sulla privacy:
-📧 Email: privacy@GIGI.app
-🌐 Web: www.GIGI.app/privacy
+📧 Email: contact@g2dev.it
+🌐 Web: privacy-policy.g2dev.it
 
 ''';

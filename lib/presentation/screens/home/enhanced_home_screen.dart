@@ -277,11 +277,6 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                                     ),
                                     const SizedBox(height: 12),
                                     _buildQuickStatsRow(),
-                                    if (_isHealthConnected) ...[
-                                      const SizedBox(height: 12),
-                                      _buildHealthSyncBadge(),
-                                    ],
-
                                     const SizedBox(height: 24),
                                     _buildStreakMotivator(),
 
@@ -298,6 +293,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                                         );
                                       },
                                     ),
+                                    if (_isHealthConnected) ...[
+                                      const SizedBox(height: 12),
+                                      _buildHealthSyncBadge(),
+                                    ],
                                     const SizedBox(height: 16),
                                     // 6. Quick Actions
                                     // Row 1: Form Check AI (Full Width)

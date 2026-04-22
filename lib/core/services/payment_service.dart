@@ -47,6 +47,9 @@ class PaymentService extends ChangeNotifier {
   factory PaymentService() => _instance;
   PaymentService._internal();
 
+  static const double _proMonthlyReferencePrice = 14.99;
+  static const double _proYearlyReferencePrice = 99.99;
+
   bool _isInitialized = false;
   bool _isStoreReady = false;
   SubscriptionTier _currentPlan = SubscriptionTier.free;
@@ -101,18 +104,9 @@ class PaymentService extends ChangeNotifier {
     final expectedType = _expectedPackageType(productId);
     if (expectedType == null) return null;
 
-    final periodMatches = _availableProducts.where((product) {
-      final identifier = _canonicalizeProductIdentifier(product.identifier);
-      return switch (expectedType) {
-        PackageType.monthly =>
-          identifier.contains('monthly') || identifier.contains('month'),
-        PackageType.annual =>
-          identifier.contains('yearly') ||
-              identifier.contains('annual') ||
-              identifier.contains('year'),
-        _ => false,
-      };
-    }).toList();
+    final periodMatches = _availableProducts
+        .where((product) => _isProductInfoPeriodMatch(product, expectedType))
+        .toList();
 
     return periodMatches.length == 1 ? periodMatches.single : null;
   }
@@ -415,7 +409,7 @@ class PaymentService extends ChangeNotifier {
     }
 
     final fallbackMatches = current.availablePackages
-        .where((package) => package.packageType == fallbackType)
+        .where((package) => _isPackagePeriodMatch(package, fallbackType))
         .toList();
 
     if (fallbackMatches.length == 1) {
@@ -440,14 +434,42 @@ class PaymentService extends ChangeNotifier {
     switch (productId) {
       case ProductInfo.proMonthly:
         candidates.addAll({
+          r'$rc_monthly',
+          'monthly',
+          'month',
           'pro_monthly',
+          'pro-monthly',
+          'pro_month',
+          'pro-month',
+          'gigi_monthly',
+          'gigi-monthly',
           'gigi_pro_monthly',
+          'gigi-pro-monthly',
+          'gigi_pro_month',
+          'gigi-pro-month',
+          'gigi_pro_mensile',
+          'gigi-pro-mensile',
           'gigi_pro_monthly:pro-monthly-base', // Google Play Specific
         });
       case ProductInfo.proYearly:
         candidates.addAll({
+          r'$rc_annual',
+          r'$rc_yearly',
+          'annual',
+          'yearly',
+          'year',
           'pro_yearly',
+          'pro-yearly',
+          'pro_annual',
+          'pro-annual',
+          'pro_year',
+          'pro-year',
           'gigi_pro_yearly',
+          'gigi-pro-yearly',
+          'gigi_pro_annual',
+          'gigi-pro-annual',
+          'gigi_pro_annuale',
+          'gigi-pro-annuale',
           'gigi_pro_yearly:pro-yearly-base', // Google Play Specific
         });
       case ProductInfo.eliteMonthly:
@@ -465,6 +487,85 @@ class PaymentService extends ChangeNotifier {
     }
 
     return candidates.where((id) => id.isNotEmpty).toSet();
+  }
+
+  bool _isProductInfoPeriodMatch(
+    ProductInfo product,
+    PackageType expectedType,
+  ) {
+    final identifiers = {
+      product.identifier,
+      _normalizeProductIdentifier(product.identifier),
+      if (product.packageIdentifier != null) product.packageIdentifier!,
+    }.map(_canonicalizeProductIdentifier).toSet();
+
+    final hasMonthlyMarker = identifiers.any(
+      (id) =>
+          id.contains('monthly') ||
+          id.contains('month') ||
+          id.contains('mensile'),
+    );
+    final hasYearlyMarker = identifiers.any(
+      (id) =>
+          id.contains('yearly') ||
+          id.contains('annual') ||
+          id.contains('year') ||
+          id.contains('annuale'),
+    );
+
+    return switch (expectedType) {
+      PackageType.monthly =>
+        hasMonthlyMarker ||
+            _priceApproximately(product.price, _proMonthlyReferencePrice),
+      PackageType.annual =>
+        hasYearlyMarker ||
+            _priceApproximately(product.price, _proYearlyReferencePrice),
+      _ => false,
+    };
+  }
+
+  bool _isPackagePeriodMatch(Package package, PackageType expectedType) {
+    if (package.packageType == expectedType) return true;
+
+    final identifiers = {
+      package.identifier,
+      package.storeProduct.identifier,
+      _normalizeProductIdentifier(package.storeProduct.identifier),
+    }.map(_canonicalizeProductIdentifier).toSet();
+
+    final hasMonthlyMarker = identifiers.any(
+      (id) =>
+          id.contains('monthly') ||
+          id.contains('month') ||
+          id.contains('mensile'),
+    );
+    final hasYearlyMarker = identifiers.any(
+      (id) =>
+          id.contains('yearly') ||
+          id.contains('annual') ||
+          id.contains('year') ||
+          id.contains('annuale'),
+    );
+
+    return switch (expectedType) {
+      PackageType.monthly =>
+        hasMonthlyMarker ||
+            _priceApproximately(
+              package.storeProduct.price,
+              _proMonthlyReferencePrice,
+            ),
+      PackageType.annual =>
+        hasYearlyMarker ||
+            _priceApproximately(
+              package.storeProduct.price,
+              _proYearlyReferencePrice,
+            ),
+      _ => false,
+    };
+  }
+
+  bool _priceApproximately(double actual, double expected) {
+    return (actual - expected).abs() < 0.02;
   }
 
   PackageType? _expectedPackageType(String productId) {

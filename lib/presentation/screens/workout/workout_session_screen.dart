@@ -34,7 +34,7 @@ import '../../../core/services/sound_service.dart';
 import '../../../core/services/rest_timer_service.dart';
 import '../../../core/services/workout_refresh_notifier.dart';
 import '../../../core/services/workout_lock_screen_service.dart';
-import '../../../core/utils/anatomical_muscle_svg.dart';
+// import '../../../core/utils/anatomical_muscle_svg.dart'; // Removed
 import '../../../data/services/quota_service.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/voice_coaching/gigi_preparation_overlay.dart';
@@ -69,8 +69,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   RestTimerService? _restTimerService;
   final WorkoutLockScreenService _lockScreenService =
       WorkoutLockScreenService();
-  String? _lockScreenBodyImageKey;
-  String? _lockScreenBodyImageBase64;
+  // Removed lock screen image cache fields
   final Map<String, TextEditingController> _overlayWeightControllers = {};
   final Map<String, TextEditingController> _overlayRepsControllers = {};
   final Map<String, TextEditingController> _overlayDifficultyControllers = {};
@@ -182,6 +181,20 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         FocusManager.instance.primaryFocus?.unfocus();
       }
 
+      final isSameRestContext =
+          !isOverlayOpening &&
+          _restingExerciseId == state.exerciseId &&
+          _restingSetNumber == state.setNumber &&
+          _restTimerTotal == state.totalSeconds;
+      final isTimerTickOnly =
+          isSameRestContext && _restTimerSeconds != nextSeconds;
+
+      if (isTimerTickOnly && _hasOverlayInputFocus) {
+        _restTimerSeconds = nextSeconds;
+        unawaited(_updateLockScreenWidget(isTick: true));
+        return;
+      }
+
       final requiresUpdate =
           isOverlayOpening ||
           _restingExerciseId != state.exerciseId ||
@@ -204,28 +217,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
 
     if (state.completed && isCurrentWorkout) {
-      final requiresUpdate =
-          !_isRestTimerOverlayVisible ||
-          !_restTimerCompleted ||
-          _restTimerSeconds != 0 ||
-          _restingExerciseId != state.exerciseId ||
-          _restingSetNumber != state.setNumber ||
-          _restTimerTotal != state.totalSeconds;
-      if (requiresUpdate) {
-        setState(() {
-          _isRestTimerOverlayVisible = true;
-          _restTimerCompleted = true;
-          _restingExerciseId = state.exerciseId;
-          _restingSetNumber = state.setNumber;
-          _restTimerSeconds = 0;
-          _restTimerTotal = state.totalSeconds;
-        });
-      }
+      _closeRestTimerOverlay(acknowledgeCompletion: true);
       unawaited(_updateLockScreenWidget());
       return;
     }
 
-    if (_isRestTimerOverlayVisible) {
+    if (_isRestTimerOverlayVisible && !_hasOverlayInputFocus) {
       _disposeOverlayInputControllers();
       setState(() {
         _isRestTimerOverlayVisible = false;
@@ -238,6 +235,9 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       unawaited(_updateLockScreenWidget());
     }
   }
+
+  bool get _hasOverlayInputFocus =>
+      _overlayFocusNodes.values.any((focusNode) => focusNode.hasFocus);
 
   final Map<String, WorkoutExercise> _exerciseByUniqueId = {};
 
@@ -551,9 +551,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         _isRestTimerOverlayVisible &&
         _restTimerCompleted &&
         restTimerState?.workoutDayId == widget.workoutDay.id;
-    final bodyImageBase64 = await _resolveLockScreenBodyImageBase64(
-      currentExercise,
-    );
+    final totalExercises = widget.workoutDay.exercises.length;
+    final currentExerciseIndex = currentExercise != null
+        ? widget.workoutDay.exercises.indexOf(currentExercise)
+        : -1;
 
     final snapshot = WorkoutLockScreenSnapshot(
       sessionActive: true,
@@ -579,29 +580,14 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       restTotalSeconds: isResting ? _restTimerTotal : null,
       restEndsAt: isResting || restCompleted ? restTimerState?.endsAt : null,
       restCompleted: restCompleted,
-      bodyImageBase64: bodyImageBase64,
+      totalExercises: totalExercises,
+      currentExerciseIndex: currentExerciseIndex,
     );
 
     await _lockScreenService.updateSession(snapshot, isTick: isTick);
   }
 
-  Future<String?> _resolveLockScreenBodyImageBase64(
-    WorkoutExercise? currentExercise,
-  ) async {
-    final primary = currentExercise?.exercise.muscleGroups ?? const <String>[];
-    final secondary =
-        currentExercise?.exercise.secondaryMuscleGroups ?? const <String>[];
-    final key = '${primary.join('|')}::${secondary.join('|')}';
-    if (_lockScreenBodyImageKey == key) return _lockScreenBodyImageBase64;
-
-    _lockScreenBodyImageKey = key;
-    _lockScreenBodyImageBase64 =
-        await AnatomicalMuscleSvg.buildHighlightedPngBase64(
-          primaryMuscleGroups: primary,
-          secondaryMuscleGroups: secondary,
-        );
-    return _lockScreenBodyImageBase64;
-  }
+  // Removed _resolveLockScreenBodyImageBase64
 
   Widget _buildSessionStat(String emoji, String value, String label) {
     return Row(
@@ -909,8 +895,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     unawaited(_updateLockScreenWidget());
   }
 
-  void _acknowledgeRestCompletionOverlay() {
-    context.read<RestTimerService>().acknowledgeCompletion();
+  void _closeRestTimerOverlay({bool acknowledgeCompletion = false}) {
     _disposeOverlayInputControllers();
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
@@ -921,7 +906,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       _restTimerSeconds = 0;
       _restTimerTotal = 0;
     });
-    unawaited(_updateLockScreenWidget());
+
+    if (acknowledgeCompletion) {
+      context.read<RestTimerService>().acknowledgeCompletion();
+    }
   }
 
   Future<void> _startWorkoutSession() async {
@@ -2122,7 +2110,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final node = FocusNode(debugLabel: 'rest_overlay_$key');
     node.addListener(() {
       if (!node.hasFocus) return;
-      _selectAllForOverlayFocusKey(key);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !node.hasFocus) return;
+        _selectAllForOverlayFocusKey(key);
+      });
     });
     _overlayFocusNodes[key] = node;
     return node;
@@ -2273,11 +2264,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final minutes = _restTimerSeconds ~/ 60;
     final seconds = _restTimerSeconds % 60;
     final isUrgent = _restTimerSeconds <= 3 && _restTimerSeconds > 0;
-    final statusColor = _restTimerCompleted
-        ? CleanTheme.accentGreen
-        : isUrgent
-        ? CleanTheme.accentRed
-        : CleanTheme.accentBlue;
+    final statusColor = isUrgent ? CleanTheme.accentRed : CleanTheme.accentBlue;
     final currentExercise = _restingExerciseId != null
         ? _getExerciseById(_restingExerciseId!)
         : null;
@@ -2340,9 +2327,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            _restTimerCompleted
-                                ? 'RECUPERO FINITO'
-                                : 'RECUPERO',
+                            'RECUPERO',
                             style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -2363,9 +2348,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         style: GoogleFonts.outfit(
                           fontSize: isKeyboardOpen ? 58 : 72,
                           fontWeight: FontWeight.w800,
-                          color: _restTimerCompleted
-                              ? CleanTheme.accentGreen
-                              : isUrgent
+                          color: isUrgent
                               ? CleanTheme.accentRed
                               : CleanTheme.textOnDark,
                           letterSpacing: 4,
@@ -2401,47 +2384,29 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: isKeyboardOpen
-                                ? SingleChildScrollView(
-                                    keyboardDismissBehavior:
-                                        ScrollViewKeyboardDismissBehavior
-                                            .onDrag,
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Column(
-                                      children: [
-                                        SizedBox(
-                                          height: 150,
-                                          child: _buildSetDetailOverlayCard(
-                                            title: 'ULTIMO SET',
-                                            exerciseId: _restingExerciseId!,
-                                            setNumber: _restingSetNumber,
-                                            isNext: false,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        SizedBox(
-                                          height: 150,
-                                          child: _buildNextSetOverlayCard(),
-                                        ),
-                                      ],
+                            child: SingleChildScrollView(
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.manual,
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: isKeyboardOpen ? 150 : 180,
+                                    child: _buildSetDetailOverlayCard(
+                                      title: 'ULTIMO SET',
+                                      exerciseId: _restingExerciseId!,
+                                      setNumber: _restingSetNumber,
+                                      isNext: false,
                                     ),
-                                  )
-                                : Column(
-                                    children: [
-                                      Expanded(
-                                        child: _buildSetDetailOverlayCard(
-                                          title: 'ULTIMO SET',
-                                          exerciseId: _restingExerciseId!,
-                                          setNumber: _restingSetNumber,
-                                          isNext: false,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Expanded(
-                                        child: _buildNextSetOverlayCard(),
-                                      ),
-                                    ],
                                   ),
+                                  const SizedBox(height: 10),
+                                  SizedBox(
+                                    height: isKeyboardOpen ? 150 : 180,
+                                    child: _buildNextSetOverlayCard(),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                         SizedBox(height: isKeyboardOpen ? 8 : 16),
@@ -2449,9 +2414,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                       // Completion/skip button
                       TextButton(
-                        onPressed: _restTimerCompleted
-                            ? _acknowledgeRestCompletionOverlay
-                            : _skipRestTimerOverlay,
+                        onPressed: _skipRestTimerOverlay,
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
@@ -2470,9 +2433,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              _restTimerCompleted
-                                  ? 'Inizia prossimo set'
-                                  : 'Salta',
+                              'Salta',
                               style: GoogleFonts.outfit(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -2483,9 +2444,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                             ),
                             const SizedBox(width: 8),
                             Icon(
-                              _restTimerCompleted
-                                  ? Icons.play_arrow_rounded
-                                  : Icons.skip_next_rounded,
+                              Icons.skip_next_rounded,
                               size: 20,
                               color: CleanTheme.textOnDark.withValues(
                                 alpha: 0.7,

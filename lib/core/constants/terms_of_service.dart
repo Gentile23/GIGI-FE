@@ -4,7 +4,7 @@ const String termsOfServiceText = '''
 TERMINI E CONDIZIONI DI SERVIZIO
 GIGI - App di Fitness Personalizzato
 
-Ultimo aggiornamento: Dicembre 2024
+Ultimo aggiornamento: 22 Aprile 2026
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -170,7 +170,7 @@ Possiamo sospendere o terminare il tuo account in caso di:
 12. LEGGE APPLICABILE E FORO COMPETENTE
 
 • Legge applicabile: Legge italiana
-• Foro competente: Tribunale di [CITTÀ]
+• Foro competente: foro competente individuato dalla normativa applicabile
 • Si applica il Regolamento UE 2016/679 (GDPR)
 • Per controversie di consumo, è disponibile la 
   piattaforma ODR: https://ec.europa.eu/odr
@@ -191,8 +191,8 @@ Possiamo sospendere o terminare il tuo account in caso di:
 14. CONTATTI
 
 Per domande sui Termini di Servizio:
-📧 Email: legal@GIGI.app
-🌐 Web: www.GIGI.app/terms
+📧 Email: contact@g2dev.it
+🌐 Web: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

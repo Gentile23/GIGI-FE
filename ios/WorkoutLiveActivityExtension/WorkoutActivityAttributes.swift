@@ -19,7 +19,8 @@ struct WorkoutActivityAttributes: ActivityAttributes {
         var restTotalSeconds: Int?
         var restEndsAtMillis: Int?
         var restCompleted: Bool
-        var bodyImageBase64: String?
+        var totalExercises: Int
+        var currentExerciseIndex: Int
     }
 
     var workoutName: String

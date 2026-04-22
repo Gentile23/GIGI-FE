@@ -870,20 +870,11 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                         );
                                       }
                                     },
-                                    child: Row(
+                                    child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (!isPremium)
-                                          Padding(
-                                            padding: const EdgeInsets.only(right: 4),
-                                            child: Icon(
-                                              Icons.lock,
-                                              size: 16,
-                                              color: Colors.white.withValues(alpha: 0.5),
-                                            ),
-                                          ),
                                         Transform.scale(
-                                          scale: 0.75,
+                                          scale: 0.8,
                                           child: Switch(
                                             value: isPremium ? includeHistory : false,
                                             onChanged: isPremium
@@ -895,11 +886,22 @@ class _UnifiedWorkoutListScreenState extends State<UnifiedWorkoutListScreen> {
                                             activeTrackColor:
                                                 CleanTheme.accentOrange,
                                             inactiveThumbColor: isPremium
-                                                ? Colors.white54
+                                                ? Colors.white
                                                 : Colors.white24,
-                                            inactiveTrackColor: Colors.white10,
+                                            inactiveTrackColor: isPremium
+                                                ? Colors.white.withValues(alpha: 0.2)
+                                                : Colors.white.withValues(alpha: 0.1),
                                           ),
                                         ),
+                                        if (!isPremium)
+                                          const Padding(
+                                            padding: EdgeInsets.only(top: 2),
+                                            child: Icon(
+                                              Icons.lock,
+                                              size: 18,
+                                              color: CleanTheme.accentGold,
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),

@@ -68,7 +68,8 @@ class MainActivity : FlutterActivity() {
         val restEndsAtMillis = (payload["restEndsAtMillis"] as? Number)?.toLong()
             ?: (payload["restEndsAt"] as? Number)?.toLong()
         val restCompleted = payload["restCompleted"] as? Boolean ?: false
-        val bodyImageBase64 = payload["bodyImageBase64"] as? String
+        val totalExercises = (payload["totalExercises"] as? Number)?.toInt() ?: 0
+        val currentExerciseIndex = (payload["currentExerciseIndex"] as? Number)?.toInt() ?: -1
         val primaryMuscles = stringList(payload["currentMuscleGroups"])
         val secondaryMuscles = stringList(payload["currentSecondaryMuscleGroups"])
 
@@ -116,10 +117,10 @@ class MainActivity : FlutterActivity() {
             "Prossima: fine allenamento"
         }
         remoteViews.setTextViewText(R.id.next_set, nextLine)
-        remoteViews.setImageViewBitmap(
-            R.id.body_image,
-            decodeBodyImage(bodyImageBase64) ?: createBodyBitmap(primaryMuscles, secondaryMuscles)
-        )
+        remoteViews.setTextViewText(R.id.next_set, nextLine)
+        
+        // Progress text to substitute the image (optionally)
+        // Or just leave more space for the text.
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -187,62 +188,6 @@ class MainActivity : FlutterActivity() {
         val remaining = seconds % 60
         return "$minutes:${remaining.toString().padStart(2, '0')}"
     }
-
-    private fun decodeBodyImage(bodyImageBase64: String?): Bitmap? {
-        if (bodyImageBase64.isNullOrBlank()) return null
-        return try {
-            val bytes = Base64.decode(bodyImageBase64, Base64.DEFAULT)
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-        } catch (_: IllegalArgumentException) {
-            null
-        }
-    }
-
-    private fun createBodyBitmap(primaryMuscles: List<String>, secondaryMuscles: List<String>): Bitmap {
-        val width = dp(68)
-        val height = dp(108)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-
-        paint.color = Color.rgb(25, 25, 28)
-        canvas.drawRoundRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), dp(12).toFloat(), dp(12).toFloat(), paint)
-
-        val centerX = width / 2f
-        paint.color = baseColor
-        canvas.drawCircle(centerX, dp(15).toFloat(), dp(8).toFloat(), paint)
-
-        paint.color = colorFor(listOf("chest", "petto", "back", "schiena", "core", "abs", "addome"), primaryMuscles, secondaryMuscles)
-        canvas.drawRoundRect(RectF(centerX - dp(12), dp(27).toFloat(), centerX + dp(12), dp(66).toFloat()), dp(11).toFloat(), dp(11).toFloat(), paint)
-
-        paint.color = colorFor(listOf("shoulders", "spalle", "arms", "biceps", "triceps", "braccia"), primaryMuscles, secondaryMuscles)
-        canvas.drawRoundRect(RectF(centerX - dp(30), dp(29).toFloat(), centerX - dp(20), dp(70).toFloat()), dp(5).toFloat(), dp(5).toFloat(), paint)
-        canvas.drawRoundRect(RectF(centerX + dp(20), dp(29).toFloat(), centerX + dp(30), dp(70).toFloat()), dp(5).toFloat(), dp(5).toFloat(), paint)
-
-        paint.color = colorFor(listOf("abs", "core", "addome"), primaryMuscles, secondaryMuscles)
-        canvas.drawRoundRect(RectF(centerX - dp(9), dp(49).toFloat(), centerX + dp(9), dp(69).toFloat()), dp(8).toFloat(), dp(8).toFloat(), paint)
-
-        paint.color = colorFor(listOf("legs", "quad", "hamstrings", "glutes", "gambe", "glutei", "calves", "polpacci"), primaryMuscles, secondaryMuscles)
-        canvas.drawRoundRect(RectF(centerX - dp(14), dp(69).toFloat(), centerX - dp(4), dp(104).toFloat()), dp(5).toFloat(), dp(5).toFloat(), paint)
-        canvas.drawRoundRect(RectF(centerX + dp(4), dp(69).toFloat(), centerX + dp(14), dp(104).toFloat()), dp(5).toFloat(), dp(5).toFloat(), paint)
-
-        return bitmap
-    }
-
-    private fun colorFor(tokens: List<String>, primaryMuscles: List<String>, secondaryMuscles: List<String>): Int {
-        if (containsToken(primaryMuscles, tokens)) return primaryColor
-        if (containsToken(secondaryMuscles, tokens)) return secondaryColor
-        return baseColor
-    }
-
-    private fun containsToken(muscles: List<String>, tokens: List<String>): Boolean {
-        return muscles.any { muscle ->
-            val normalized = muscle.lowercase()
-            tokens.any { token -> normalized.contains(token) }
-        }
-    }
-
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
 
     companion object {
         private val primaryColor = Color.rgb(229, 57, 53)

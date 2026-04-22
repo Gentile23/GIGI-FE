@@ -63,173 +63,106 @@ private struct WorkoutLockScreenView: View {
     let context: ActivityViewContext<WorkoutActivityAttributes>
 
     var body: some View {
-        HStack(spacing: 12) {
-            AnatomyImageView(
-                bodyImageBase64: context.state.bodyImageBase64,
-                primaryMuscles: context.state.currentMuscleGroups,
-                secondaryMuscles: context.state.currentSecondaryMuscleGroups
-            )
-            .frame(width: 72, height: 112)
+        HStack(spacing: 16) {
+            // Left: Session Progress Circle
+            ZStack {
+                Circle()
+                    .stroke(.white.opacity(0.1), lineWidth: 6)
+                Circle()
+                    .trim(from: 0, to: CGFloat(context.state.currentExerciseIndex + 1) / CGFloat(context.state.totalExercises))
+                    .stroke(
+                        LinearGradient(colors: [.accentColor, .blue], startPoint: .top, endPoint: .bottom),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
+                
+                VStack(spacing: -2) {
+                    Text("\(context.state.currentExerciseIndex + 1)")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                    Text("/\(context.state.totalExercises)")
+                        .font(.system(size: 10, weight: .medium))
+                        .opacity(0.6)
+                }
+            }
+            .frame(width: 52, height: 52)
+            .padding(.leading, 4)
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    Text(context.attributes.workoutName)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.62))
+            VStack(alignment: .leading, spacing: 6) {
+                // Header: Workout Name & Timer
+                HStack(alignment: .firstTextBaseline) {
+                    Text(context.attributes.workoutName.uppercased())
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.5))
                         .lineLimit(1)
-                    Spacer(minLength: 4)
+                    
+                    Spacer()
+                    
                     if context.state.restCompleted {
-                        Text("FINITO")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Color(red: 0.2, green: 0.78, blue: 0.35))
+                        Label("PRONTO", systemName: "checkmark.circle.fill")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color.green)
                     } else if context.state.isResting, let endsAt = context.state.restEndsAt, endsAt > Date.now {
-                        Text(timerInterval: Date.now...endsAt, countsDown: true)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Color(red: 1.0, green: 0.72, blue: 0.1))
-                            .monospacedDigit()
-                    } else if context.state.isResting {
-                        Text("0:00")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(Color(red: 1.0, green: 0.72, blue: 0.1))
-                            .monospacedDigit()
+                        HStack(spacing: 4) {
+                            Image(systemName: "timer")
+                            Text(timerInterval: Date.now...endsAt, countsDown: true)
+                                .monospacedDigit()
+                        }
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.orange)
                     }
                 }
 
+                // Exercise Name
                 Text(context.state.currentExerciseName)
-                    .font(.headline.weight(.bold))
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                HStack(spacing: 8) {
-                    metric("Set", "\(context.state.currentSetNumber)/\(context.state.currentSetTotal)")
+                // Metrics Row
+                HStack(spacing: 10) {
+                    metricBadge(systemName: "number.square.fill", value: "SET \(context.state.currentSetNumber)/\(context.state.currentSetTotal)")
+                    
                     if let reps = context.state.currentTargetReps, !reps.isEmpty {
-                        metric("Reps", reps)
+                        metricBadge(systemName: "repeat", value: "\(reps) REPS")
                     }
+                    
+                    Spacer()
                 }
-
-                Divider().overlay(.white.opacity(0.16))
-
-                HStack(spacing: 6) {
-                    Image(systemName: "forward.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.45))
-                    Text(nextLine)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.72))
-                        .lineLimit(1)
+                
+                // Next Up
+                if let next = context.state.nextExerciseName {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.system(size: 10))
+                        Text("PROSSIMO: \(next.uppercased())")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(.white.opacity(0.4))
+                    .padding(.top, 2)
                 }
             }
         }
-        .padding(14)
+        .padding(16)
     }
 
-    private var nextLine: String {
-        guard let name = context.state.nextExerciseName,
-              let set = context.state.nextSetNumber,
-              let total = context.state.nextSetTotal else {
-            return "Prossima: fine allenamento"
-        }
-
-        let reps = context.state.nextTargetReps.flatMap { $0.isEmpty ? nil : " • \($0) reps" } ?? ""
-        return "Prossima: \(name) • Set \(set)/\(total)\(reps)"
-    }
-
-    private func metric(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label.uppercased())
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white.opacity(0.42))
+    private func metricBadge(systemName: String, value: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: systemName)
+                .font(.system(size: 10))
             Text(value)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
+                .font(.system(size: 10, weight: .bold))
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 7))
+        .padding(.vertical, 4)
+        .background(.white.opacity(0.1), in: Capsule())
+        .foregroundStyle(.white)
     }
-
 }
 
 private extension WorkoutActivityAttributes.ContentState {
     var restEndsAt: Date? {
         guard let restEndsAtMillis else { return nil }
         return Date(timeIntervalSince1970: TimeInterval(restEndsAtMillis) / 1000)
-    }
-}
-
-private struct AnatomyImageView: View {
-    let bodyImageBase64: String?
-    let primaryMuscles: [String]
-    let secondaryMuscles: [String]
-
-    var body: some View {
-        if let uiImage = decodedImage {
-            Image(uiImage: uiImage)
-                .resizable()
-                .scaledToFit()
-        } else {
-            MiniAnatomyView(
-                primaryMuscles: primaryMuscles,
-                secondaryMuscles: secondaryMuscles
-            )
-        }
-    }
-
-    private var decodedImage: UIImage? {
-        guard let bodyImageBase64,
-              let data = Data(base64Encoded: bodyImageBase64) else {
-            return nil
-        }
-        return UIImage(data: data)
-    }
-}
-
-private struct MiniAnatomyView: View {
-    let primaryMuscles: [String]
-    let secondaryMuscles: [String]
-
-    private let primary = Color(red: 0.93, green: 0.12, blue: 0.12)
-    private let secondary = Color(red: 1.0, green: 0.55, blue: 0.55)
-    private let base = Color.white.opacity(0.22)
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.white.opacity(0.06))
-            VStack(spacing: 2) {
-                Circle().fill(base).frame(width: 16, height: 16)
-                ZStack {
-                    Capsule().fill(color(for: ["chest", "petto", "back", "schiena", "core", "abs", "addome"])).frame(width: 24, height: 38)
-                    HStack(spacing: 30) {
-                        Capsule().fill(color(for: ["shoulders", "spalle", "arms", "biceps", "triceps", "braccia"])).frame(width: 8, height: 40)
-                        Capsule().fill(color(for: ["shoulders", "spalle", "arms", "biceps", "triceps", "braccia"])).frame(width: 8, height: 40)
-                    }
-                    VStack {
-                        Spacer()
-                        Capsule().fill(color(for: ["abs", "core", "addome"])).frame(width: 18, height: 18)
-                    }
-                }
-                HStack(spacing: 8) {
-                    Capsule().fill(color(for: ["legs", "quad", "hamstrings", "glutes", "gambe", "glutei", "calves", "polpacci"])).frame(width: 10, height: 42)
-                    Capsule().fill(color(for: ["legs", "quad", "hamstrings", "glutes", "gambe", "glutei", "calves", "polpacci"])).frame(width: 10, height: 42)
-                }
-            }
-            .padding(.vertical, 8)
-        }
-    }
-
-    private func color(for tokens: [String]) -> Color {
-        if contains(tokens, in: primaryMuscles) { return primary }
-        if contains(tokens, in: secondaryMuscles) { return secondary }
-        return base
-    }
-
-    private func contains(_ tokens: [String], in muscles: [String]) -> Bool {
-        let normalized = muscles.map { $0.lowercased() }
-        return normalized.contains { muscle in
-            tokens.contains { token in muscle.contains(token) }
-        }
     }
 }
 

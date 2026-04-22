@@ -11,18 +11,9 @@
     android:paddingEnd="12dp"
     android:paddingBottom="10dp">
 
-    <ImageView
-        android:id="@+id/body_image"
-        android:layout_width="68dp"
-        android:layout_height="108dp"
-        android:adjustViewBounds="true"
-        android:contentDescription="@string/app_name"
-        android:scaleType="fitCenter" />
-
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
         android:orientation="vertical"
         android:layout_weight="1">
 

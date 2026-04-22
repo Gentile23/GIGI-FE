@@ -13,6 +13,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/utils/share_image_file.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../widgets/workout/workout_share_card.dart';
 import '../../../providers/auth_provider.dart';
@@ -97,6 +98,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   bool _isGeneratingImage = false;
   Uint8List? _selectedPhotoBytes;
+  final GlobalKey _shareCardKey = GlobalKey();
 
   @override
   void initState() {
@@ -126,6 +128,22 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       backgroundColor: CleanTheme.chromeSubtle,
       body: Stack(
         children: [
+          // Ghost widget per la cattura dell'immagine (posizionato fuori schermo)
+          Positioned(
+            left: -1000,
+            top: 0,
+            child: RepaintBoundary(
+              key: _shareCardKey,
+              child: SizedBox(
+                width: 360,
+                child: WorkoutShareCard(
+                  summaryData: widget.summaryData,
+                  photoBytes: _selectedPhotoBytes,
+                  userName: context.read<AuthProvider>().user?.name,
+                ),
+              ),
+            ),
+          ),
           Positioned(
             top: -120,
             right: -40,
@@ -881,44 +899,24 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       );
       loadingDialogShown = true;
 
-      final ui.Image image = await _captureShareCardImage(pixelRatio: 2.5);
-      if (!mounted) return;
-
-      final ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      final Uint8List pngBytes = byteData!.buffer.asUint8List();
-
+      final pngBytes = await _renderShareCardPngBytes();
+      
       if (mounted) {
         if (loadingDialogShown) {
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
           loadingDialogShown = false;
         }
 
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [
-              XFile.fromData(
-                pngBytes,
-                mimeType: 'image/png',
-                name: 'gigi_workout_share.png',
-              ),
-            ],
-            text: _buildSocialShareText(),
-          ),
-        );
+        // Mostra l'anteprima prima di condividere
+        await _showPreviewModal(pngBytes);
       }
     } catch (e) {
       debugPrint('Error generating image: $e');
       if (mounted) {
         if (loadingDialogShown) {
-          Navigator.pop(context);
+          Navigator.of(context, rootNavigator: true).pop();
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Errore durante la generazione dell\'immagine'),
-          ),
-        );
+        _showShareGenerationError();
       }
     } finally {
       if (mounted) {
@@ -927,6 +925,130 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         });
       }
     }
+  }
+
+  Future<void> _showPreviewModal(Uint8List imageBytes) async {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: CleanTheme.backgroundColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Anteprima Card',
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Image.memory(
+                      imageBytes,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'Chiudi',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final shareFile = await createShareImageFile(
+                          imageBytes,
+                          fileName: 'gigi_workout_share.png',
+                        );
+                        await SharePlus.instance.share(
+                          ShareParams(
+                            files: [shareFile],
+                            text: _buildSocialShareText(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: CleanTheme.accentOrange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        'Condividi',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
+          ],
+        ),
+      ),
+    );
   }
 
   String _buildSocialShareText() {
@@ -961,62 +1083,90 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     return lines.join('\n');
   }
 
-  Future<ui.Image> _captureShareCardImage({required double pixelRatio}) async {
-    final overlay = Overlay.of(context, rootOverlay: true);
-    final captureKey = GlobalKey();
-    final userName = context.read<AuthProvider>().user?.name;
-    Object? lastError;
-    late final OverlayEntry overlayEntry;
-
-    overlayEntry = OverlayEntry(
-      builder: (_) => Positioned.fill(
-        child: IgnorePointer(
-          child: Opacity(
-            opacity: 0.1, // Leggermente superiore per forzare il paint su iOS Impeller
-            child: Material(
-              color: Colors.transparent,
-              child: Center(
-                child: RepaintBoundary(
-                  key: captureKey,
-                  child: SizedBox(
-                    width: 360,
-                    child: WorkoutShareCard(
-                      summaryData: widget.summaryData,
-                      photoBytes: _selectedPhotoBytes,
-                      userName: userName,
-                    ),
-                  ),
+  void _showShareGenerationError() {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Errore durante la generazione dell\'immagine'),
+          action: _selectedPhotoBytes == null
+              ? null
+              : SnackBarAction(
+                  label: 'Riprova',
+                  onPressed: _generateAndShareImage,
                 ),
-              ),
-            ),
-          ),
         ),
-      ),
+      );
+  }
+
+  Future<Uint8List> _renderShareCardPngBytes() async {
+    await _precacheShareCardAssets();
+
+    Object? lastError;
+    for (var attempt = 1; attempt <= 3; attempt++) {
+      ui.Image? image;
+      try {
+        image = await _captureShareCardImage(pixelRatio: 2.5);
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData == null) {
+          throw StateError('Share card PNG encoding failed');
+        }
+        return byteData.buffer.asUint8List();
+      } catch (e) {
+        lastError = e;
+        debugPrint('Share image render attempt $attempt failed: $e');
+        if (attempt < 3) {
+          await Future<void>.delayed(Duration(milliseconds: 160 * attempt));
+        }
+      } finally {
+        image?.dispose();
+      }
+    }
+
+    throw StateError('Share card PNG render failed: $lastError');
+  }
+
+  Future<void> _precacheShareCardAssets() async {
+    if (!mounted) return;
+
+    final selectedPhotoBytes = _selectedPhotoBytes;
+    if (selectedPhotoBytes != null) {
+      await precacheImage(MemoryImage(selectedPhotoBytes), context);
+      if (!mounted) return;
+    }
+    await precacheImage(
+      const AssetImage('assets/images/gigi_new_logo.png'),
+      context,
     );
 
-    overlay.insert(overlayEntry);
+    WidgetsBinding.instance.scheduleFrame();
+    await WidgetsBinding.instance.endOfFrame;
+  }
+
+  Future<ui.Image> _captureShareCardImage({required double pixelRatio}) async {
+    Object? lastError;
 
     try {
-      // Delay iniziale per permettere agli asset e all'overlay di assestarsi
+      // Delay iniziale per permettere agli asset di caricarsi
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       for (var attempt = 0; attempt < 60; attempt++) {
         WidgetsBinding.instance.scheduleFrame();
         await WidgetsBinding.instance.endOfFrame;
-        
-        // Su iOS rilasciamo il controllo per un tempo sufficiente al decoding delle immagini
+
+        // Tempo sufficiente al decoding delle immagini
         await Future<void>.delayed(const Duration(milliseconds: 32));
 
-        final boundaryContext = captureKey.currentContext;
+        final boundaryContext = _shareCardKey.currentContext;
         final renderObject = boundaryContext?.findRenderObject();
 
         if (renderObject is! RenderRepaintBoundary) {
-          lastError = StateError('Share card non pronta');
+          lastError = StateError('Share card non pronta o RepaintBoundary mancante');
           continue;
         }
 
         if (renderObject.debugNeedsLayout || renderObject.debugNeedsPaint) {
-          lastError = StateError('Share card non ha completato il paint');
+          lastError = StateError('Share card non ha completato il paint (needs paint/layout)');
           WidgetsBinding.instance.scheduleFrame();
           continue;
         }
@@ -1032,10 +1182,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       throw StateError(
-        'Share card non pronta dopo il rendering: ${lastError ?? 'timeout'}',
+        'Impossibile catturare la card dopo 60 tentativi: ${lastError ?? 'timeout'}',
       );
-    } finally {
-      overlayEntry.remove();
+    } catch (e) {
+      rethrow;
     }
   }
 }

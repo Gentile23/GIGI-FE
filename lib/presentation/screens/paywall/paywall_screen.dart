@@ -391,7 +391,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        l10n.paywallDiscount, // '-37%'
+                        '-${SubscriptionTierConfig.pro.yearlySavingsPercent}%',
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -677,24 +677,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final staticEffectiveMonthlyPrice = _isYearly
         ? config.effectiveMonthlyPrice
         : config.priceMonthly;
-    final productId = _productIdFor(config.tier, yearly: _isYearly);
-    final product = productId == null
-        ? null
-        : paymentService.productInfoFor(productId);
-
-    if (product != null) {
-      final effectiveMonthlyPrice = _isYearly
-          ? product.price / 12
-          : product.price;
-      return _PriceDetails(
-        billedAmount: product.priceString,
-        billedPeriod: billedPeriod,
-        effectiveMonthlyAmount: _formatLikeStorePriceString(
-          effectiveMonthlyPrice,
-          product,
-        ),
-      );
-    }
 
     return _PriceDetails(
       billedAmount: _formatStaticEuroPrice(staticBilledPrice),
@@ -723,36 +705,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   String _formatStaticEuroPrice(double price) {
-    return '€${price.toStringAsFixed(2)}';
-  }
-
-  String _formatLikeStorePriceString(double price, ProductInfo product) {
-    final decimalSeparator = product.priceString.contains(',') ? ',' : '.';
-    final amount = price.toStringAsFixed(2).replaceAll('.', decimalSeparator);
-
-    if (product.priceString.trimLeft().startsWith(product.currencyCode)) {
-      return '${product.currencyCode} $amount';
-    }
-
-    final currencySymbol = _currencySymbolFor(product.currencyCode);
-    if (currencySymbol != null) {
-      return '$currencySymbol$amount';
-    }
-
-    return '$amount ${product.currencyCode}';
-  }
-
-  String? _currencySymbolFor(String currencyCode) {
-    switch (currencyCode.toUpperCase()) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return r'$';
-      case 'GBP':
-        return '£';
-      default:
-        return null;
-    }
+    return '€${price.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 
   List<String> _resolveFeaturesForTier(SubscriptionTierConfig config) {
