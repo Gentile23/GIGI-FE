@@ -62,6 +62,14 @@ struct WorkoutLiveActivityWidget: Widget {
 private struct WorkoutLockScreenView: View {
     let context: ActivityViewContext<WorkoutActivityAttributes>
 
+    private var totalExercises: Int {
+        max(context.state.totalExercises, 1)
+    }
+
+    private var currentExerciseIndex: Int {
+        min(max(context.state.currentExerciseIndex, 0), totalExercises - 1)
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             // Left: Session Progress Circle
@@ -69,7 +77,7 @@ private struct WorkoutLockScreenView: View {
                 Circle()
                     .stroke(.white.opacity(0.1), lineWidth: 6)
                 Circle()
-                    .trim(from: 0, to: CGFloat(context.state.currentExerciseIndex + 1) / CGFloat(context.state.totalExercises))
+                    .trim(from: 0, to: CGFloat(currentExerciseIndex + 1) / CGFloat(totalExercises))
                     .stroke(
                         LinearGradient(colors: [.accentColor, .blue], startPoint: .top, endPoint: .bottom),
                         style: StrokeStyle(lineWidth: 6, lineCap: .round)
@@ -77,9 +85,9 @@ private struct WorkoutLockScreenView: View {
                     .rotationEffect(.degrees(-90))
                 
                 VStack(spacing: -2) {
-                    Text("\(context.state.currentExerciseIndex + 1)")
+                    Text("\(currentExerciseIndex + 1)")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                    Text("/\(context.state.totalExercises)")
+                    Text("/\(totalExercises)")
                         .font(.system(size: 10, weight: .medium))
                         .opacity(0.6)
                 }

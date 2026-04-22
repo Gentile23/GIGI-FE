@@ -63,7 +63,8 @@ import ActivityKit
       restTotalSeconds: payload["restTotalSeconds"] as? Int,
       restEndsAtMillis: (payload["restEndsAtMillis"] as? Int) ?? (payload["restEndsAt"] as? Int),
       restCompleted: payload["restCompleted"] as? Bool ?? false,
-      bodyImageBase64: payload["bodyImageBase64"] as? String
+      totalExercises: max(payload["totalExercises"] as? Int ?? 1, 1),
+      currentExerciseIndex: max(payload["currentExerciseIndex"] as? Int ?? 0, 0)
     )
 
     Task {
