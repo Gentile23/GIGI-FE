@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/utils/responsive_utils.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
 import '../paywall/paywall_screen.dart';
+import '../paywall/gigi_pro_welcome_screen.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../providers/engagement_provider.dart';
 import '../referral/referral_screen.dart';
@@ -212,10 +214,15 @@ class ProfileScreen extends StatelessWidget {
             builder:
                 (context, authProvider, paymentService, engagementProvider, _) {
                   final isPremium =
-                      authProvider.user?.subscription?.isActive ?? false;
+                      (authProvider.user?.subscription?.isActive ?? false) ||
+                      paymentService.isProOrAbove;
 
                   if (isPremium) {
-                    return _buildActiveSubscriptionCard(context, authProvider);
+                    return _buildActiveSubscriptionCard(
+                      context,
+                      authProvider,
+                      paymentService,
+                    );
                   }
 
                   return _buildQuickBuySubscriptionCard(
@@ -407,8 +414,12 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildActiveSubscriptionCard(
     BuildContext context,
     AuthProvider authProvider,
+    PaymentService paymentService,
   ) {
     final l10n = AppLocalizations.of(context)!;
+    final expirationDate =
+        authProvider.user?.subscription?.endDate ??
+        paymentService.expirationDate;
     return GestureDetector(
       onTap: () => HapticService.mediumTap(),
       child: LiquidSteelContainer(
@@ -449,7 +460,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.premium,
+                'GIGI PRO ATTIVO',
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -458,13 +469,23 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                l10n.premiumAccessText,
+                'Il tuo coach AI e attivo. Hai accesso ai vantaggi Pro per allenamento, nutrizione e analisi.',
                 style: GoogleFonts.inter(
                   color: CleanTheme.textOnDark.withValues(alpha: 0.9),
                   height: 1.4,
                 ),
               ),
-              if (authProvider.user?.subscription?.endDate != null) ...[
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildProPill('Voice coaching'),
+                  _buildProPill('Form check AI'),
+                  _buildProPill('Nutrizione AI'),
+                ],
+              ),
+              if (expirationDate != null) ...[
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -476,7 +497,7 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Scade il: ${authProvider.user?.subscription?.endDate != null ? DateFormat('dd/MM/yyyy').format(authProvider.user!.subscription!.endDate!) : 'N/A'}',
+                    'Scade il: ${DateFormat('dd/MM/yyyy').format(expirationDate)}',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -485,8 +506,42 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ],
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => _launchUrl(
+                  defaultTargetPlatform == TargetPlatform.iOS
+                      ? 'https://apps.apple.com/account/subscriptions'
+                      : 'https://play.google.com/store/account/subscriptions',
+                ),
+                icon: const Icon(Icons.settings_outlined, size: 18),
+                label: const Text('Gestisci abbonamento'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: CleanTheme.textOnDark,
+                  side: BorderSide(
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProPill(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: CleanTheme.textOnDark.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: CleanTheme.textOnDark,
         ),
       ),
     );
@@ -795,6 +850,21 @@ class ProfileScreen extends StatelessWidget {
     PaymentService paymentService,
     String productId,
   ) async {
+    if (paymentService.isInitialized &&
+        (!paymentService.isStoreReady ||
+            paymentService.productInfoFor(productId) == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            paymentService.errorMessage ??
+                'Abbonamento non disponibile in questo momento.',
+          ),
+          backgroundColor: CleanTheme.accentOrange,
+        ),
+      );
+      return;
+    }
+
     // Mostra caricamento
     showDialog(
       context: context,
@@ -810,12 +880,11 @@ class ProfileScreen extends StatelessWidget {
     if (context.mounted) Navigator.pop(context);
 
     if (success && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Abbonamento attivato! Benvenuto in GiGi Pro.'),
-          backgroundColor: CleanTheme.accentGreen,
-        ),
-      );
+      await _refreshUserAfterPurchase(context);
+      if (!context.mounted) return;
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()));
     } else if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -825,6 +894,16 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: CleanTheme.accentRed,
         ),
       );
+    }
+  }
+
+  Future<void> _refreshUserAfterPurchase(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await authProvider.fetchUser();
+      final isActive = authProvider.user?.subscription?.isActive ?? false;
+      if (isActive) return;
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 

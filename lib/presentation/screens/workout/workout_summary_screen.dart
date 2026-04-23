@@ -847,6 +847,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   }
 
   Future<void> _handleShare(ImageSource source) async {
+    debugPrint('Sharing started with source: $source');
     try {
       final XFile? image = await _picker.pickImage(
         source: source,
@@ -855,13 +856,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         imageQuality: 85,
       );
 
-      if (image == null) return;
+      if (image == null) {
+        debugPrint('Image picker returned null');
+        return;
+      }
+      debugPrint('Image picked: ${image.path}');
       if (!mounted) return;
 
       final selectedPhotoBytes = await image.readAsBytes();
+      debugPrint('Image bytes read: ${selectedPhotoBytes.length} bytes');
       if (!mounted) return;
 
       await precacheImage(MemoryImage(selectedPhotoBytes), context);
+      debugPrint('Image precached');
 
       setState(() {
         _selectedPhotoBytes = selectedPhotoBytes;
@@ -881,7 +888,11 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   }
 
   Future<void> _generateAndShareImage() async {
-    if (_isGeneratingImage) return;
+    debugPrint('Generating and sharing image...');
+    if (_isGeneratingImage) {
+      debugPrint('Generation already in progress, skipping');
+      return;
+    }
 
     setState(() {
       _isGeneratingImage = true;
@@ -899,7 +910,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       );
       loadingDialogShown = true;
 
+      debugPrint('Rendering share card PNG bytes...');
       final pngBytes = await _renderShareCardPngBytes();
+      debugPrint('PNG bytes generated: ${pngBytes.length} bytes');
       
       if (mounted) {
         if (loadingDialogShown) {
@@ -907,6 +920,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           loadingDialogShown = false;
         }
 
+        debugPrint('Showing preview modal...');
         // Mostra l'anteprima prima di condividere
         await _showPreviewModal(pngBytes);
       }
@@ -1013,17 +1027,39 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
+                        debugPrint('Condividi button pressed in modal');
                         Navigator.pop(context);
-                        final shareFile = await createShareImageFile(
-                          imageBytes,
-                          fileName: 'gigi_workout_share.png',
-                        );
-                        await SharePlus.instance.share(
-                          ShareParams(
-                            files: [shareFile],
+                        try {
+                          debugPrint('Creating share image file...');
+                          final shareFile = await createShareImageFile(
+                            imageBytes,
+                            fileName: 'gigi_workout_share.png',
+                          );
+                          debugPrint('Share file created at: ${shareFile.path}');
+
+                          if (!context.mounted) return;
+                          
+                          // Get origin for iPad popover
+                          final RenderBox? box = context.findRenderObject() as RenderBox?;
+                          final Rect? origin = box != null 
+                              ? box.localToGlobal(Offset.zero) & box.size 
+                              : null;
+
+                          debugPrint('Triggering native share sheet with SharePlus.instance.share...');
+                          await Share.shareXFiles(
+                            [XFile(shareFile.path)],
                             text: _buildSocialShareText(),
-                          ),
-                        );
+                            sharePositionOrigin: origin,
+                          );
+                          debugPrint('Share sheet successfully requested');
+                        } catch (e) {
+                          debugPrint('Critical error during share flow: $e');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Errore durante la condivisione: $e')),
+                            );
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1100,23 +1136,27 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   }
 
   Future<Uint8List> _renderShareCardPngBytes() async {
+    debugPrint('Precaching assets for share card...');
     await _precacheShareCardAssets();
 
     Object? lastError;
     for (var attempt = 1; attempt <= 3; attempt++) {
       ui.Image? image;
       try {
+        debugPrint('Capture attempt $attempt/3 starting...');
         image = await _captureShareCardImage(pixelRatio: 2.5);
+        debugPrint('Card captured, converting to byte data...');
         final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
         if (byteData == null) {
           throw StateError('Share card PNG encoding failed');
         }
+        debugPrint('PNG bytes conversion successful');
         return byteData.buffer.asUint8List();
       } catch (e) {
         lastError = e;
         debugPrint('Share image render attempt $attempt failed: $e');
         if (attempt < 3) {
-          await Future<void>.delayed(Duration(milliseconds: 160 * attempt));
+          await Future<void>.delayed(Duration(milliseconds: 250 * attempt));
         }
       } finally {
         image?.dispose();
@@ -1159,6 +1199,10 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
         final boundaryContext = _shareCardKey.currentContext;
         final renderObject = boundaryContext?.findRenderObject();
+        
+        if (boundaryContext == null) {
+          debugPrint('Capture attempt $attempt: context is null');
+        }
 
         if (renderObject is! RenderRepaintBoundary) {
           lastError = StateError('Share card non pronta o RepaintBoundary mancante');

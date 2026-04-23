@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/utils/validation_utils.dart';
-import '../../screens/paywall/paywall_screen.dart';
 import '../../../data/services/quota_service.dart';
-import '../../../data/models/quota_status_model.dart';
+import '../../../providers/quota_provider.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../widgets/quota/quota_banner.dart';
 import 'generated_meal_screen.dart';
 import 'ingredient_questionnaire_screen.dart';
 
@@ -21,7 +22,6 @@ class WhatToCookScreen extends StatefulWidget {
 
 class _WhatToCookScreenState extends State<WhatToCookScreen> {
   late final NutritionService _nutritionService;
-  late final QuotaService _quotaService;
 
   final TextEditingController _ingredientController = TextEditingController();
   final List<String> _ingredients = [];
@@ -32,8 +32,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
   List<dynamic> _portate = [];
   String _generationMode = 'complete'; // 'single' or 'complete'
   String _mealType = 'fit'; // 'fit' or 'normal'
-
-  QuotaStatus? _quotaStatus;
 
   bool _isLoading = false;
   bool _hasSearched = false;
@@ -62,24 +60,11 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
     super.initState();
     final apiClient = ApiClient();
     _nutritionService = NutritionService(apiClient);
-    _quotaService = QuotaService(apiClient: apiClient);
-    _loadQuota();
     _ingredientFocusNode.addListener(_onFocusChange);
   }
 
   void _onFocusChange() {
     setState(() {}); // Rebuild to update border color dynamically
-  }
-
-  Future<void> _loadQuota() async {
-    try {
-      final status = await _quotaService.getQuotaStatus();
-      if (mounted) {
-        setState(() => _quotaStatus = status);
-      }
-    } catch (e) {
-      debugPrint('Error loading quota: $e');
-    }
   }
 
   @override
@@ -135,34 +120,14 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
 
     HapticService.mediumTap();
 
-    if (_quotaStatus == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossibile verificare i limiti adesso. Riprova.'),
-          backgroundColor: CleanTheme.accentRed,
-        ),
-      );
-      return;
-    }
-
-    final recipesQuota = _quotaStatus!.usage.recipes;
-    if (!recipesQuota.canUse) {
+    final quotaProvider = context.read<QuotaProvider>();
+    final quotaCheck = await quotaProvider.canPerform(QuotaAction.recipes);
+    if (!mounted) return;
+    if (!quotaCheck.canPerform) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Hai raggiunto il limite settimanale di ricette. Passa a Premium!',
-          ),
+          content: Text(quotaCheck.reason),
           backgroundColor: CleanTheme.accentRed,
-          action: SnackBarAction(
-            label: 'Upgrade',
-            textColor: CleanTheme.textOnDark,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PaywallScreen()),
-              );
-            },
-          ),
         ),
       );
       return;
@@ -195,15 +160,18 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
             _hasSearched = false;
           });
           HapticService.notificationPattern();
-          final questions = (result['questions'] as List).map((e) => e.toString()).toList();
-          
+          final questions = (result['questions'] as List)
+              .map((e) => e.toString())
+              .toList();
+
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => IngredientQuestionnaireScreen(
                 questions: questions,
                 originalIngredients: _ingredients,
-                dietType: 'standard', // Potrebbe essere dinamico se lo aggiungi all'UI
+                dietType:
+                    'standard', // Potrebbe essere dinamico se lo aggiungi all'UI
                 mode: _generationMode,
                 mealType: _mealType,
                 maxTimeMinutes: 30,
@@ -214,12 +182,15 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         } else if (result != null &&
             result['success'] == true &&
             result['meal'] != null) {
+          await quotaProvider.syncAfterSuccess(QuotaAction.recipes);
+          if (!mounted) return;
           // Caso in cui il questionario viene saltato e il pasto generato direttamente
           HapticService.notificationPattern();
           final mealData = result['meal'] as Map<String, dynamic>;
-          final portateList = (mealData['portate'] as List?)
-              ?.map((e) => e as Map<String, dynamic>)
-              .toList() ??
+          final portateList =
+              (mealData['portate'] as List?)
+                  ?.map((e) => e as Map<String, dynamic>)
+                  .toList() ??
               [];
 
           Navigator.push(
@@ -287,8 +258,7 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (_quotaStatus != null) _buildQuotaBanner(),
-
+            const QuotaBanner(action: QuotaAction.recipes, compact: true),
             const SizedBox(height: 12),
 
             LiquidSteelContainer(
@@ -452,8 +422,8 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                         ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.add_circle),
-                          color: _isLoading 
-                              ? CleanTheme.textTertiary 
+                          color: _isLoading
+                              ? CleanTheme.textTertiary
                               : CleanTheme.primaryColor,
                           onPressed: _isLoading ? null : _addIngredient,
                         ),
@@ -490,8 +460,9 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           ),
                         ),
                         backgroundColor: CleanTheme.surfaceColor,
-                        deleteIconColor:
-                            _isLoading ? CleanTheme.textTertiary : CleanTheme.accentRed,
+                        deleteIconColor: _isLoading
+                            ? CleanTheme.textTertiary
+                            : CleanTheme.accentRed,
                         onDeleted: _isLoading
                             ? null
                             : () {
@@ -525,7 +496,9 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                       backgroundColor: CleanTheme.primaryColor,
                       foregroundColor: CleanTheme.textOnPrimary,
                       elevation: 8,
-                      shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.4),
+                      shadowColor: CleanTheme.primaryColor.withValues(
+                        alpha: 0.4,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(100),
                       ),
@@ -551,7 +524,9 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           child: Text(
                             _isLoading
                                 ? 'Chef AI sta creando...'
-                                : (_generationMode == 'single' ? 'Genera Piatto da Chef' : 'Genera Menu da Chef'),
+                                : (_generationMode == 'single'
+                                      ? 'Genera Piatto da Chef'
+                                      : 'Genera Menu da Chef'),
                             key: ValueKey<bool>(_isLoading),
                             style: GoogleFonts.outfit(
                               fontSize: 16,
@@ -808,48 +783,6 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuotaBanner() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: CleanTheme.borderPrimary),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.bolt_rounded, size: 18, color: CleanTheme.primaryColor),
-          const SizedBox(width: 8),
-          Text(
-            'Generazioni Rimanenti: ',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-          Text(
-            '${_quotaStatus!.usage.recipes.remaining}',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: CleanTheme.textPrimary,
-            ),
-          ),
-          if (_quotaStatus!.usage.recipes.limit != -1)
-            Text(
-              '/${_quotaStatus!.usage.recipes.limit}',
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: CleanTheme.textTertiary,
-              ),
-            ),
-        ],
       ),
     );
   }

@@ -8,10 +8,12 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/legal_links.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/services/payment_service.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../data/models/quota_status_model.dart';
 import '../../../data/services/quota_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
+import 'gigi_pro_welcome_screen.dart';
 
 class _PriceDetails {
   final String billedAmount;
@@ -744,6 +746,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final shoppingList = _quotaEntry(limits, 'shopping_list');
     final changeMeal = _quotaEntry(limits, 'change_meal');
     final changeFood = _quotaEntry(limits, 'change_food');
+    final foodDuel = _quotaEntry(limits, 'food_duel');
     final pdfDiet = _quotaEntry(limits, 'pdf_diet');
     final workoutChat = _quotaEntry(limits, 'workout_chat');
     final exerciseAlternatives = _quotaEntry(limits, 'exercise_alternatives');
@@ -769,6 +772,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           : 'Lista spesa AI. Il limite del tuo piano è ${_describeQuota(shoppingList)}',
       'Cambio pasto. Il limite del tuo piano è ${_describeQuota(changeMeal)}',
       'Smart Swap. Il limite del tuo piano è ${_describeQuota(changeFood)}',
+      'Food Duel AI. Il limite del tuo piano è ${_describeQuota(foodDuel)}',
       'Unlock AI Alternatives. Il limite del tuo piano è ${_describeQuota(exerciseAlternatives)}',
       'Esercizi simili. Il limite del tuo piano è ${_describeQuota(similarExercises)}',
       voiceCoaching
@@ -800,18 +804,25 @@ class _PaywallScreenState extends State<PaywallScreen> {
   String _describeQuota(Map<String, dynamic> entry) {
     final limit = _toInt(entry['limit']);
     final period = (entry['period'] as String?) ?? '';
+    final periodLabel = (entry['period_label'] as String?) ?? '';
 
     if (limit == -1 || period == 'unlimited') return 'illimitato';
 
+    if (periodLabel.isNotEmpty) {
+      return '$limit $periodLabel';
+    }
+
     final suffix = switch (period) {
-      'day' => '/ giorno',
-      'week' => '/ settimana',
-      'month' => '/ mese',
-      'lifetime' => ' una tantum',
+      'day' => 'al giorno',
+      'week' => 'a settimana',
+      'month' => 'al mese',
+      'lifetime' => 'una tantum',
       _ => '',
     };
 
-    return '${_limitLabel(limit)}$suffix';
+    return suffix.isEmpty
+        ? _limitLabel(limit)
+        : '${_limitLabel(limit)} $suffix';
   }
 
   String _weekLabel(int weeks) {
@@ -857,16 +868,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (mounted) Navigator.pop(context);
 
     if (success && mounted) {
-      // Show success message and close paywall
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Acquisto completato con successo!'),
-          backgroundColor: CleanTheme.accentGreen,
-        ),
+      await _refreshUserAfterPurchase();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
       );
-      // Wait a moment before closing
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) Navigator.pop(context); // Close paywall
     } else if (mounted) {
       // Show error
       ScaffoldMessenger.of(context).showSnackBar(
@@ -886,6 +892,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final success = await paymentService.restorePurchases();
     if (!mounted) return;
 
+    if (success && paymentService.isProOrAbove) {
+      await _refreshUserAfterPurchase();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -898,6 +913,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
             : CleanTheme.accentOrange,
       ),
     );
+  }
+
+  Future<void> _refreshUserAfterPurchase() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    for (var attempt = 0; attempt < 3; attempt++) {
+      await authProvider.fetchUser();
+      final isActive = authProvider.user?.subscription?.isActive ?? false;
+      if (isActive) return;
+      await Future.delayed(const Duration(seconds: 1));
+    }
   }
 
   Future<void> _openLegalUrl(String value) async {

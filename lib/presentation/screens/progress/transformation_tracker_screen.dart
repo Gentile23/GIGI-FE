@@ -613,7 +613,7 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
     // In produzione useremmo il package 'screenshot' o 'image' per unire le foto e aggiungere il logo.
     
     // 3. Trigger Share
-    SharePlus.instance.share(ShareParams(text: promoText));
+    Share.share(promoText);
     
     // Feedback Utente
     ScaffoldMessenger.of(context).showSnackBar(

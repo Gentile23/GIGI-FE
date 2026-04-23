@@ -45,32 +45,6 @@ class QuotaService {
       );
     }
   }
-
-  /// Registra l'utilizzo di una quota
-  Future<bool> recordUsage(QuotaAction action) async {
-    try {
-      final response = await _apiClient.post(
-        '/quota/record',
-        body: {'action': action.value},
-      );
-
-      return response['success'] == true;
-    } catch (e) {
-      debugPrint('QuotaService.recordUsage error: $e');
-      return false;
-    }
-  }
-
-  /// Helper: verifica e registra in un'unica chiamata
-  Future<QuotaCheckResult> checkAndRecord(QuotaAction action) async {
-    final checkResult = await canPerformAction(action);
-
-    if (checkResult.canPerform) {
-      await recordUsage(action);
-    }
-
-    return checkResult;
-  }
 }
 
 /// Tipi di azioni quotate
@@ -84,6 +58,7 @@ enum QuotaAction {
   shoppingList('shopping_list'),
   changeMeal('change_meal'),
   changeFood('change_food'),
+  foodDuel('food_duel'),
   pdfDiet('pdf_diet'),
   workoutChat('workout_chat'),
   exerciseAlternatives('exercise_alternatives'),

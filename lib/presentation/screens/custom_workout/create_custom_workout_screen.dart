@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../data/models/custom_workout_model.dart';
@@ -8,7 +9,9 @@ import '../../../data/models/workout_model.dart';
 import '../../../data/services/custom_workout_service.dart';
 import '../../../data/services/quota_service.dart';
 import '../../../data/services/api_client.dart';
+import '../../../providers/quota_provider.dart';
 import '../../screens/paywall/paywall_screen.dart';
+import '../../widgets/quota/quota_banner.dart';
 import 'exercise_search_screen.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 
@@ -36,14 +39,12 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
   bool _allowPop = false;
   late String _initialSnapshot;
   bool get isEditing => widget.existingPlan != null;
-  late QuotaService _quotaService;
   bool get _isBusy => _isSaving || _isDeleting;
 
   @override
   void initState() {
     super.initState();
     _customWorkoutService = CustomWorkoutService(ApiClient());
-    _quotaService = QuotaService();
 
     if (isEditing) {
       _nameController.text = widget.existingPlan!.name;
@@ -89,10 +90,11 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
     }
 
     setState(() => _isSaving = true);
+    final quotaProvider = !isEditing ? context.read<QuotaProvider>() : null;
 
     // Check quota for new workouts only
     if (!isEditing) {
-      final quotaCheck = await _quotaService.canPerformAction(
+      final quotaCheck = await quotaProvider!.canPerform(
         QuotaAction.customWorkout,
       );
       if (!quotaCheck.canPerform) {
@@ -135,9 +137,9 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
     setState(() => _isSaving = false);
 
     if (result['success'] == true) {
-      // Record quota usage for new workouts
       if (!isEditing) {
-        await _quotaService.recordUsage(QuotaAction.customWorkout);
+        await quotaProvider!.syncAfterSuccess(QuotaAction.customWorkout);
+        if (!mounted) return;
       }
 
       if (mounted) {
@@ -536,6 +538,15 @@ class _CreateCustomWorkoutScreenState extends State<CreateCustomWorkoutScreen> {
                   children: [
                     // 1. Interactive Header (Brain-Friendly)
                     _buildModernHeader(),
+                    if (!isEditing) ...[
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+                        child: QuotaBanner(
+                          action: QuotaAction.customWorkout,
+                          compact: true,
+                        ),
+                      ),
+                    ],
 
                     // 2. Vertical Reorderable Phases
                     Expanded(child: _buildReorderablePhases()),

@@ -69,6 +69,7 @@ class NutritionCoachProvider extends ChangeNotifier {
   Future<List<dynamic>> regenerateMeal({
     required int dayIndex,
     required int mealIndex,
+    int weekIndex = 0,
   }) async {
     if (_activePlan == null) return [];
 
@@ -78,6 +79,7 @@ class NutritionCoachProvider extends ChangeNotifier {
         planId: _activePlan!['id'],
         dayIndex: dayIndex,
         mealIndex: mealIndex,
+        weekIndex: weekIndex,
       );
       return alternatives;
     } catch (e) {
@@ -93,6 +95,8 @@ class NutritionCoachProvider extends ChangeNotifier {
     required int dayIndex,
     required int mealIndex,
     required Map<String, dynamic> newMeal,
+    int weekIndex = 0,
+    bool isPermanent = false,
   }) async {
     if (_activePlan == null) return false;
 
@@ -103,6 +107,8 @@ class NutritionCoachProvider extends ChangeNotifier {
         dayIndex: dayIndex,
         mealIndex: mealIndex,
         newMeal: newMeal,
+        weekIndex: weekIndex,
+        isPermanent: isPermanent,
       );
 
       if (success) {
@@ -171,6 +177,8 @@ class NutritionCoachProvider extends ChangeNotifier {
     required int mealIndex,
     required int foodIndex,
     required Map<String, dynamic> newFood,
+    int weekIndex = 0,
+    bool isPermanent = false,
   }) async {
     if (_activePlan == null) return false;
 
@@ -182,6 +190,31 @@ class NutritionCoachProvider extends ChangeNotifier {
         mealIndex: mealIndex,
         foodIndex: foodIndex,
         newFood: newFood,
+        weekIndex: weekIndex,
+        isPermanent: isPermanent,
+      );
+
+      if (success) {
+        await loadActivePlan();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Restore the diet to the original AI generated plan
+  Future<bool> restoreOriginalPlan() async {
+    if (_activePlan == null) return false;
+
+    _setLoading(true);
+    try {
+      final success = await _service.restoreOriginalPlan(
+        planId: _activePlan!['id'],
       );
 
       if (success) {
@@ -228,6 +261,7 @@ class NutritionCoachProvider extends ChangeNotifier {
     required int mealIndex,
     required int foodIndex,
     required double quantity,
+    int weekIndex = 0,
   }) async {
     if (_activePlan == null) return false;
 
@@ -239,6 +273,7 @@ class NutritionCoachProvider extends ChangeNotifier {
         mealIndex: mealIndex,
         foodIndex: foodIndex,
         quantity: quantity,
+        weekIndex: weekIndex,
       );
 
       if (response['success'] == true) {

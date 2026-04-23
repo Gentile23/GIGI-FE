@@ -2,15 +2,18 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import '../../../data/services/nutrition_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/quota_service.dart';
+import '../../../providers/quota_provider.dart';
 import '../../../core/utils/validation_utils.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../paywall/paywall_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../widgets/quota/quota_banner.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
 
 class MealLoggingScreen extends StatefulWidget {
@@ -28,7 +31,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
   // Services
   late final NutritionService _nutritionService;
-  late final QuotaService _quotaService;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -69,7 +71,6 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
     super.initState();
     _selectedMealType = _getSuggestedMealType();
     _nutritionService = NutritionService(ApiClient());
-    _quotaService = QuotaService();
     _gramsController.addListener(_recalculateMacros);
   }
 
@@ -112,9 +113,8 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     if (_isSubmitting) return;
-    final check = await _quotaService.canPerformAction(
-      QuotaAction.mealAnalysis,
-    );
+    final quotaProvider = context.read<QuotaProvider>();
+    final check = await quotaProvider.canPerform(QuotaAction.mealAnalysis);
     if (!check.canPerform) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -191,6 +191,9 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
           setState(() => _isSubmitting = false);
 
           if (result != null && result['success'] == true) {
+            await quotaProvider.syncAfterSuccess(QuotaAction.mealAnalysis);
+            if (!mounted) return;
+
             final meal = result['meal'];
             final analysis = result['analysis'];
 
@@ -542,6 +545,10 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 emotion: GigiEmotion.expert,
               ),
               const SizedBox(height: 24),
+              if (!widget.isCalculatorMode) ...[
+                const QuotaBanner(action: QuotaAction.mealAnalysis),
+                const SizedBox(height: 24),
+              ],
               if (!widget.isCalculatorMode) ...[
                 _buildMealTypeSelector(),
                 const SizedBox(height: 24),

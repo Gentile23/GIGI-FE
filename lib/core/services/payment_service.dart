@@ -120,6 +120,8 @@ class PaymentService extends ChangeNotifier {
 
       if (kIsWeb) {
         debugPrint('RevenueCat: Not supported on Web.');
+        _availableProducts = _webFallbackProducts();
+        _isStoreReady = true;
         _isInitialized = true;
         notifyListeners();
         return;
@@ -180,12 +182,9 @@ class PaymentService extends ChangeNotifier {
       final offerings = await Purchases.getOfferings();
       _logOfferingsSnapshot(offerings, context: '_fetchProducts');
 
-      if (offerings.current != null) {
-        final packages = offerings.current!.availablePackages;
-        if (packages.isEmpty) {
-          debugPrint('⚠️ RevenueCat: Current offering has NO packages.');
-        }
+      final packages = _allAvailablePackages(offerings);
 
+      if (packages.isNotEmpty) {
         _availableProducts = packages.map((package) {
           final product = package.storeProduct;
           return ProductInfo(
@@ -209,7 +208,7 @@ class PaymentService extends ChangeNotifier {
         }
       } else {
         debugPrint(
-          '❌ RevenueCat: No current offerings found. Check Offerings tab in RevenueCat dashboard.',
+          '❌ RevenueCat: No packages found. Check Offerings tab in RevenueCat dashboard.',
         );
         _availableProducts = [];
         _isStoreReady = false;
@@ -255,8 +254,8 @@ class PaymentService extends ChangeNotifier {
       // In production:
       final offerings = await Purchases.getOfferings();
       _logOfferingsSnapshot(offerings, context: 'purchaseProduct:$productId');
-      if (offerings.current == null ||
-          offerings.current!.availablePackages.isEmpty) {
+      final packages = _allAvailablePackages(offerings);
+      if (packages.isEmpty) {
         _purchaseStatus = PurchaseStatus.error;
         _errorMessage =
             'Nessun abbonamento disponibile in questo momento. Verifica configurazione store e riprova.';
@@ -272,8 +271,9 @@ class PaymentService extends ChangeNotifier {
           'RevenueCat: Product $productId not found in current offerings.',
         );
         _purchaseStatus = PurchaseStatus.error;
-        _errorMessage =
-            'Abbonamento non disponibile in questo build. Verifica prodotto, offering e package su RevenueCat/App Store Connect.';
+        _errorMessage = productId == ProductInfo.proMonthly
+            ? 'Prodotto mensile gigi_pro_monthly non trovato nelle offering RevenueCat. Verifica che sia nella Current Offering o in una offering attiva.'
+            : 'Abbonamento non disponibile in questo build. Verifica prodotto, offering e package su RevenueCat/App Store Connect.';
         notifyListeners();
         return false;
       }
@@ -373,8 +373,8 @@ class PaymentService extends ChangeNotifier {
   }
 
   Package? _findPackageForProduct(String productId, Offerings offerings) {
-    final current = offerings.current;
-    if (current == null || current.availablePackages.isEmpty) {
+    final packages = _allAvailablePackages(offerings);
+    if (packages.isEmpty) {
       return null;
     }
 
@@ -384,7 +384,16 @@ class PaymentService extends ChangeNotifier {
         .where((id) => id.isNotEmpty)
         .toSet();
 
-    for (final package in current.availablePackages) {
+    for (final package in packages) {
+      if (package.identifier == productId ||
+          package.storeProduct.identifier == productId ||
+          _normalizeProductIdentifier(package.storeProduct.identifier) ==
+              productId) {
+        return package;
+      }
+    }
+
+    for (final package in packages) {
       final storeIdentifier = package.storeProduct.identifier;
       final normalizedStoreId = _normalizeProductIdentifier(storeIdentifier);
       final packageIdentifiers = {
@@ -408,7 +417,7 @@ class PaymentService extends ChangeNotifier {
       return null;
     }
 
-    final fallbackMatches = current.availablePackages
+    final fallbackMatches = packages
         .where((package) => _isPackagePeriodMatch(package, fallbackType))
         .toList();
 
@@ -424,6 +433,54 @@ class PaymentService extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  List<Package> _allAvailablePackages(Offerings offerings) {
+    final packages = <Package>[];
+    final seen = <String>{};
+
+    void addPackages(Iterable<Package> nextPackages) {
+      for (final package in nextPackages) {
+        final key = '${package.identifier}:${package.storeProduct.identifier}';
+        if (seen.add(key)) {
+          packages.add(package);
+        }
+      }
+    }
+
+    final current = offerings.current;
+    if (current != null) {
+      addPackages(current.availablePackages);
+    }
+
+    for (final offering in offerings.all.values) {
+      addPackages(offering.availablePackages);
+    }
+
+    return packages;
+  }
+
+  List<ProductInfo> _webFallbackProducts() {
+    return const [
+      ProductInfo(
+        identifier: ProductInfo.proMonthly,
+        title: 'GIGI Pro Mensile',
+        description: 'Accesso mensile a GIGI Pro',
+        price: _proMonthlyReferencePrice,
+        priceString: '€14,99',
+        currencyCode: 'EUR',
+        packageIdentifier: ProductInfo.proMonthly,
+      ),
+      ProductInfo(
+        identifier: ProductInfo.proYearly,
+        title: 'GIGI Pro Annuale',
+        description: 'Accesso annuale a GIGI Pro',
+        price: _proYearlyReferencePrice,
+        priceString: '€99,99',
+        currencyCode: 'EUR',
+        packageIdentifier: ProductInfo.proYearly,
+      ),
+    ];
   }
 
   Set<String> _productIdentifierCandidates(String productId) {
@@ -604,19 +661,20 @@ class PaymentService extends ChangeNotifier {
     final current = offerings.current;
     if (current == null) {
       debugPrint('RevenueCat[$context]: current offering is NULL');
-      return;
+    } else {
+      debugPrint(
+        'RevenueCat[$context]: current=${current.identifier} '
+        'packages=${current.availablePackages.length}',
+      );
     }
 
-    debugPrint(
-      'RevenueCat[$context]: current=${current.identifier} '
-      'packages=${current.availablePackages.length}',
-    );
-
-    for (final package in current.availablePackages) {
+    for (final package in _allAvailablePackages(offerings)) {
       debugPrint(
         'RevenueCat[$context]: package=${package.identifier} '
         'type=${package.packageType.name} '
-        'product=${package.storeProduct.identifier}',
+        'product=${package.storeProduct.identifier} '
+        'price=${package.storeProduct.priceString} '
+        'currency=${package.storeProduct.currencyCode}',
       );
     }
   }
@@ -658,6 +716,9 @@ class PaymentService extends ChangeNotifier {
   Future<void> identifyUser(String userId) async {
     if (kIsWeb) return;
     try {
+      if (!_isInitialized) {
+        await initialize();
+      }
       await Purchases.logIn(userId);
       debugPrint('RevenueCat: User identified as $userId');
     } catch (e) {

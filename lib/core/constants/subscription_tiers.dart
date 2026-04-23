@@ -47,6 +47,9 @@ class SubscriptionQuotas {
   /// Cambio singolo alimento a settimana
   final int changeFoodItemPerWeek;
 
+  /// Food Duel AI a settimana
+  final int foodDuelPerWeek;
+
   const SubscriptionQuotas({
     required this.workoutPlanIntervalWeeks,
     required this.formAnalysisPerWeek,
@@ -59,6 +62,7 @@ class SubscriptionQuotas {
     required this.shoppingListLimit,
     required this.changeMealPerWeek,
     required this.changeFoodItemPerWeek,
+    required this.foodDuelPerWeek,
   });
 
   /// FREE: Quota generose per hook, ma con limiti che creano desiderio di upgrade
@@ -74,6 +78,7 @@ class SubscriptionQuotas {
     shoppingListLimit: 1, // Una tantum
     changeMealPerWeek: 1,
     changeFoodItemPerWeek: 2,
+    foodDuelPerWeek: 3,
   );
 
   /// PRO: Limiti generosi che soddisfano la maggior parte degli utenti
@@ -89,6 +94,7 @@ class SubscriptionQuotas {
     shoppingListLimit: -1, // Illimitato
     changeMealPerWeek: 7,
     changeFoodItemPerWeek: 20,
+    foodDuelPerWeek: 30,
   );
 
   /// ELITE: Tutto illimitato per power users
@@ -104,6 +110,7 @@ class SubscriptionQuotas {
     shoppingListLimit: -1, // Illimitato
     changeMealPerWeek: -1, // Illimitato
     changeFoodItemPerWeek: -1, // Illimitato
+    foodDuelPerWeek: -1, // Illimitato
   );
 }
 
@@ -151,6 +158,7 @@ class SubscriptionTierConfig {
       '2 Form Analysis AI/mese',
       '2 Snap & Track AI/settimana',
       '4 Ricette AI/settimana',
+      '3 Food Duel AI/settimana',
       'Libreria 500+ esercizi',
       'Tracking workouts',
       'Gamification (XP, livelli)',
@@ -179,6 +187,7 @@ class SubscriptionTierConfig {
       'Form Check AI Avanzato (20 check/mese)',
       'Piani di Allenamento che evolvono con te',
       'Nutrizione AI con Ricette e Macronutrienti',
+      'Food Duel AI: 30 confronti/settimana',
       'Execute with GiGi: 20 utilizzi/mese',
       'Liste Spesa Automatiche e Cambio Pasti',
       'Analytics Profonde e Statistiche Avanzate',
@@ -201,6 +210,7 @@ class SubscriptionTierConfig {
     features: [
       'Tutto ILLIMITATO',
       'Form Check AI senza limiti',
+      'Food Duel AI illimitato',
       'Coaching prioritario',
       'Report settimanali email',
       'Badge esclusivi',
@@ -254,6 +264,10 @@ class SubscriptionTierConfig {
         return quotas.recipesPerWeek != 0;
       case 'unlimited_recipes':
         return quotas.recipesPerWeek == -1;
+      case 'food_duel':
+        return quotas.foodDuelPerWeek != 0;
+      case 'unlimited_food_duel':
+        return quotas.foodDuelPerWeek == -1;
       case 'unlimited_plans':
         return quotas.workoutPlanIntervalWeeks == 0;
       case 'custom_workouts':
@@ -360,5 +374,10 @@ class SubscriptionTierConfig {
   /// Ottiene la stringa per ricette
   String get recipesQuotaDisplay {
     return formatQuota(quotas.recipesPerWeek, '/settimana');
+  }
+
+  /// Ottiene la stringa per Food Duel AI
+  String get foodDuelQuotaDisplay {
+    return formatQuota(quotas.foodDuelPerWeek, '/settimana');
   }
 }

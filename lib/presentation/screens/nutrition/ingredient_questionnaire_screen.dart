@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../../data/services/nutrition_service.dart';
+import '../../../data/services/quota_service.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../providers/quota_provider.dart';
 import '../nutrition/generated_meal_screen.dart';
 
 class IngredientQuestionnaireScreen extends StatefulWidget {
@@ -25,10 +28,12 @@ class IngredientQuestionnaireScreen extends StatefulWidget {
   });
 
   @override
-  State<IngredientQuestionnaireScreen> createState() => _IngredientQuestionnaireScreenState();
+  State<IngredientQuestionnaireScreen> createState() =>
+      _IngredientQuestionnaireScreenState();
 }
 
-class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireScreen> {
+class _IngredientQuestionnaireScreenState
+    extends State<IngredientQuestionnaireScreen> {
   final Map<String, bool> _answers = {};
   bool _isLoading = false;
 
@@ -43,7 +48,7 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
 
   Future<void> _generateFinalMeal() async {
     HapticService.lightTap();
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -64,33 +69,47 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
           _isLoading = false;
         });
 
-        if (result != null && result['success'] == true && result['meal'] != null) {
-            // Check quota exceeded
-            if (result['quota_exceeded'] == true) {
-              _showErrorDialog(
-                result['message'] ?? 'Hai raggiunto il limite settimanale di ricette generate.',
-              );
-              return;
-            }
+        if (result != null && result['quota_exceeded'] == true) {
+          await context.read<QuotaProvider>().refresh(silent: true);
+          if (!mounted) return;
+          _showErrorDialog(
+            result['message'] ??
+                'Hai raggiunto il limite settimanale di ricette generate.',
+          );
+          return;
+        }
 
-            // Success -> Navigate
-            final mealData = result['meal'] as Map<String, dynamic>;
-            final portateList = (mealData['portate'] as List?)
-                ?.map((e) => e as Map<String, dynamic>)
-                .toList() ?? [];
+        if (result != null &&
+            result['success'] == true &&
+            result['meal'] != null) {
+          await context.read<QuotaProvider>().syncAfterSuccess(
+            QuotaAction.recipes,
+          );
+          if (!mounted) return;
 
-            HapticService.notificationPattern();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => GeneratedMealScreen(
-                  generatedMeal: mealData,
-                  portate: portateList,
-                ),
+          // Success -> Navigate
+          final mealData = result['meal'] as Map<String, dynamic>;
+          final portateList =
+              (mealData['portate'] as List?)
+                  ?.map((e) => e as Map<String, dynamic>)
+                  .toList() ??
+              [];
+
+          HapticService.notificationPattern();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GeneratedMealScreen(
+                generatedMeal: mealData,
+                portate: portateList,
               ),
-            );
+            ),
+          );
         } else {
-             _showErrorDialog(result?['message'] ?? "Spiacenti, non è stato possibile generare la ricetta. Riprova scuotendo la testa dello chef o cambiano ingredienti.");
+          _showErrorDialog(
+            result?['message'] ??
+                "Spiacenti, non è stato possibile generare la ricetta. Riprova scuotendo la testa dello chef o cambiano ingredienti.",
+          );
         }
       }
     } catch (e) {
@@ -102,7 +121,7 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
       }
     }
   }
-  
+
   void _showErrorDialog(String message) {
     HapticService.errorPattern();
     showDialog(
@@ -118,9 +137,7 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
         ),
         content: Text(
           message,
-          style: GoogleFonts.outfit(
-            color: Colors.white70,
-          ),
+          style: GoogleFonts.outfit(color: Colors.white70),
         ),
         actions: [
           TextButton(
@@ -184,7 +201,9 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
                         ),
                       ),
                       const SizedBox(height: 32),
-                      ...widget.questions.map((question) => _buildQuestionTile(question)),
+                      ...widget.questions.map(
+                        (question) => _buildQuestionTile(question),
+                      ),
                     ],
                   ),
                 ),
@@ -230,7 +249,9 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
         color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isYes ? const Color(0xFFE2F163).withValues(alpha: 0.3) : Colors.white10,
+          color: isYes
+              ? const Color(0xFFE2F163).withValues(alpha: 0.3)
+              : Colors.white10,
           width: 1,
         ),
       ),
@@ -289,7 +310,9 @@ class _IngredientQuestionnaireScreenState extends State<IngredientQuestionnaireS
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.15) : const Color(0xFF2A2A2A),
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.15)
+              : const Color(0xFF2A2A2A),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? activeColor : Colors.transparent,

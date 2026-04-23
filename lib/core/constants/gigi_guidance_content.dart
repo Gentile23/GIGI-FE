@@ -44,11 +44,11 @@ class GigiGuidanceContent {
   }
 
   static String foodDuelIntro() {
-    return '⚔️ Food Duel serve per fare sostituzioni intelligenti, non confronti generici.\n\nInserisci due alimenti e scegli la modalita:\n• 🔥 Per calorie: se vuoi capire quale porzione mantiene lo stesso impatto energetico\n• 🥩 Per proteine: se vuoi trovare un alternativa che conservi soprattutto l apporto proteico\n\nUsalo quando devi sostituire un cibo della dieta, scegliere tra due opzioni al supermercato o costruire un pasto restando coerente con il tuo obiettivo.';
+    return '⚔️ Food Duel serve per fare sostituzioni pratiche, non confronti generici.\n\nInserisci un alimento, la quantita che vuoi sostituire e l alternativa: ti dico quanti grammi o ml servono per pareggiare le calorie e quanto cambiano proteine, carboidrati e grassi.\n\nUsalo quando devi cambiare un cibo della dieta, scegliere tra due opzioni o registrare subito una porzione equivalente nel diario.';
   }
 
   static String foodDuelResult() {
-    return '📋 Leggi questo risultato in due passaggi:\n• 1️⃣ guarda il riepilogo per capire se i due alimenti sono sostituibili nel contesto scelto\n• 2️⃣ controlla i valori per 100 g per vedere dove differiscono davvero tra proteine, carboidrati e grassi\n\nIl punteggio di compatibilita non dice solo quale alimento e migliore in assoluto: ti dice quanto la sostituzione resta fedele all obiettivo scelto per quel confronto.';
+    return '📋 Leggi prima l equivalenza in grammi: e il dato operativo. Poi controlla il delta dei macro per capire se la sostituzione resta coerente o cambia troppo il profilo del pasto.';
   }
 
   static String foodDuelInvalid() {

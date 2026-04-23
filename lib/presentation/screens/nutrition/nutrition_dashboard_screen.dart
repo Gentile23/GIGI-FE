@@ -38,7 +38,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
   NutritionGoal? _goal;
 
   // Stato per la dieta attiva
-  bool _hasActiveDiet = false;
 
   @override
   void initState() {
@@ -88,8 +87,6 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
           }
           _goal = goal;
 
-          // Aggiorna stato dieta attiva
-          _hasActiveDiet = coachProvider.hasActivePlan;
 
           _isLoading = false;
         });
@@ -130,13 +127,16 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CleanTheme.backgroundColor,
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
-            )
-          : RefreshIndicator(
+    return Consumer<NutritionCoachProvider>(
+      builder: (context, coachProvider, child) {
+        return Scaffold(
+          backgroundColor: CleanTheme.backgroundColor,
+          body: _isLoading
+              ? const Center(
+                  child:
+                      CircularProgressIndicator(color: CleanTheme.primaryColor),
+                )
+              : RefreshIndicator(
               onRefresh: () => _loadData(showLoader: false),
               color: CleanTheme.chromeGray,
               backgroundColor: CleanTheme.surfaceColor,
@@ -177,7 +177,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                         // ══════════════════════════════════════════════════════
                         // SEZIONE 1: IL TUO PIANO (Entry Point)
                         // ══════════════════════════════════════════════════════
-                        if (_hasActiveDiet)
+                        if (coachProvider.hasActivePlan)
                           _buildActivePlanCard()
                         else ...[
                           GigiCoachMessage(
@@ -223,7 +223,9 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 ],
               ),
             ),
-    );
+          );
+        },
+      );
   }
 
   Widget _buildFinalActionButtons() {
@@ -277,7 +279,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     return GestureDetector(
       onTap: () {
         HapticService.lightTap();
-        Navigator.pushNamed(context, '/nutrition/coach/upload');
+        Navigator.pushNamed(context, '/nutrition/coach/upload')
+            .then((_) => _loadData());
       },
       child: LiquidSteelContainer(
         borderRadius: 20,
@@ -440,7 +443,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 color: CleanTheme.primaryColor,
                 onTap: () {
                   HapticService.lightTap();
-                  Navigator.pushNamed(context, '/nutrition/coach/plan');
+                  Navigator.pushNamed(context, '/nutrition/coach/plan')
+                      .then((_) => _loadData());
                 },
               ),
             ),
@@ -455,7 +459,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                   Navigator.pushNamed(
                     context,
                     '/nutrition/coach/shopping-list',
-                  );
+                  ).then((_) => _loadData());
                 },
               ),
             ),
@@ -467,7 +471,8 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                 color: CleanTheme.accentBlue,
                 onTap: () {
                   HapticService.lightTap();
-                  Navigator.pushNamed(context, '/nutrition/coach/upload');
+                  Navigator.pushNamed(context, '/nutrition/coach/upload')
+                      .then((_) => _loadData());
                 },
               ),
             ),
@@ -826,7 +831,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
     );
   }
 
-  /// Food Duel AI — Compare two foods head-to-head
+  /// Food Duel AI — Calculate practical food substitutions
   Widget _buildFoodDuelCard() {
     return GestureDetector(
       onTap: () {
@@ -883,7 +888,7 @@ class _NutritionDashboardScreenState extends State<NutritionDashboardScreen>
                       ),
                     ),
                     Text(
-                      'Confronta due alimenti per macro e calorie e scopri la loro compatibilità nutrizionale con l\'AI.',
+                      'Calcola quanti grammi di un alimento equivalgono a un altro e salva la sostituzione nel diario.',
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: CleanTheme.textOnDark.withValues(alpha: 0.85),

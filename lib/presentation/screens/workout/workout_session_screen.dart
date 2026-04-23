@@ -650,36 +650,42 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   void _initializeUniqueIdMap() {
     _exerciseByUniqueId.clear();
+    // Pre-initialize logging keys to avoid mutations during build [FIX]
+    _setLoggingKeys.clear(); 
 
     // Main
     for (int i = 0; i < widget.workoutDay.mainWorkout.length; i++) {
-      final e = widget.workoutDay.mainWorkout[i];
-      final id = e.id ?? "main_${e.exercise.id}_$i";
-      _exerciseByUniqueId[id] = e;
+        final e = widget.workoutDay.mainWorkout[i];
+        final id = e.id ?? "main_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+        _setLoggingKeys[id] = GlobalKey<SetLoggingWidgetState>();
     }
 
     // Warmup
     final warmup = widget.workoutDay.warmupCardio;
     for (int i = 0; i < warmup.length; i++) {
-      final e = warmup[i];
-      final id = e.id ?? "warmup_${e.exercise.id}_$i";
-      _exerciseByUniqueId[id] = e;
+        final e = warmup[i];
+        final id = e.id ?? "warmup_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+        _setLoggingKeys[id] = GlobalKey<SetLoggingWidgetState>();
     }
 
     // Mobility
     final mobility = widget.workoutDay.preWorkoutMobility;
     for (int i = 0; i < mobility.length; i++) {
-      final e = mobility[i];
-      final id = e.id ?? "mobility_${e.exercise.id}_$i";
-      _exerciseByUniqueId[id] = e;
+        final e = mobility[i];
+        final id = e.id ?? "mobility_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+        _setLoggingKeys[id] = GlobalKey<SetLoggingWidgetState>();
     }
 
     // Post
     final post = widget.workoutDay.postWorkoutExercises;
     for (int i = 0; i < post.length; i++) {
-      final e = post[i];
-      final id = e.id ?? "post_${e.exercise.id}_$i";
-      _exerciseByUniqueId[id] = e;
+        final e = post[i];
+        final id = e.id ?? "post_${e.exercise.id}_$i";
+        _exerciseByUniqueId[id] = e;
+        _setLoggingKeys[id] = GlobalKey<SetLoggingWidgetState>();
     }
   }
 
@@ -963,16 +969,19 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     for (int attempt = 1; attempt <= 3; attempt++) {
       try {
         await provider.startWorkout(workoutDayId: widget.workoutDay.id);
-        if (provider.currentWorkoutLog != null) {
           if (mounted) {
-            setState(() {
-              _sessionRegistered = true;
-              _registrationInProgress = false;
-              _sessionRegistrationError = null;
+            // Defer state update to avoid mutation during layout [FIX]
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _sessionRegistered = true;
+                  _registrationInProgress = false;
+                  _sessionRegistrationError = null;
+                });
+              }
             });
           }
           return; // Success
-        }
       } catch (e) {
         debugPrint('Session registration failed (attempt $attempt): $e');
       }
@@ -3603,42 +3612,45 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         type == 'mobility' || type == 'warmup' || type == 'cardio';
 
     return Consumer<WorkoutLogProvider>(
-          builder: (context, provider, child) {
-            final displayExercise = _getExerciseById(uniqueId) ?? exercise;
-            final exerciseLog = _findExerciseLogForEntry(
-              provider,
-              uniqueId,
-              displayExercise,
-            );
+      builder: (context, provider, child) {
+        return RepaintBoundary(
+          child: Builder(
+            builder: (context) {
+              final displayExercise = _getExerciseById(uniqueId) ?? exercise;
+              final exerciseLog = _findExerciseLogForEntry(
+                provider,
+                uniqueId,
+                displayExercise,
+              );
 
-            final isCompleted = _completedExercises.contains(uniqueId);
+              final isCompleted = _completedExercises.contains(uniqueId);
 
-            // Determine if this is the next exercise to perform
-            final orderedExercises = _getOrderedExercisePointers();
-            final firstUncompleted = orderedExercises.firstWhere(
-              (entry) => !_completedExercises.contains(entry.exerciseId),
-              orElse: () => _OrderedExercisePointer(
-                exerciseId: uniqueId,
-                exercise: exercise,
-              ),
-            );
-            final isNext =
-                _isSessionActive && uniqueId == firstUncompleted.exerciseId;
-            final isCompleting = _bulkCompletingExerciseIds.contains(uniqueId);
+              // Determine if this is the next exercise to perform
+              final orderedExercises = _getOrderedExercisePointers();
+              final firstUncompleted = orderedExercises.firstWhere(
+                (entry) => !_completedExercises.contains(entry.exerciseId),
+                orElse: () => _OrderedExercisePointer(
+                  exerciseId: uniqueId,
+                  exercise: exercise,
+                ),
+              );
+              final isNext =
+                  _isSessionActive && uniqueId == firstUncompleted.exerciseId;
+              final isCompleting = _bulkCompletingExerciseIds.contains(uniqueId);
 
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 350),
-              curve: Curves.easeInOut,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: CleanTheme.surfaceColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isCompleted
-                      ? CleanTheme.accentGreen.withValues(alpha: 0.5)
-                      : isNext
-                      ? CleanTheme.steelDark
-                      : CleanTheme.borderSecondary,
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeInOut,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: CleanTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isCompleted
+                        ? CleanTheme.accentGreen.withValues(alpha: 0.5)
+                        : isNext
+                            ? CleanTheme.steelDark
+                            : CleanTheme.borderSecondary,
                   width: isNext ? 1.5 : 1,
                 ),
                 boxShadow: isNext
@@ -3834,10 +3846,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: SetLoggingWidget(
-                        key: _setLoggingKeys.putIfAbsent(
-                          uniqueId,
-                          () => GlobalKey<SetLoggingWidgetState>(),
-                        ),
+                        key: _setLoggingKeys[uniqueId],
                         exercise: displayExercise,
                         restTimerId: uniqueId,
                         workoutDayId: widget.workoutDay.id,
@@ -3974,8 +3983,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
               ),
             );
-          },
-        )
+            },
+          ),
+        );
+      },
+    )
         .animate(delay: (animationIndex * 80).ms)
         .fade(duration: 500.ms, curve: Curves.easeOut)
         .slideY(begin: 0.15, duration: 500.ms, curve: Curves.easeOutCubic)

@@ -2,18 +2,20 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../../data/models/form_analysis_model.dart';
 import '../../../data/services/form_analysis_service.dart';
 import '../../../data/services/api_client.dart';
 import '../../../data/services/quota_service.dart';
+import '../../../providers/quota_provider.dart';
 import '../../../core/utils/validation_utils.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'form_analysis_result_screen.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
+import '../../widgets/quota/quota_banner.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
 
 class FormAnalysisScreen extends StatefulWidget {
@@ -169,6 +171,11 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
       );
 
       if (mounted && analysis != null) {
+        await context.read<QuotaProvider>().syncAfterSuccess(
+          QuotaAction.formAnalysis,
+        );
+        if (!mounted) return;
+
         // Use push instead of pushReplacement so we can go back to this screen
         // and perform another analysis
         await Navigator.push(
@@ -258,15 +265,6 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
     final periodLabel = _periodLabel(quota.period);
     final limit = quota.limit == -1 ? 0 : quota.limit;
     return 'Hai raggiunto il limite di $limit analisi $periodLabel.\n\nUpgrade a Premium per analisi illimitate!';
-  }
-
-  String _remainingMessage(FormAnalysisQuota quota) {
-    if (quota.isPremium || quota.isUnlimited) {
-      return AppLocalizations.of(context)!.unlimitedAnalyses;
-    }
-
-    final periodLabel = _periodLabel(quota.period);
-    return '${quota.remaining}/${quota.limit} rimaste $periodLabel';
   }
 
   String _periodLabel(String period) {
@@ -364,159 +362,12 @@ class _FormAnalysisScreenState extends State<FormAnalysisScreen> {
   }
 
   Widget _buildQuotaCard() {
-    if (_quota == null) return const SizedBox.shrink();
-
-    final remaining = _quota!.remaining;
-    final isPremium = _quota!.isPremium;
-
-    return Column(
-      children: [
-        CleanCard(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isPremium
-                      ? CleanTheme.accentOrange.withValues(alpha: 0.1)
-                      : CleanTheme.accentBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  isPremium
-                      ? Icons.workspace_premium
-                      : Icons.analytics_outlined,
-                  color: isPremium
-                      ? CleanTheme.accentOrange
-                      : CleanTheme.accentBlue,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isPremium
-                          ? '✨ Premium User'
-                          : AppLocalizations.of(context)!.dailyAnalyses,
-                      style: GoogleFonts.outfit(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      isPremium
-                          ? AppLocalizations.of(context)!.unlimitedAnalyses
-                          : _remainingMessage(_quota!),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: remaining > 0 || isPremium
-                            ? CleanTheme.accentGreen
-                            : CleanTheme.accentRed,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!isPremium) ...[
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              HapticService.lightTap();
-              _showUpgradeDialog();
-            },
-            child: LiquidSteelContainer(
-              borderRadius: 16,
-              enableShine: true,
-              border: Border.all(
-                color: CleanTheme.textOnDark.withValues(alpha: 0.3),
-                width: 1,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: CleanTheme.textOnDark.withValues(alpha: 0.1),
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium,
-                        color: CleanTheme.textOnDark,
-                        size: 26,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sblocca Analisi Illimitate ✨',
-                            style: GoogleFonts.outfit(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: CleanTheme.textOnDark,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Domina la tua tecnica',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: CleanTheme.textOnDark.withValues(
-                                alpha: 0.85,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            CleanTheme.accentOrange,
-                            CleanTheme.accentOrange.withValues(alpha: 0.8),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'PRO',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: CleanTheme.textOnDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
+    return QuotaBanner(
+      action: QuotaAction.formAnalysis,
+      onUpgrade: () {
+        HapticService.lightTap();
+        _showUpgradeDialog();
+      },
     );
   }
 

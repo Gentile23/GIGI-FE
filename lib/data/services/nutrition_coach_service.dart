@@ -14,7 +14,10 @@ class NutritionCoachService {
     try {
       final extension = (file.extension ?? '').toLowerCase();
       if (extension != 'pdf') {
-        return {'success': false, 'message': 'È consentito solo il formato PDF'};
+        return {
+          'success': false,
+          'message': 'È consentito solo il formato PDF',
+        };
       }
       if (file.size <= 0 || file.size > _maxPdfSizeBytes) {
         return {
@@ -63,7 +66,10 @@ class NutritionCoachService {
     double quantity,
     String unit,
   ) async {
-    final safeFoodName = ValidationUtils.sanitizeFreeText(foodName, maxLength: 80);
+    final safeFoodName = ValidationUtils.sanitizeFreeText(
+      foodName,
+      maxLength: 80,
+    );
     final safeUnit = ValidationUtils.sanitizeFreeText(unit, maxLength: 20);
     if (safeFoodName.isEmpty || safeUnit.isEmpty) {
       throw Exception('Input non valido');
@@ -91,6 +97,8 @@ class NutritionCoachService {
     required int mealIndex,
     required int foodIndex,
     required Map<String, dynamic> newFood,
+    int weekIndex = 0,
+    bool isPermanent = false,
   }) async {
     final response = await _client.post(
       '/nutrition/coach/substitute/apply',
@@ -106,6 +114,8 @@ class NutritionCoachService {
           'unit': newFood['unit'],
           'calories': newFood['calories'],
         },
+        'week_index': weekIndex,
+        'is_permanent': isPermanent,
       },
     );
 
@@ -136,10 +146,16 @@ class NutritionCoachService {
     required int planId,
     required int dayIndex,
     required int mealIndex,
+    int weekIndex = 0,
   }) async {
     final response = await _client.post(
       '/nutrition/coach/regenerate-meal',
-      body: {'plan_id': planId, 'day_index': dayIndex, 'meal_index': mealIndex},
+      body: {
+        'plan_id': planId,
+        'day_index': dayIndex,
+        'meal_index': mealIndex,
+        'week_index': weekIndex,
+      },
     );
     if (response['success'] == true) {
       return response['alternatives'] ?? [];
@@ -153,6 +169,8 @@ class NutritionCoachService {
     required int dayIndex,
     required int mealIndex,
     required Map<String, dynamic> newMeal,
+    int weekIndex = 0,
+    bool isPermanent = false,
   }) async {
     final response = await _client.post(
       '/nutrition/coach/regenerate-meal/apply',
@@ -161,8 +179,25 @@ class NutritionCoachService {
         'day_index': dayIndex,
         'meal_index': mealIndex,
         'new_meal': newMeal,
+        'week_index': weekIndex,
+        'is_permanent': isPermanent,
       },
     );
+
+    return response['success'] == true;
+  }
+
+  /// Restore original plan
+  Future<bool> restoreOriginalPlan({
+    required int planId,
+  }) async {
+    final response = await _client.post(
+      '/nutrition/coach/plan/restore',
+      body: {
+        'plan_id': planId,
+      },
+    );
+
     return response['success'] == true;
   }
 
@@ -173,8 +208,12 @@ class NutritionCoachService {
     required String foodName,
     required double quantity,
     required String unit,
+    int weekIndex = 0,
   }) async {
-    final safeFoodName = ValidationUtils.sanitizeFreeText(foodName, maxLength: 80);
+    final safeFoodName = ValidationUtils.sanitizeFreeText(
+      foodName,
+      maxLength: 80,
+    );
     final safeUnit = ValidationUtils.sanitizeFreeText(unit, maxLength: 20);
     if (safeFoodName.isEmpty || safeUnit.isEmpty) {
       return false;
@@ -192,6 +231,7 @@ class NutritionCoachService {
         'food_name': safeFoodName,
         'quantity': quantity,
         'unit': safeUnit,
+        'week_index': weekIndex,
       },
     );
     return response['success'] == true;
@@ -204,6 +244,7 @@ class NutritionCoachService {
     required int mealIndex,
     required int foodIndex,
     required double quantity,
+    int weekIndex = 0,
   }) async {
     final response = await _client.post(
       '/nutrition/coach/update-quantity',
@@ -213,6 +254,7 @@ class NutritionCoachService {
         'meal_index': mealIndex,
         'food_index': foodIndex,
         'quantity': quantity,
+        'week_index': weekIndex,
       },
     );
     return response;
@@ -224,11 +266,17 @@ class NutritionCoachService {
     required String userFoodName,
     String mode = 'kcal',
   }) async {
+    final safeTargetName = ValidationUtils.sanitizeFreeText(
+      '${targetFood['name'] ?? ''}',
+      maxLength: 80,
+    );
     final safeFoodName = ValidationUtils.sanitizeFreeText(
       userFoodName,
       maxLength: 80,
     );
-    if (safeFoodName.isEmpty ||
+    if (safeTargetName.isEmpty ||
+        safeFoodName.isEmpty ||
+        ValidationUtils.containsSuspiciousMarkup(safeTargetName) ||
         ValidationUtils.containsSuspiciousMarkup(safeFoodName)) {
       throw Exception('Nome alimento non valido');
     }
@@ -236,7 +284,7 @@ class NutritionCoachService {
     final response = await _client.post(
       '/nutrition/coach/equivalence',
       body: {
-        'target_food': targetFood,
+        'target_food': {...targetFood, 'name': safeTargetName},
         'user_food_name': safeFoodName,
         'mode': mode,
       },

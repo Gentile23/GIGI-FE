@@ -136,7 +136,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ..add('')
       ..add('#GIGI #Fitness #HealthTracking');
 
-    SharePlus.instance.share(ShareParams(text: lines.join('\n')));
+    Share.share(lines.join('\n'));
   }
 
   @override

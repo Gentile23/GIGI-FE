@@ -25,6 +25,7 @@ import 'providers/gamification_provider.dart';
 import 'providers/engagement_provider.dart';
 import 'providers/social_provider.dart';
 import 'providers/nutrition_coach_provider.dart';
+import 'providers/quota_provider.dart';
 import 'core/services/payment_service.dart';
 import 'core/services/music_integration_service.dart';
 import 'core/services/rest_timer_service.dart';
@@ -122,6 +123,7 @@ class GigiApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => NutritionCoachProvider(apiClient),
         ),
+        ChangeNotifierProvider(create: (_) => QuotaProvider(apiClient)),
         ChangeNotifierProvider(
           create: (_) => MusicIntegrationService()..initialize(),
         ),

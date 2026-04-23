@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/nutrition_coach_provider.dart';
+import '../../../providers/quota_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../paywall/paywall_screen.dart';
@@ -9,6 +10,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../data/services/quota_service.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
+import '../../widgets/nutrition/food_scale_widget.dart';
 
 class DietPlanScreen extends StatefulWidget {
   const DietPlanScreen({super.key});
@@ -21,6 +23,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     with TickerProviderStateMixin {
   TabController? _tabController;
   int _currentWeekIndex = 0;
+
+  void _handleTabSelection() {
+    if (_tabController?.indexIsChanging == false) {
+      setState(() {});
+    }
+  }
 
   @override
   void initState() {
@@ -277,12 +285,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
 
         // Ensure controller is valid
         if (_tabController == null || _tabController!.length != days.length) {
+          _tabController?.removeListener(_handleTabSelection);
           _tabController?.dispose();
           _tabController = TabController(
             length: days.length,
             vsync: this,
             initialIndex: todayIndex.clamp(0, days.length - 1),
           );
+          _tabController!.addListener(_handleTabSelection);
         }
 
         return Scaffold(
@@ -299,6 +309,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.restore_rounded,
+                  color: CleanTheme.accentOrange,
+                ),
+                tooltip: 'Ripristina Originale',
+                onPressed: () => _showRestorePlanDialog(context, provider),
+              ),
               IconButton(
                 icon: const Icon(
                   Icons.share_outlined,
@@ -893,6 +911,41 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                               letterSpacing: -0.5,
                             ),
                           ),
+                          if (meal['is_substitution'] == true) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.accentOrange.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: CleanTheme.accentOrange.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('🧊 ', style: TextStyle(fontSize: 10)),
+                                  Text(
+                                    'SOSTITUITO OGGI',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: CleanTheme.accentOrange,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -1152,8 +1205,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () async {
-            final quotaService = QuotaService();
-            final checkResult = await quotaService.canPerformAction(
+            final checkResult = await context.read<QuotaProvider>().canPerform(
               QuotaAction.changeMeal,
             );
 
@@ -1296,15 +1348,50 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            food['name'] ?? 'Alimento',
-                            style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 17,
-                              color: CleanTheme.textPrimary,
-                              letterSpacing: -0.3,
+                            Text(
+                              food['name'] ?? 'Alimento',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                                color: CleanTheme.textPrimary,
+                                letterSpacing: -0.3,
+                              ),
                             ),
-                          ),
+                            if (food['is_substitution'] == true) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: CleanTheme.accentOrange.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: CleanTheme.accentOrange.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text('🧊 ', style: TextStyle(fontSize: 10)),
+                                    Text(
+                                      'SOSTITUITO OGGI',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: CleanTheme.accentOrange,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           const SizedBox(height: 6),
                           Row(
                             children: [
@@ -1358,7 +1445,13 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       label: 'Smart Swap',
                       color: CleanTheme.textSecondary,
                       isPrimary: false,
-                      onTap: () => _showEquivalenceCalculator(context, food),
+                      onTap: () => _showEquivalenceCalculator(
+                        context,
+                        food,
+                        dayIndex,
+                        mealIndex,
+                        foodIndex,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     // Substitution Action - Primary
@@ -1368,10 +1461,9 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       color: CleanTheme.primaryColor,
                       isPrimary: true,
                       onTap: () async {
-                        final quotaService = QuotaService();
-                        final checkResult = await quotaService.canPerformAction(
-                          QuotaAction.changeFood,
-                        );
+                        final checkResult = await context
+                            .read<QuotaProvider>()
+                            .canPerform(QuotaAction.changeFood);
 
                         if (!checkResult.canPerform && context.mounted) {
                           Navigator.of(context).push(
@@ -1473,7 +1565,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     );
   }
 
-  void _shareMeal(Map<String, dynamic> meal) {
+  Future<void> _shareMeal(Map<String, dynamic> meal) async {
     final buffer = StringBuffer();
     buffer.writeln('🍽️ *${meal['type']}*');
 
@@ -1485,10 +1577,10 @@ class _DietPlanScreenState extends State<DietPlanScreen>
     // Add nutrients if available
     // buffer.writeln('\n🔥 ${meal['calories']} kcal');
 
-    SharePlus.instance.share(ShareParams(text: buffer.toString()));
+    await SharePlus.instance.share(ShareParams(text: buffer.toString()));
   }
 
-  void _shareDay(Map<String, dynamic> day) {
+  Future<void> _shareDay(Map<String, dynamic> day) async {
     final buffer = StringBuffer();
     buffer.writeln('📅 *Piano per ${day['day_name']}*');
     buffer.writeln('');
@@ -1505,7 +1597,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
       buffer.writeln('');
     }
 
-    SharePlus.instance.share(ShareParams(text: buffer.toString()));
+    await SharePlus.instance.share(ShareParams(text: buffer.toString()));
   }
 
   /// PREMIUM UI: Regenerate Meal Dialog
@@ -1571,8 +1663,8 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       Navigator.pop(ctx);
 
                       // Check Quota
-                      final quotaService = QuotaService();
-                      final checkResult = await quotaService.canPerformAction(
+                      final quotaProvider = context.read<QuotaProvider>();
+                      final checkResult = await quotaProvider.canPerform(
                         QuotaAction.changeMeal,
                       );
 
@@ -1591,7 +1683,14 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       final alternatives = await provider.regenerateMeal(
                         dayIndex: dayIndex,
                         mealIndex: mealIndex,
+                        weekIndex: _currentWeekIndex,
                       );
+
+                      if (alternatives.isNotEmpty) {
+                        await quotaProvider.syncAfterSuccess(
+                          QuotaAction.changeMeal,
+                        );
+                      }
 
                       if (alternatives.isEmpty && context.mounted) {
                         scaffoldMessenger.showSnackBar(
@@ -1782,31 +1881,74 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () async {
-                                final scaffoldMessenger = ScaffoldMessenger.of(
-                                  context,
+                                final isPermanent = await showDialog<bool>(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    backgroundColor: CleanTheme.surfaceColor,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    title: Text(
+                                      'Applica Menù',
+                                      style: GoogleFonts.outfit(
+                                        fontWeight: FontWeight.bold,
+                                        color: CleanTheme.textPrimary,
+                                      ),
+                                    ),
+                                    content: Text(
+                                      '"Solo Oggi" applica il menù temporaneamente.\n"Per Sempre" rimpiazza definitivamente questo pasto nel piano.',
+                                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, false),
+                                        child: Text(
+                                          'SOLO OGGI',
+                                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx, true),
+                                        child: Text(
+                                          'PER SEMPRE',
+                                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.primaryColor),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 );
-                                final provider =
-                                    Provider.of<NutritionCoachProvider>(
-                                      context,
-                                      listen: false,
-                                    );
 
-                                Navigator.pop(ctx);
+                                if (isPermanent == null) return; // User cancelled
 
-                                final success = await provider
-                                    .applyRegeneratedMeal(
-                                      dayIndex: dayIndex,
-                                      mealIndex: mealIndex,
-                                      newMeal: alt,
-                                    );
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
+
+                                if (context.mounted) Navigator.pop(context);
+
+                                final success = await provider.applyRegeneratedMeal(
+                                  dayIndex: dayIndex,
+                                  mealIndex: mealIndex,
+                                  newMeal: alt,
+                                  isPermanent: isPermanent,
+                                  weekIndex: _currentWeekIndex,
+                                );
 
                                 if (!success && mounted) {
                                   scaffoldMessenger.showSnackBar(
                                     const SnackBar(
-                                      content: Text(
-                                        'Errore nell\'applicazione del menu.',
-                                      ),
+                                      content: Text('Errore nell\'applicazione del menu.'),
                                       backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                } else if (success && mounted) {
+                                  scaffoldMessenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        isPermanent 
+                                            ? 'Menù applicato permanentemente! ✨'
+                                            : 'Menù applicato! Tornerà normale domani. 🧊',
+                                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                      ),
+                                      backgroundColor: CleanTheme.accentGreen,
+                                      behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                 }
@@ -1880,6 +2022,7 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           dayIndex: day,
           mealIndex: meal,
           foodIndex: foodIdx,
+          weekIndex: _currentWeekIndex,
           scrollController: scrollController,
         ),
       ),
@@ -1889,6 +2032,9 @@ class _DietPlanScreenState extends State<DietPlanScreen>
   void _showEquivalenceCalculator(
     BuildContext context,
     Map<String, dynamic> food,
+    int dayIndex,
+    int mealIndex,
+    int foodIndex,
   ) {
     showModalBottomSheet(
       context: context,
@@ -1901,8 +2047,70 @@ class _DietPlanScreenState extends State<DietPlanScreen>
         expand: false,
         builder: (ctx, scrollController) => _EquivalenceCalculatorSheet(
           food: food,
+          dayIndex: dayIndex,
+          mealIndex: mealIndex,
+          foodIndex: foodIndex,
           scrollController: scrollController,
         ),
+      ),
+    );
+  }
+
+  void _showRestorePlanDialog(
+    BuildContext context,
+    NutritionCoachProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: CleanTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Ripristina Piano Originale',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: CleanTheme.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Vuoi eliminare tutte le sostituzioni (sia effimere che permanenti) e ripristinare il piano calcolato inizialmente dall\'AI?',
+          style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Annulla',
+              style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CleanTheme.accentOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final success = await provider.restoreOriginalPlan();
+              if (success && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Piano ripristinato con successo! ♻️',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                    ),
+                    backgroundColor: CleanTheme.accentGreen,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: const Text('Ripristina'),
+          ),
+        ],
       ),
     );
   }
@@ -1913,6 +2121,7 @@ class _SubstitutionSheet extends StatefulWidget {
   final int dayIndex;
   final int mealIndex;
   final int foodIndex;
+  final int weekIndex;
   final ScrollController scrollController;
 
   const _SubstitutionSheet({
@@ -1920,6 +2129,7 @@ class _SubstitutionSheet extends StatefulWidget {
     required this.dayIndex,
     required this.mealIndex,
     required this.foodIndex,
+    required this.weekIndex,
     required this.scrollController,
   });
 
@@ -1933,15 +2143,23 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
   @override
   void initState() {
     super.initState();
-    _substitutesFuture =
-        Provider.of<NutritionCoachProvider>(
-          context,
-          listen: false,
-        ).findSubstitutes(
+    final nutritionProvider = Provider.of<NutritionCoachProvider>(
+      context,
+      listen: false,
+    );
+    final quotaProvider = Provider.of<QuotaProvider>(context, listen: false);
+    _substitutesFuture = nutritionProvider
+        .findSubstitutes(
           widget.food['name'],
           (widget.food['quantity'] as num).toDouble(),
           widget.food['unit'],
-        );
+        )
+        .then((substitutes) async {
+          if (substitutes.isNotEmpty) {
+            await quotaProvider.syncAfterSuccess(QuotaAction.changeFood);
+          }
+          return substitutes;
+        });
   }
 
   @override
@@ -2096,11 +2314,9 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                                 );
 
                             // Check Quota
-                            final quotaService = QuotaService();
-                            final checkResult = await quotaService
-                                .canPerformAction(
-                                  QuotaAction.changeFood, // Fixed typo
-                                );
+                            final checkResult = await context
+                                .read<QuotaProvider>()
+                                .canPerform(QuotaAction.changeFood);
 
                             if (!checkResult.canPerform) {
                               if (context.mounted) {
@@ -2115,16 +2331,78 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                               return;
                             }
 
+                            final isPermanent = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: CleanTheme.surfaceColor,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: Text(
+                                  'Applica Sostituzione',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                    color: CleanTheme.textPrimary,
+                                  ),
+                                ),
+                                content: Text(
+                                  '"Solo Oggi" mantiene la dieta originale da domani.\n"Per Sempre" aggiorna il tuo piano in modo definitivo.',
+                                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: Text(
+                                      'SOLO OGGI',
+                                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: Text(
+                                      'PER SEMPRE',
+                                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.primaryColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (isPermanent == null) return; // User cancelled
+
                             if (context.mounted) {
                               Navigator.pop(context);
                             }
 
-                            provider.applySubstitution(
+                            final success = await provider.applySubstitution(
                               dayIndex: widget.dayIndex,
                               mealIndex: widget.mealIndex,
                               foodIndex: widget.foodIndex,
-                              newFood: item,
+                              isPermanent: isPermanent,
+                              newFood: {
+                                'name': item['food_name'] ?? item['name'],
+                                'quantity': item['quantity'],
+                                'unit': item['unit'] ?? 'g',
+                                'calories': item['calories'],
+                                'proteins': item['proteins'],
+                                'carbs': item['carbs'],
+                                'fats': item['fats'],
+                              },
+                              weekIndex: widget.weekIndex,
                             );
+
+                            if (success && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    isPermanent 
+                                        ? 'Sostituzione applicata permanentemente! ✨'
+                                        : 'Sostituzione applicata! Tornerà normale domani. 🧊',
+                                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                  ),
+                                  backgroundColor: CleanTheme.accentGreen,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
                           },
                           child: const Text('Scegli'),
                         ),
@@ -2147,10 +2425,16 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
 
 class _EquivalenceCalculatorSheet extends StatefulWidget {
   final Map<String, dynamic> food;
+  final int dayIndex;
+  final int mealIndex;
+  final int foodIndex;
   final ScrollController scrollController;
 
   const _EquivalenceCalculatorSheet({
     required this.food,
+    required this.dayIndex,
+    required this.mealIndex,
+    required this.foodIndex,
     required this.scrollController,
   });
 
@@ -2242,6 +2526,55 @@ class _EquivalenceCalculatorSheetState
       _gaugeController.forward(from: 0);
     } else {
       _shakeController.forward(from: 0);
+    }
+  }
+
+  Future<void> _applySubstitution(bool isPermanent) async {
+    if (_result == null || _result!['is_valid'] != true) return;
+
+    setState(() => _isLoading = true);
+    
+    final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
+    final success = await provider.applySubstitution(
+      dayIndex: widget.dayIndex,
+      mealIndex: widget.mealIndex,
+      foodIndex: widget.foodIndex,
+      isPermanent: isPermanent,
+      newFood: {
+        'name': _result!['equivalent_portion']['name'],
+        'quantity': _result!['equivalent_portion']['quantity'],
+        'unit': 'g',
+        'calories': _result!['equivalent_portion']['kcal'],
+        'proteins': _result!['equivalent_portion']['proteins'],
+        'carbs': _result!['equivalent_portion']['carbs'],
+        'fats': _result!['equivalent_portion']['fats'],
+      },
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isPermanent 
+                  ? 'Sostituzione applicata permanentemente! ✨'
+                  : 'Sostituzione applicata! Tornerà normale domani. 🧊',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: CleanTheme.accentGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Errore nell\'applicazione della sostituzione.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -2506,230 +2839,90 @@ class _EquivalenceCalculatorSheetState
   }
 
   Widget _buildValidResult() {
-    final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
-    final newQty = (_result!['new_quantity_grams'] as num?)?.toDouble() ?? 0;
-    final delta = _result!['delta'] as Map<String, dynamic>? ?? {};
-    final summary = _result!['summary'] as String? ?? '';
-    final curiosity = _result!['curiosity'] as String? ?? '';
-
+    final score = (_result!['compatibility_score'] as num?)?.toDouble() ?? 0;
+    
     return Column(
       children: [
-        // Compatibility Gauge
-        AnimatedBuilder(
-          animation: _gaugeController,
-          builder: (context, child) {
-            final progress = _gaugeController.value;
-            return Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    CleanTheme.steelDark,
-                    CleanTheme.steelMid.withValues(alpha: 0.9),
-                    CleanTheme.steelDark,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: _getScoreColor(score).withValues(alpha: 0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Radial Gauge
-                  SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: CustomPaint(
-                      painter: _CompatibilityGaugePainter(
-                        score: (score * progress).toInt(),
-                        color: _getScoreColor(score),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${(score * progress).toInt()}',
-                              style: GoogleFonts.outfit(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w900,
-                                color: _getScoreColor(score),
-                              ),
-                            ),
-                            Text(
-                              'COMPATIBILITÀ',
-                              style: GoogleFonts.outfit(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white.withValues(alpha: 0.5),
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // New quantity big number
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${newQty.round()}g',
-                          style: GoogleFonts.outfit(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                        TextSpan(
-                          text: '  di ${_foodController.text}',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            color: Colors.white.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+        FoodScaleWidget(
+          originalFood: _result!['target_portion'],
+          substituteFood: _result!['equivalent_portion'],
+          score: score,
         ),
-        const SizedBox(height: 20),
-        // Macro Delta Bars
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: CleanTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: CleanTheme.borderPrimary),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'CONFRONTO MACROS',
-                style: GoogleFonts.outfit(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: CleanTheme.textSecondary,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildDeltaRow(
-                'Proteine',
-                delta['proteins'] ?? {},
-                CleanTheme.accentGreen,
-              ),
-              const SizedBox(height: 12),
-              _buildDeltaRow(
-                'Carboidrati',
-                delta['carbs'] ?? {},
-                CleanTheme.accentGold,
-              ),
-              const SizedBox(height: 12),
-              _buildDeltaRow(
-                'Grassi',
-                delta['fats'] ?? {},
-                CleanTheme.accentBlue,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Summary Card
-        if (summary.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: CleanTheme.chromeSubtle.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: CleanTheme.borderPrimary.withValues(alpha: 0.5),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('📊', style: TextStyle(fontSize: 20)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    summary,
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: CleanTheme.textPrimary,
-                      height: 1.5,
+        const SizedBox(height: 32),
+        // Action Buttons Row
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: _isLoading ? null : () => _applySubstitution(false),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: CleanTheme.accentOrange, width: 2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'SOLO OGGI',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: CleanTheme.accentOrange,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 12),
-        // Curiosity Card (Wow!)
-        if (curiosity.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  CleanTheme.accentGold.withValues(alpha: 0.1),
-                  CleanTheme.accentGreen.withValues(alpha: 0.05),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: CleanTheme.accentGold.withValues(alpha: 0.3),
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('💡', style: TextStyle(fontSize: 22)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'LO SAPEVI?',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: CleanTheme.accentGold,
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        curiosity,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: CleanTheme.textPrimary,
-                          height: 1.5,
-                        ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: GestureDetector(
+                onTap: _isLoading ? null : () => _applySubstitution(true),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [CleanTheme.accentOrange, const Color(0xFFFF7A00)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
+                  child: Center(
+                    child: Text(
+                      'PER SEMPRE',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
                 ),
-              ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            '"Per Sempre" cambierà il piano originale.',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: CleanTheme.textSecondary,
+              fontStyle: FontStyle.italic,
             ),
           ),
+        ),
       ],
     );
   }
@@ -2797,184 +2990,4 @@ class _EquivalenceCalculatorSheetState
     );
   }
 
-  Widget _buildDeltaRow(String label, Map<String, dynamic> data, Color color) {
-    final original = (data['original'] as num?)?.toDouble() ?? 0;
-    final newVal = (data['new'] as num?)?.toDouble() ?? 0;
-    final diff = (data['diff'] as num?)?.toDouble() ?? 0;
-    final maxVal = [original, newVal].reduce((a, b) => a > b ? a : b);
-    final normalizer = maxVal > 0 ? maxVal : 1.0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: CleanTheme.textPrimary,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: diff >= 0
-                    ? CleanTheme.accentGreen.withValues(alpha: 0.1)
-                    : Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)}g',
-                style: GoogleFonts.outfit(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: diff >= 0 ? CleanTheme.accentGreen : Colors.red,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        // Original bar
-        Row(
-          children: [
-            SizedBox(
-              width: 48,
-              child: Text(
-                '${original.toStringAsFixed(1)}g',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: CleanTheme.textSecondary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 600),
-                height: 8,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: original / normalizer,
-                    backgroundColor: color.withValues(alpha: 0.08),
-                    valueColor: AlwaysStoppedAnimation(
-                      color.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        // New bar
-        Row(
-          children: [
-            SizedBox(
-              width: 48,
-              child: Text(
-                '${newVal.toStringAsFixed(1)}g',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 600),
-                height: 8,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: newVal / normalizer,
-                    backgroundColor: color.withValues(alpha: 0.08),
-                    valueColor: AlwaysStoppedAnimation(color),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Color _getScoreColor(int score) {
-    if (score >= 75) return CleanTheme.accentGreen;
-    if (score >= 50) return CleanTheme.accentGold;
-    if (score >= 25) return CleanTheme.accentOrange;
-    return Colors.red;
-  }
-}
-
-// Custom painter for the radial compatibility gauge
-class _CompatibilityGaugePainter extends CustomPainter {
-  final int score;
-  final Color color;
-
-  _CompatibilityGaugePainter({required this.score, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 12;
-
-    // Background arc
-    final bgPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..color = Colors.white.withValues(alpha: 0.08)
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi * 0.75,
-      pi * 1.5,
-      false,
-      bgPaint,
-    );
-
-    // Progress arc
-    final progressPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
-      ..strokeCap = StrokeCap.round
-      ..shader = SweepGradient(
-        startAngle: -pi * 0.75,
-        endAngle: pi * 0.75,
-        colors: [color.withValues(alpha: 0.4), color],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-
-    final sweepAngle = (score / 100) * pi * 1.5;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi * 0.75,
-      sweepAngle,
-      false,
-      progressPaint,
-    );
-
-    // Glow dot at end
-    if (score > 0) {
-      final dotAngle = -pi * 0.75 + sweepAngle;
-      final dotCenter = Offset(
-        center.dx + radius * cos(dotAngle),
-        center.dy + radius * sin(dotAngle),
-      );
-      final glowPaint = Paint()
-        ..color = color.withValues(alpha: 0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-      canvas.drawCircle(dotCenter, 6, glowPaint);
-      canvas.drawCircle(dotCenter, 4, Paint()..color = Colors.white);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CompatibilityGaugePainter oldDelegate) =>
-      oldDelegate.score != score || oldDelegate.color != color;
 }

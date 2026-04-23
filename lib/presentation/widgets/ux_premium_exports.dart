@@ -13,6 +13,7 @@ export 'package:gigi/presentation/widgets/celebrations/celebration_overlay.dart'
 
 // Premium Components
 export 'package:gigi/presentation/widgets/premium/premium_components.dart';
+export 'package:gigi/presentation/widgets/quota/quota_banner.dart';
 
 // Engagement Widgets
 export 'package:gigi/presentation/widgets/engagement/social_proof_widgets.dart';

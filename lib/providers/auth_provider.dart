@@ -7,6 +7,7 @@ import '../data/models/user_model.dart';
 import '../data/services/api_client.dart';
 import '../data/services/auth_service.dart';
 import '../data/services/user_service.dart';
+import '../core/services/payment_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final ApiClient _apiClient;
@@ -109,6 +110,7 @@ class AuthProvider with ChangeNotifier {
         if (_user == null) {
           await fetchUser();
         }
+        await _identifyRevenueCatUser();
         notifyListeners();
         return true;
       } else {
@@ -214,6 +216,7 @@ class AuthProvider with ChangeNotifier {
         }
 
         _user = result['user'];
+        await _identifyRevenueCatUser();
         notifyListeners();
         return true;
       } else {
@@ -290,6 +293,7 @@ class AuthProvider with ChangeNotifier {
         if (_user == null) {
           await fetchUser();
         }
+        await _identifyRevenueCatUser();
         notifyListeners();
         return true;
       } else {
@@ -359,6 +363,7 @@ class AuthProvider with ChangeNotifier {
         if (_user == null) {
           await fetchUser();
         }
+        await _identifyRevenueCatUser();
         notifyListeners();
         return true;
       } else {
@@ -389,6 +394,7 @@ class AuthProvider with ChangeNotifier {
     }
 
     _user = null;
+    await PaymentService().logout();
     notifyListeners();
   }
 
@@ -397,11 +403,18 @@ class AuthProvider with ChangeNotifier {
       final result = await _userService.getUser();
       if (result['success']) {
         _user = result['user'];
+        await _identifyRevenueCatUser();
         notifyListeners();
       }
     } catch (e) {
       debugPrint('Error fetching user: $e');
     }
+  }
+
+  Future<void> _identifyRevenueCatUser() async {
+    final userId = _user?.id;
+    if (userId == null || userId.isEmpty) return;
+    await PaymentService().identifyUser(userId);
   }
 
   Future<bool> updateProfile({

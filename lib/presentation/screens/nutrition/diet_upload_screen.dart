@@ -3,10 +3,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../providers/nutrition_coach_provider.dart';
+import '../../../../providers/quota_provider.dart';
 import '../../../../core/theme/clean_theme.dart';
 import '../../../../core/utils/validation_utils.dart';
 import '../../../../data/services/quota_service.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
+import '../../widgets/quota/quota_banner.dart';
 
 class DietUploadScreen extends StatefulWidget {
   const DietUploadScreen({super.key});
@@ -44,10 +46,8 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
       );
       if (provider.isLoading) return;
 
-      final quotaService = QuotaService();
-      final quotaCheck = await quotaService.canPerformAction(
-        QuotaAction.pdfDiet,
-      );
+      final quotaProvider = context.read<QuotaProvider>();
+      final quotaCheck = await quotaProvider.canPerform(QuotaAction.pdfDiet);
       if (!quotaCheck.canPerform) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -101,6 +101,8 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
         final success = await provider.uploadDiet(file);
 
         if (success) {
+          await quotaProvider.syncAfterSuccess(QuotaAction.pdfDiet);
+          if (!mounted) return;
           if (mounted) {
             // Success! The provider now holds the active plan.
             Navigator.of(context).pushReplacementNamed('/nutrition/coach/plan');
@@ -190,7 +192,10 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
               const SizedBox(height: 20),
               // 14-day limit info alert
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: CleanTheme.accentGold.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
@@ -258,6 +263,13 @@ class _DietUploadScreenState extends State<DietUploadScreen> {
                   ],
                 )
               else
+                const Column(
+                  children: [
+                    QuotaBanner(action: QuotaAction.pdfDiet),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              if (!isLoading)
                 SizedBox(
                   width: double.infinity,
                   height: 56,

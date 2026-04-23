@@ -48,6 +48,22 @@ class QuotaStatus {
   bool get isPro => normalizedSubscriptionTier == 'pro';
   bool get isElite => normalizedSubscriptionTier == 'elite';
   bool get isPremium => isPro || isElite;
+
+  QuotaStatus copyWith({
+    String? subscriptionTier,
+    Map<String, dynamic>? limits,
+    Map<String, Map<String, dynamic>>? planLimitsByTier,
+    QuotaUsageDetails? usage,
+    QuotaFeatures? features,
+  }) {
+    return QuotaStatus(
+      subscriptionTier: subscriptionTier ?? this.subscriptionTier,
+      limits: limits ?? this.limits,
+      planLimitsByTier: planLimitsByTier ?? this.planLimitsByTier,
+      usage: usage ?? this.usage,
+      features: features ?? this.features,
+    );
+  }
 }
 
 /// Dettagli utilizzo per ogni tipo di quota
@@ -62,6 +78,7 @@ class QuotaUsageDetails {
   final QuotaUsage shoppingList;
   final QuotaUsage changeMeal;
   final QuotaUsage changeFood;
+  final QuotaUsage foodDuel;
   final QuotaUsage pdfDiet;
   final QuotaUsage workoutChat;
   final QuotaUsage exerciseAlternatives;
@@ -77,6 +94,7 @@ class QuotaUsageDetails {
     required this.shoppingList,
     required this.changeMeal,
     required this.changeFood,
+    required this.foodDuel,
     required this.pdfDiet,
     required this.workoutChat,
     required this.exerciseAlternatives,
@@ -94,6 +112,7 @@ class QuotaUsageDetails {
       shoppingList: QuotaUsage.fromJson(json['shopping_list'] ?? {}),
       changeMeal: QuotaUsage.fromJson(json['change_meal'] ?? {}),
       changeFood: QuotaUsage.fromJson(json['change_food'] ?? {}),
+      foodDuel: QuotaUsage.fromJson(json['food_duel'] ?? {}),
       pdfDiet: QuotaUsage.fromJson(json['pdf_diet'] ?? {}),
       workoutChat: QuotaUsage.fromJson(json['workout_chat'] ?? {}),
       exerciseAlternatives: QuotaUsage.fromJson(
@@ -102,31 +121,74 @@ class QuotaUsageDetails {
       similarExercises: QuotaUsage.fromJson(json['similar_exercises'] ?? {}),
     );
   }
+
+  QuotaUsageDetails copyWith({
+    QuotaUsage? formAnalysis,
+    QuotaUsage? mealAnalysis,
+    QuotaUsage? recipes,
+    QuotaUsage? customWorkouts,
+    WorkoutPlanQuota? workoutPlan,
+    QuotaUsage? executeWithGigi,
+    QuotaUsage? shoppingList,
+    QuotaUsage? changeMeal,
+    QuotaUsage? changeFood,
+    QuotaUsage? foodDuel,
+    QuotaUsage? pdfDiet,
+    QuotaUsage? workoutChat,
+    QuotaUsage? exerciseAlternatives,
+    QuotaUsage? similarExercises,
+  }) {
+    return QuotaUsageDetails(
+      formAnalysis: formAnalysis ?? this.formAnalysis,
+      mealAnalysis: mealAnalysis ?? this.mealAnalysis,
+      recipes: recipes ?? this.recipes,
+      customWorkouts: customWorkouts ?? this.customWorkouts,
+      workoutPlan: workoutPlan ?? this.workoutPlan,
+      executeWithGigi: executeWithGigi ?? this.executeWithGigi,
+      shoppingList: shoppingList ?? this.shoppingList,
+      changeMeal: changeMeal ?? this.changeMeal,
+      changeFood: changeFood ?? this.changeFood,
+      foodDuel: foodDuel ?? this.foodDuel,
+      pdfDiet: pdfDiet ?? this.pdfDiet,
+      workoutChat: workoutChat ?? this.workoutChat,
+      exerciseAlternatives: exerciseAlternatives ?? this.exerciseAlternatives,
+      similarExercises: similarExercises ?? this.similarExercises,
+    );
+  }
 }
 
 /// Utilizzo singola quota
 class QuotaUsage {
+  final String action;
+  final String label;
   final int used;
   final int limit; // -1 = unlimited
   final int remaining; // -1 = unlimited
   final bool canUse;
   final String period;
+  final String periodLabel;
 
   QuotaUsage({
+    required this.action,
+    required this.label,
     required this.used,
     required this.limit,
     required this.remaining,
     required this.canUse,
     required this.period,
+    required this.periodLabel,
   });
 
   factory QuotaUsage.fromJson(Map<String, dynamic> json) {
     return QuotaUsage(
+      action: json['action'] ?? '',
+      label: json['label'] ?? '',
       used: _toInt(json['used']),
       limit: _toInt(json['limit']),
       remaining: _toInt(json['remaining']),
       canUse: json['can_use'] ?? false,
       period: json['period'] ?? '',
+      periodLabel: json['period_label'] ?? '',
     );
   }
 
@@ -151,32 +213,98 @@ class QuotaUsage {
     if (isUnlimited) return '$used / ∞';
     return '$used / $limit';
   }
+
+  QuotaUsage copyWith({
+    String? action,
+    String? label,
+    int? used,
+    int? limit,
+    int? remaining,
+    bool? canUse,
+    String? period,
+    String? periodLabel,
+  }) {
+    return QuotaUsage(
+      action: action ?? this.action,
+      label: label ?? this.label,
+      used: used ?? this.used,
+      limit: limit ?? this.limit,
+      remaining: remaining ?? this.remaining,
+      canUse: canUse ?? this.canUse,
+      period: period ?? this.period,
+      periodLabel: periodLabel ?? this.periodLabel,
+    );
+  }
 }
 
 /// Quota specifica per workout plan (basata su tempo, non conteggio)
 class WorkoutPlanQuota {
+  final String action;
+  final String label;
   final bool canGenerate;
+  final bool canUse;
   final int daysUntilNext;
   final String? lastGeneratedAt;
   final int intervalWeeks;
+  final int limit;
+  final String period;
+  final String periodLabel;
 
   WorkoutPlanQuota({
+    required this.action,
+    required this.label,
     required this.canGenerate,
+    required this.canUse,
     required this.daysUntilNext,
     this.lastGeneratedAt,
     required this.intervalWeeks,
+    required this.limit,
+    required this.period,
+    required this.periodLabel,
   });
 
   factory WorkoutPlanQuota.fromJson(Map<String, dynamic> json) {
     return WorkoutPlanQuota(
+      action: json['action'] ?? '',
+      label: json['label'] ?? '',
       canGenerate: json['can_generate'] ?? true,
+      canUse: json['can_use'] ?? json['can_generate'] ?? true,
       daysUntilNext: json['days_until_next'] ?? 0,
       lastGeneratedAt: json['last_generated_at'],
       intervalWeeks: json['interval_weeks'] ?? 0,
+      limit: QuotaUsage._toInt(json['limit']),
+      period: json['period'] ?? '',
+      periodLabel: json['period_label'] ?? '',
     );
   }
 
   bool get isUnlimited => intervalWeeks == 0;
+
+  WorkoutPlanQuota copyWith({
+    String? action,
+    String? label,
+    bool? canGenerate,
+    bool? canUse,
+    int? daysUntilNext,
+    String? lastGeneratedAt,
+    int? intervalWeeks,
+    int? limit,
+    String? period,
+    String? periodLabel,
+  }) {
+    return WorkoutPlanQuota(
+      action: action ?? this.action,
+      label: label ?? this.label,
+      canGenerate: canGenerate ?? this.canGenerate,
+      canUse: canUse ?? this.canUse,
+      daysUntilNext: daysUntilNext ?? this.daysUntilNext,
+      lastGeneratedAt: lastGeneratedAt ?? this.lastGeneratedAt,
+      intervalWeeks: intervalWeeks ?? this.intervalWeeks,
+      limit: limit ?? this.limit,
+      period: period ?? this.period,
+      periodLabel: periodLabel ?? this.periodLabel,
+    );
+  }
 }
 
 /// Features disponibili per il tier
