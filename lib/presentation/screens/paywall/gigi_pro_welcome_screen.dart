@@ -1,107 +1,174 @@
+import 'dart:math' as math;
+
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 
-class GigiProWelcomeScreen extends StatelessWidget {
+class GigiProWelcomeScreen extends StatefulWidget {
   const GigiProWelcomeScreen({super.key});
+
+  @override
+  State<GigiProWelcomeScreen> createState() => _GigiProWelcomeScreenState();
+}
+
+class _GigiProWelcomeScreenState extends State<GigiProWelcomeScreen> {
+  late final ConfettiController _confettiController;
+
+  @override
+  void initState() {
+    super.initState();
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 4),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _confettiController.play();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              Container(
-                width: 92,
-                height: 92,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [CleanTheme.primaryColor, CleanTheme.accentGold],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: CleanTheme.primaryColor.withValues(alpha: 0.28),
-                      blurRadius: 34,
-                      offset: const Offset(0, 18),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Spacer(),
+                  Container(
+                    width: 92,
+                    height: 92,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          CleanTheme.primaryColor,
+                          CleanTheme.accentGold,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CleanTheme.primaryColor.withValues(
+                            alpha: 0.28,
+                          ),
+                          blurRadius: 34,
+                          offset: const Offset(0, 18),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Colors.white,
-                  size: 46,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'Benvenuto in GIGI Pro',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
-                  color: CleanTheme.textPrimary,
-                  height: 1.05,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Il tuo coach AI e attivo. Da ora GIGI puo seguirti con allenamenti, nutrizione e feedback piu completi.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  color: CleanTheme.textSecondary,
-                  height: 1.45,
-                ),
-              ),
-              const SizedBox(height: 28),
-              _BenefitRow(
-                icon: Icons.record_voice_over_rounded,
-                title: 'Coaching vocale realtime',
-                subtitle: 'Indicazioni durante i workout e supporto sui set.',
-              ),
-              _BenefitRow(
-                icon: Icons.fitness_center_rounded,
-                title: 'Piani che evolvono con te',
-                subtitle: 'Progressioni e limiti Pro per allenarti meglio.',
-              ),
-              _BenefitRow(
-                icon: Icons.auto_awesome_rounded,
-                title: 'AI fitness e nutrizione',
-                subtitle: 'Form check, ricette, swap e strumenti avanzati.',
-              ),
-              const Spacer(),
-              CleanButton(
-                text: 'Inizia con GIGI Pro',
-                icon: Icons.arrow_forward_rounded,
-                onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                width: double.infinity,
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.of(context).maybePop(),
-                child: Text(
-                  'Chiudi',
-                  style: GoogleFonts.inter(
-                    color: CleanTheme.textSecondary,
-                    fontWeight: FontWeight.w600,
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Colors.white,
+                      size: 46,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 28),
+                  Text(
+                    'Benvenuto in GIGI Pro',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.outfit(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      color: CleanTheme.textPrimary,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Il tuo coach AI e attivo. Da ora GIGI puo seguirti con allenamenti, nutrizione e feedback piu completi.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: CleanTheme.textSecondary,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  _BenefitRow(
+                    icon: Icons.record_voice_over_rounded,
+                    title: 'Coaching vocale realtime',
+                    subtitle:
+                        'Indicazioni durante i workout e supporto sui set.',
+                  ),
+                  _BenefitRow(
+                    icon: Icons.fitness_center_rounded,
+                    title: 'Piani che evolvono con te',
+                    subtitle: 'Progressioni e limiti Pro per allenarti meglio.',
+                  ),
+                  _BenefitRow(
+                    icon: Icons.auto_awesome_rounded,
+                    title: 'AI fitness e nutrizione',
+                    subtitle: 'Form check, ricette, swap e strumenti avanzati.',
+                  ),
+                  const Spacer(),
+                  CleanButton(
+                    text: 'Inizia con GIGI Pro',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
+                    width: double.infinity,
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    child: Text(
+                      'Chiudi',
+                      style: GoogleFonts.inter(
+                        color: CleanTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          _buildConfettiLayer(Alignment.topCenter, math.pi / 2),
+          _buildConfettiLayer(Alignment.topLeft, math.pi / 5),
+          _buildConfettiLayer(Alignment.topRight, math.pi - math.pi / 5),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfettiLayer(Alignment alignment, double blastDirection) {
+    return Align(
+      alignment: alignment,
+      child: ConfettiWidget(
+        confettiController: _confettiController,
+        blastDirectionality: BlastDirectionality.directional,
+        blastDirection: blastDirection,
+        emissionFrequency: 0.06,
+        numberOfParticles: 18,
+        maxBlastForce: 12,
+        minBlastForce: 4,
+        gravity: 0.22,
+        shouldLoop: false,
+        colors: const [
+          Color(0xFFFF6B6B),
+          Color(0xFFFFD166),
+          Color(0xFF06D6A0),
+          Color(0xFF118AB2),
+          Color(0xFF9B5DE5),
+          Color(0xFFFF8FAB),
+        ],
       ),
     );
   }

@@ -3,11 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../providers/nutrition_coach_provider.dart';
-import '../../../providers/quota_provider.dart';
-import '../../screens/paywall/paywall_screen.dart'; // Import PaywallScreen
-import '../../../data/services/quota_service.dart';
 import '../../../core/theme/clean_theme.dart';
-import '../../widgets/quota/quota_banner.dart';
+import '../../../core/services/haptic_service.dart';
 
 class ShoppingListScreen extends StatefulWidget {
   const ShoppingListScreen({super.key});
@@ -276,11 +273,10 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       buffer.writeln('');
     });
 
-    await SharePlus.instance.share(
-      ShareParams(
-        text: buffer.toString(),
-        subject: 'Lista della Spesa Gigi AI',
-      ),
+    // ignore: deprecated_member_use
+    await Share.share(
+      buffer.toString(),
+      subject: 'Lista della Spesa Gigi AI',
     );
 
     if (mounted) {
@@ -399,38 +395,17 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                const QuotaBanner(action: QuotaAction.shoppingList),
-                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: provider.isLoading
                         ? null
                         : () async {
-                            final quotaProvider = context.read<QuotaProvider>();
-                            final checkResult = await quotaProvider.canPerform(
-                              QuotaAction.shoppingList,
+                            HapticService.lightTap();
+                            await provider.generateShoppingList(
+                              startDay: _startDay,
+                              endDay: _endDay,
                             );
-
-                            if (!checkResult.canPerform && context.mounted) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PaywallScreen(),
-                                ),
-                              );
-                            } else if (checkResult.canPerform &&
-                                context.mounted) {
-                              await provider.generateShoppingList(
-                                startDay: _startDay,
-                                endDay: _endDay,
-                              );
-                              if (provider.shoppingList.isNotEmpty &&
-                                  context.mounted) {
-                                await quotaProvider.syncAfterSuccess(
-                                  QuotaAction.shoppingList,
-                                );
-                              }
-                            }
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: CleanTheme.primaryColor,

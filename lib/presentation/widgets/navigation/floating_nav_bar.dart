@@ -7,12 +7,14 @@ class FloatingNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
   final List<FloatingNavItem> items;
+  final bool showProAccent;
 
   const FloatingNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
     required this.items,
+    this.showProAccent = false,
   });
 
   @override
@@ -30,8 +32,10 @@ class FloatingNavBar extends StatelessWidget {
             color: CleanTheme.primaryColor,
             borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 1,
+              color: showProAccent
+                  ? CleanTheme.accentGold.withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.15),
+              width: showProAccent ? 1.2 : 1,
             ),
             boxShadow: CleanTheme.floatingShadow,
           ),

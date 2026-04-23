@@ -8,6 +8,7 @@ class LiquidSteelContainer extends StatefulWidget {
   final List<Color>? colors;
   final List<double>? stops;
   final List<BoxShadow>? boxShadow;
+  final EdgeInsetsGeometry? padding;
 
   const LiquidSteelContainer({
     super.key,
@@ -18,6 +19,7 @@ class LiquidSteelContainer extends StatefulWidget {
     this.colors,
     this.stops,
     this.boxShadow,
+    this.padding,
   });
 
   @override
@@ -110,7 +112,10 @@ class _LiquidSteelContainerState extends State<LiquidSteelContainer>
                       ),
                     ),
                   ),
-                widget.child,
+                Padding(
+                  padding: widget.padding ?? EdgeInsets.zero,
+                  child: widget.child,
+                ),
               ],
             ),
           ),

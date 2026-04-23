@@ -5,6 +5,9 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/health_insights_service.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../presentation/widgets/animations/liquid_steel_container.dart';
+import '../../../presentation/widgets/gigi/gigi_coach_message.dart';
+import '../../../presentation/widgets/clean_widgets.dart';
 import 'package:intl/intl.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -136,15 +139,18 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ..add('')
       ..add('#GIGI #Fitness #HealthTracking');
 
+    // ignore: deprecated_member_use
     Share.share(lines.join('\n'));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CleanTheme.scaffoldBackgroundColor,
+      backgroundColor: CleanTheme.backgroundColor,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: CleanTheme.primaryColor),
+            )
           : _buildContent(),
     );
   }
@@ -156,75 +162,33 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     return CustomScrollView(
       slivers: [
-        // App bar with gradient
+        // Premium App Bar matched to Nutrition
         SliverAppBar(
-          expandedHeight: 180,
+          expandedHeight: 120,
           pinned: true,
-          backgroundColor: CleanTheme.primaryColor,
-          iconTheme: const IconThemeData(color: CleanTheme.textOnDark),
-          title: Text(
-            AppLocalizations.of(context)!.weeklyReport,
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w600,
-              color: CleanTheme.textOnDark,
-            ),
+          backgroundColor: CleanTheme.surfaceColor,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            onPressed: () => Navigator.pop(context),
+            color: CleanTheme.textPrimary,
           ),
           flexibleSpace: FlexibleSpaceBar(
-            collapseMode: CollapseMode.parallax,
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Row(
-                        children: [
-                          const Text('📊', style: TextStyle(fontSize: 32)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.weeklyReport,
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w700,
-                                    color: CleanTheme.textOnDark,
-                                  ),
-                                ),
-                                Text(
-                                  _formatPeriod(),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: CleanTheme.textOnDark.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+            title: Text(
+              AppLocalizations.of(context)!.weeklyReport,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+                fontSize: 20,
               ),
             ),
+            centerTitle: true,
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.share, color: CleanTheme.textOnDark),
+              icon: const Icon(Icons.share_rounded),
+              color: CleanTheme.textPrimary,
               onPressed: _shareReport,
             ),
           ],
@@ -233,48 +197,60 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         // Content
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Stats grid
+                // 1. GIGI COACH MESSAGE
+                GigiCoachMessage(
+                  messageId: 'report.ai_analysis',
+                  title: AppLocalizations.of(context)!.weeklyReport,
+                  message: _report!.aiTip,
+                  emotion: GigiEmotion.expert,
+                ),
+                const SizedBox(height: 32),
+
+                // 2. STATS GRID with LIQUID STEEL
+                CleanSectionHeader(
+                  title: AppLocalizations.of(context)!.homeProgressTitle,
+                  subtitle: _formatPeriod(),
+                ),
+                const SizedBox(height: 16),
                 _buildStatsGrid(),
 
+                const SizedBox(height: 32),
+
+                // 3. SLEEP TREND
                 if (_report!.hasSleepData) ...[
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(
-                    '😴',
-                    AppLocalizations.of(context)!.sleepTrend,
+                  CleanSectionHeader(
+                    title: AppLocalizations.of(context)!.sleepTrend,
                   ),
                   const SizedBox(height: 12),
-                  _buildSleepChart(),
+                  LiquidSteelContainer(
+                    borderRadius: 24,
+                    enableShine: false,
+                    padding: const EdgeInsets.all(20),
+                    child: _buildSleepChart(),
+                  ),
+                  const SizedBox(height: 32),
                 ],
 
+                // 4. ACTIVITY
                 if (_report!.hasStepsData) ...[
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(
-                    '🚶',
-                    AppLocalizations.of(context)!.activity,
+                  CleanSectionHeader(
+                    title: AppLocalizations.of(context)!.activity,
                   ),
                   const SizedBox(height: 12),
                   _buildActivityCard(),
+                  const SizedBox(height: 32),
                 ],
 
-                const SizedBox(height: 24),
-
-                // Insights
-                _buildSectionTitle(
-                  '💡',
-                  AppLocalizations.of(context)!.aiInsights,
+                // 5. INSIGHTS
+                CleanSectionHeader(
+                  title: AppLocalizations.of(context)!.aiInsights,
                 ),
                 const SizedBox(height: 12),
                 _buildInsightsList(),
-
-                const SizedBox(height: 24),
-                // AI Tip
-                _buildAITip(),
-
-                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -353,23 +329,29 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       rowChildren.add(stats[index]);
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return LiquidSteelContainer(
+      borderRadius: 24,
+      enableShine: true,
+      colors: const [
+        CleanTheme.steelDark,
+        CleanTheme.steelMid,
+        CleanTheme.steelLight,
+        CleanTheme.steelMid,
+        CleanTheme.steelDark,
+      ],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: rowChildren,
       ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 40,
+      color: CleanTheme.textOnDark.withValues(alpha: 0.15),
     );
   }
 
@@ -381,35 +363,42 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
   ) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(emoji, style: const TextStyle(fontSize: 24)),
+        ),
+        const SizedBox(height: 12),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               value,
               style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: CleanTheme.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: CleanTheme.textOnDark,
+                letterSpacing: -0.5,
               ),
             ),
             if (trend != null) ...[const SizedBox(width: 4), trend],
           ],
         ),
+        const SizedBox(height: 2),
         Text(
-          label,
+          label.toUpperCase(),
           style: GoogleFonts.inter(
-            fontSize: 11,
-            color: CleanTheme.textSecondary,
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            color: CleanTheme.textOnDark.withValues(alpha: 0.5),
+            letterSpacing: 0.5,
           ),
         ),
       ],
     );
-  }
-
-  Widget _buildDivider() {
-    return Container(width: 1, height: 50, color: CleanTheme.borderSecondary);
   }
 
   Widget? _getTrendIcon(String trend) {
@@ -429,22 +418,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return null;
   }
 
-  Widget _buildSectionTitle(String emoji, String title) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.outfit(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildSleepChart() {
     final sleepData = _report!.sleep.dailyHours.values.toList();
@@ -452,11 +426,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
 
     return Container(
       height: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: CleanTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+      color: Colors.transparent,
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
@@ -652,52 +622,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     );
   }
 
-  Widget _buildAITip() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [CleanTheme.primaryColor, CleanTheme.primaryLight],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: CleanTheme.primaryColor.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text('🤖', style: TextStyle(fontSize: 24)),
-              const SizedBox(width: 8),
-              Text(
-                AppLocalizations.of(context)!.gigiTip,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textOnDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _report!.aiTip,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              color: CleanTheme.textOnDark.withValues(alpha: 0.95),
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildMissingHealthDataCard({required String message}) {
     return Container(

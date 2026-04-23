@@ -15,7 +15,9 @@ import '../../../core/services/haptic_service.dart';
 import '../paywall/paywall_screen.dart';
 import '../paywall/gigi_pro_welcome_screen.dart';
 import '../../../core/services/payment_service.dart';
+import '../../../data/services/subscription_sync_service.dart';
 import '../../../providers/engagement_provider.dart';
+import '../../../providers/quota_provider.dart';
 import '../referral/referral_screen.dart';
 import '../settings/health_settings_screen.dart';
 import 'edit_preferences_screen.dart';
@@ -25,8 +27,48 @@ import 'security_settings_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/legal_links.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshProfileStatus();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refreshProfileStatus();
+    }
+  }
+
+  Future<void> _refreshProfileStatus() async {
+    if (!mounted) return;
+
+    await context.read<PaymentService>().checkSubscriptionStatus();
+    if (!mounted) return;
+
+    await context.read<AuthProvider>().fetchUser();
+    if (!mounted) return;
+
+    await context.read<QuotaProvider>().refresh(silent: true);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,342 +86,357 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
       ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          ResponsiveUtils.floatingElementPadding(context, baseHeight: 80),
-        ),
-        children: [
-          // User info card
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, _) {
-              final user = authProvider.user;
-              final name =
-                  user?.name ?? AppLocalizations.of(context)!.userDefaultName;
-              final email = user?.email ?? '';
-              final initials = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+      body: RefreshIndicator(
+        onRefresh: _refreshProfileStatus,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            ResponsiveUtils.floatingElementPadding(context, baseHeight: 80),
+          ),
+          children: [
+            // User info card
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                final user = authProvider.user;
+                final name =
+                    user?.name ?? AppLocalizations.of(context)!.userDefaultName;
+                final email = user?.email ?? '';
+                final initials = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+                final isPremium = user?.subscription?.isActive ?? false;
 
-              String height = user?.height != null
-                  ? '${user!.height!.toInt()} cm'
-                  : '--';
-              String weight = user?.weight != null
-                  ? '${user!.weight!.toInt()} kg'
-                  : '--';
+                String height = user?.height != null
+                    ? '${user!.height!.toInt()} cm'
+                    : '--';
+                String weight = user?.weight != null
+                    ? '${user!.weight!.toInt()} kg'
+                    : '--';
 
-              String age = '--';
-              if (user?.dateOfBirth != null) {
-                final dob = user!.dateOfBirth!;
-                final today = DateTime.now();
-                int ageVal = today.year - dob.year;
-                if (today.month < dob.month ||
-                    (today.month == dob.month && today.day < dob.day)) {
-                  ageVal--;
+                String age = '--';
+                if (user?.dateOfBirth != null) {
+                  final dob = user!.dateOfBirth!;
+                  final today = DateTime.now();
+                  int ageVal = today.year - dob.year;
+                  if (today.month < dob.month ||
+                      (today.month == dob.month && today.day < dob.day)) {
+                    ageVal--;
+                  }
+                  age = ageVal.toString();
                 }
-                age = ageVal.toString();
-              }
 
-              return CleanCard(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        CleanAvatar(
-                          initials: initials,
-                          size: 100,
-                          backgroundColor: CleanTheme.primaryLight,
-                          imageUrl: user?.avatarUrl,
-                          onTap: () async {
-                            final ImagePicker picker = ImagePicker();
-                            final XFile? image = await picker.pickImage(
-                              source: ImageSource.gallery,
-                              maxWidth: 800,
-                              imageQuality: 80,
-                            );
-
-                            if (image != null && context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Caricamento immagine...'),
-                                  duration: Duration(seconds: 1),
-                                ),
+                return CleanCard(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          CleanAvatar(
+                            initials: initials,
+                            size: 100,
+                            backgroundColor: CleanTheme.primaryLight,
+                            imageUrl: user?.avatarUrl,
+                            isPremium: isPremium,
+                            onTap: () async {
+                              final ImagePicker picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                maxWidth: 800,
+                                imageQuality: 80,
                               );
 
-                              final success = await authProvider.uploadAvatar(
-                                image,
-                              );
+                              if (image != null && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Caricamento immagine...'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
 
-                              if (context.mounted) {
-                                if (success) {
-                                  // Clear image cache to ensure new avatar loads
-                                  PaintingBinding.instance.imageCache.clear();
-                                  PaintingBinding.instance.imageCache
-                                      .clearLiveImages();
+                                final success = await authProvider.uploadAvatar(
+                                  image,
+                                );
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Immagine profilo aggiornata!',
+                                if (context.mounted) {
+                                  if (success) {
+                                    // Clear image cache to ensure new avatar loads
+                                    PaintingBinding.instance.imageCache.clear();
+                                    PaintingBinding.instance.imageCache
+                                        .clearLiveImages();
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Immagine profilo aggiornata!',
+                                        ),
+                                        backgroundColor: CleanTheme.accentGreen,
                                       ),
-                                      backgroundColor: CleanTheme.accentGreen,
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        authProvider.error ??
-                                            'Errore durante il caricamento',
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          authProvider.error ??
+                                              'Errore durante il caricamento',
+                                        ),
+                                        backgroundColor: CleanTheme.accentRed,
                                       ),
-                                      backgroundColor: CleanTheme.accentRed,
-                                    ),
-                                  );
+                                    );
+                                  }
                                 }
                               }
-                            }
-                          },
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: CleanTheme.primaryColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: CleanTheme.backgroundColor,
-                                width: 3,
+                            },
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: CleanTheme.backgroundColor,
+                                  width: 3,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                size: 16,
+                                color: CleanTheme.textOnPrimary,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: CleanTheme.textOnPrimary,
-                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        name,
+                        style: GoogleFonts.outfit(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: CleanTheme.textPrimary,
+                        ),
+                      ),
+                      if (email.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          email,
+                          style: GoogleFonts.inter(
+                            color: CleanTheme.textSecondary,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      name,
-                      style: GoogleFonts.outfit(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    if (email.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        email,
-                        style: GoogleFonts.inter(
-                          color: CleanTheme.textSecondary,
-                        ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildStatColumn(
+                            AppLocalizations.of(context)!.heightLabel,
+                            height,
+                          ),
+                          _buildDivider(),
+                          _buildStatColumn(
+                            AppLocalizations.of(context)!.weightLabel,
+                            weight,
+                          ),
+                          _buildDivider(),
+                          _buildStatColumn(
+                            AppLocalizations.of(context)!.ageLabel,
+                            age,
+                          ),
+                        ],
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatColumn(
-                          AppLocalizations.of(context)!.heightLabel,
-                          height,
-                        ),
-                        _buildDivider(),
-                        _buildStatColumn(
-                          AppLocalizations.of(context)!.weightLabel,
-                          weight,
-                        ),
-                        _buildDivider(),
-                        _buildStatColumn(
-                          AppLocalizations.of(context)!.ageLabel,
-                          age,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                );
+              },
+            ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Subscription card
-          Consumer3<AuthProvider, PaymentService, EngagementProvider>(
-            builder:
-                (context, authProvider, paymentService, engagementProvider, _) {
-                  final isPremium =
-                      (authProvider.user?.subscription?.isActive ?? false) ||
-                      paymentService.isProOrAbove;
-
-                  if (isPremium) {
-                    return _buildActiveSubscriptionCard(
-                      context,
-                      authProvider,
-                      paymentService,
-                    );
-                  }
-
-                  return _buildQuickBuySubscriptionCard(
+            // Subscription card
+            Consumer3<AuthProvider, PaymentService, EngagementProvider>(
+              builder:
+                  (
                     context,
+                    authProvider,
                     paymentService,
                     engagementProvider,
-                  );
-                },
-          ),
+                    _,
+                  ) {
+                    final isPremium =
+                        authProvider.user?.subscription?.isActive ?? false;
 
-          const SizedBox(height: 16),
-          _buildSocialProof(context),
-          const SizedBox(height: 8),
-          const LiveUrgencyTimer(),
+                    if (isPremium) {
+                      return _buildActiveSubscriptionCard(
+                        context,
+                        authProvider,
+                        paymentService,
+                      );
+                    }
 
-          const SizedBox(height: 24),
-
-          // ═══════════════════════════════════════════
-          // NEW: Quick Actions Section
-          // ═══════════════════════════════════════════
-          CleanSectionHeader(title: AppLocalizations.of(context)!.features),
-          const SizedBox(height: 12),
-
-          CleanCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildSettingsTile(
-                  icon: Icons.card_giftcard_outlined,
-                  title: AppLocalizations.of(context)!.inviteFriends,
-                  subtitle: AppLocalizations.of(context)!.inviteFriendsSubtitle,
-                  color: CleanTheme.accentOrange,
-                  onTap: () {
-                    Navigator.push(
+                    return _buildQuickBuySubscriptionCard(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const ReferralScreen(),
-                      ),
+                      paymentService,
+                      engagementProvider,
                     );
                   },
-                ),
-              ],
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _buildSocialProof(context),
+            const SizedBox(height: 8),
+            const LiveUrgencyTimer(),
 
-          // Settings section
-          CleanSectionHeader(title: AppLocalizations.of(context)!.settings),
-          const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-          CleanCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildSettingsTile(
-                  icon: Icons.person_outline,
-                  title: 'Profilo Fitness',
-                  subtitle: 'Dati personali, obiettivi e infortuni',
-                  onTap: () {
-                    Navigator.push(
+            // ═══════════════════════════════════════════
+            // NEW: Quick Actions Section
+            // ═══════════════════════════════════════════
+            CleanSectionHeader(title: AppLocalizations.of(context)!.features),
+            const SizedBox(height: 12),
+
+            CleanCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _buildSettingsTile(
+                    icon: Icons.card_giftcard_outlined,
+                    title: AppLocalizations.of(context)!.inviteFriends,
+                    subtitle: AppLocalizations.of(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditPreferencesScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.lock_outline,
-                  title: 'Sicurezza Account',
-                  subtitle: 'Email e Password',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SecuritySettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.security_outlined,
-                  title: AppLocalizations.of(context)!.privacySecurity,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PrivacySettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.monitor_heart_outlined,
-                  title: AppLocalizations.of(context)!.healthKitDisclosureTitle,
-                  subtitle:
-                      '${AppLocalizations.of(context)!.healthFitnessSubtitle} • HealthKit',
-                  color: CleanTheme.accentRed,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HealthSettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                    )!.inviteFriendsSubtitle,
+                    color: CleanTheme.accentOrange,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReferralScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          const SizedBox(height: 24),
+            // Settings section
+            CleanSectionHeader(title: AppLocalizations.of(context)!.settings),
+            const SizedBox(height: 12),
 
-          // Legal section
-          CleanSectionHeader(title: 'Note Legali'),
-          const SizedBox(height: 12),
-
-          CleanCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _buildSettingsTile(
-                  icon: Icons.privacy_tip_outlined,
-                  title: AppLocalizations.of(context)!.privacyPolicy,
-                  onTap: () => _launchUrl(privacyPolicyUrl),
-                ),
-                _buildSettingsDivider(),
-                _buildSettingsTile(
-                  icon: Icons.description_outlined,
-                  title: 'Termini di Servizio (EULA)',
-                  onTap: () => _launchUrl(appleStandardEulaUrl),
-                ),
-              ],
+            CleanCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _buildSettingsTile(
+                    icon: Icons.person_outline,
+                    title: 'Profilo Fitness',
+                    subtitle: 'Dati personali, obiettivi e infortuni',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditPreferencesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildSettingsDivider(),
+                  _buildSettingsTile(
+                    icon: Icons.lock_outline,
+                    title: 'Sicurezza Account',
+                    subtitle: 'Email e Password',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SecuritySettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildSettingsDivider(),
+                  _buildSettingsTile(
+                    icon: Icons.security_outlined,
+                    title: AppLocalizations.of(context)!.privacySecurity,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacySettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildSettingsDivider(),
+                  _buildSettingsTile(
+                    icon: Icons.monitor_heart_outlined,
+                    title: AppLocalizations.of(
+                      context,
+                    )!.healthKitDisclosureTitle,
+                    subtitle:
+                        '${AppLocalizations.of(context)!.healthFitnessSubtitle} • HealthKit',
+                    color: CleanTheme.accentRed,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HealthSettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // Logout button
-          CleanButton(
-            text: AppLocalizations.of(context)!.logout,
-            icon: Icons.logout,
-            backgroundColor: CleanTheme.accentRed.withValues(alpha: 0.1),
-            textColor: CleanTheme.accentRed,
-            onPressed: () {
-              _showLogoutDialog(context);
-            },
-          ),
+            const SizedBox(height: 24),
 
-          const SizedBox(height: 40),
-        ],
+            // Legal section
+            CleanSectionHeader(title: 'Note Legali'),
+            const SizedBox(height: 12),
+
+            CleanCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _buildSettingsTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: AppLocalizations.of(context)!.privacyPolicy,
+                    onTap: () => _launchUrl(privacyPolicyUrl),
+                  ),
+                  _buildSettingsDivider(),
+                  _buildSettingsTile(
+                    icon: Icons.description_outlined,
+                    title: 'Termini di Servizio (EULA)',
+                    onTap: () => _launchUrl(appleStandardEulaUrl),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Logout button
+            CleanButton(
+              text: AppLocalizations.of(context)!.logout,
+              icon: Icons.logout,
+              backgroundColor: CleanTheme.accentRed.withValues(alpha: 0.1),
+              textColor: CleanTheme.accentRed,
+              onPressed: () {
+                _showLogoutDialog(context);
+              },
+            ),
+
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -417,9 +474,7 @@ class ProfileScreen extends StatelessWidget {
     PaymentService paymentService,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final expirationDate =
-        authProvider.user?.subscription?.endDate ??
-        paymentService.expirationDate;
+    final expirationDate = authProvider.user?.subscription?.endDate;
     return GestureDetector(
       onTap: () => HapticService.mediumTap(),
       child: LiquidSteelContainer(
@@ -432,9 +487,10 @@ class ProfileScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(8),
@@ -461,6 +517,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'GIGI PRO ATTIVO',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -469,22 +526,14 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Il tuo coach AI e attivo. Hai accesso ai vantaggi Pro per allenamento, nutrizione e analisi.',
+                'Il tuo coach AI è attivo. Hai accesso a tutti i vantaggi Pro.',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   color: CleanTheme.textOnDark.withValues(alpha: 0.9),
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildProPill('Voice coaching'),
-                  _buildProPill('Form check AI'),
-                  _buildProPill('Nutrizione AI'),
-                ],
-              ),
+
               if (expirationDate != null) ...[
                 const SizedBox(height: 16),
                 Container(
@@ -529,23 +578,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProPill(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: CleanTheme.textOnDark.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: CleanTheme.textOnDark,
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildQuickBuySubscriptionCard(
     BuildContext context,
@@ -880,11 +913,22 @@ class ProfileScreen extends StatelessWidget {
     if (context.mounted) Navigator.pop(context);
 
     if (success && context.mounted) {
-      await _refreshUserAfterPurchase(context);
+      final synced = await _syncBackendAfterPurchase(context);
       if (!context.mounted) return;
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()));
+      if (synced) {
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Acquisto riuscito, ma sincronizzazione non completata. Usa Ripristina acquisti tra poco.',
+            ),
+            backgroundColor: CleanTheme.accentOrange,
+          ),
+        );
+      }
     } else if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -897,14 +941,29 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _refreshUserAfterPurchase(BuildContext context) async {
+  Future<bool> _syncBackendAfterPurchase(BuildContext context) async {
+    final syncResult = await SubscriptionSyncService().sync();
+    if (!syncResult.success || !context.mounted) {
+      return false;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     for (var attempt = 0; attempt < 3; attempt++) {
       await authProvider.fetchUser();
       final isActive = authProvider.user?.subscription?.isActive ?? false;
-      if (isActive) return;
+      if (isActive) {
+        if (context.mounted) {
+          await Provider.of<QuotaProvider>(
+            context,
+            listen: false,
+          ).refresh(silent: true);
+        }
+        return true;
+      }
       await Future.delayed(const Duration(seconds: 1));
     }
+
+    return false;
   }
 
   Widget _buildSettingsTile({
@@ -1167,11 +1226,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     builder: (context, auth, _) {
                       final name = auth.user?.name ?? 'U';
                       final avatarUrl = auth.user?.avatarUrl;
+                      final isPremium =
+                          auth.user?.subscription?.isActive ?? false;
                       return CleanAvatar(
                         initials: name.isNotEmpty ? name[0].toUpperCase() : 'U',
                         size: 100,
                         backgroundColor: CleanTheme.primaryLight,
                         imageUrl: avatarUrl,
+                        isPremium: isPremium,
                       );
                     },
                   ),

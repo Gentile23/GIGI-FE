@@ -7,8 +7,11 @@ import 'progress/progress_dashboard_screen.dart';
 import 'profile/profile_screen.dart';
 import '../../core/theme/clean_theme.dart';
 import '../../core/services/haptic_service.dart';
+import '../../core/services/ui_preferences_service.dart';
+import '../../providers/auth_provider.dart';
 import '../widgets/navigation/floating_nav_bar.dart';
 import '../navigation/main_tab_navigation.dart';
+import 'package:provider/provider.dart';
 
 /// ═══════════════════════════════════════════════════════════
 /// MAIN SCREEN - TRIPGLIDE STYLE
@@ -74,41 +77,50 @@ class _MainScreenState extends State<MainScreen> {
           ),
 
           // 2. Floating Navigation Bar
-          FloatingNavBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              HapticService.lightTap();
-              if (index == _currentIndex) return;
-              setState(() => _currentIndex = index);
-              MainTabNavigation.selectedIndex.value = index;
+          Consumer2<AuthProvider, UiPreferencesService>(
+            builder: (context, authProvider, uiPreferences, _) {
+              final hasActiveProUi =
+                  (authProvider.user?.subscription?.isActive ?? false) &&
+                  uiPreferences.proBottomBarAccentEnabled;
+
+              return FloatingNavBar(
+                currentIndex: _currentIndex,
+                showProAccent: hasActiveProUi,
+                onTap: (index) {
+                  HapticService.lightTap();
+                  if (index == _currentIndex) return;
+                  setState(() => _currentIndex = index);
+                  MainTabNavigation.selectedIndex.value = index;
+                },
+                items: [
+                  FloatingNavItem(
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home,
+                    label: AppLocalizations.of(context)!.home,
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.fitness_center_outlined,
+                    activeIcon: Icons.fitness_center,
+                    label: AppLocalizations.of(context)!.workout,
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.restaurant_menu_outlined,
+                    activeIcon: Icons.restaurant_menu,
+                    label: AppLocalizations.of(context)!.nutrition,
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.trending_up_outlined,
+                    activeIcon: Icons.trending_up,
+                    label: AppLocalizations.of(context)!.progress,
+                  ),
+                  FloatingNavItem(
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    label: AppLocalizations.of(context)!.profile,
+                  ),
+                ],
+              );
             },
-            items: [
-              FloatingNavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: AppLocalizations.of(context)!.home,
-              ),
-              FloatingNavItem(
-                icon: Icons.fitness_center_outlined,
-                activeIcon: Icons.fitness_center,
-                label: AppLocalizations.of(context)!.workout,
-              ),
-              FloatingNavItem(
-                icon: Icons.restaurant_menu_outlined,
-                activeIcon: Icons.restaurant_menu,
-                label: AppLocalizations.of(context)!.nutrition,
-              ),
-              FloatingNavItem(
-                icon: Icons.trending_up_outlined,
-                activeIcon: Icons.trending_up,
-                label: AppLocalizations.of(context)!.progress,
-              ),
-              FloatingNavItem(
-                icon: Icons.person_outline,
-                activeIcon: Icons.person,
-                label: AppLocalizations.of(context)!.profile,
-              ),
-            ],
           ),
         ],
       ),

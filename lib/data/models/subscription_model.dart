@@ -54,26 +54,22 @@ class SubscriptionModel {
   }
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final tier = SubscriptionTier.values.firstWhere(
+      (e) => e.toString().split('.').last == json['tier'],
+      orElse: () => json['tier'] == 'premium'
+          ? SubscriptionTier.pro
+          : SubscriptionTier.free,
+    );
+
     return SubscriptionModel(
       id: json['id'].toString(),
       userId: json['user_id']?.toString() ?? json['userId']?.toString() ?? '',
-      tier: SubscriptionTier.values.firstWhere(
-        (e) => e.toString().split('.').last == json['tier'],
-        orElse: () => json['tier'] == 'premium'
-            ? SubscriptionTier.pro
-            : SubscriptionTier.free,
-      ),
+      tier: tier,
       startDate: DateTime.parse(json['start_date'] ?? json['startDate']),
       endDate: json['end_date'] != null || json['endDate'] != null
           ? DateTime.parse(json['end_date'] ?? json['endDate'])
           : null,
-      status: SubscriptionStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
-        orElse: () => json['tier'] == 'free' || json['tier'] == null
-            ? SubscriptionStatus
-                  .expired // Free tier doesn't have an "active" subscription object typically
-            : SubscriptionStatus.active,
-      ),
+      status: _parseStatus(json['status']?.toString(), tier),
       lastPlanGenerated:
           json['last_plan_generated'] != null ||
               json['lastPlanGenerated'] != null
@@ -81,6 +77,22 @@ class SubscriptionModel {
               json['last_plan_generated'] ?? json['lastPlanGenerated'],
             )
           : null,
+    );
+  }
+
+  static SubscriptionStatus _parseStatus(
+    String? rawStatus,
+    SubscriptionTier tier,
+  ) {
+    if (rawStatus == null || rawStatus.isEmpty) {
+      return tier == SubscriptionTier.free
+          ? SubscriptionStatus.expired
+          : SubscriptionStatus.active;
+    }
+
+    return SubscriptionStatus.values.firstWhere(
+      (e) => e.toString().split('.').last == rawStatus,
+      orElse: () => SubscriptionStatus.expired,
     );
   }
 
@@ -105,4 +117,4 @@ class SubscriptionModel {
   }
 }
 
-enum SubscriptionStatus { active, expired, cancelled }
+enum SubscriptionStatus { active, expired, cancelled, revoked }

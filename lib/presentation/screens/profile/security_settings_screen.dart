@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/services/ui_preferences_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import 'change_email_screen.dart';
@@ -31,14 +32,19 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final authProvider = Provider.of<AuthProvider>(context);
+    final uiPreferences = Provider.of<UiPreferencesService>(context);
     final user = authProvider.user;
+    final isPremium = user?.subscription?.isActive ?? false;
 
     return Scaffold(
       backgroundColor: CleanTheme.backgroundColor,
       appBar: AppBar(
         title: const Text(
           'Sicurezza Account',
-          style: TextStyle(fontWeight: FontWeight.w600, color: CleanTheme.textPrimary),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: CleanTheme.textPrimary,
+          ),
         ),
         backgroundColor: CleanTheme.surfaceColor,
         elevation: 0,
@@ -67,14 +73,20 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                     icon: Icons.alternate_email,
                     title: 'Email',
                     subtitle: user?.email ?? 'Non impostata',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ChangeEmailScreen()),
-                    ).then((_) {
-                      if (context.mounted) {
-                        Provider.of<AuthProvider>(context, listen: false).fetchUser();
-                      }
-                    }),
+                    onTap: () =>
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChangeEmailScreen(),
+                          ),
+                        ).then((_) {
+                          if (context.mounted) {
+                            Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            ).fetchUser();
+                          }
+                        }),
                   ),
                   _buildDivider(),
                   _buildSecurityTile(
@@ -84,7 +96,9 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                     subtitle: 'Ultimo aggiornamento: recente',
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const ChangePasswordScreen(),
+                      ),
                     ),
                   ),
                 ],
@@ -92,6 +106,27 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             ),
 
             const SizedBox(height: 32),
+            if (isPremium) ...[
+              _buildSectionHeader('Aspetto Pro'),
+              const SizedBox(height: 12),
+              CleanCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _buildToggleTile(
+                      icon: Icons.workspace_premium_outlined,
+                      title: 'Bordo oro menu',
+                      subtitle:
+                          'Mostra un microbordo dorato intorno al menu in basso',
+                      value: uiPreferences.proBottomBarAccentEnabled,
+                      onChanged: uiPreferences.setProBottomBarAccentEnabled,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+
             _buildSectionHeader('Altre Opzioni'),
             const SizedBox(height: 12),
             CleanCard(
@@ -109,7 +144,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 40),
             Center(
               child: Text(
@@ -212,7 +247,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     Color? color,
   }) {
     final tileColor = color ?? CleanTheme.textPrimary;
-    
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
@@ -225,16 +260,17 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
       ),
       title: Text(
         title,
-        style: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: tileColor,
-        ),
+        style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tileColor),
       ),
       subtitle: Text(
         subtitle,
         style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.textSecondary),
       ),
-      trailing: Icon(Icons.chevron_right, color: CleanTheme.textTertiary, size: 20),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: CleanTheme.textTertiary,
+        size: 20,
+      ),
       onTap: onTap,
     );
   }
@@ -248,6 +284,41 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     );
   }
 
+  Widget _buildToggleTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile.adaptive(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      value: value,
+      onChanged: onChanged,
+      activeThumbColor: CleanTheme.accentGold,
+      activeTrackColor: CleanTheme.accentGold.withValues(alpha: 0.35),
+      secondary: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: CleanTheme.accentGold.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: CleanTheme.accentGold, size: 22),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          color: CleanTheme.textPrimary,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.textSecondary),
+      ),
+    );
+  }
+
   void _showDeleteAccountDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -256,24 +327,36 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: CleanTheme.accentRed),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: CleanTheme.accentRed,
+            ),
             const SizedBox(width: 12),
             Text(
               'Elimina Account',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.accentRed),
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.bold,
+                color: CleanTheme.accentRed,
+              ),
             ),
           ],
         ),
         content: Text(
           'Questa azione è irreversibile. Tutti i tuoi progressi, abbonamenti e dati verranno eliminati definitivamente.',
-          style: GoogleFonts.inter(color: CleanTheme.textSecondary, height: 1.5),
+          style: GoogleFonts.inter(
+            color: CleanTheme.textSecondary,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Annulla',
-              style: GoogleFonts.inter(color: CleanTheme.textSecondary, fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           CleanButton(
@@ -284,11 +367,15 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               final auth = Provider.of<AuthProvider>(context, listen: false);
               final success = await auth.deleteAccount();
               if (success && context.mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/auth', (route) => false);
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/auth', (route) => false);
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(auth.error ?? 'Errore durante l\'eliminazione'),
+                    content: Text(
+                      auth.error ?? 'Errore durante l\'eliminazione',
+                    ),
                     backgroundColor: CleanTheme.accentRed,
                   ),
                 );

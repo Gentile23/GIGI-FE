@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../../core/services/haptic_service.dart';
 
+import 'package:share_plus/share_plus.dart';
+
 class GeneratedMealScreen extends StatefulWidget {
   final Map<String, dynamic> generatedMeal;
   final List<dynamic> portate;
@@ -20,6 +22,18 @@ class GeneratedMealScreen extends StatefulWidget {
 class _GeneratedMealScreenState extends State<GeneratedMealScreen> {
   final Map<int, bool> _expandedIngredients = {};
   final Map<int, bool> _expandedSteps = {};
+
+  void _shareRecipe() {
+    HapticService.mediumTap();
+    final mealName = widget.generatedMeal['nome_pasto'] ?? 'Menu Chef AI';
+    final text =
+        "Guarda cosa ha cucinato per me Chef AI di GIGI! 👨‍🍳🔥\n\n"
+        "Oggi per me: $mealName\n\n"
+        "Ricetta generata in pochi secondi partendo dai miei ingredienti. Scarica GIGI per rivoluzionare la tua cucina fit! 🚀\n\n"
+        "Scarica ora: https://gigi-pt.it";
+
+    SharePlus.instance.share(ShareParams(text: text));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +60,9 @@ class _GeneratedMealScreenState extends State<GeneratedMealScreen> {
             _buildMealHeader(),
             const SizedBox(height: 24),
             ...widget.portate.asMap().entries.map(
-                  (entry) => _buildCourseCard(entry.value, entry.key, widget.portate.length),
-                ),
+              (entry) =>
+                  _buildCourseCard(entry.value, entry.key, widget.portate.length),
+            ),
             if (widget.generatedMeal['consiglio_chef'] != null)
               _buildChefTip(widget.generatedMeal['consiglio_chef']),
 
@@ -84,6 +99,31 @@ class _GeneratedMealScreenState extends State<GeneratedMealScreen> {
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: CleanTheme.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: _shareRecipe,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CleanTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                  ),
+                  icon: const Icon(Icons.share_rounded, size: 20),
+                  label: Text(
+                    'Condividi',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

@@ -241,15 +241,18 @@ class WorkoutShareCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  stat.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: _textColor,
-                    height: 0.95,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    stat.value,
+                    maxLines: 1,
+                    style: GoogleFonts.outfit(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      color: _textColor,
+                      height: 0.95,
+                    ),
                   ),
                 ),
               ],
@@ -305,14 +308,17 @@ class WorkoutShareCard extends StatelessWidget {
         children: [
           Icon(stat.icon, size: 16, color: CleanTheme.accentOrange),
           const SizedBox(height: 7),
-          Text(
-            stat.value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: _textColor,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              stat.value,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: _textColor,
+              ),
             ),
           ),
           const SizedBox(height: 1),

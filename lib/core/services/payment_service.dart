@@ -49,6 +49,8 @@ class PaymentService extends ChangeNotifier {
 
   static const double _proMonthlyReferencePrice = 14.99;
   static const double _proYearlyReferencePrice = 99.99;
+  static const double _eliteMonthlyReferencePrice = 29.99;
+  static const double _eliteYearlyReferencePrice = 199.99;
 
   bool _isInitialized = false;
   bool _isStoreReady = false;
@@ -107,6 +109,32 @@ class PaymentService extends ChangeNotifier {
     final periodMatches = _availableProducts
         .where((product) => _isProductInfoPeriodMatch(product, expectedType))
         .toList();
+
+    final expectedPrice = _expectedReferencePrice(productId);
+    if (expectedPrice != null) {
+      final priceMatches = periodMatches
+          .where((product) => _priceApproximately(product.price, expectedPrice))
+          .toList();
+      if (priceMatches.length == 1) {
+        return priceMatches.single;
+      }
+    }
+
+    final tier = _expectedProductTier(productId);
+    if (tier != null) {
+      final tierMatches = periodMatches
+          .where(
+            (product) => _identifiersContainTierMarker({
+              product.identifier,
+              _normalizeProductIdentifier(product.identifier),
+              if (product.packageIdentifier != null) product.packageIdentifier!,
+            }, tier),
+          )
+          .toList();
+      if (tierMatches.length == 1) {
+        return tierMatches.single;
+      }
+    }
 
     return periodMatches.length == 1 ? periodMatches.single : null;
   }
@@ -417,9 +445,42 @@ class PaymentService extends ChangeNotifier {
       return null;
     }
 
-    final fallbackMatches = packages
+    final periodMatches = packages
         .where((package) => _isPackagePeriodMatch(package, fallbackType))
         .toList();
+
+    final expectedPrice = _expectedReferencePrice(productId);
+    if (expectedPrice != null) {
+      final priceMatches = periodMatches
+          .where(
+            (package) =>
+                _priceApproximately(package.storeProduct.price, expectedPrice),
+          )
+          .toList();
+
+      if (priceMatches.length == 1) {
+        return priceMatches.single;
+      }
+    }
+
+    final tier = _expectedProductTier(productId);
+    if (tier != null) {
+      final tierMatches = periodMatches
+          .where(
+            (package) => _identifiersContainTierMarker({
+              package.identifier,
+              package.storeProduct.identifier,
+              _normalizeProductIdentifier(package.storeProduct.identifier),
+            }, tier),
+          )
+          .toList();
+
+      if (tierMatches.length == 1) {
+        return tierMatches.single;
+      }
+    }
+
+    final fallbackMatches = periodMatches;
 
     if (fallbackMatches.length == 1) {
       return fallbackMatches.single;
@@ -625,6 +686,29 @@ class PaymentService extends ChangeNotifier {
     return (actual - expected).abs() < 0.02;
   }
 
+  double? _expectedReferencePrice(String productId) {
+    return switch (productId) {
+      ProductInfo.proMonthly => _proMonthlyReferencePrice,
+      ProductInfo.proYearly => _proYearlyReferencePrice,
+      ProductInfo.eliteMonthly => _eliteMonthlyReferencePrice,
+      ProductInfo.eliteYearly => _eliteYearlyReferencePrice,
+      _ => null,
+    };
+  }
+
+  String? _expectedProductTier(String productId) {
+    return switch (productId) {
+      ProductInfo.proMonthly || ProductInfo.proYearly => 'pro',
+      ProductInfo.eliteMonthly || ProductInfo.eliteYearly => 'elite',
+      _ => null,
+    };
+  }
+
+  bool _identifiersContainTierMarker(Set<String> identifiers, String tier) {
+    final canonical = identifiers.map(_canonicalizeProductIdentifier).toSet();
+    return canonical.any((id) => id.split('_').contains(tier));
+  }
+
   PackageType? _expectedPackageType(String productId) {
     final normalized = _canonicalizeProductIdentifier(
       _normalizeProductIdentifier(productId),
@@ -719,7 +803,8 @@ class PaymentService extends ChangeNotifier {
       if (!_isInitialized) {
         await initialize();
       }
-      await Purchases.logIn(userId);
+      final result = await Purchases.logIn(userId);
+      _updateFromCustomerInfo(result.customerInfo);
       debugPrint('RevenueCat: User identified as $userId');
     } catch (e) {
       debugPrint('RevenueCat: Error identifying user: $e');
@@ -743,9 +828,16 @@ class PaymentService extends ChangeNotifier {
 
   /// Check subscription status
   Future<void> checkSubscriptionStatus() async {
-    // In production:
-    // final customerInfo = await Purchases.getCustomerInfo();
-    // _updateFromCustomerInfo(customerInfo);
+    if (kIsWeb) return;
+    try {
+      if (!_isInitialized) {
+        await initialize();
+      }
+      final customerInfo = await Purchases.getCustomerInfo();
+      _updateFromCustomerInfo(customerInfo);
+    } catch (e) {
+      debugPrint('RevenueCat: Error checking subscription status: $e');
+    }
   }
 
   void _updateFromCustomerInfo(CustomerInfo info) {

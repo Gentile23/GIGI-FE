@@ -159,17 +159,23 @@ class GamificationStatsWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildMiniStat(
-                      '${stats.totalWorkouts}',
+                      stats.totalWorkouts >= 1000
+                          ? '${(stats.totalWorkouts / 1000).toStringAsFixed(1)}k'
+                          : '${stats.totalWorkouts}',
                       'Workout',
                       Icons.fitness_center,
                     ),
                     _buildMiniStat(
-                      '${stats.totalSetsCompleted}',
+                      stats.totalSetsCompleted >= 1000
+                          ? '${(stats.totalSetsCompleted / 1000).toStringAsFixed(1)}k'
+                          : '${stats.totalSetsCompleted}',
                       'Serie',
                       Icons.repeat,
                     ),
                     _buildMiniStat(
-                      '${stats.totalWeightLifted.toStringAsFixed(0)}kg',
+                      stats.totalWeightLifted >= 1000
+                          ? '${(stats.totalWeightLifted / 1000).toStringAsFixed(1)}t'
+                          : '${stats.totalWeightLifted.toStringAsFixed(0)}kg',
                       'Peso',
                       Icons.scale,
                     ),
@@ -188,12 +194,16 @@ class GamificationStatsWidget extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 18),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: GoogleFonts.outfit(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ),
         Text(

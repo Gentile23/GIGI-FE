@@ -932,7 +932,10 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Text('🧊 ', style: TextStyle(fontSize: 10)),
+                                  const Text(
+                                    '🧊 ',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
                                   Text(
                                     'SOSTITUITO OGGI',
                                     style: GoogleFonts.inter(
@@ -1348,50 +1351,53 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                            Text(
-                              food['name'] ?? 'Alimento',
-                              style: GoogleFonts.outfit(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 17,
-                                color: CleanTheme.textPrimary,
-                                letterSpacing: -0.3,
+                          Text(
+                            food['name'] ?? 'Alimento',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                              color: CleanTheme.textPrimary,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          if (food['is_substitution'] == true) ...[
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CleanTheme.accentOrange.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: CleanTheme.accentOrange.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    '🧊 ',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                  Text(
+                                    'SOSTITUITO OGGI',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: CleanTheme.accentOrange,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            if (food['is_substitution'] == true) ...[
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: CleanTheme.accentOrange.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: CleanTheme.accentOrange.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('🧊 ', style: TextStyle(fontSize: 10)),
-                                    Text(
-                                      'SOSTITUITO OGGI',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w900,
-                                        color: CleanTheme.accentOrange,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          ],
                           const SizedBox(height: 6),
                           Row(
                             children: [
@@ -1535,29 +1541,38 @@ class _DietPlanScreenState extends State<DietPlanScreen>
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
             onTap: onTap,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: isPrimary
-                      ? Colors.white
-                      : color.withValues(alpha: 0.8),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  label.toUpperCase(),
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: isPrimary
-                        ? Colors.white
-                        : color.withValues(alpha: 0.9),
-                    letterSpacing: 0.5,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: isPrimary
+                            ? Colors.white
+                            : color.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        label.toUpperCase(),
+                        maxLines: 1,
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isPrimary
+                              ? Colors.white
+                              : color.withValues(alpha: 0.9),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -1885,7 +1900,9 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                                   context: context,
                                   builder: (ctx) => AlertDialog(
                                     backgroundColor: CleanTheme.surfaceColor,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
                                     title: Text(
                                       'Applica Menù',
                                       style: GoogleFonts.outfit(
@@ -1895,46 +1912,68 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                                     ),
                                     content: Text(
                                       '"Solo Oggi" applica il menù temporaneamente.\n"Per Sempre" rimpiazza definitivamente questo pasto nel piano.',
-                                      style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                                      style: GoogleFonts.inter(
+                                        color: CleanTheme.textSecondary,
+                                      ),
                                     ),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.pop(ctx, false),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, false),
                                         child: Text(
                                           'SOLO OGGI',
-                                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold,
+                                            color: CleanTheme.textSecondary,
+                                          ),
                                         ),
                                       ),
                                       TextButton(
-                                        onPressed: () => Navigator.pop(ctx, true),
+                                        onPressed: () =>
+                                            Navigator.pop(ctx, true),
                                         child: Text(
                                           'PER SEMPRE',
-                                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.primaryColor),
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold,
+                                            color: CleanTheme.primaryColor,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 );
 
-                                if (isPermanent == null) return; // User cancelled
+                                if (isPermanent == null) {
+                                  return; // User cancelled
+                                }
 
-                                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
-
-                                if (context.mounted) Navigator.pop(context);
-
-                                final success = await provider.applyRegeneratedMeal(
-                                  dayIndex: dayIndex,
-                                  mealIndex: mealIndex,
-                                  newMeal: alt,
-                                  isPermanent: isPermanent,
-                                  weekIndex: _currentWeekIndex,
+                                if (!context.mounted) return;
+                                final scaffoldMessenger = ScaffoldMessenger.of(
+                                  context,
                                 );
+                                final provider =
+                                    Provider.of<NutritionCoachProvider>(
+                                      context,
+                                      listen: false,
+                                    );
+
+                                Navigator.pop(context);
+
+                                final success = await provider
+                                    .applyRegeneratedMeal(
+                                      dayIndex: dayIndex,
+                                      mealIndex: mealIndex,
+                                      newMeal: alt,
+                                      isPermanent: isPermanent,
+                                      weekIndex: _currentWeekIndex,
+                                    );
 
                                 if (!success && mounted) {
                                   scaffoldMessenger.showSnackBar(
                                     const SnackBar(
-                                      content: Text('Errore nell\'applicazione del menu.'),
+                                      content: Text(
+                                        'Errore nell\'applicazione del menu.',
+                                      ),
                                       backgroundColor: Colors.red,
                                     ),
                                   );
@@ -1942,10 +1981,12 @@ class _DietPlanScreenState extends State<DietPlanScreen>
                                   scaffoldMessenger.showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        isPermanent 
+                                        isPermanent
                                             ? 'Menù applicato permanentemente! ✨'
                                             : 'Menù applicato! Tornerà normale domani. 🧊',
-                                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                        style: GoogleFonts.inter(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       backgroundColor: CleanTheme.accentGreen,
                                       behavior: SnackBarBehavior.floating,
@@ -2331,11 +2372,14 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                               return;
                             }
 
+                            if (!context.mounted) return;
                             final isPermanent = await showDialog<bool>(
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 backgroundColor: CleanTheme.surfaceColor,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                                 title: Text(
                                   'Applica Sostituzione',
                                   style: GoogleFonts.outfit(
@@ -2345,21 +2389,29 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                                 ),
                                 content: Text(
                                   '"Solo Oggi" mantiene la dieta originale da domani.\n"Per Sempre" aggiorna il tuo piano in modo definitivo.',
-                                  style: GoogleFonts.inter(color: CleanTheme.textSecondary),
+                                  style: GoogleFonts.inter(
+                                    color: CleanTheme.textSecondary,
+                                  ),
                                 ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, false),
                                     child: Text(
                                       'SOLO OGGI',
-                                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.bold,
+                                        color: CleanTheme.textSecondary,
+                                      ),
                                     ),
                                   ),
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx, true),
                                     child: Text(
                                       'PER SEMPRE',
-                                      style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: CleanTheme.primaryColor),
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.bold,
+                                        color: CleanTheme.primaryColor,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2393,10 +2445,12 @@ class _SubstitutionSheetState extends State<_SubstitutionSheet> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    isPermanent 
+                                    isPermanent
                                         ? 'Sostituzione applicata permanentemente! ✨'
                                         : 'Sostituzione applicata! Tornerà normale domani. 🧊',
-                                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                   backgroundColor: CleanTheme.accentGreen,
                                   behavior: SnackBarBehavior.floating,
@@ -2533,8 +2587,11 @@ class _EquivalenceCalculatorSheetState
     if (_result == null || _result!['is_valid'] != true) return;
 
     setState(() => _isLoading = true);
-    
-    final provider = Provider.of<NutritionCoachProvider>(context, listen: false);
+
+    final provider = Provider.of<NutritionCoachProvider>(
+      context,
+      listen: false,
+    );
     final success = await provider.applySubstitution(
       dayIndex: widget.dayIndex,
       mealIndex: widget.mealIndex,
@@ -2558,7 +2615,7 @@ class _EquivalenceCalculatorSheetState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isPermanent 
+              isPermanent
                   ? 'Sostituzione applicata permanentemente! ✨'
                   : 'Sostituzione applicata! Tornerà normale domani. 🧊',
               style: GoogleFonts.inter(fontWeight: FontWeight.w600),
@@ -2840,7 +2897,7 @@ class _EquivalenceCalculatorSheetState
 
   Widget _buildValidResult() {
     final score = (_result!['compatibility_score'] as num?)?.toDouble() ?? 0;
-    
+
     return Column(
       children: [
         FoodScaleWidget(
@@ -2858,7 +2915,10 @@ class _EquivalenceCalculatorSheetState
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: CleanTheme.accentOrange, width: 2),
+                    border: Border.all(
+                      color: CleanTheme.accentOrange,
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
@@ -2883,7 +2943,10 @@ class _EquivalenceCalculatorSheetState
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [CleanTheme.accentOrange, const Color(0xFFFF7A00)],
+                      colors: [
+                        CleanTheme.accentOrange,
+                        const Color(0xFFFF7A00),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -2989,5 +3052,4 @@ class _EquivalenceCalculatorSheetState
       ),
     );
   }
-
 }

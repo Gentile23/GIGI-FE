@@ -12,6 +12,7 @@ import '../../../core/services/haptic_service.dart';
 import '../../widgets/quota/quota_banner.dart';
 import 'generated_meal_screen.dart';
 import 'ingredient_questionnaire_screen.dart';
+import 'package:share_plus/share_plus.dart';
 
 class WhatToCookScreen extends StatefulWidget {
   const WhatToCookScreen({super.key});
@@ -85,6 +86,18 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
       _isLoading = false;
     });
     HapticService.lightTap();
+  }
+
+  void _shareRecipe() {
+    HapticService.mediumTap();
+    final mealName = _generatedMeal?['nome_pasto'] ?? 'Menu Chef AI';
+    final text =
+        "Guarda cosa ha cucinato per me Chef AI di GIGI! 👨‍🍳🔥\n\n"
+        "Oggi per me: $mealName\n\n"
+        "Ricetta generata in pochi secondi partendo dai miei ingredienti. Scarica GIGI per rivoluzionare la tua cucina fit! 🚀\n\n"
+        "Scarica ora: https://gigi-pt.it";
+
+    SharePlus.instance.share(ShareParams(text: text));
   }
 
   Future<void> _addIngredient() async {
@@ -588,6 +601,31 @@ class _WhatToCookScreenState extends State<WhatToCookScreen> {
                           color: _isLoading
                               ? CleanTheme.textTertiary
                               : CleanTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _shareRecipe,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CleanTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shadowColor: CleanTheme.primaryColor.withValues(alpha: 0.3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                      ),
+                      icon: const Icon(Icons.share_rounded, size: 20),
+                      label: Text(
+                        'Condividi',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

@@ -460,6 +460,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                 imageUrl: auth.user?.avatarUrl,
                 initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
                 backgroundColor: CleanTheme.surfaceColor,
+                isPremium: auth.user?.subscription?.isActive ?? false,
               ),
             ),
           ),
@@ -937,7 +938,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
           child: _buildStatCard(
             '🏋️',
             AppLocalizations.of(context)!.progressWorkouts,
-            '$totalWorkouts',
+            totalWorkouts >= 1000
+                ? '${(totalWorkouts / 1000).toStringAsFixed(1)}k'
+                : '$totalWorkouts',
             const Color(0xFF000000),
           ),
         ),
@@ -946,7 +949,9 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
           child: _buildStatCard(
             '📊',
             AppLocalizations.of(context)!.progressTotalSets,
-            '$totalSets',
+            totalSets >= 1000
+                ? '${(totalSets / 1000).toStringAsFixed(1)}k'
+                : '$totalSets',
             const Color(0xFF3A3A3C),
           ),
         ),
@@ -957,7 +962,11 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             totalVolume > 0
                 ? 'Volume'
                 : AppLocalizations.of(context)!.progressTotalTime,
-            totalVolume > 0 ? '${totalVolume.toStringAsFixed(0)}kg' : timeLabel,
+            totalVolume > 0
+                ? (totalVolume >= 1000
+                      ? '${(totalVolume / 1000).toStringAsFixed(1)}t'
+                      : '${totalVolume.toStringAsFixed(0)}kg')
+                : timeLabel,
             const Color(0xFF636366),
           ),
         ),
@@ -1018,12 +1027,16 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
         children: [
           Text(emoji, style: const TextStyle(fontSize: 22)),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ),
           Text(

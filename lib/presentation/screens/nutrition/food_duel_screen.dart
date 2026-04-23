@@ -31,6 +31,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   final _foodBController = TextEditingController();
   final _quantityController = TextEditingController(text: '100');
   final _nutritionService = NutritionService(ApiClient());
+  final ScrollController _scrollController = ScrollController();
 
   Map<String, dynamic>? _result;
   bool _isLoading = false;
@@ -54,6 +55,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     _foodBController.dispose();
     _quantityController.dispose();
     _gaugeController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -131,6 +133,17 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
             (result['requires_confirmation'] as bool?) != true;
       });
 
+      // Auto-scroll fino al risultato (valido o invalido)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.easeOutCubic,
+          );
+        }
+      });
+
       if (result['is_valid'] == true) {
         _gaugeController.forward(from: 0);
       }
@@ -168,6 +181,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
         centerTitle: true,
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Column(
           children: [
@@ -447,15 +461,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     final targetQty = _readDouble(target, 'quantity');
     final equivalentQty = _readDouble(equivalent, 'quantity');
     final unit = _readString(equivalent, 'unit', _unit);
-    final score = (_result!['compatibility_score'] as num?)?.toInt() ?? 0;
-    final verdictLabel =
-        (_result!['verdict_label'] as String?) ?? _scoreLabel(score);
-    final verdictMessage =
-        (_result!['verdict_message'] as String?) ??
-        'Calorie pareggiate. Controlla i macro prima di usarlo come sostituzione abituale.';
     final assumptions = _readStringList(_result!['assumptions']);
-    final requiresConfirmation =
-        (_result!['requires_confirmation'] as bool?) == true;
 
     return Column(
       children: [
@@ -500,75 +506,27 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 ),
               ),
               const SizedBox(height: 18),
-              _buildVerdict(score, verdictLabel, verdictMessage),
+
             ],
           ),
         ),
-        if (requiresConfirmation || assumptions.isNotEmpty) ...[
+        if (assumptions.isNotEmpty) ...[
           const SizedBox(height: 14),
-          _buildAssumptionCard(assumptions, requiresConfirmation),
+          _buildAssumptionCard(assumptions),
         ],
         const SizedBox(height: 14),
         _buildMacroCard(target, equivalent),
         const SizedBox(height: 14),
-        _buildSaveButton(requiresConfirmation),
+        _buildMacroCard(target, equivalent),
+        const SizedBox(height: 14),
+        _buildSaveButton(false), // Pass false to always enable save
       ],
     );
   }
 
-  Widget _buildVerdict(int score, String label, String message) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 62,
-          height: 62,
-          child: CustomPaint(
-            painter: _ReportGaugePainter(
-              score: score,
-              color: _scoreColor(score),
-            ),
-            child: Center(
-              child: Text(
-                '$score',
-                style: GoogleFonts.outfit(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  color: _scoreColor(score),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: CleanTheme.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                message,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  height: 1.35,
-                  color: CleanTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildAssumptionCard(List<String> assumptions, bool requiresConfirm) {
+
+  Widget _buildAssumptionCard(List<String> assumptions) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -599,36 +557,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
                 ? [_buildAssumptionChip('versione comune stimata')]
                 : assumptions.map(_buildAssumptionChip).toList(),
           ),
-          if (requiresConfirm) ...[
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => setState(() => _assumptionsConfirmed = true),
-              child: Row(
-                children: [
-                  Icon(
-                    _assumptionsConfirmed
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    color: _assumptionsConfirmed
-                        ? CleanTheme.accentGreen
-                        : CleanTheme.textTertiary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Confermo queste assunzioni',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+
         ],
       ),
     );
@@ -1020,17 +949,7 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
     'snack': 'Snack',
   };
 
-  String _scoreLabel(int score) {
-    if (score >= 75) return 'Buona sostituzione';
-    if (score >= 50) return 'Sostituzione accettabile';
-    return 'Non ideale';
-  }
 
-  Color _scoreColor(int score) {
-    if (score >= 75) return CleanTheme.accentGreen;
-    if (score >= 50) return CleanTheme.accentGold;
-    return CleanTheme.accentRed;
-  }
 
   void _showSnack(String message, {Color color = CleanTheme.accentRed}) {
     if (!mounted) return;
@@ -1040,44 +959,4 @@ class _FoodDuelScreenState extends State<FoodDuelScreen>
   }
 }
 
-class _ReportGaugePainter extends CustomPainter {
-  final int score;
-  final Color color;
 
-  _ReportGaugePainter({required this.score, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 4;
-    final bgPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..color = CleanTheme.borderSecondary;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      pi * 2,
-      false,
-      bgPaint,
-    );
-
-    final progressPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round
-      ..color = color;
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      pi * 2 * (score.clamp(0, 100) / 100),
-      false,
-      progressPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _ReportGaugePainter oldDelegate) {
-    return oldDelegate.score != score || oldDelegate.color != color;
-  }
-}

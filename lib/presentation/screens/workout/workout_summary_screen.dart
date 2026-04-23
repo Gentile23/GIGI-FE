@@ -1,10 +1,10 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -98,7 +98,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
 
   bool _isGeneratingImage = false;
   Uint8List? _selectedPhotoBytes;
-  final GlobalKey _shareCardKey = GlobalKey();
 
   @override
   void initState() {
@@ -128,22 +127,6 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       backgroundColor: CleanTheme.chromeSubtle,
       body: Stack(
         children: [
-          // Ghost widget per la cattura dell'immagine (posizionato fuori schermo)
-          Positioned(
-            left: -1000,
-            top: 0,
-            child: RepaintBoundary(
-              key: _shareCardKey,
-              child: SizedBox(
-                width: 360,
-                child: WorkoutShareCard(
-                  summaryData: widget.summaryData,
-                  photoBytes: _selectedPhotoBytes,
-                  userName: context.read<AuthProvider>().user?.name,
-                ),
-              ),
-            ),
-          ),
           Positioned(
             top: -120,
             right: -40,
@@ -407,14 +390,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.outfit(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -486,15 +471,17 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: GoogleFonts.outfit(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: CleanTheme.textPrimary,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: GoogleFonts.outfit(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: CleanTheme.textPrimary,
+                  ),
+                  maxLines: 1,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
@@ -863,8 +850,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       debugPrint('Image picked: ${image.path}');
       if (!mounted) return;
 
-      final selectedPhotoBytes = await image.readAsBytes();
-      debugPrint('Image bytes read: ${selectedPhotoBytes.length} bytes');
+      final rawPhotoBytes = await image.readAsBytes();
+      debugPrint('Image bytes read: ${rawPhotoBytes.length} bytes');
+      if (!mounted) return;
+
+      final selectedPhotoBytes = await _normalizeSelectedPhotoBytes(
+        rawPhotoBytes,
+      );
+      debugPrint(
+        'Normalized image bytes ready: ${selectedPhotoBytes.length} bytes',
+      );
       if (!mounted) return;
 
       await precacheImage(MemoryImage(selectedPhotoBytes), context);
@@ -875,6 +870,15 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       });
 
       await _generateAndShareImage();
+    } on PlatformException catch (e) {
+      debugPrint('Image picker platform error: ${e.code} ${e.message}');
+      if (!mounted) return;
+      final message = _isPickerPermissionError(e)
+          ? 'Permessi foto non concessi. Apri Impostazioni e abilita Fotocamera o Foto per GIGI.'
+          : 'Errore durante la selezione della foto';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       debugPrint('Error picking image: $e');
       if (mounted) {
@@ -884,6 +888,30 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<Uint8List> _normalizeSelectedPhotoBytes(Uint8List bytes) async {
+    if (bytes.isEmpty) {
+      throw StateError('Foto selezionata non valida');
+    }
+
+    try {
+      final codec = await ui.instantiateImageCodec(bytes, targetWidth: 1440);
+      final frame = await codec.getNextFrame();
+      final byteData = await frame.image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      frame.image.dispose();
+
+      if (byteData == null) {
+        return bytes;
+      }
+
+      return byteData.buffer.asUint8List();
+    } catch (e) {
+      debugPrint('Image normalization failed, using original bytes: $e');
+      return bytes;
     }
   }
 
@@ -913,7 +941,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       debugPrint('Rendering share card PNG bytes...');
       final pngBytes = await _renderShareCardPngBytes();
       debugPrint('PNG bytes generated: ${pngBytes.length} bytes');
-      
+
       if (mounted) {
         if (loadingDialogShown) {
           Navigator.of(context, rootNavigator: true).pop();
@@ -946,8 +974,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
+      builder: (sheetContext) => Container(
+        height: MediaQuery.of(sheetContext).size.height * 0.85,
         decoration: const BoxDecoration(
           color: CleanTheme.backgroundColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -992,10 +1020,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                         ),
                       ],
                     ),
-                    child: Image.memory(
-                      imageBytes,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.memory(imageBytes, fit: BoxFit.contain),
                   ),
                 ),
               ),
@@ -1009,7 +1034,9 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -1028,35 +1055,48 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                     child: ElevatedButton(
                       onPressed: () async {
                         debugPrint('Condividi button pressed in modal');
-                        Navigator.pop(context);
+                        Navigator.pop(sheetContext);
                         try {
                           debugPrint('Creating share image file...');
                           final shareFile = await createShareImageFile(
                             imageBytes,
                             fileName: 'gigi_workout_share.png',
                           );
-                          debugPrint('Share file created at: ${shareFile.path}');
+                          debugPrint(
+                            'Share file created at: ${shareFile.path}',
+                          );
 
-                          if (!context.mounted) return;
-                          
+                          if (!mounted) return;
+
                           // Get origin for iPad popover
-                          final RenderBox? box = context.findRenderObject() as RenderBox?;
-                          final Rect? origin = box != null 
-                              ? box.localToGlobal(Offset.zero) & box.size 
+                          final renderObject = context.findRenderObject();
+                          final box = renderObject is RenderBox
+                              ? renderObject
+                              : null;
+                          final origin = box != null
+                              ? box.localToGlobal(Offset.zero) & box.size
                               : null;
 
-                          debugPrint('Triggering native share sheet with SharePlus.instance.share...');
-                          await Share.shareXFiles(
-                            [XFile(shareFile.path)],
-                            text: _buildSocialShareText(),
-                            sharePositionOrigin: origin,
+                          debugPrint(
+                            'Triggering native share sheet with SharePlus.instance.share...',
+                          );
+                          await SharePlus.instance.share(
+                            ShareParams(
+                              files: [shareFile],
+                              text: _buildSocialShareText(),
+                              sharePositionOrigin: origin,
+                            ),
                           );
                           debugPrint('Share sheet successfully requested');
                         } catch (e) {
                           debugPrint('Critical error during share flow: $e');
-                          if (context.mounted) {
+                          if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Errore durante la condivisione: $e')),
+                              SnackBar(
+                                content: Text(
+                                  'Errore durante la condivisione: $e',
+                                ),
+                              ),
                             );
                           }
                         }
@@ -1080,7 +1120,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
+            SizedBox(height: MediaQuery.of(sheetContext).padding.bottom),
           ],
         ),
       ),
@@ -1138,13 +1178,22 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
   Future<Uint8List> _renderShareCardPngBytes() async {
     debugPrint('Precaching assets for share card...');
     await _precacheShareCardAssets();
+    if (!mounted) {
+      throw StateError('Schermata non disponibile per generare la card');
+    }
+
+    final shareCard = WorkoutShareCard(
+      summaryData: widget.summaryData,
+      photoBytes: _selectedPhotoBytes,
+      userName: context.read<AuthProvider>().user?.name,
+    );
 
     Object? lastError;
-    for (var attempt = 1; attempt <= 3; attempt++) {
+    for (final pixelRatio in const [2.0, 1.5, 1.0]) {
       ui.Image? image;
       try {
-        debugPrint('Capture attempt $attempt/3 starting...');
-        image = await _captureShareCardImage(pixelRatio: 2.5);
+        debugPrint('Overlay capture starting with pixelRatio=$pixelRatio...');
+        image = await _captureShareCardImage(shareCard, pixelRatio: pixelRatio);
         debugPrint('Card captured, converting to byte data...');
         final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
         if (byteData == null) {
@@ -1154,10 +1203,8 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         return byteData.buffer.asUint8List();
       } catch (e) {
         lastError = e;
-        debugPrint('Share image render attempt $attempt failed: $e');
-        if (attempt < 3) {
-          await Future<void>.delayed(Duration(milliseconds: 250 * attempt));
-        }
+        debugPrint('Share image render failed at pixelRatio=$pixelRatio: $e');
+        await Future<void>.delayed(const Duration(milliseconds: 250));
       } finally {
         image?.dispose();
       }
@@ -1183,35 +1230,65 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     await WidgetsBinding.instance.endOfFrame;
   }
 
-  Future<ui.Image> _captureShareCardImage({required double pixelRatio}) async {
+  Future<ui.Image> _captureShareCardImage(
+    Widget shareCard, {
+    required double pixelRatio,
+  }) async {
+    if (!mounted) {
+      throw StateError('Schermata non disponibile');
+    }
+
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final boundaryKey = GlobalKey();
+    final entry = OverlayEntry(
+      builder: (_) => Positioned(
+        left: 0,
+        top: 0,
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: 0.02,
+            child: Material(
+              color: Colors.transparent,
+              child: RepaintBoundary(
+                key: boundaryKey,
+                child: Center(
+                  child: SizedBox(width: 360, height: 640, child: shareCard),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
     Object? lastError;
+    overlay.insert(entry);
 
     try {
-      // Delay iniziale per permettere agli asset di caricarsi
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-
-      for (var attempt = 0; attempt < 60; attempt++) {
+      for (var attempt = 0; attempt < 45; attempt++) {
         WidgetsBinding.instance.scheduleFrame();
         await WidgetsBinding.instance.endOfFrame;
-
-        // Tempo sufficiente al decoding delle immagini
         await Future<void>.delayed(const Duration(milliseconds: 32));
 
-        final boundaryContext = _shareCardKey.currentContext;
+        final boundaryContext = boundaryKey.currentContext;
         final renderObject = boundaryContext?.findRenderObject();
-        
+
         if (boundaryContext == null) {
-          debugPrint('Capture attempt $attempt: context is null');
+          lastError = StateError('Share card overlay non montata');
+          continue;
         }
 
         if (renderObject is! RenderRepaintBoundary) {
-          lastError = StateError('Share card non pronta o RepaintBoundary mancante');
+          lastError = StateError(
+            'Share card non pronta o RepaintBoundary mancante',
+          );
           continue;
         }
 
         if (renderObject.debugNeedsLayout || renderObject.debugNeedsPaint) {
-          lastError = StateError('Share card non ha completato il paint (needs paint/layout)');
-          WidgetsBinding.instance.scheduleFrame();
+          lastError = StateError(
+            'Share card non ha completato il paint (needs paint/layout)',
+          );
           continue;
         }
 
@@ -1226,10 +1303,20 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       throw StateError(
-        'Impossibile catturare la card dopo 60 tentativi: ${lastError ?? 'timeout'}',
+        'Impossibile catturare la card dopo 30 tentativi: ${lastError ?? 'timeout'}',
       );
-    } catch (e) {
-      rethrow;
+    } finally {
+      entry.remove();
     }
+  }
+
+  bool _isPickerPermissionError(PlatformException error) {
+    final code = error.code.toLowerCase();
+    final message = (error.message ?? '').toLowerCase();
+    return code.contains('permission') ||
+        code.contains('denied') ||
+        message.contains('permission') ||
+        message.contains('denied') ||
+        message.contains('authorized');
   }
 }

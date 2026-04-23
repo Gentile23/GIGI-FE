@@ -6,6 +6,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../data/models/user_model.dart';
 import '../data/services/api_client.dart';
 import '../data/services/auth_service.dart';
+import '../data/services/subscription_sync_service.dart';
 import '../data/services/user_service.dart';
 import '../core/services/payment_service.dart';
 
@@ -13,6 +14,7 @@ class AuthProvider with ChangeNotifier {
   final ApiClient _apiClient;
   late final AuthService _authService;
   late final UserService _userService;
+  late final SubscriptionSyncService _subscriptionSyncService;
   // Google Client ID
   static const String _googleClientId =
       '832030535090-sciu23qp4gsg1m1315u8gmmb3dri2ikd.apps.googleusercontent.com';
@@ -32,6 +34,7 @@ class AuthProvider with ChangeNotifier {
   AuthProvider(this._apiClient) {
     _authService = AuthService(_apiClient);
     _userService = UserService(_apiClient);
+    _subscriptionSyncService = SubscriptionSyncService(_apiClient);
     _checkAuthStatus();
   }
 
@@ -414,7 +417,17 @@ class AuthProvider with ChangeNotifier {
   Future<void> _identifyRevenueCatUser() async {
     final userId = _user?.id;
     if (userId == null || userId.isEmpty) return;
-    await PaymentService().identifyUser(userId);
+    final paymentService = PaymentService();
+    await paymentService.identifyUser(userId);
+
+    if (!paymentService.isProOrAbove) {
+      return;
+    }
+
+    final result = await _subscriptionSyncService.sync();
+    if (result.success && result.user != null) {
+      _user = result.user;
+    }
   }
 
   Future<bool> updateProfile({

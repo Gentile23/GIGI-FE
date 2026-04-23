@@ -9,8 +9,10 @@ import '../../../core/constants/legal_links.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/services/payment_service.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/quota_provider.dart';
 import '../../../data/models/quota_status_model.dart';
 import '../../../data/services/quota_service.dart';
+import '../../../data/services/subscription_sync_service.dart';
 import '../../widgets/clean_widgets.dart';
 import 'package:gigi/l10n/app_localizations.dart';
 import 'gigi_pro_welcome_screen.dart';
@@ -868,10 +870,22 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (mounted) Navigator.pop(context);
 
     if (success && mounted) {
-      await _refreshUserAfterPurchase();
+      final synced = await _syncBackendAfterPurchase();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
+      if (synced) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
+        );
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Acquisto riuscito, ma sincronizzazione non completata. Usa Ripristina acquisti tra poco.',
+          ),
+          backgroundColor: CleanTheme.accentOrange,
+        ),
       );
     } else if (mounted) {
       // Show error
@@ -892,12 +906,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final success = await paymentService.restorePurchases();
     if (!mounted) return;
 
-    if (success && paymentService.isProOrAbove) {
-      await _refreshUserAfterPurchase();
+    if (success) {
+      final synced = await _syncBackendAfterPurchase();
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
-      );
+      if (synced) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const GigiProWelcomeScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ripristino riuscito, ma sincronizzazione non completata. Riprova tra poco.',
+            ),
+            backgroundColor: CleanTheme.accentOrange,
+          ),
+        );
+      }
       return;
     }
 
@@ -915,14 +940,30 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
-  Future<void> _refreshUserAfterPurchase() async {
+  Future<bool> _syncBackendAfterPurchase() async {
+    final syncResult = await SubscriptionSyncService().sync();
+    if (!syncResult.success) {
+      return false;
+    }
+
+    if (!mounted) return false;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     for (var attempt = 0; attempt < 3; attempt++) {
       await authProvider.fetchUser();
       final isActive = authProvider.user?.subscription?.isActive ?? false;
-      if (isActive) return;
+      if (isActive) {
+        if (mounted) {
+          await Provider.of<QuotaProvider>(
+            context,
+            listen: false,
+          ).refresh(silent: true);
+        }
+        return true;
+      }
       await Future.delayed(const Duration(seconds: 1));
     }
+
+    return false;
   }
 
   Future<void> _openLegalUrl(String value) async {

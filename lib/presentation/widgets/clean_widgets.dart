@@ -580,6 +580,7 @@ class CleanAvatar extends StatelessWidget {
   final Color? backgroundColor;
   final VoidCallback? onTap;
   final bool showBorder;
+  final bool isPremium;
 
   const CleanAvatar({
     super.key,
@@ -589,38 +590,82 @@ class CleanAvatar extends StatelessWidget {
     this.backgroundColor,
     this.onTap,
     this.showBorder = false,
+    this.isPremium = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: backgroundColor ?? CleanTheme.borderSecondary,
-          border: showBorder
-              ? Border.all(color: CleanTheme.borderPrimary, width: 2)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: backgroundColor ?? CleanTheme.borderSecondary,
+                border: isPremium
+                    ? Border.all(color: CleanTheme.accentGold, width: 3)
+                    : showBorder
+                    ? Border.all(color: CleanTheme.borderPrimary, width: 2)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: isPremium
+                        ? CleanTheme.accentGold.withValues(alpha: 0.28)
+                        : Colors.black.withValues(alpha: 0.05),
+                    blurRadius: isPremium ? 14 : 8,
+                    spreadRadius: isPremium ? 1 : 0,
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: imageUrl != null
+                    ? Image.network(
+                        imageUrl!.startsWith('http')
+                            ? imageUrl!
+                            : _buildFullImageUrl(imageUrl!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _buildInitials(),
+                      )
+                    : _buildInitials(),
+              ),
             ),
+            if (isPremium)
+              Positioned(
+                top: -4,
+                right: -2,
+                child: Container(
+                  width: size * 0.3,
+                  height: size * 0.3,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: CleanTheme.accentGold,
+                    border: Border.all(
+                      color: CleanTheme.surfaceColor,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CleanTheme.accentGold.withValues(alpha: 0.32),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.workspace_premium_rounded,
+                    size: size * 0.18,
+                    color: CleanTheme.textOnDark,
+                  ),
+                ),
+              ),
           ],
-        ),
-        child: ClipOval(
-          child: imageUrl != null
-              ? Image.network(
-                  imageUrl!.startsWith('http')
-                      ? imageUrl!
-                      : _buildFullImageUrl(imageUrl!),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _buildInitials(),
-                )
-              : _buildInitials(),
         ),
       ),
     );
@@ -628,14 +673,16 @@ class CleanAvatar extends StatelessWidget {
 
   String _buildFullImageUrl(String path) {
     // Rimuove '/api/' o 'api/' dalla fine di baseUrl per ottenere la root del dominio
-    String root = ApiConfig.baseUrl.replaceAll('/api/', '').replaceAll('api/', '');
+    String root = ApiConfig.baseUrl
+        .replaceAll('/api/', '')
+        .replaceAll('api/', '');
     if (root.endsWith('/')) {
       root = root.substring(0, root.length - 1);
     }
-    
+
     // Assicura che il path inizi con / se la root non finisce con /
     String cleanedPath = path.startsWith('/') ? path : '/$path';
-    
+
     return '$root$cleanedPath';
   }
 
@@ -877,12 +924,14 @@ class CleanBadge extends StatelessWidget {
 /// ═══════════════════════════════════════════════════════════
 class CleanSectionHeader extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final String? actionText;
   final VoidCallback? onAction;
 
   const CleanSectionHeader({
     super.key,
     required this.title,
+    this.subtitle,
     this.actionText,
     this.onAction,
   });
@@ -893,14 +942,30 @@ class CleanSectionHeader extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         // Title - Centered
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: CleanTheme.textPrimary,
-          ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textPrimary,
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: CleanTheme.textSecondary,
+                ),
+              ),
+            ],
+          ],
         ),
         // Action - Right aligned
         if (actionText != null)
