@@ -1296,7 +1296,8 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                 : null,
           ),
           clipBehavior: Clip.hardEdge,
-          child: IntrinsicHeight(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 66),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -1323,48 +1324,44 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                       // Set Number Badge
                       SizedBox(
                         width: 36,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 14), // Offset for labels
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isCompleted
+                                  ? CleanTheme.accentGreen
+                                  : CleanTheme.steelDark.withValues(
+                                      alpha: 0.06,
+                                    ),
+                              border: Border.all(
                                 color: isCompleted
                                     ? CleanTheme.accentGreen
-                                    : CleanTheme.steelDark.withValues(
-                                        alpha: 0.06,
+                                    : CleanTheme.chromeGray.withValues(
+                                        alpha: 0.6,
                                       ),
-                                border: Border.all(
-                                  color: isCompleted
-                                      ? CleanTheme.accentGreen
-                                      : CleanTheme.chromeGray.withValues(
-                                          alpha: 0.6,
-                                        ),
-                                  width: isCompleted ? 0 : 1.5,
-                                ),
-                              ),
-                              child: Center(
-                                child: isCompleted
-                                    ? const Icon(
-                                        Icons.check,
-                                        size: 13,
-                                        color: CleanTheme.textOnPrimary,
-                                      )
-                                    : Text(
-                                        '$setNumber',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: CleanTheme.textPrimary,
-                                        ),
-                                      ),
+                                width: isCompleted ? 0 : 1.5,
                               ),
                             ),
-                          ],
+                            child: Center(
+                              child: isCompleted
+                                  ? const Icon(
+                                      Icons.check,
+                                      size: 13,
+                                      color: CleanTheme.textOnPrimary,
+                                    )
+                                  : Text(
+                                      '$setNumber',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: CleanTheme.textPrimary,
+                                      ),
+                                    ),
+                            ),
+                          ),
                         ),
                       ),
 
@@ -1373,87 +1370,83 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                         // Weight Column
                         Expanded(
                           flex: 3,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                height: 46,
-                                child: DecoratedBox(
-                                  decoration: _fieldDecoration(
-                                    isCompleted: isCompleted,
-                                    isActive: isWeightActive,
-                                  ),
-                                  child: _buildInputSelectionTheme(
-                                    child: TextField(
-                                      textAlign: TextAlign.center,
-                                      controller: _weightControllers[setNumber],
-                                      focusNode: _weightFocusNodes[setNumber],
-                                      keyboardType:
-                                          const TextInputType.numberWithOptions(
-                                            decimal: true,
-                                          ),
-                                      textInputAction: TextInputAction.done,
-                                      inputFormatters: [
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(r'^\d*([,.]\d*)?$'),
+                          child: Center(
+                            child: SizedBox(
+                              height: 46,
+                              child: DecoratedBox(
+                                decoration: _fieldDecoration(
+                                  isCompleted: isCompleted,
+                                  isActive: isWeightActive,
+                                ),
+                                child: _buildInputSelectionTheme(
+                                  child: TextField(
+                                    textAlign: TextAlign.center,
+                                    controller: _weightControllers[setNumber],
+                                    focusNode: _weightFocusNodes[setNumber],
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
                                         ),
-                                      ],
-                                      onSubmitted: (_) =>
-                                          _dismissKeyboardAndSave(),
-                                      scrollPadding: const EdgeInsets.only(
-                                        bottom: 120,
+                                    textInputAction: TextInputAction.done,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(
+                                        RegExp(r'^\d*([,.]\d*)?$'),
                                       ),
-                                      onTap: () {
-                                        _setActiveField(
-                                          setNumber,
-                                          _EditableSetField.weight,
-                                        );
-                                        final isGhost =
-                                            !_manuallyEditedWeights.contains(
-                                              setNumber,
-                                            ) &&
-                                            (_weightControllers[setNumber]
-                                                    ?.text
-                                                    .isNotEmpty ??
-                                                false);
-                                        if (isGhost) {
-                                          _weightControllers[setNumber]!
-                                              .selection = TextSelection(
-                                            baseOffset: 0,
-                                            extentOffset:
-                                                _weightControllers[setNumber]!
-                                                    .text
-                                                    .length,
-                                          );
-                                        }
-                                      },
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w700,
-                                        color: CleanTheme.textPrimary,
-                                      ),
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 13,
-                                              horizontal: 4,
-                                            ),
-                                        hintText: '0',
-                                        hintStyle: GoogleFonts.inter(
-                                          fontSize: 13,
-                                          color: CleanTheme.textTertiary,
-                                        ),
-                                      ),
-                                      enabled: true,
-                                      cursorColor: CleanTheme.textPrimary,
+                                    ],
+                                    onSubmitted: (_) =>
+                                        _dismissKeyboardAndSave(),
+                                    scrollPadding: const EdgeInsets.only(
+                                      bottom: 120,
                                     ),
+                                    onTap: () {
+                                      _setActiveField(
+                                        setNumber,
+                                        _EditableSetField.weight,
+                                      );
+                                      final isGhost =
+                                          !_manuallyEditedWeights.contains(
+                                            setNumber,
+                                          ) &&
+                                          (_weightControllers[setNumber]
+                                                  ?.text
+                                                  .isNotEmpty ??
+                                              false);
+                                      if (isGhost) {
+                                        _weightControllers[setNumber]!
+                                            .selection = TextSelection(
+                                          baseOffset: 0,
+                                          extentOffset:
+                                              _weightControllers[setNumber]!
+                                                  .text
+                                                  .length,
+                                        );
+                                      }
+                                    },
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: CleanTheme.textPrimary,
+                                    ),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            vertical: 13,
+                                            horizontal: 4,
+                                          ),
+                                      hintText: '0',
+                                      hintStyle: GoogleFonts.inter(
+                                        fontSize: 13,
+                                        color: CleanTheme.textTertiary,
+                                      ),
+                                    ),
+                                    enabled: true,
+                                    cursorColor: CleanTheme.textPrimary,
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1569,89 +1562,81 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                       if (!isCardioMobility) ...[
                         Expanded(
                           flex: 2,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(height: 12),
-                              GestureDetector(
-                                onTap: () => _showRPEPicker(setNumber),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 180),
-                                  width: 52,
-                                  height: 52,
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () => _showRPEPicker(setNumber),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 180),
+                                width: 52,
+                                height: 52,
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: isRpeActive
+                                      ? Colors.white.withValues(alpha: 0.92)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(26),
+                                  border: Border.all(
                                     color: isRpeActive
-                                        ? Colors.white.withValues(alpha: 0.92)
+                                        ? Colors.white
                                         : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(26),
-                                    border: Border.all(
-                                      color: isRpeActive
-                                          ? Colors.white
-                                          : Colors.transparent,
-                                      width: 1.2,
-                                    ),
+                                    width: 1.2,
                                   ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _getRPEColor(_rpe[setNumber] ?? 7)
-                                          .withValues(
-                                            alpha: isCompleted ? 0.08 : 0.12,
-                                          ),
-                                      border: Border.all(
-                                        color: _getRPEColor(
-                                          _rpe[setNumber] ?? 7,
-                                        ).withValues(alpha: 0.35),
-                                        width: isRpeActive ? 1.4 : 1,
-                                      ),
-                                      boxShadow: isRpeActive
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.55,
-                                                ),
-                                                blurRadius: 14,
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '${_rpe[setNumber] ?? 7}',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800,
-                                          color: CleanTheme.textPrimary,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _getRPEColor(_rpe[setNumber] ?? 7)
+                                        .withValues(
+                                          alpha: isCompleted ? 0.08 : 0.12,
                                         ),
+                                    border: Border.all(
+                                      color: _getRPEColor(
+                                        _rpe[setNumber] ?? 7,
+                                      ).withValues(alpha: 0.35),
+                                      width: isRpeActive ? 1.4 : 1,
+                                    ),
+                                    boxShadow: isRpeActive
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.55,
+                                              ),
+                                              blurRadius: 14,
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${_rpe[setNumber] ?? 7}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        color: CleanTheme.textPrimary,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                       ],
 
                       // Premium Animated Checkbox
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 14), // Offset for labels
-                          _PremiumCheckbox(
-                            isCompleted: isCompleted,
-                            onTap: () {
-                              if (!isCompleted) {
-                                HapticService.mediumTap();
-                                _successAudioPlayer.resume();
-                                _successAudioPlayer.setSource(_successSource);
-                              }
-                              _toggleSet(setNumber, !isCompleted);
-                            },
-                          ),
-                        ],
+                      Center(
+                        child: _PremiumCheckbox(
+                          isCompleted: isCompleted,
+                          onTap: () {
+                            if (!isCompleted) {
+                              HapticService.mediumTap();
+                              _successAudioPlayer.resume();
+                              _successAudioPlayer.setSource(_successSource);
+                            }
+                            _toggleSet(setNumber, !isCompleted);
+                          },
+                        ),
                       ),
                     ],
                   ),

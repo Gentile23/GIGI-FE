@@ -170,7 +170,14 @@ class PaymentService extends ChangeNotifier {
     );
   }
 
+  String? _lastOfferingId;
+
   String unavailableReasonFor(String productId) {
+    if (!_isStoreReady) {
+      return _errorMessage ??
+          'Store non pronto: RevenueCat non ha restituito prodotti disponibili.';
+    }
+
     final available = _availableProducts
         .map(
           (product) =>
@@ -179,20 +186,17 @@ class PaymentService extends ChangeNotifier {
         )
         .join(', ');
 
-    if (!_isStoreReady) {
-      return _errorMessage ??
-          'Store non pronto: RevenueCat non ha restituito prodotti disponibili.';
-    }
-
     final expectedType = _expectedPackageType(productId)?.name ?? 'sconosciuto';
     final expectedPrice = _expectedReferencePrice(productId);
     final priceHint = expectedPrice == null
         ? ''
         : ' Prezzo atteso: ${expectedPrice.toStringAsFixed(2)}.';
 
+    final currentOffering = ' (Offering: ${_lastOfferingId ?? 'sconosciuta'})';
+
     return 'Abbonamento non trovato: "$productId" ($expectedType).'
         '$priceHint Prodotti caricati: ${available.isEmpty ? 'nessuno' : available}.'
-        ' Verifica Product ID, package e Current Offering su RevenueCat.';
+        '$currentOffering Verifica Product ID, package e Offering su RevenueCat.';
   }
 
   /// Initialize RevenueCat
@@ -311,6 +315,7 @@ class PaymentService extends ChangeNotifier {
     try {
       debugPrint('RevenueCat: Fetching offerings...');
       final offerings = await Purchases.getOfferings();
+      _lastOfferingId = offerings.current?.identifier;
       _logOfferingsSnapshot(offerings, context: '_fetchProducts');
 
       final packages = _allAvailablePackages(offerings);
@@ -338,6 +343,10 @@ class PaymentService extends ChangeNotifier {
             'price=${product.priceString} currency=${product.currencyCode}',
           );
         }
+        
+        // Log deep diagnostics if products are missing
+        _diagnoseMissingProducts();
+        
         _isStoreReady = _availableProducts.isNotEmpty;
         _errorMessage = null;
 
@@ -351,7 +360,7 @@ class PaymentService extends ChangeNotifier {
         );
         _availableProducts = [];
         _isStoreReady = false;
-        _errorMessage = 'Nessuna offerta configurata su RevenueCat.';
+        _errorMessage = 'Nessuna offerta configurata su RevenueCat (Offerte trovate: ${offerings.all.keys.join(', ')})';
       }
       notifyListeners();
     } catch (e) {
@@ -447,7 +456,7 @@ class PaymentService extends ChangeNotifier {
       return true;
     } on PlatformException catch (e) {
       _purchaseStatus = PurchaseStatus.error;
-      _errorMessage = _translatePlatformError(e);
+      _errorMessage = _translatePlatformError(e, productId: productId);
       notifyListeners();
 
       debugPrint(
@@ -596,41 +605,20 @@ class PaymentService extends ChangeNotifier {
       }
     }
 
-    final tier = _expectedProductTier(productId);
-    if (tier != null) {
-      final tierMatches = periodMatches
-          .where(
-            (package) => _identifiersContainTierMarker({
-              package.identifier,
-              package.storeProduct.identifier,
-              _normalizeProductIdentifier(package.storeProduct.identifier),
-            }, tier),
-          )
-          .toList();
-
-      if (tierMatches.length == 1) {
-        return tierMatches.single;
-      }
-    }
-
-    final fallbackMatches = periodMatches;
-
-    if (fallbackMatches.length == 1) {
-      return fallbackMatches.single;
-    }
-
-    if (fallbackMatches.length > 1) {
-      debugPrint(
-        'RevenueCat: Ambiguous ${fallbackType.name} packages for $productId. '
-        'Configure explicit package identifiers or store product IDs.',
-      );
-      for (final package in fallbackMatches) {
-        debugPrint(
-          'RevenueCat[_findPackageForProduct]: ambiguous candidate '
-          'package=${package.identifier} type=${package.packageType.name} '
-          'product=${package.storeProduct.identifier} '
-          'price=${package.storeProduct.priceString}',
-        );
+    // --- AGGRESSIVE PARACHUTE FALLBACK ---
+    // If we still haven't found it, and it's a monthly request, 
+    // find ANYTHING that looks monthly (price < 25 and not annual)
+    if (fallbackType == PackageType.monthly && periodMatches.isEmpty) {
+      final aggressiveMatches = packages.where((p) => 
+        p.storeProduct.price < 25.0 && 
+        !p.identifier.contains('annual') && 
+        !p.identifier.contains('year') &&
+        p.packageType != PackageType.annual
+      ).toList();
+      
+      if (aggressiveMatches.isNotEmpty) {
+        debugPrint('RevenueCat: Using aggressive parachute fallback for $productId');
+        return aggressiveMatches.first;
       }
     }
 
@@ -885,26 +873,59 @@ class PaymentService extends ChangeNotifier {
 
   void _logOfferingsSnapshot(Offerings offerings, {required String context}) {
     final allOfferingIds = offerings.all.keys.join(', ');
-    debugPrint('RevenueCat[$context]: offerings=[$allOfferingIds]');
+    debugPrint('--- RevenueCat DEEP LOG [$context] ---');
+    debugPrint('Offerings trovate: [$allOfferingIds]');
 
     final current = offerings.current;
     if (current == null) {
-      debugPrint('RevenueCat[$context]: current offering is NULL');
+      debugPrint('⚠️ ATTENZIONE: L\'offerta "CURRENT" è NULL. L\'app non mostrerà nulla se non configuri un offering predefinita!');
     } else {
       debugPrint(
-        'RevenueCat[$context]: current=${current.identifier} '
-        'packages=${current.availablePackages.length}',
+        'Offering Corrente: ${current.identifier} '
+        '(${current.availablePackages.length} pacchetti)',
       );
+      for (final package in current.availablePackages) {
+        debugPrint(
+          '  [CURRENT] Package: ${package.identifier} '
+          'Type: ${package.packageType.name} '
+          'StoreProductID: ${package.storeProduct.identifier}',
+        );
+      }
     }
 
-    for (final package in _allAvailablePackages(offerings)) {
-      debugPrint(
-        'RevenueCat[$context]: package=${package.identifier} '
-        'type=${package.packageType.name} '
-        'product=${package.storeProduct.identifier} '
-        'price=${package.storeProduct.priceString} '
-        'currency=${package.storeProduct.currencyCode}',
-      );
+    // Log all other offerings
+    offerings.all.forEach((id, offering) {
+      if (id == current?.identifier) return;
+      debugPrint('Offering Secondaria: $id (${offering.availablePackages.length} pacchetti)');
+      for (final package in offering.availablePackages) {
+        debugPrint(
+          '  [$id] Package: ${package.identifier} '
+          'Type: ${package.packageType.name} '
+          'StoreProductID: ${package.storeProduct.identifier}',
+        );
+      }
+    });
+    
+    debugPrint('----------------------------------------');
+  }
+
+  void _diagnoseMissingProducts() {
+    final hasMonthly = _availableProducts.any((p) => 
+      _canonicalizeProductIdentifier(p.identifier).contains('monthly') || 
+      (p.packageIdentifier != null && p.packageIdentifier!.contains('monthly'))
+    );
+    final hasYearly = _availableProducts.any((p) => 
+      _canonicalizeProductIdentifier(p.identifier).contains('annual') || 
+      _canonicalizeProductIdentifier(p.identifier).contains('yearly') ||
+      (p.packageIdentifier != null && (p.packageIdentifier!.contains('annual') || p.packageIdentifier!.contains('yearly')))
+    );
+
+    if (!hasMonthly) {
+      debugPrint('🚨 DIAGNOSTICA: Pacchetto MENSILE mancante!');
+      debugPrint('   Soluzione: Verifica che in RevenueCat -> Offerings -> [Tua Offering] ci sia un package "monthly".');
+    }
+    if (!hasYearly) {
+      debugPrint('🚨 DIAGNOSTICA: Pacchetto ANNUALE mancante!');
     }
   }
 
@@ -935,37 +956,77 @@ class PaymentService extends ChangeNotifier {
     }
   }
 
-  String _translatePlatformError(PlatformException error) {
+  String _translatePlatformError(PlatformException error, {String? productId}) {
     final code = PurchasesErrorHelper.getErrorCode(error);
+    final diagnosticDetails = _platformErrorDiagnostics(
+      error,
+      productId: productId,
+    );
 
     switch (code) {
       case PurchasesErrorCode.purchaseCancelledError:
         return 'Acquisto annullato.';
       case PurchasesErrorCode.networkError:
-        return 'Errore di rete durante l\'acquisto. Riprova.';
+        return 'Errore di rete durante l\'acquisto. Riprova.$diagnosticDetails';
       case PurchasesErrorCode.storeProblemError:
-        return 'Lo store non riesce a completare l\'acquisto. Su TestFlight verifica anche che il prodotto sia approvato e disponibile.';
+        return 'Lo store non riesce a completare l\'acquisto. Su TestFlight verifica anche che il prodotto sia approvato e disponibile.$diagnosticDetails';
       case PurchasesErrorCode.purchaseNotAllowedError:
-        return 'Questo account non puo effettuare acquisti in-app su questo dispositivo.';
+        return 'Questo account non puo effettuare acquisti in-app su questo dispositivo.$diagnosticDetails';
       case PurchasesErrorCode.productNotAvailableForPurchaseError:
-        return 'Questo abbonamento non è disponibile per l\'acquisto in questo momento.';
+        return 'Prodotto non acquistabile dallo store.$diagnosticDetails';
       case PurchasesErrorCode.configurationError:
         final details = error.message?.trim();
         if (details != null && details.isNotEmpty) {
-          return 'Configurazione acquisti non valida: $details';
+          return 'Configurazione acquisti non valida: $details$diagnosticDetails';
         }
-        return 'Configurazione acquisti non valida. Controlla RevenueCat, offering e prodotti store.';
+        return 'Configurazione acquisti non valida. Controlla RevenueCat, offering e prodotti store.$diagnosticDetails';
       case PurchasesErrorCode.receiptAlreadyInUseError:
-        return 'L\'acquisto risulta associato a un altro account.';
+        return 'L\'acquisto risulta associato a un altro account.$diagnosticDetails';
       case PurchasesErrorCode.invalidReceiptError:
-        return 'La ricevuta di acquisto non è valida. Riprova più tardi.';
+        return 'La ricevuta di acquisto non è valida. Riprova più tardi.$diagnosticDetails';
       default:
         final message = error.message;
         if (message != null && message.trim().isNotEmpty) {
-          return message;
+          return '${message.trim()}$diagnosticDetails';
         }
-        return 'Si è verificato un errore. Riprova.';
+        return 'Si è verificato un errore. Riprova.$diagnosticDetails';
     }
+  }
+
+  String _platformErrorDiagnostics(
+    PlatformException error, {
+    String? productId,
+  }) {
+    final parts = <String>[];
+
+    if (productId != null && productId.isNotEmpty) {
+      parts.add('prodotto richiesto: $productId');
+    }
+
+    parts.add('codice: ${error.code}');
+
+    final message = error.message?.trim();
+    if (message != null && message.isNotEmpty) {
+      parts.add('messaggio: $message');
+    }
+
+    final details = error.details?.toString().trim();
+    if (details != null && details.isNotEmpty) {
+      parts.add('dettagli: $details');
+    }
+
+    final loadedProducts = _availableProducts
+        .map(
+          (product) =>
+              '${product.identifier}'
+              '${product.packageIdentifier == null ? '' : ' (${product.packageIdentifier})'}',
+        )
+        .join(', ');
+    parts.add(
+      'prodotti caricati: ${loadedProducts.isEmpty ? 'nessuno' : loadedProducts}',
+    );
+
+    return ' [${parts.join(' | ')}]';
   }
 
   /// Identify user for RevenueCat (call after login)

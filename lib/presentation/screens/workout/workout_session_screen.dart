@@ -1651,10 +1651,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     Builder(
                       builder: (context) {
                         final mediaQuery = MediaQuery.of(context);
+                        final keyboardInset = mediaQuery.viewInsets.bottom;
+                        final isKeyboardOpen = keyboardInset > 0;
                         final chatBottomOffset =
                             mediaQuery.padding.bottom +
-                            (_isSessionActive ? 210 : 88);
-                        final chatTopInset = mediaQuery.padding.top + 76;
+                            keyboardInset +
+                            (_isSessionActive && !isKeyboardOpen ? 210 : 88);
+                        final chatTopInset =
+                            mediaQuery.padding.top + (isKeyboardOpen ? 52 : 76);
+                        final maxChatHeight =
+                            mediaQuery.size.height -
+                            chatTopInset -
+                            chatBottomOffset;
 
                         return _isChatOpen
                             ? Positioned(
@@ -1693,10 +1701,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                       key: const ValueKey('workout_chat_panel'),
                                       constraints: BoxConstraints(
                                         maxWidth: mediaQuery.size.width - 40,
-                                        maxHeight:
-                                            mediaQuery.size.height -
-                                            chatTopInset -
-                                            chatBottomOffset,
+                                        maxHeight: maxChatHeight.clamp(
+                                          220.0,
+                                          mediaQuery.size.height,
+                                        ),
                                       ),
                                       child: Material(
                                         color: Colors.transparent,
@@ -1764,6 +1772,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }) {
     final exercise = _getExerciseById(exerciseId);
     if (exercise == null) return const SizedBox.shrink();
+    final isDurationExercise = _isDurationExercise(exercise);
+    final targetValue = _getTargetReps(exercise, setNumber);
+    final targetLabel = isDurationExercise
+        ? 'Target: ${_formatDurationTarget(targetValue)}'
+        : 'Target: $targetValue reps';
 
     final setLoggingState = _setLoggingKeys[exerciseId]?.currentState;
     final sourceWeightController = setLoggingState?.getWeightController(
@@ -1868,7 +1881,15 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               color: CleanTheme.textOnDark.withValues(alpha: 0.5),
             ),
           ),
-          SizedBox(height: compact ? 8 : 12),
+          SizedBox(height: compact ? 4 : 6),
+          _buildOverlayTargetChip(
+            compact: compact,
+            label: targetLabel,
+            icon: isDurationExercise
+                ? Icons.timer_outlined
+                : Icons.ads_click_rounded,
+          ),
+          SizedBox(height: compact ? 6 : 10),
           Container(
             padding: EdgeInsets.all(compact ? 2 : 4),
             decoration: BoxDecoration(
@@ -1877,44 +1898,48 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: _buildOverlayMetricField(
-                    compact: compact,
-                    label: 'KG',
-                    controller: overlayWeightController,
-                    focusNode: weightFocusNode,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d*([,.]\d*)?$'),
+                if (!isDurationExercise) ...[
+                  Expanded(
+                    child: _buildOverlayMetricField(
+                      compact: compact,
+                      label: 'KG',
+                      controller: overlayWeightController,
+                      focusNode: weightFocusNode,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
                       ),
-                    ],
-                    textInputAction: TextInputAction.next,
-                    readOnly: sourceWeightController == null,
-                    onChanged: (value) {
-                      _syncOverlayMetricValue(
-                        value: value,
-                        sourceController: sourceWeightController,
-                      );
-                    },
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*([,.]\d*)?$'),
+                        ),
+                      ],
+                      textInputAction: TextInputAction.next,
+                      readOnly: sourceWeightController == null,
+                      onChanged: (value) {
+                        _syncOverlayMetricValue(
+                          value: value,
+                          sourceController: sourceWeightController,
+                        );
+                      },
+                    ),
                   ),
-                ),
-                Container(
-                  width: 1,
-                  height: compact ? 24 : 30,
-                  color: CleanTheme.textOnDark.withValues(alpha: 0.1),
-                ),
+                  Container(
+                    width: 1,
+                    height: compact ? 24 : 30,
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
+                  ),
+                ],
                 Expanded(
                   child: _buildOverlayMetricField(
                     compact: compact,
-                    label: 'REPS',
+                    label: isDurationExercise ? 'DURATA' : 'REPS',
                     controller: overlayRepsController,
                     focusNode: repsFocusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textInputAction: TextInputAction.next,
+                    textInputAction: isDurationExercise
+                        ? TextInputAction.done
+                        : TextInputAction.next,
                     readOnly: sourceRepsController == null,
                     onChanged: (value) {
                       _syncOverlayMetricValue(
@@ -1924,48 +1949,69 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                     },
                   ),
                 ),
-                Container(
-                  width: 1,
-                  height: compact ? 24 : 30,
-                  color: CleanTheme.textOnDark.withValues(alpha: 0.1),
-                ),
-                Expanded(
-                  child: _buildOverlayDifficultyField(
-                    compact: compact,
-                    controller: difficultyController,
-                    focusNode: difficultyFocusNode,
-                    setLoggingState: setLoggingState,
-                    setNumber: setNumber,
+                if (!isDurationExercise) ...[
+                  Container(
+                    width: 1,
+                    height: compact ? 24 : 30,
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                   ),
-                ),
+                  Expanded(
+                    child: _buildOverlayDifficultyField(
+                      compact: compact,
+                      controller: difficultyController,
+                      focusNode: difficultyFocusNode,
+                      setLoggingState: setLoggingState,
+                      setNumber: setNumber,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          SizedBox(height: compact ? 6 : 8),
-          Row(
-            children: [
-              Icon(
-                Icons.ads_click_rounded,
-                size: compact ? 9 : 10,
-                color: CleanTheme.textOnDark.withValues(alpha: 0.4),
-              ),
-              SizedBox(width: compact ? 3 : 4),
-              Expanded(
-                child: Text(
-                  'Target: ${_getTargetReps(exercise, setNumber)} reps',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.inter(
-                    fontSize: compact ? 10 : 11,
-                    height: 1.05,
-                    fontWeight: FontWeight.w600,
-                    color: CleanTheme.textOnDark.withValues(alpha: 0.4),
-                  ),
-                ),
-              ),
-            ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverlayTargetChip({
+    required bool compact,
+    required String label,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 8 : 10,
+        vertical: compact ? 4 : 5,
+      ),
+      decoration: BoxDecoration(
+        color: CleanTheme.textOnDark.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: CleanTheme.textOnDark.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: compact ? 10 : 11,
+            color: CleanTheme.textOnDark.withValues(alpha: 0.55),
           ),
-          SizedBox(height: compact ? 2 : 6),
+          SizedBox(width: compact ? 4 : 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: compact ? 10 : 11,
+                height: 1.05,
+                fontWeight: FontWeight.w700,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.62),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -2493,6 +2539,24 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     }
   }
 
+  bool _isDurationExercise(WorkoutExercise exercise) {
+    final type = exercise.exerciseType.toLowerCase();
+    return type == 'cardio' || type == 'mobility' || type == 'warmup';
+  }
+
+  String _formatDurationTarget(String rawTarget) {
+    final trimmed = rawTarget.trim();
+    if (trimmed.isEmpty) return '0s';
+    final lower = trimmed.toLowerCase();
+    if (lower.endsWith('s') ||
+        lower.endsWith('sec') ||
+        lower.endsWith('min') ||
+        lower.contains(':')) {
+      return trimmed;
+    }
+    return '${trimmed}s';
+  }
+
   Widget _buildFullscreenRestTimerOverlay() {
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
     final isKeyboardOpen = keyboardInset > 0;
@@ -2506,8 +2570,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final currentExercise = _restingExerciseId != null
         ? _getExerciseById(_restingExerciseId!)
         : null;
-    final currentType = currentExercise?.exerciseType.toLowerCase();
-    final showSetDetails = currentType != 'cardio' && currentType != 'mobility';
+    final showSetDetails = currentExercise != null;
 
     return Positioned.fill(
       child: AnimatedOpacity(
@@ -2628,8 +2691,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Column(
                                 children: [
-                                  SizedBox(
-                                    height: isKeyboardOpen ? 132 : 180,
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: isKeyboardOpen ? 128 : 164,
+                                    ),
                                     child: _buildSetDetailOverlayCard(
                                       title: 'ULTIMO SET',
                                       exerciseId: _restingExerciseId!,
@@ -2639,8 +2704,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 10),
-                                  SizedBox(
-                                    height: isKeyboardOpen ? 132 : 180,
+                                  ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: isKeyboardOpen ? 128 : 164,
+                                    ),
                                     child: _buildNextSetOverlayCard(),
                                   ),
                                 ],
@@ -2922,12 +2989,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildWorkoutChatPanel() {
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            isKeyboardOpen ? 10 : 12,
+            16,
+            isKeyboardOpen ? 10 : 16,
+          ),
           decoration: BoxDecoration(
             color: CleanTheme.steelDark.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(28),
@@ -2990,22 +3063,27 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isKeyboardOpen ? 8 : 12),
 
               if (_chatIntroOnly) ...[
                 const SizedBox(height: 4),
                 _buildWorkoutChatIntro(),
               ],
-              
+
               if (!_chatIntroOnly) ...[
                 // 2. MESSAGE LIST
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    margin: EdgeInsets.symmetric(
+                      vertical: isKeyboardOpen ? 4 : 8,
+                    ),
                     child: ListView.separated(
                       controller: _chatScrollController,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _chatMessages.length + (_isChatLoading ? 1 : 0),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isKeyboardOpen ? 4 : 8,
+                      ),
+                      itemCount:
+                          _chatMessages.length + (_isChatLoading ? 1 : 0),
                       separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         if (_isChatLoading && index == _chatMessages.length) {
@@ -3037,22 +3115,35 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: CleanTheme.accentRed, size: 16),
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: CleanTheme.accentRed,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _chatError!,
-                              style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.accentRed, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: CleanTheme.accentRed,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           TextButton(
-                            onPressed: _chatMessages.isNotEmpty && _chatMessages.last.role == 'user'
+                            onPressed:
+                                _chatMessages.isNotEmpty &&
+                                    _chatMessages.last.role == 'user'
                                 ? () => _sendWorkoutChatMessage(
                                     prompt: _chatMessages.last.content,
                                     exerciseId: _chatMessages.last.exerciseId,
                                   )
                                 : null,
-                            child: const Text('Riprova', style: TextStyle(color: CleanTheme.accentRed)),
+                            child: const Text(
+                              'Riprova',
+                              style: TextStyle(color: CleanTheme.accentRed),
+                            ),
                           ),
                         ],
                       ),
@@ -3061,7 +3152,10 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                 // 3. MINIMAL INPUT
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
@@ -3072,8 +3166,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                         child: TextField(
                           controller: _chatController,
                           minLines: 1,
-                          maxLines: 3,
+                          maxLines: isKeyboardOpen ? 2 : 3,
                           textInputAction: TextInputAction.send,
+                          scrollPadding: EdgeInsets.only(
+                            bottom:
+                                MediaQuery.of(context).viewInsets.bottom + 96,
+                          ),
                           onSubmitted: (_) => _sendWorkoutChatMessage(),
                           decoration: InputDecoration(
                             hintText: 'Chiedi a GIGI...',
@@ -3091,17 +3189,23 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: _isChatLoading ? null : () => _sendWorkoutChatMessage(),
+                        onTap: _isChatLoading
+                            ? null
+                            : () => _sendWorkoutChatMessage(),
                         child: Container(
                           width: 34,
                           height: 34,
                           decoration: BoxDecoration(
-                            color: _isChatLoading ? Colors.black.withValues(alpha: 0.1) : CleanTheme.steelDark,
+                            color: _isChatLoading
+                                ? Colors.black.withValues(alpha: 0.1)
+                                : CleanTheme.steelDark,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.arrow_upward_rounded,
-                            color: _isChatLoading ? Colors.black26 : Colors.white,
+                            color: _isChatLoading
+                                ? Colors.black26
+                                : Colors.white,
                             size: 18,
                           ),
                         ),
@@ -3122,7 +3226,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       onPlay: (controller) => controller.repeat(reverse: true),
       effects: [
         FadeEffect(duration: 1200.ms, begin: 0.3, end: 1.0),
-        ScaleEffect(duration: 1200.ms, begin: Offset(0.8, 0.8), end: Offset(1.1, 1.1)),
+        ScaleEffect(
+          duration: 1200.ms,
+          begin: Offset(0.8, 0.8),
+          end: Offset(1.1, 1.1),
+        ),
       ],
       child: Container(
         width: 6,
@@ -3195,50 +3303,54 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
   Widget _buildWorkoutChatFab() {
     return GestureDetector(
-      onTap: _openWorkoutChat,
-      child: Container(
-        width: 58,
-        height: 58,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: CleanTheme.steelDark,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.12),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.chat_bubble_rounded,
-                color: Colors.white,
-                size: 20,
+          onTap: _openWorkoutChat,
+          child: Container(
+            width: 58,
+            height: 58,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: CleanTheme.steelDark,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.12),
+                width: 1,
               ),
-              const SizedBox(height: 1),
-              Text(
-                'GIGI',
-                style: GoogleFonts.outfit(
-                  fontSize: 8,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  letterSpacing: 0.8,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
                 ),
+              ],
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.chat_bubble_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    'GIGI',
+                    style: GoogleFonts.outfit(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true))
-     .shimmer(duration: 3.seconds, color: Colors.white.withValues(alpha: 0.1));
+        )
+        .animate(onPlay: (c) => c.repeat(reverse: true))
+        .shimmer(
+          duration: 3.seconds,
+          color: Colors.white.withValues(alpha: 0.1),
+        );
   }
 
   Widget _buildChatBubble({
@@ -3248,90 +3360,103 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     final isUser = message.role == 'user';
 
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: isUser ? 240 : 260),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: isUser
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(18),
-              topRight: const Radius.circular(18),
-              bottomLeft: Radius.circular(isUser ? 18 : 0),
-              bottomRight: Radius.circular(isUser ? 0 : 18),
-            ),
-            border: Border.all(
-              color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.08),
-              width: 0.5,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                message.content,
-                style: GoogleFonts.inter(
-                  fontSize: 13.5,
-                  height: 1.45,
-                  color: isUser ? Colors.black : Colors.white,
-                  fontWeight: FontWeight.w500,
+          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: isUser ? 240 : 260),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isUser
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(isUser ? 18 : 0),
+                  bottomRight: Radius.circular(isUser ? 0 : 18),
+                ),
+                border: Border.all(
+                  color: isUser
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.08),
+                  width: 0.5,
                 ),
               ),
-              if (!isUser && message.suggestions.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                ...message.suggestions.take(2).map(
-                  (suggestion) => Padding(
-                    padding: const EdgeInsets.only(top: 6.0),
-                    child: InkWell(
-                      onTap: () => _sendWorkoutChatMessage(prompt: suggestion),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('💡', style: TextStyle(fontSize: 10)),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                suggestion,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  height: 1.3,
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontWeight: FontWeight.w400,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.content,
+                    style: GoogleFonts.inter(
+                      fontSize: 13.5,
+                      height: 1.45,
+                      color: isUser ? Colors.black : Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (!isUser && message.suggestions.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    ...message.suggestions
+                        .take(2)
+                        .map(
+                          (suggestion) => Padding(
+                            padding: const EdgeInsets.only(top: 6.0),
+                            child: InkWell(
+                              onTap: () =>
+                                  _sendWorkoutChatMessage(prompt: suggestion),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.04),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '💡',
+                                      style: TextStyle(fontSize: 10),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        suggestion,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          height: 1.3,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
+                  ],
+                  if (isLoading) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 20,
+                      height: 1,
+                      child: LinearProgressIndicator(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        backgroundColor: Colors.transparent,
                       ),
                     ),
-                  ),
-                ),
-              ],
-              if (isLoading) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: 20,
-                  height: 1,
-                  child: LinearProgressIndicator(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    backgroundColor: Colors.transparent,
-                  ),
-                ),
-              ],
-            ],
+                  ],
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
+        )
+        .animate()
+        .fadeIn(duration: 300.ms)
+        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
   }
 
   Widget _buildSectionHeader(String title, String emoji) {
