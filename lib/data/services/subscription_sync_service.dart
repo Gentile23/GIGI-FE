@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/user_model.dart';
 import 'api_client.dart';
 
@@ -22,8 +24,17 @@ class SubscriptionSyncService {
     : _apiClient = apiClient ?? ApiClient();
 
   Future<SubscriptionSyncResult> sync() async {
+    debugPrint(
+      'SubscriptionDebug[api.subscriptionSync]: POST subscription/sync start',
+    );
     final response = await _apiClient.post('subscription/sync');
     final success = response['success'] == true;
+    debugPrint(
+      'SubscriptionDebug[api.subscriptionSync]: success=$success '
+      'tier=${response['subscription_tier']} message="${response['message']}" '
+      'hasUser=${response['user'] is Map<String, dynamic>} '
+      'hasSubscription=${response['subscription'] is Map<String, dynamic>}',
+    );
 
     return SubscriptionSyncResult(
       success: success,

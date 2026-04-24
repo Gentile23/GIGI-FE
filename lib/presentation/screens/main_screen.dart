@@ -7,8 +7,10 @@ import 'progress/progress_dashboard_screen.dart';
 import 'profile/profile_screen.dart';
 import '../../core/theme/clean_theme.dart';
 import '../../core/services/haptic_service.dart';
-import '../../core/services/ui_preferences_service.dart';
+import '../../core/services/payment_service.dart';
+import '../../core/utils/subscription_access_resolver.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/quota_provider.dart';
 import '../widgets/navigation/floating_nav_bar.dart';
 import '../navigation/main_tab_navigation.dart';
 import 'package:provider/provider.dart';
@@ -77,15 +79,17 @@ class _MainScreenState extends State<MainScreen> {
           ),
 
           // 2. Floating Navigation Bar
-          Consumer2<AuthProvider, UiPreferencesService>(
-            builder: (context, authProvider, uiPreferences, _) {
-              final hasActiveProUi =
-                  (authProvider.user?.subscription?.isActive ?? false) &&
-                  uiPreferences.proBottomBarAccentEnabled;
+          Consumer3<AuthProvider, PaymentService, QuotaProvider>(
+            builder: (context, authProvider, paymentService, quotaProvider, _) {
+              final effectiveAccess = SubscriptionAccessResolver.resolve(
+                user: authProvider.user,
+                paymentService: paymentService,
+                quotaStatus: quotaProvider.status,
+              );
 
               return FloatingNavBar(
                 currentIndex: _currentIndex,
-                showProAccent: hasActiveProUi,
+                showProAccent: effectiveAccess.hasPremiumAccess,
                 onTap: (index) {
                   HapticService.lightTap();
                   if (index == _currentIndex) return;

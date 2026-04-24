@@ -141,6 +141,35 @@ class PaymentService extends ChangeNotifier {
     return periodMatches.length == 1 ? periodMatches.single : null;
   }
 
+  void debugStoreAvailability(String productId, {required String context}) {
+    final expectedType = _expectedPackageType(productId)?.name ?? 'unknown';
+    final expectedTier = _expectedProductTier(productId) ?? 'unknown';
+    final expectedPrice = _expectedReferencePrice(productId);
+    final candidates = _productIdentifierCandidates(productId).join(', ');
+    final loadedProducts = _availableProducts
+        .map(
+          (product) =>
+              'id=${product.identifier}, package=${product.packageIdentifier ?? '-'}, '
+              'price=${product.priceString}, currency=${product.currencyCode}',
+        )
+        .join(' | ');
+
+    debugPrint(
+      'RevenueCat[$context]: availability check productId=$productId '
+      'expectedTier=$expectedTier expectedType=$expectedType '
+      'expectedPrice=${expectedPrice?.toStringAsFixed(2) ?? '-'} '
+      'isInitialized=$_isInitialized isStoreReady=$_isStoreReady '
+      'purchaseStatus=${_purchaseStatus.name} error=$_errorMessage',
+    );
+    debugPrint('RevenueCat[$context]: candidates=[$candidates]');
+    debugPrint(
+      'RevenueCat[$context]: loadedProducts=${loadedProducts.isEmpty ? 'none' : loadedProducts}',
+    );
+    debugPrint(
+      'RevenueCat[$context]: productInfoFor($productId)=${productInfoFor(productId)?.identifier ?? 'NULL'}',
+    );
+  }
+
   String unavailableReasonFor(String productId) {
     final available = _availableProducts
         .map(
@@ -206,6 +235,7 @@ class PaymentService extends ChangeNotifier {
 
       // Get initial customer info
       final customerInfo = await Purchases.getCustomerInfo();
+      _logCustomerInfoSnapshot(customerInfo, context: 'initialize');
       _updateFromCustomerInfo(customerInfo);
 
       // Fetch real products from RevenueCat offerings
@@ -254,6 +284,7 @@ class PaymentService extends ChangeNotifier {
 
       if (refreshCustomerInfo) {
         final customerInfo = await Purchases.getCustomerInfo();
+        _logCustomerInfoSnapshot(customerInfo, context: 'refreshStoreState');
         _updateFromCustomerInfo(customerInfo);
       }
 
@@ -300,6 +331,13 @@ class PaymentService extends ChangeNotifier {
         }).toList();
 
         debugPrint('RevenueCat: Loaded ${_availableProducts.length} products');
+        for (final product in _availableProducts) {
+          debugPrint(
+            'RevenueCat[_fetchProducts]: loaded product id=${product.identifier} '
+            'package=${product.packageIdentifier ?? '-'} title=${product.title} '
+            'price=${product.priceString} currency=${product.currencyCode}',
+          );
+        }
         _isStoreReady = _availableProducts.isNotEmpty;
         _errorMessage = null;
 
@@ -333,6 +371,7 @@ class PaymentService extends ChangeNotifier {
 
   /// Purchase a product
   Future<bool> purchaseProduct(String productId) async {
+    debugStoreAvailability(productId, context: 'purchaseProduct:start');
     _purchaseStatus = PurchaseStatus.loading;
     _errorMessage = null;
     notifyListeners();
@@ -379,14 +418,25 @@ class PaymentService extends ChangeNotifier {
         debugPrint(
           'RevenueCat: Product $productId not found in current offerings.',
         );
+        debugStoreAvailability(productId, context: 'purchaseProduct:notFound');
         _purchaseStatus = PurchaseStatus.error;
         _errorMessage = unavailableReasonFor(productId);
         notifyListeners();
         return false;
       }
 
+      debugPrint(
+        'RevenueCat[purchaseProduct]: purchasing productId=$productId '
+        'package=${package.identifier} packageType=${package.packageType.name} '
+        'storeProduct=${package.storeProduct.identifier} '
+        'price=${package.storeProduct.priceString}',
+      );
       // ignore: deprecated_member_use
       final purchaseResult = await Purchases.purchasePackage(package);
+      _logCustomerInfoSnapshot(
+        purchaseResult.customerInfo,
+        context: 'purchaseProduct:success',
+      );
       _updateFromCustomerInfo(purchaseResult.customerInfo);
       _purchaseStatus = PurchaseStatus.success;
       _isStoreReady = true;
@@ -402,8 +452,9 @@ class PaymentService extends ChangeNotifier {
 
       debugPrint(
         'Purchase failed: code=${PurchasesErrorHelper.getErrorCode(e)} '
-        'message=${e.message} details=${e.details}',
+        'platformCode=${e.code} message=${e.message} details=${e.details}',
       );
+      debugStoreAvailability(productId, context: 'purchaseProduct:error');
       return false;
     } catch (e) {
       _purchaseStatus = PurchaseStatus.error;
@@ -411,6 +462,7 @@ class PaymentService extends ChangeNotifier {
       notifyListeners();
 
       debugPrint('Purchase failed: $e');
+      debugStoreAvailability(productId, context: 'purchaseProduct:exception');
       return false;
     }
   }
@@ -426,6 +478,7 @@ class PaymentService extends ChangeNotifier {
 
     try {
       final customerInfo = await Purchases.restorePurchases();
+      _logCustomerInfoSnapshot(customerInfo, context: 'restorePurchases');
       _updateFromCustomerInfo(customerInfo);
 
       _purchaseStatus = PurchaseStatus.success;
@@ -437,6 +490,7 @@ class PaymentService extends ChangeNotifier {
       _purchaseStatus = PurchaseStatus.error;
       _errorMessage = 'Impossibile ripristinare gli acquisti';
       notifyListeners();
+      debugPrint('RevenueCat[restorePurchases]: failed error=$e');
       return false;
     }
   }
@@ -570,8 +624,20 @@ class PaymentService extends ChangeNotifier {
         'RevenueCat: Ambiguous ${fallbackType.name} packages for $productId. '
         'Configure explicit package identifiers or store product IDs.',
       );
+      for (final package in fallbackMatches) {
+        debugPrint(
+          'RevenueCat[_findPackageForProduct]: ambiguous candidate '
+          'package=${package.identifier} type=${package.packageType.name} '
+          'product=${package.storeProduct.identifier} '
+          'price=${package.storeProduct.priceString}',
+        );
+      }
     }
 
+    debugPrint(
+      'RevenueCat[_findPackageForProduct]: no match for productId=$productId '
+      'fallbackType=${fallbackType.name} packages=${packages.length}',
+    );
     return null;
   }
 
@@ -842,6 +908,33 @@ class PaymentService extends ChangeNotifier {
     }
   }
 
+  void _logCustomerInfoSnapshot(
+    CustomerInfo customerInfo, {
+    required String context,
+  }) {
+    final activeEntitlements = customerInfo.entitlements.active.keys.join(', ');
+    final activeSubscriptions = customerInfo.activeSubscriptions.join(', ');
+    final allPurchased = customerInfo.allPurchasedProductIdentifiers.join(', ');
+
+    debugPrint(
+      'RevenueCat[$context]: appUserId=${customerInfo.originalAppUserId} '
+      'activeEntitlements=[$activeEntitlements] '
+      'activeSubscriptions=[$activeSubscriptions] '
+      'allPurchased=[$allPurchased] '
+      'latestExpirationDate=${customerInfo.latestExpirationDate}',
+    );
+
+    for (final entry in customerInfo.entitlements.active.entries) {
+      final entitlement = entry.value;
+      debugPrint(
+        'RevenueCat[$context]: active entitlement=${entry.key} '
+        'product=${entitlement.productIdentifier} '
+        'expires=${entitlement.expirationDate} '
+        'willRenew=${entitlement.willRenew}',
+      );
+    }
+  }
+
   String _translatePlatformError(PlatformException error) {
     final code = PurchasesErrorHelper.getErrorCode(error);
 
@@ -883,6 +976,7 @@ class PaymentService extends ChangeNotifier {
         await initialize();
       }
       final result = await Purchases.logIn(userId);
+      _logCustomerInfoSnapshot(result.customerInfo, context: 'identifyUser');
       _updateFromCustomerInfo(result.customerInfo);
       debugPrint('RevenueCat: User identified as $userId');
     } catch (e) {
@@ -913,6 +1007,10 @@ class PaymentService extends ChangeNotifier {
         await initialize();
       }
       final customerInfo = await Purchases.getCustomerInfo();
+      _logCustomerInfoSnapshot(
+        customerInfo,
+        context: 'checkSubscriptionStatus',
+      );
       _updateFromCustomerInfo(customerInfo);
       _errorMessage = null;
     } catch (e) {
@@ -921,6 +1019,7 @@ class PaymentService extends ChangeNotifier {
   }
 
   void _updateFromCustomerInfo(CustomerInfo info) {
+    final previousPlan = _currentPlan;
     if (info.entitlements.active.containsKey('elite')) {
       _currentPlan = SubscriptionTier.elite;
     } else if (info.entitlements.active.containsKey('pro')) {
@@ -934,6 +1033,11 @@ class PaymentService extends ChangeNotifier {
       _expirationDate = DateTime.tryParse(info.latestExpirationDate!);
     }
 
+    debugPrint(
+      'RevenueCat[_updateFromCustomerInfo]: previousPlan=${previousPlan.name} '
+      'currentPlan=${_currentPlan.name} expiration=$_expirationDate '
+      'activeSubscriptions=${info.activeSubscriptions.length}',
+    );
     notifyListeners();
   }
 }

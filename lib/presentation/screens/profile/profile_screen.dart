@@ -63,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _refreshProfileStatus() async {
     if (!mounted) return;
 
+    debugPrint('SubscriptionDebug[profile.refresh]: start');
     await context.read<PaymentService>().refreshStoreState();
     if (!mounted) return;
 
@@ -70,6 +71,25 @@ class _ProfileScreenState extends State<ProfileScreen>
     if (!mounted) return;
 
     await context.read<QuotaProvider>().refresh(silent: true);
+    if (!mounted) return;
+
+    final paymentService = context.read<PaymentService>();
+    final authProvider = context.read<AuthProvider>();
+    final quotaProvider = context.read<QuotaProvider>();
+    final effectiveAccess = SubscriptionAccessResolver.resolve(
+      user: authProvider.user,
+      paymentService: paymentService,
+      quotaStatus: quotaProvider.status,
+    );
+    debugPrint(
+      'SubscriptionDebug[profile.refresh]: backendPremium=${effectiveAccess.hasBackendPremium} '
+      'revenueCatPremium=${effectiveAccess.hasRevenueCatPremium} '
+      'quotaPremium=${effectiveAccess.hasQuotaPremium} tier=${effectiveAccess.tier.name} '
+      'paymentPlan=${paymentService.currentPlan.name} '
+      'backendTier=${authProvider.user?.subscription?.tier.name ?? 'none'} '
+      'backendActive=${authProvider.user?.subscription?.isActive ?? false} '
+      'quotaTier=${quotaProvider.status?.subscriptionTier ?? 'none'}',
+    );
   }
 
   @override
@@ -285,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                       quotaStatus: quotaProvider.status,
                     );
 
-                    if (effectiveAccess.hasBackendPremium) {
+                    if (effectiveAccess.hasPremiumAccess) {
                       return _buildActiveSubscriptionCard(
                         context,
                         authProvider,
@@ -976,15 +996,31 @@ class _ProfileScreenState extends State<ProfileScreen>
     PaymentService paymentService,
     String productId,
   ) async {
+    debugPrint('SubscriptionDebug[purchase.tap]: productId=$productId');
+    paymentService.debugStoreAvailability(productId, context: 'profile.tap');
+
     if (paymentService.isInitialized &&
         (!paymentService.isStoreReady ||
             paymentService.productInfoFor(productId) == null)) {
+      debugPrint(
+        'SubscriptionDebug[purchase.tap]: preflight failed, refreshing store before blocking.',
+      );
+      await paymentService.refreshStoreState();
+      paymentService.debugStoreAvailability(
+        productId,
+        context: 'profile.tap.afterRefresh',
+      );
+      if (!context.mounted) return;
+    }
+
+    if (paymentService.isInitialized &&
+        (!paymentService.isStoreReady ||
+            paymentService.productInfoFor(productId) == null)) {
+      final reason = paymentService.unavailableReasonFor(productId);
+      debugPrint('SubscriptionDebug[purchase.tap]: unavailableReason=$reason');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            paymentService.errorMessage ??
-                'Abbonamento non disponibile in questo momento.',
-          ),
+          content: Text(paymentService.errorMessage ?? reason),
           backgroundColor: CleanTheme.accentOrange,
         ),
       );
@@ -1001,6 +1037,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
 
     final success = await paymentService.purchaseProduct(productId);
+    debugPrint(
+      'SubscriptionDebug[purchase.result]: productId=$productId success=$success '
+      'status=${paymentService.purchaseStatus.name} error=${paymentService.errorMessage} '
+      'plan=${paymentService.currentPlan.name} storeReady=${paymentService.isStoreReady}',
+    );
 
     // Rimuovi caricamento
     if (context.mounted) Navigator.pop(context);
@@ -1040,6 +1081,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     final quotaProvider = Provider.of<QuotaProvider>(context, listen: false);
 
     for (var attempt = 0; attempt < 5; attempt++) {
+      debugPrint(
+        'SubscriptionDebug[syncAfterPurchase]: attempt=${attempt + 1}/5 start '
+        'paymentPlan=${paymentService.currentPlan.name} isProOrAbove=${paymentService.isProOrAbove}',
+      );
       await paymentService.checkSubscriptionStatus();
       final syncResult = await SubscriptionSyncService().sync();
       await authProvider.fetchUser();
@@ -1049,6 +1094,18 @@ class _ProfileScreenState extends State<ProfileScreen>
         user: authProvider.user,
         paymentService: paymentService,
         quotaStatus: quotaProvider.status,
+      );
+
+      debugPrint(
+        'SubscriptionDebug[syncAfterPurchase]: attempt=${attempt + 1}/5 '
+        'syncSuccess=${syncResult.success} syncTier=${syncResult.subscriptionTier} '
+        'syncMessage="${syncResult.message}" '
+        'backendPremium=${effectiveAccess.hasBackendPremium} '
+        'revenueCatPremium=${effectiveAccess.hasRevenueCatPremium} '
+        'quotaPremium=${effectiveAccess.hasQuotaPremium} tier=${effectiveAccess.tier.name} '
+        'backendTier=${authProvider.user?.subscription?.tier.name ?? 'none'} '
+        'backendActive=${authProvider.user?.subscription?.isActive ?? false} '
+        'quotaTier=${quotaProvider.status?.subscriptionTier ?? 'none'}',
       );
 
       if (effectiveAccess.hasPremiumAccess) {

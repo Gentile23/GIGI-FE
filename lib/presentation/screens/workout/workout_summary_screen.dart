@@ -1329,7 +1329,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
           continue;
         }
 
-        if (renderObject.debugNeedsLayout || renderObject.debugNeedsPaint) {
+        if (_shareCardNeedsAnotherFrame(renderObject)) {
           lastError = StateError(
             'Share card non ha completato il paint (needs paint/layout)',
           );
@@ -1352,6 +1352,18 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     } finally {
       entry.remove();
     }
+  }
+
+  bool _shareCardNeedsAnotherFrame(RenderRepaintBoundary renderObject) {
+    var needsAnotherFrame = false;
+
+    assert(() {
+      needsAnotherFrame =
+          renderObject.debugNeedsLayout || renderObject.debugNeedsPaint;
+      return true;
+    }());
+
+    return needsAnotherFrame;
   }
 
   bool _isPickerPermissionError(PlatformException error) {

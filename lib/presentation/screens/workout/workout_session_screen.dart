@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter/services.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../core/utils/responsive_utils.dart';
@@ -2921,294 +2922,215 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildWorkoutChatPanel() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [CleanTheme.surfaceColor, CleanTheme.scaffoldBackgroundColor],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: CleanTheme.primaryColor.withValues(alpha: 0.16),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: CleanTheme.steelDark.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: CleanTheme.steelDark,
-                  border: Border.all(
-                    color: CleanTheme.primaryColor.withValues(alpha: 0.2),
-                  ),
-                ),
-                child: const Icon(
-                  Icons.smart_toy_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'GIGI Chat (AI)',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: CleanTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'AI Personal Trainer Contestuale',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: CleanTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: CleanTheme.accentGreen.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: CleanTheme.accentGreen,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _isChatLoading ? 'Sta scrivendo...' : 'Live',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: CleanTheme.accentGreen,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: _closeWorkoutChat,
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: CleanTheme.textSecondary,
-                ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            color: CleanTheme.steelDark.withValues(alpha: 0.88),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 40,
+                offset: const Offset(0, 12),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: CleanTheme.primaryColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: CleanTheme.primaryColor.withValues(alpha: 0.14),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.forum_rounded,
-                  size: 18,
-                  color: CleanTheme.primaryColor,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _chatIntroOnly
-                        ? 'Chat pronta. Aprila per iniziare a parlare con GIGI.'
-                        : 'Chat aperta. GIGI ti risponde in tempo reale sul workout.',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: CleanTheme.textPrimary,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. MINIMAL HEADER
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                    child: const Icon(
+                      Icons.smart_toy_rounded,
+                      color: Colors.white,
+                      size: 18,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          if (_chatIntroOnly) ...[
-            const SizedBox(height: 12),
-            _buildWorkoutChatIntro(),
-          ],
-          if (!_chatIntroOnly) ...[
-            const SizedBox(height: 16),
-            Container(
-              constraints: const BoxConstraints(maxHeight: 260),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: CleanTheme.scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: CleanTheme.borderPrimary),
+                  const SizedBox(width: 10),
+                  Text(
+                    'GIGI LIVE',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _buildPulseIndicator(),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _closeWorkoutChat,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.06),
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(32, 32),
+                    ),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
-              child: Column(
-                children: [
-                  Expanded(
+              const SizedBox(height: 12),
+
+              if (_chatIntroOnly) ...[
+                const SizedBox(height: 4),
+                _buildWorkoutChatIntro(),
+              ],
+              
+              if (!_chatIntroOnly) ...[
+                // 2. MESSAGE LIST
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListView.separated(
                       controller: _chatScrollController,
-                      itemCount:
-                          _chatMessages.length + (_isChatLoading ? 1 : 0),
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: _chatMessages.length + (_isChatLoading ? 1 : 0),
+                      separatorBuilder: (_, _) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         if (_isChatLoading && index == _chatMessages.length) {
                           return _buildChatBubble(
                             message: WorkoutChatMessage(
                               id: 'loading',
                               role: 'assistant',
-                              content: 'Sto analizzando il tuo workout...',
-                              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                              content: '...',
+                              createdAt: DateTime.now(),
                             ),
                             isLoading: true,
                           );
                         }
-
                         return _buildChatBubble(message: _chatMessages[index]);
                       },
                     ),
                   ),
-                  if (_chatError != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
+                ),
+
+                if (_chatError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: CleanTheme.accentRed.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
+                        color: CleanTheme.accentRed.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.error_outline_rounded,
-                            color: CleanTheme.accentRed,
-                            size: 18,
-                          ),
+                          const Icon(Icons.error_outline_rounded, color: CleanTheme.accentRed, size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               _chatError!,
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: CleanTheme.accentRed,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.accentRed, fontWeight: FontWeight.w600),
                             ),
                           ),
                           TextButton(
-                            onPressed:
-                                _chatMessages.isNotEmpty &&
-                                    _chatMessages.last.role == 'user'
+                            onPressed: _chatMessages.isNotEmpty && _chatMessages.last.role == 'user'
                                 ? () => _sendWorkoutChatMessage(
                                     prompt: _chatMessages.last.content,
                                     exerciseId: _chatMessages.last.exerciseId,
                                   )
                                 : null,
-                            child: const Text('Riprova'),
+                            child: const Text('Riprova', style: TextStyle(color: CleanTheme.accentRed)),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: CleanTheme.scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: CleanTheme.borderPrimary),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _chatController,
-                      minLines: 1,
-                      maxLines: 3,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendWorkoutChatMessage(),
-                      decoration: InputDecoration(
-                        hintText: 'Chiedi un consiglio a GIGI',
-                        hintStyle: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: CleanTheme.textSecondary,
+                  ),
+
+                // 3. MINIMAL INPUT
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _chatController,
+                          minLines: 1,
+                          maxLines: 3,
+                          textInputAction: TextInputAction.send,
+                          onSubmitted: (_) => _sendWorkoutChatMessage(),
+                          decoration: InputDecoration(
+                            hintText: 'Chiedi a GIGI...',
+                            hintStyle: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                            border: InputBorder.none,
+                          ),
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
                         ),
-                        border: InputBorder.none,
                       ),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: CleanTheme.textPrimary,
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _isChatLoading ? null : () => _sendWorkoutChatMessage(),
+                        child: Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: _isChatLoading ? Colors.black.withValues(alpha: 0.1) : CleanTheme.steelDark,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.arrow_upward_rounded,
+                            color: _isChatLoading ? Colors.black26 : Colors.white,
+                            size: 18,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _isChatLoading
-                        ? null
-                        : () => _sendWorkoutChatMessage(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _isChatLoading
-                            ? CleanTheme.chromeGray
-                            : CleanTheme.steelDark,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_upward_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPulseIndicator() {
+    return Animate(
+      onPlay: (controller) => controller.repeat(reverse: true),
+      effects: [
+        FadeEffect(duration: 1200.ms, begin: 0.3, end: 1.0),
+        ScaleEffect(duration: 1200.ms, begin: Offset(0.8, 0.8), end: Offset(1.1, 1.1)),
+      ],
+      child: Container(
+        width: 6,
+        height: 6,
+        decoration: const BoxDecoration(
+          color: CleanTheme.accentGreen,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }
@@ -3216,86 +3138,52 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   Widget _buildWorkoutChatIntro() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: CleanTheme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: CleanTheme.borderPrimary),
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: CleanTheme.steelDark,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.smart_toy_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Come sfruttare al meglio GIGI Chat',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: CleanTheme.textPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           Text(
-            'Il tuo personal trainer AI è sempre in ascolto!',
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
-              color: CleanTheme.textPrimary,
+            'GIGI coaching',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
-            'Sfrutta questa chat durante l\'allenamento per avere supporto in tempo reale e massimizzare i tuoi risultati su ogni singolo set.',
+            'Chiedimi consigli sulla tecnica, carichi o varianti in tempo reale.',
             style: GoogleFonts.inter(
               fontSize: 13,
               height: 1.5,
-              color: CleanTheme.textSecondary,
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            '💪 Esempi: chiedimi consigli sulla tecnica corretta, tempistiche di recupero, che carico scegliere, o se hai bisogno al volo di un esercizio alternativo.',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              height: 1.45,
-              color: CleanTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: _startFullWorkoutChat,
-              icon: const Icon(Icons.smart_toy_rounded, size: 18),
-              label: Text(
-                'Apri chat',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
-              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: CleanTheme.steelDark,
-                foregroundColor: Colors.white,
+                backgroundColor: Colors.white,
+                foregroundColor: CleanTheme.steelDark,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: Text(
+                'Inizia conversazione',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -3309,49 +3197,48 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return GestureDetector(
       onTap: _openWorkoutChat,
       child: Container(
-        width: 62,
-        height: 62,
+        width: 58,
+        height: 58,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [Color(0xFF2C2C2E), Color(0xFF111111)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          color: CleanTheme.steelDark,
           border: Border.all(
-            color: const Color(0xFFFFD700).withValues(alpha: 0.6),
-            width: 1.5,
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.chat_bubble_rounded,
-              color: Color(0xFFFFD700),
-              size: 22,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'CHAT',
-              style: GoogleFonts.outfit(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFFFFD700),
-                letterSpacing: 0.6,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.chat_bubble_rounded,
+                color: Colors.white,
+                size: 20,
               ),
-            ),
-          ],
+              const SizedBox(height: 1),
+              Text(
+                'GIGI',
+                style: GoogleFonts.outfit(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    );
+    ).animate(onPlay: (c) => c.repeat(reverse: true))
+     .shimmer(duration: 3.seconds, color: Colors.white.withValues(alpha: 0.1));
   }
 
   Widget _buildChatBubble({
@@ -3363,93 +3250,88 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 280),
+        constraints: BoxConstraints(maxWidth: isUser ? 240 : 260),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isUser
-                ? CleanTheme.steelDark
-                : CleanTheme.primaryColor.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isUser
-                  ? CleanTheme.steelDark
-                  : CleanTheme.primaryColor.withValues(alpha: 0.16),
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(18),
+              topRight: const Radius.circular(18),
+              bottomLeft: Radius.circular(isUser ? 18 : 0),
+              bottomRight: Radius.circular(isUser ? 0 : 18),
             ),
-            boxShadow: isUser
-                ? null
-                : [
-                    BoxShadow(
-                      color: CleanTheme.primaryColor.withValues(alpha: 0.06),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            border: Border.all(
+              color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.08),
+              width: 0.5,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isUser ? 'Tu' : 'GIGI',
-                style: GoogleFonts.outfit(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: isUser
-                      ? Colors.white.withValues(alpha: 0.75)
-                      : CleanTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
                 message.content,
                 style: GoogleFonts.inter(
-                  fontSize: 13,
+                  fontSize: 13.5,
                   height: 1.45,
-                  color: isUser ? Colors.white : CleanTheme.textPrimary,
+                  color: isUser ? Colors.black : Colors.white,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               if (!isUser && message.suggestions.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                ...message.suggestions.map(
+                const SizedBox(height: 10),
+                ...message.suggestions.take(2).map(
                   (suggestion) => Padding(
                     padding: const EdgeInsets.only(top: 6.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('💡', style: TextStyle(fontSize: 12)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            suggestion,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              height: 1.4,
-                              color: CleanTheme.textPrimary.withValues(
-                                alpha: 0.9,
-                              ),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                    child: InkWell(
+                      onTap: () => _sendWorkoutChatMessage(prompt: suggestion),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ],
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('💡', style: TextStyle(fontSize: 10)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                suggestion,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  height: 1.3,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
               if (isLoading) ...[
                 const SizedBox(height: 8),
-                const LinearProgressIndicator(
-                  minHeight: 3,
-                  color: CleanTheme.primaryColor,
-                  backgroundColor: CleanTheme.borderPrimary,
+                SizedBox(
+                  width: 20,
+                  height: 1,
+                  child: LinearProgressIndicator(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    backgroundColor: Colors.transparent,
+                  ),
                 ),
               ],
             ],
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
   }
 
   Widget _buildSectionHeader(String title, String emoji) {

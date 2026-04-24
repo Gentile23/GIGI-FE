@@ -5,13 +5,16 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/clean_theme.dart';
+import '../../../core/utils/subscription_access_resolver.dart';
 import '../../../core/utils/next_workout_selector.dart';
 import '../../../core/services/health_integration_service.dart';
 import '../../../core/services/haptic_service.dart';
 import '../../../presentation/widgets/celebrations/celebration_overlay.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/quota_provider.dart';
 import '../../../providers/workout_provider.dart';
 import '../../../providers/workout_log_provider.dart';
+import '../../../core/services/payment_service.dart';
 import '../../../core/constants/gigi_guidance_content.dart';
 import '../questionnaire/unified_questionnaire_screen.dart';
 import '../../widgets/gigi/gigi_coach_message.dart';
@@ -437,33 +440,48 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
           ],
         ),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        Consumer3<AuthProvider, PaymentService, QuotaProvider>(
+          builder: (context, auth, paymentService, quotaProvider, _) {
+            final effectiveAccess = SubscriptionAccessResolver.resolve(
+              user: auth.user,
+              paymentService: paymentService,
+              quotaStatus: quotaProvider.status,
+            );
+            final isPremium = effectiveAccess.hasPremiumAccess;
+            final avatar = CleanAvatar(
+              size: 48,
+              imageUrl: auth.user?.avatarUrl,
+              initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
+              backgroundColor: CleanTheme.surfaceColor,
+              isPremium: isPremium,
+            );
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+              child: isPremium
+                  ? avatar
+                  : Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            CleanTheme.chromeSilver,
+                            CleanTheme.textSecondary,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: avatar,
+                    ),
             );
           },
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [CleanTheme.chromeSilver, CleanTheme.textSecondary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) => CleanAvatar(
-                size: 48,
-                imageUrl: auth.user?.avatarUrl,
-                initials: name.isNotEmpty ? name[0].toUpperCase() : 'A',
-                backgroundColor: CleanTheme.surfaceColor,
-                isPremium: auth.user?.subscription?.isActive ?? false,
-              ),
-            ),
-          ),
         ),
       ],
     );
