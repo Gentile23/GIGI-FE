@@ -139,8 +139,7 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ..add('')
       ..add('#GIGI #Fitness #HealthTracking');
 
-    // ignore: deprecated_member_use
-    Share.share(lines.join('\n'));
+    SharePlus.instance.share(ShareParams(text: lines.join('\n')));
   }
 
   @override
@@ -418,8 +417,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     return null;
   }
 
-
-
   Widget _buildSleepChart() {
     final sleepData = _report!.sleep.dailyHours.values.toList();
     final days = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
@@ -621,8 +618,6 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       ),
     );
   }
-
-
 
   Widget _buildMissingHealthDataCard({required String message}) {
     return Container(

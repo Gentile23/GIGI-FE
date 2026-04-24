@@ -958,7 +958,19 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         if (loadingDialogShown) {
           Navigator.of(context, rootNavigator: true).pop();
         }
-        _showShareGenerationError();
+        final sharedFallback = await _shareTextFallback();
+        if (!mounted) return;
+        if (sharedFallback) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Immagine non generata: ${_shareGenerationErrorMessage(e)}. Abbiamo aperto la condivisione testuale.',
+              ),
+            ),
+          );
+        } else {
+          _showShareGenerationError(e);
+        }
       }
     } finally {
       if (mounted) {
@@ -1056,42 +1068,14 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                       onPressed: () async {
                         debugPrint('Condividi button pressed in modal');
                         Navigator.pop(sheetContext);
+                        final messenger = ScaffoldMessenger.of(context);
                         try {
-                          debugPrint('Creating share image file...');
-                          final shareFile = await createShareImageFile(
-                            imageBytes,
-                            fileName: 'gigi_workout_share.png',
-                          );
-                          debugPrint(
-                            'Share file created at: ${shareFile.path}',
-                          );
-
-                          if (!mounted) return;
-
-                          // Get origin for iPad popover
-                          final renderObject = context.findRenderObject();
-                          final box = renderObject is RenderBox
-                              ? renderObject
-                              : null;
-                          final origin = box != null
-                              ? box.localToGlobal(Offset.zero) & box.size
-                              : null;
-
-                          debugPrint(
-                            'Triggering native share sheet with SharePlus.instance.share...',
-                          );
-                          await SharePlus.instance.share(
-                            ShareParams(
-                              files: [shareFile],
-                              text: _buildSocialShareText(),
-                              sharePositionOrigin: origin,
-                            ),
-                          );
+                          await _shareGeneratedImage(imageBytes);
                           debugPrint('Share sheet successfully requested');
                         } catch (e) {
                           debugPrint('Critical error during share flow: $e');
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                          if (mounted && !await _shareTextFallback()) {
+                            messenger.showSnackBar(
                               SnackBar(
                                 content: Text(
                                   'Errore durante la condivisione: $e',
@@ -1159,12 +1143,16 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     return lines.join('\n');
   }
 
-  void _showShareGenerationError() {
+  void _showShareGenerationError([Object? error]) {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: const Text('Errore durante la generazione dell\'immagine'),
+          content: Text(
+            error == null
+                ? 'Errore durante la generazione dell\'immagine.'
+                : 'Errore durante la generazione dell\'immagine: ${_shareGenerationErrorMessage(error)}',
+          ),
           action: _selectedPhotoBytes == null
               ? null
               : SnackBarAction(
@@ -1173,6 +1161,60 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
                 ),
         ),
       );
+  }
+
+  String _shareGenerationErrorMessage(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '').trim();
+    if (message.isEmpty) return 'motivo non disponibile';
+    return message.length > 180 ? '${message.substring(0, 180)}...' : message;
+  }
+
+  Future<void> _shareGeneratedImage(Uint8List imageBytes) async {
+    debugPrint('Creating share image file...');
+    final shareFile = await createShareImageFile(
+      imageBytes,
+      fileName: 'gigi_workout_share.png',
+    );
+    debugPrint('Share file created at: ${shareFile.path}');
+
+    if (!mounted) return;
+
+    final renderObject = context.findRenderObject();
+    final box = renderObject is RenderBox ? renderObject : null;
+    final origin = box != null
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
+
+    debugPrint(
+      'Triggering native share sheet with SharePlus.instance.share...',
+    );
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [shareFile],
+        text: _buildSocialShareText(),
+        sharePositionOrigin: origin,
+      ),
+    );
+  }
+
+  Future<bool> _shareTextFallback() async {
+    if (!mounted) return false;
+
+    try {
+      final renderObject = context.findRenderObject();
+      final box = renderObject is RenderBox ? renderObject : null;
+      final origin = box != null
+          ? box.localToGlobal(Offset.zero) & box.size
+          : null;
+
+      await SharePlus.instance.share(
+        ShareParams(text: _buildSocialShareText(), sharePositionOrigin: origin),
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Text fallback share failed: $e');
+      return false;
+    }
   }
 
   Future<Uint8List> _renderShareCardPngBytes() async {
@@ -1246,7 +1288,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
         top: 0,
         child: IgnorePointer(
           child: Opacity(
-            opacity: 0.02,
+            opacity: 0.05,
             child: Material(
               color: Colors.transparent,
               child: RepaintBoundary(
@@ -1265,10 +1307,12 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
     overlay.insert(entry);
 
     try {
-      for (var attempt = 0; attempt < 45; attempt++) {
+      for (var attempt = 0; attempt < 60; attempt++) {
         WidgetsBinding.instance.scheduleFrame();
         await WidgetsBinding.instance.endOfFrame;
-        await Future<void>.delayed(const Duration(milliseconds: 32));
+        await Future<void>.delayed(
+          Duration(milliseconds: attempt < 10 ? 32 : 48),
+        );
 
         final boundaryContext = boundaryKey.currentContext;
         final renderObject = boundaryContext?.findRenderObject();
@@ -1303,7 +1347,7 @@ class _WorkoutSummaryScreenState extends State<WorkoutSummaryScreen> {
       }
 
       throw StateError(
-        'Impossibile catturare la card dopo 30 tentativi: ${lastError ?? 'timeout'}',
+        'Impossibile catturare la card dopo 60 tentativi: ${lastError ?? 'timeout'}',
       );
     } finally {
       entry.remove();

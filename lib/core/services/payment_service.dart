@@ -60,6 +60,7 @@ class PaymentService extends ChangeNotifier {
   List<ProductInfo> _availableProducts = [];
   DateTime? _expirationDate;
   bool _isTrialActive = false;
+  bool _isRefreshingStore = false;
 
   // Getters
   // Getters
@@ -71,6 +72,7 @@ class PaymentService extends ChangeNotifier {
   bool get isTrialActive => _isTrialActive;
   bool get isInitialized => _isInitialized;
   bool get isStoreReady => _isStoreReady;
+  bool get isRefreshingStore => _isRefreshingStore;
 
   bool get isProOrAbove =>
       _currentPlan == SubscriptionTier.pro ||
@@ -139,6 +141,31 @@ class PaymentService extends ChangeNotifier {
     return periodMatches.length == 1 ? periodMatches.single : null;
   }
 
+  String unavailableReasonFor(String productId) {
+    final available = _availableProducts
+        .map(
+          (product) =>
+              '${product.identifier}'
+              '${product.packageIdentifier == null ? '' : ' (${product.packageIdentifier})'}',
+        )
+        .join(', ');
+
+    if (!_isStoreReady) {
+      return _errorMessage ??
+          'Store non pronto: RevenueCat non ha restituito prodotti disponibili.';
+    }
+
+    final expectedType = _expectedPackageType(productId)?.name ?? 'sconosciuto';
+    final expectedPrice = _expectedReferencePrice(productId);
+    final priceHint = expectedPrice == null
+        ? ''
+        : ' Prezzo atteso: ${expectedPrice.toStringAsFixed(2)}.';
+
+    return 'Abbonamento non trovato: "$productId" ($expectedType).'
+        '$priceHint Prodotti caricati: ${available.isEmpty ? 'nessuno' : available}.'
+        ' Verifica Product ID, package e Current Offering su RevenueCat.';
+  }
+
   /// Initialize RevenueCat
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -203,6 +230,51 @@ class PaymentService extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshStoreState({
+    bool refreshProducts = true,
+    bool refreshCustomerInfo = true,
+  }) async {
+    if (kIsWeb) {
+      _availableProducts = _webFallbackProducts();
+      _isStoreReady = true;
+      _errorMessage = null;
+      notifyListeners();
+      return;
+    }
+
+    if (_isRefreshingStore) return;
+    _isRefreshingStore = true;
+    notifyListeners();
+
+    try {
+      if (!_isInitialized) {
+        await initialize();
+        return;
+      }
+
+      if (refreshCustomerInfo) {
+        final customerInfo = await Purchases.getCustomerInfo();
+        _updateFromCustomerInfo(customerInfo);
+      }
+
+      if (refreshProducts) {
+        await _fetchProducts();
+      }
+    } catch (e) {
+      debugPrint('RevenueCat: Error refreshing store state: $e');
+      if (e is PlatformException) {
+        _errorMessage = _translatePlatformError(e);
+      } else {
+        _errorMessage =
+            'Impossibile aggiornare lo store in questo momento. Riprova.';
+      }
+      notifyListeners();
+    } finally {
+      _isRefreshingStore = false;
+      notifyListeners();
+    }
+  }
+
   /// Fetch products from RevenueCat Offerings
   Future<void> _fetchProducts() async {
     try {
@@ -229,6 +301,7 @@ class PaymentService extends ChangeNotifier {
 
         debugPrint('RevenueCat: Loaded ${_availableProducts.length} products');
         _isStoreReady = _availableProducts.isNotEmpty;
+        _errorMessage = null;
 
         if (!_isStoreReady) {
           _errorMessage =
@@ -269,7 +342,15 @@ class PaymentService extends ChangeNotifier {
         'RevenueCat: Purchases not supported on Web. Simulating success...',
       );
       await Future.delayed(const Duration(seconds: 1));
+      _currentPlan = _expectedProductTier(productId) == 'elite'
+          ? SubscriptionTier.elite
+          : SubscriptionTier.pro;
+      final duration = _expectedPackageType(productId) == PackageType.annual
+          ? const Duration(days: 365)
+          : const Duration(days: 30);
+      _expirationDate = DateTime.now().add(duration);
       _purchaseStatus = PurchaseStatus.success;
+      _errorMessage = null;
       notifyListeners();
       return true;
     }
@@ -299,9 +380,7 @@ class PaymentService extends ChangeNotifier {
           'RevenueCat: Product $productId not found in current offerings.',
         );
         _purchaseStatus = PurchaseStatus.error;
-        _errorMessage = productId == ProductInfo.proMonthly
-            ? 'Prodotto mensile gigi_pro_monthly non trovato nelle offering RevenueCat. Verifica che sia nella Current Offering o in una offering attiva.'
-            : 'Abbonamento non disponibile in questo build. Verifica prodotto, offering e package su RevenueCat/App Store Connect.';
+        _errorMessage = unavailableReasonFor(productId);
         notifyListeners();
         return false;
       }
@@ -835,6 +914,7 @@ class PaymentService extends ChangeNotifier {
       }
       final customerInfo = await Purchases.getCustomerInfo();
       _updateFromCustomerInfo(customerInfo);
+      _errorMessage = null;
     } catch (e) {
       debugPrint('RevenueCat: Error checking subscription status: $e');
     }

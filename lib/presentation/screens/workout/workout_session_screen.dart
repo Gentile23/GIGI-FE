@@ -328,7 +328,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final userName = authProvider.user?.name.split(' ').first ?? 'Campione';
-    final userGoal = authProvider.user?.goal?.toLowerCase() ?? 'massimizzare i risultati';
+    final userGoal =
+        authProvider.user?.goal?.toLowerCase() ?? 'massimizzare i risultati';
 
     // Local personalized templates for a better user experience
     final templates = [
@@ -339,14 +340,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     ];
 
     // Use current time to pick a random-ish template
-    final welcomeMessage = templates[DateTime.now().millisecond % templates.length];
+    final welcomeMessage =
+        templates[DateTime.now().millisecond % templates.length];
 
     _chatMessages.clear();
-    _chatMessages.add(
-      WorkoutChatMessage.assistant(
-        content: welcomeMessage,
-      ),
-    );
+    _chatMessages.add(WorkoutChatMessage.assistant(content: welcomeMessage));
     _hasSeededChatWelcome = true;
   }
 
@@ -1253,23 +1251,40 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
 
                             // Pre-Workout Section
                             if (widget.workoutDay.warmupCardio.isNotEmpty ||
-                                widget.workoutDay.preWorkoutMobility.isNotEmpty) ...[
+                                widget
+                                    .workoutDay
+                                    .preWorkoutMobility
+                                    .isNotEmpty) ...[
                               _buildSectionHeader(
                                 AppLocalizations.of(context)!.preWorkoutSection,
                                 '🏃',
                               ),
-                              ...widget.workoutDay.warmupCardio.asMap().entries.map(
+                              ...widget.workoutDay.warmupCardio
+                                  .asMap()
+                                  .entries
+                                  .map(
                                     (e) => Column(
                                       children: [
-                                        _buildExerciseCard(e.value, e.key, 'warmup'),
+                                        _buildExerciseCard(
+                                          e.value,
+                                          e.key,
+                                          'warmup',
+                                        ),
                                         _buildExerciseDivider(),
                                       ],
                                     ),
                                   ),
-                              ...widget.workoutDay.preWorkoutMobility.asMap().entries.map(
+                              ...widget.workoutDay.preWorkoutMobility
+                                  .asMap()
+                                  .entries
+                                  .map(
                                     (e) => Column(
                                       children: [
-                                        _buildExerciseCard(e.value, e.key, 'mobility'),
+                                        _buildExerciseCard(
+                                          e.value,
+                                          e.key,
+                                          'mobility',
+                                        ),
                                         _buildExerciseDivider(),
                                       ],
                                     ),
@@ -1282,30 +1297,45 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               AppLocalizations.of(context)!.mainWorkoutSection,
                               '💪',
                             ),
-                            ...widget.workoutDay.mainWorkout.asMap().entries.map((entry) {
-                              return Column(
-                                children: [
-                                  _buildExerciseCard(
-                                    entry.value,
-                                    entry.key,
-                                    'main',
-                                  ),
-                                  _buildExerciseDivider(),
-                                ],
-                              );
-                            }),
+                            ...widget.workoutDay.mainWorkout
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                                  return Column(
+                                    children: [
+                                      _buildExerciseCard(
+                                        entry.value,
+                                        entry.key,
+                                        'main',
+                                      ),
+                                      _buildExerciseDivider(),
+                                    ],
+                                  );
+                                }),
 
                             // Post-Workout Section
-                            if (widget.workoutDay.postWorkoutExercises.isNotEmpty) ...[
+                            if (widget
+                                .workoutDay
+                                .postWorkoutExercises
+                                .isNotEmpty) ...[
                               const SizedBox(height: 16),
                               _buildSectionHeader(
-                                AppLocalizations.of(context)!.postWorkoutSection,
+                                AppLocalizations.of(
+                                  context,
+                                )!.postWorkoutSection,
                                 '🏁',
                               ),
-                              ...widget.workoutDay.postWorkoutExercises.asMap().entries.map(
+                              ...widget.workoutDay.postWorkoutExercises
+                                  .asMap()
+                                  .entries
+                                  .map(
                                     (e) => Column(
                                       children: [
-                                        _buildExerciseCard(e.value, e.key, 'post'),
+                                        _buildExerciseCard(
+                                          e.value,
+                                          e.key,
+                                          'post',
+                                        ),
                                         _buildExerciseDivider(),
                                       ],
                                     ),
@@ -1617,50 +1647,99 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                   ),
 
                   if (_canShowWorkoutChat)
-                    Positioned(
-                      right: 20,
-                      bottom:
-                          MediaQuery.of(context).padding.bottom +
-                          (_isSessionActive ? 210 : 88),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 260),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          final slideAnimation = Tween<Offset>(
-                            begin: const Offset(0, 0.08),
-                            end: Offset.zero,
-                          ).animate(animation);
-                          final scaleAnimation = Tween<double>(
-                            begin: 0.96,
-                            end: 1,
-                          ).animate(animation);
+                    Builder(
+                      builder: (context) {
+                        final mediaQuery = MediaQuery.of(context);
+                        final chatBottomOffset =
+                            mediaQuery.padding.bottom +
+                            (_isSessionActive ? 210 : 88);
+                        final chatTopInset = mediaQuery.padding.top + 76;
 
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: slideAnimation,
-                              child: ScaleTransition(
-                                scale: scaleAnimation,
-                                child: child,
-                              ),
-                            ),
-                          );
-                        },
-                        child: _isChatOpen
-                            ? SizedBox(
-                                key: const ValueKey('workout_chat_panel'),
-                                width: MediaQuery.of(context).size.width - 40,
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: _buildWorkoutChatPanel(),
+                        return _isChatOpen
+                            ? Positioned(
+                                top: chatTopInset,
+                                left: 20,
+                                right: 20,
+                                bottom: chatBottomOffset,
+                                child: Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 260),
+                                    switchInCurve: Curves.easeOutCubic,
+                                    switchOutCurve: Curves.easeInCubic,
+                                    transitionBuilder: (child, animation) {
+                                      final slideAnimation = Tween<Offset>(
+                                        begin: const Offset(0, 0.08),
+                                        end: Offset.zero,
+                                      ).animate(animation);
+                                      final scaleAnimation = Tween<double>(
+                                        begin: 0.96,
+                                        end: 1,
+                                      ).animate(animation);
+
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: SlideTransition(
+                                          position: slideAnimation,
+                                          child: ScaleTransition(
+                                            scale: scaleAnimation,
+                                            child: child,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: ConstrainedBox(
+                                      key: const ValueKey('workout_chat_panel'),
+                                      constraints: BoxConstraints(
+                                        maxWidth: mediaQuery.size.width - 40,
+                                        maxHeight:
+                                            mediaQuery.size.height -
+                                            chatTopInset -
+                                            chatBottomOffset,
+                                      ),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: _buildWorkoutChatPanel(),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               )
-                            : SizedBox(
-                                key: const ValueKey('workout_chat_fab'),
-                                child: _buildWorkoutChatFab(),
-                              ),
-                      ),
+                            : Positioned(
+                                right: 20,
+                                bottom: chatBottomOffset,
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 260),
+                                  switchInCurve: Curves.easeOutCubic,
+                                  switchOutCurve: Curves.easeInCubic,
+                                  transitionBuilder: (child, animation) {
+                                    final slideAnimation = Tween<Offset>(
+                                      begin: const Offset(0, 0.08),
+                                      end: Offset.zero,
+                                    ).animate(animation);
+                                    final scaleAnimation = Tween<double>(
+                                      begin: 0.96,
+                                      end: 1,
+                                    ).animate(animation);
+
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SlideTransition(
+                                        position: slideAnimation,
+                                        child: ScaleTransition(
+                                          scale: scaleAnimation,
+                                          child: child,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: SizedBox(
+                                    key: const ValueKey('workout_chat_fab'),
+                                    child: _buildWorkoutChatFab(),
+                                  ),
+                                ),
+                              );
+                      },
                     ),
                 ],
               ),
@@ -1680,6 +1759,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required String exerciseId,
     required int setNumber,
     required bool isNext,
+    required bool isKeyboardOpen,
   }) {
     final exercise = _getExerciseById(exerciseId);
     if (exercise == null) return const SizedBox.shrink();
@@ -1718,8 +1798,13 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
       currentRpe: currentRpe,
     );
 
+    final compact = isKeyboardOpen;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 14 : 16,
+        vertical: compact ? 10 : 12,
+      ),
       decoration: BoxDecoration(
         color: CleanTheme.steelDark.withValues(alpha: isNext ? 0.4 : 0.25),
         borderRadius: BorderRadius.circular(24),
@@ -1761,11 +1846,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: compact ? 4 : 6),
           Text(
             exercise.exercise.name,
             style: GoogleFonts.outfit(
-              fontSize: 16,
+              fontSize: compact ? 15 : 16,
               fontWeight: FontWeight.w700,
               color: CleanTheme.textOnDark,
               letterSpacing: -0.2,
@@ -1773,18 +1858,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: compact ? 2 : 4),
           Text(
             'Set $setNumber di ${exercise.sets}',
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: compact ? 10 : 11,
               fontWeight: FontWeight.w500,
               color: CleanTheme.textOnDark.withValues(alpha: 0.5),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: compact ? 8 : 12),
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: EdgeInsets.all(compact ? 2 : 4),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
@@ -1793,6 +1878,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               children: [
                 Expanded(
                   child: _buildOverlayMetricField(
+                    compact: compact,
                     label: 'KG',
                     controller: overlayWeightController,
                     focusNode: weightFocusNode,
@@ -1816,11 +1902,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
                 Container(
                   width: 1,
-                  height: 30,
+                  height: compact ? 24 : 30,
                   color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                 ),
                 Expanded(
                   child: _buildOverlayMetricField(
+                    compact: compact,
                     label: 'REPS',
                     controller: overlayRepsController,
                     focusNode: repsFocusNode,
@@ -1838,11 +1925,12 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                 ),
                 Container(
                   width: 1,
-                  height: 30,
+                  height: compact ? 24 : 30,
                   color: CleanTheme.textOnDark.withValues(alpha: 0.1),
                 ),
                 Expanded(
                   child: _buildOverlayDifficultyField(
+                    compact: compact,
                     controller: difficultyController,
                     focusNode: difficultyFocusNode,
                     setLoggingState: setLoggingState,
@@ -1852,32 +1940,39 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: compact ? 6 : 8),
           Row(
             children: [
               Icon(
                 Icons.ads_click_rounded,
-                size: 10,
+                size: compact ? 9 : 10,
                 color: CleanTheme.textOnDark.withValues(alpha: 0.4),
               ),
-              const SizedBox(width: 4),
-              Text(
-                'Target: ${_getTargetReps(exercise, setNumber)} reps',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: CleanTheme.textOnDark.withValues(alpha: 0.4),
+              SizedBox(width: compact ? 3 : 4),
+              Expanded(
+                child: Text(
+                  'Target: ${_getTargetReps(exercise, setNumber)} reps',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(
+                    fontSize: compact ? 10 : 11,
+                    height: 1.05,
+                    fontWeight: FontWeight.w600,
+                    color: CleanTheme.textOnDark.withValues(alpha: 0.4),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: compact ? 2 : 6),
         ],
       ),
     );
   }
 
   Widget _buildNextSetOverlayCard() {
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     // Determine the next set
     final currentExercise = _getExerciseById(_restingExerciseId!);
     if (currentExercise == null) return const SizedBox.shrink();
@@ -1889,6 +1984,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
         exerciseId: _restingExerciseId!,
         setNumber: _restingSetNumber + 1,
         isNext: true,
+        isKeyboardOpen: isKeyboardOpen,
       );
     } else {
       // Next set is in the NEXT exercise
@@ -1899,6 +1995,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
           exerciseId: nextExercise.exerciseId,
           setNumber: 1,
           isNext: true,
+          isKeyboardOpen: isKeyboardOpen,
         );
       } else {
         // No more exercises
@@ -1937,6 +2034,7 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildOverlayMetricField({
+    required bool compact,
     required String label,
     required TextEditingController controller,
     required FocusNode focusNode,
@@ -1946,143 +2044,208 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
     required bool readOnly,
     required ValueChanged<String> onChanged,
   }) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 66),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: CleanTheme.textOnDark.withValues(alpha: 0.4),
-              letterSpacing: 0.5,
-            ),
+    return AnimatedBuilder(
+      animation: focusNode,
+      builder: (context, child) {
+        final isFocused = focusNode.hasFocus;
+        return Container(
+          constraints: BoxConstraints(minHeight: compact ? 52 : 66),
+          padding: EdgeInsets.symmetric(
+            horizontal: compact ? 8 : 12,
+            vertical: compact ? 6 : 8,
           ),
-          const SizedBox(height: 2),
-          SizedBox(
-            height: 34,
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              keyboardType: keyboardType,
-              inputFormatters: inputFormatters,
-              textInputAction: textInputAction,
-              readOnly: readOnly,
-              onTap: () {
-                if (!readOnly) {
-                  _selectAllText(controller);
-                }
-              },
-              onChanged: onChanged,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: CleanTheme.textOnDark,
-              ),
-              textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                fillColor: Colors.transparent,
-              ),
-              cursorColor: CleanTheme.accentBlue,
+          decoration: BoxDecoration(
+            color: isFocused
+                ? Colors.white.withValues(alpha: 0.16)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isFocused
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0),
+              width: 1.2,
             ),
+            boxShadow: isFocused
+                ? [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                    ),
+                  ]
+                : null,
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: compact ? 9 : 10,
+                  fontWeight: FontWeight.w800,
+                  color: CleanTheme.textOnDark.withValues(alpha: 0.4),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              SizedBox(height: compact ? 1 : 2),
+              SizedBox(
+                height: compact ? 26 : 34,
+                child: _buildOverlayInputSelectionTheme(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    keyboardType: keyboardType,
+                    inputFormatters: inputFormatters,
+                    textInputAction: textInputAction,
+                    readOnly: readOnly,
+                    onTap: () {
+                      if (!readOnly) {
+                        _selectAllText(controller);
+                      }
+                    },
+                    onChanged: onChanged,
+                    style: GoogleFonts.outfit(
+                      fontSize: compact ? 17 : 20,
+                      fontWeight: FontWeight.w800,
+                      color: CleanTheme.textOnDark,
+                    ),
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      fillColor: Colors.transparent,
+                    ),
+                    cursorColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildOverlayDifficultyField({
+    required bool compact,
     required TextEditingController controller,
     required FocusNode focusNode,
     required SetLoggingWidgetState? setLoggingState,
     required int setNumber,
   }) {
     final rpeColor = _getOverlayRpeColor(controller.text);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'RPE',
-          style: GoogleFonts.inter(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: CleanTheme.textOnDark.withValues(alpha: 0.4),
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        InkWell(
-          onTap: () => focusNode.requestFocus(),
-          borderRadius: BorderRadius.circular(999),
-          child: Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: rpeColor.withValues(alpha: 0.2),
-              border: Border.all(color: rpeColor, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: rpeColor.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  spreadRadius: 1,
+    return AnimatedBuilder(
+      animation: focusNode,
+      builder: (context, child) {
+        final isFocused = focusNode.hasFocus;
+        final circleSize = compact ? 36.0 : 46.0;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'RPE',
+              style: GoogleFonts.inter(
+                fontSize: compact ? 9 : 10,
+                fontWeight: FontWeight.w800,
+                color: CleanTheme.textOnDark.withValues(alpha: 0.4),
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: compact ? 2 : 4),
+            InkWell(
+              onTap: () => focusNode.requestFocus(),
+              borderRadius: BorderRadius.circular(999),
+              child: SizedBox(
+                width: circleSize,
+                height: circleSize,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isFocused
+                        ? Colors.white.withValues(alpha: 0.9)
+                        : rpeColor.withValues(alpha: 0.2),
+                    border: Border.all(
+                      color: isFocused ? Colors.white : rpeColor,
+                      width: isFocused ? 1.6 : 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isFocused ? Colors.white : rpeColor).withValues(
+                          alpha: isFocused ? 0.35 : 0.3,
+                        ),
+                        blurRadius: compact ? 6 : 8,
+                        spreadRadius: isFocused ? 0.5 : 1,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: _buildOverlayInputSelectionTheme(
+                      child: TextField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        textInputAction: TextInputAction.done,
+                        onTap: () => _selectAllText(controller),
+                        onSubmitted: (value) {
+                          _syncOverlayDifficultyValue(
+                            value: value,
+                            controller: controller,
+                            setLoggingState: setLoggingState,
+                            setNumber: setNumber,
+                          );
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        },
+                        onChanged: (value) {
+                          _syncOverlayDifficultyValue(
+                            value: value,
+                            controller: controller,
+                            setLoggingState: setLoggingState,
+                            setNumber: setNumber,
+                          );
+                        },
+                        style: GoogleFonts.outfit(
+                          fontSize: compact ? 16 : 20,
+                          fontWeight: FontWeight.w900,
+                          color: isFocused
+                              ? CleanTheme.textPrimary
+                              : CleanTheme.textOnDark,
+                        ),
+                        textAlign: TextAlign.center,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          fillColor: Colors.transparent,
+                        ),
+                        cursorColor: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              textInputAction: TextInputAction.done,
-              onTap: () => _selectAllText(controller),
-              onSubmitted: (value) {
-                _syncOverlayDifficultyValue(
-                  value: value,
-                  controller: controller,
-                  setLoggingState: setLoggingState,
-                  setNumber: setNumber,
-                );
-                FocusManager.instance.primaryFocus?.unfocus();
-              },
-              onChanged: (value) {
-                _syncOverlayDifficultyValue(
-                  value: value,
-                  controller: controller,
-                  setLoggingState: setLoggingState,
-                  setNumber: setNumber,
-                );
-              },
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: CleanTheme.textOnDark,
               ),
-              textAlign: TextAlign.center,
-              decoration: const InputDecoration(
-                isDense: true,
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-                fillColor: Colors.transparent,
-              ),
-              cursorColor: CleanTheme.accentBlue,
             ),
-          ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildOverlayInputSelectionTheme({required Widget child}) {
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Colors.white,
+          selectionColor: Color(0x66FFFFFF),
+          selectionHandleColor: Colors.white,
         ),
-      ],
+      ),
+      child: child,
     );
   }
 
@@ -2465,17 +2628,18 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
                               child: Column(
                                 children: [
                                   SizedBox(
-                                    height: isKeyboardOpen ? 150 : 180,
+                                    height: isKeyboardOpen ? 132 : 180,
                                     child: _buildSetDetailOverlayCard(
                                       title: 'ULTIMO SET',
                                       exerciseId: _restingExerciseId!,
                                       setNumber: _restingSetNumber,
                                       isNext: false,
+                                      isKeyboardOpen: isKeyboardOpen,
                                     ),
                                   ),
                                   const SizedBox(height: 10),
                                   SizedBox(
-                                    height: isKeyboardOpen ? 150 : 180,
+                                    height: isKeyboardOpen ? 132 : 180,
                                     child: _buildNextSetOverlayCard(),
                                   ),
                                 ],
@@ -2609,7 +2773,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   // Pre/Post Workout sections are now rendered inline as standard headers and cards.
-
 
   // ignore: unused_element
 
@@ -2758,8 +2921,6 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
   }
 
   Widget _buildWorkoutChatPanel() {
-
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

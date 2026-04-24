@@ -247,6 +247,18 @@ class _MealLoggingScreenState extends State<MealLoggingScreen> {
                 ),
               );
             }
+          } else {
+            final message = result?['message']?.toString();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  message == null || message.trim().isEmpty
+                      ? 'Analisi immagine non riuscita: nessun dettaglio dal server.'
+                      : 'Analisi immagine non riuscita: $message',
+                ),
+                backgroundColor: CleanTheme.accentRed,
+              ),
+            );
           }
         }
       }

@@ -55,7 +55,10 @@ class NutritionService {
       return response;
     } catch (e) {
       debugPrint('Error quick logging: $e');
-      return null;
+      return {
+        'success': false,
+        'message': e.toString().replaceFirst('Exception: ', ''),
+      };
     }
   }
 
@@ -452,9 +455,7 @@ class NutritionService {
       if (sanitizedIngredients.isEmpty ||
           sanitizedIngredients.length >
               ValidationUtils.maxIngredientsPerChefRequest ||
-          sanitizedIngredients.any(
-            ValidationUtils.containsSuspiciousMarkup,
-          )) {
+          sanitizedIngredients.any(ValidationUtils.containsSuspiciousMarkup)) {
         throw Exception('Ingredienti non validi');
       }
 

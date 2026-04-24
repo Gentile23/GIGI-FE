@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -361,13 +362,19 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   void didUpdateWidget(SetLoggingWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.exercise.sets != oldWidget.exercise.sets) {
-      _syncRuntimeSetCount(oldWidget.exercise.sets, widget.exercise.sets);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _syncRuntimeSetCount(oldWidget.exercise.sets, widget.exercise.sets);
+      });
     }
     // If the exercise log has been updated from outside (e.g. backend refresh)
     // and we are not currently editing, sync local state.
     if (widget.exerciseLog != oldWidget.exerciseLog &&
         widget.exerciseLog != null) {
-      _syncStateWithLog();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _syncStateWithLog();
+      });
     }
   }
 
@@ -410,17 +417,36 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         state.workoutDayId == widget.workoutDayId;
 
     if (state.isActive && isThisTimer) {
-      setState(() {
+      _setStateSafely(() {
         _isRestTimerActive = true;
       });
       return;
     }
 
     if (_isRestTimerActive && isThisTimer) {
-      setState(() {
+      _setStateSafely(() {
         _isRestTimerActive = false;
       });
     }
+  }
+
+  void _setStateSafely(VoidCallback fn) {
+    if (!mounted) return;
+
+    final phase = SchedulerBinding.instance.schedulerPhase;
+    final isBuildingFrame =
+        phase == SchedulerPhase.persistentCallbacks ||
+        phase == SchedulerPhase.postFrameCallbacks;
+
+    if (isBuildingFrame) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(fn);
+      });
+      return;
+    }
+
+    setState(fn);
   }
 
   void _appendRuntimeSetState(int setNumber) {
@@ -519,7 +545,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
   void _syncStateWithLog() {
     if (widget.exerciseLog == null) return;
 
-    setState(() {
+    _setStateSafely(() {
       for (final setLog in widget.exerciseLog!.setLogs) {
         final num = setLog.setNumber;
         _weights[num] = setLog.weightKg ?? 0;
@@ -853,7 +879,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
         );
 
         // PERSISTENCE FIX: Load data even if ID is empty (local state)
-        if (setLog.id.isNotEmpty || setLog.completed || (setLog.weightKg ?? 0) > 0) {
+        if (setLog.id.isNotEmpty ||
+            setLog.completed ||
+            (setLog.weightKg ?? 0) > 0) {
           _weights[i] = setLog.weightKg ?? 0;
           _reps[i] = setLog.reps;
           _rpe[i] = setLog.rpe ?? 7;
@@ -1349,142 +1377,52 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const SizedBox(height: 12),
-                              Container(
+                              SizedBox(
                                 height: 46,
-                                decoration: _fieldDecoration(
-                                  isCompleted: isCompleted,
-                                  isActive: isWeightActive,
-                                ),
-                                child: TextField(
-                                  textAlign: TextAlign.center,
-                                  controller: _weightControllers[setNumber],
-                                  focusNode: _weightFocusNodes[setNumber],
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  textInputAction: TextInputAction.done,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.allow(
-                                      RegExp(r'^\d*([,.]\d*)?$'),
-                                    ),
-                                  ],
-                                  onSubmitted: (_) => _dismissKeyboardAndSave(),
-                                  scrollPadding: const EdgeInsets.only(
-                                    bottom: 120,
+                                child: DecoratedBox(
+                                  decoration: _fieldDecoration(
+                                    isCompleted: isCompleted,
+                                    isActive: isWeightActive,
                                   ),
-                                  onTap: () {
-                                    _setActiveField(
-                                      setNumber,
-                                      _EditableSetField.weight,
-                                    );
-                                    final isGhost =
-                                        !_manuallyEditedWeights.contains(
-                                          setNumber,
-                                        ) &&
-                                        (_weightControllers[setNumber]
-                                                ?.text
-                                                .isNotEmpty ??
-                                            false);
-                                    if (isGhost) {
-                                      _weightControllers[setNumber]!.selection =
-                                          TextSelection(
-                                            baseOffset: 0,
-                                            extentOffset:
-                                                _weightControllers[setNumber]!
-                                                    .text
-                                                    .length,
-                                          );
-                                    }
-                                  },
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: CleanTheme.textPrimary,
-                                  ),
-                                  decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 13,
-                                      horizontal: 4,
-                                    ),
-                                    hintText: '0',
-                                    hintStyle: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      color: CleanTheme.textTertiary,
-                                    ),
-                                  ),
-                                  enabled: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-
-                      // Reps/Duration Column
-                      Expanded(
-                        flex: isCardioMobility ? 6 : 3,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              height: 58,
-                              padding: const EdgeInsets.fromLTRB(10, 6, 10, 4),
-                              decoration: _fieldDecoration(
-                                isCompleted: isCompleted,
-                                isActive: isRepsActive,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isCardioMobility
-                                        ? 'Target ${_presetReps[setNumber] ?? widget.exercise.reps}s'
-                                        : 'Target ${_presetReps[setNumber] ?? widget.exercise.reps}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                      color: isRepsActive
-                                          ? CleanTheme.primaryColor
-                                          : CleanTheme.textSecondary,
-                                    ),
-                                  ),
-                                  Expanded(
+                                  child: _buildInputSelectionTheme(
                                     child: TextField(
                                       textAlign: TextAlign.center,
-                                      controller: _repsControllers[setNumber],
-                                      focusNode: _repsFocusNodes[setNumber],
-                                      keyboardType: TextInputType.number,
+                                      controller: _weightControllers[setNumber],
+                                      focusNode: _weightFocusNodes[setNumber],
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
                                       textInputAction: TextInputAction.done,
                                       inputFormatters: [
-                                        FilteringTextInputFormatter.digitsOnly,
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d*([,.]\d*)?$'),
+                                        ),
                                       ],
                                       onSubmitted: (_) =>
                                           _dismissKeyboardAndSave(),
+                                      scrollPadding: const EdgeInsets.only(
+                                        bottom: 120,
+                                      ),
                                       onTap: () {
                                         _setActiveField(
                                           setNumber,
-                                          _EditableSetField.reps,
+                                          _EditableSetField.weight,
                                         );
                                         final isGhost =
-                                            !_manuallyEditedReps.contains(
+                                            !_manuallyEditedWeights.contains(
                                               setNumber,
                                             ) &&
-                                            (_repsControllers[setNumber]
+                                            (_weightControllers[setNumber]
                                                     ?.text
                                                     .isNotEmpty ??
                                                 false);
                                         if (isGhost) {
-                                          _repsControllers[setNumber]!
+                                          _weightControllers[setNumber]!
                                               .selection = TextSelection(
                                             baseOffset: 0,
                                             extentOffset:
-                                                _repsControllers[setNumber]!
+                                                _weightControllers[setNumber]!
                                                     .text
                                                     .length,
                                           );
@@ -1500,17 +1438,122 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                              vertical: 8,
+                                              vertical: 13,
                                               horizontal: 4,
                                             ),
-                                        hintText:
-                                            _presetReps[setNumber] ?? '10',
+                                        hintText: '0',
                                         hintStyle: GoogleFonts.inter(
                                           fontSize: 13,
                                           color: CleanTheme.textTertiary,
                                         ),
                                       ),
                                       enabled: true,
+                                      cursorColor: CleanTheme.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+
+                      // Reps/Duration Column
+                      Expanded(
+                        flex: isCardioMobility ? 6 : 3,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(minHeight: 54),
+                              padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+                              decoration: _fieldDecoration(
+                                isCompleted: isCompleted,
+                                isActive: isRepsActive,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    isCardioMobility
+                                        ? 'Target ${_presetReps[setNumber] ?? widget.exercise.reps}s'
+                                        : 'Target ${_presetReps[setNumber] ?? widget.exercise.reps}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 8.5,
+                                      height: 1,
+                                      fontWeight: FontWeight.w800,
+                                      color: isRepsActive
+                                          ? CleanTheme.textPrimary
+                                          : CleanTheme.textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  SizedBox(
+                                    height: 30,
+                                    child: _buildInputSelectionTheme(
+                                      child: TextField(
+                                        textAlign: TextAlign.center,
+                                        controller: _repsControllers[setNumber],
+                                        focusNode: _repsFocusNodes[setNumber],
+                                        keyboardType: TextInputType.number,
+                                        textInputAction: TextInputAction.done,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter
+                                              .digitsOnly,
+                                        ],
+                                        onSubmitted: (_) =>
+                                            _dismissKeyboardAndSave(),
+                                        onTap: () {
+                                          _setActiveField(
+                                            setNumber,
+                                            _EditableSetField.reps,
+                                          );
+                                          final isGhost =
+                                              !_manuallyEditedReps.contains(
+                                                setNumber,
+                                              ) &&
+                                              (_repsControllers[setNumber]
+                                                      ?.text
+                                                      .isNotEmpty ??
+                                                  false);
+                                          if (isGhost) {
+                                            _repsControllers[setNumber]!
+                                                .selection = TextSelection(
+                                              baseOffset: 0,
+                                              extentOffset:
+                                                  _repsControllers[setNumber]!
+                                                      .text
+                                                      .length,
+                                            );
+                                          }
+                                        },
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w700,
+                                          color: CleanTheme.textPrimary,
+                                        ),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          isDense: true,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 6,
+                                                horizontal: 4,
+                                              ),
+                                          hintText:
+                                              _presetReps[setNumber] ?? '10',
+                                          hintStyle: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            color: CleanTheme.textTertiary,
+                                          ),
+                                        ),
+                                        enabled: true,
+                                        cursorColor: CleanTheme.textPrimary,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1539,14 +1582,12 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     color: isRpeActive
-                                        ? CleanTheme.primaryColor.withValues(
-                                            alpha: 0.08,
-                                          )
+                                        ? Colors.white.withValues(alpha: 0.92)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(26),
                                     border: Border.all(
                                       color: isRpeActive
-                                          ? CleanTheme.primaryColor
+                                          ? Colors.white
                                           : Colors.transparent,
                                       width: 1.2,
                                     ),
@@ -1567,9 +1608,10 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                                       boxShadow: isRpeActive
                                           ? [
                                               BoxShadow(
-                                                color: CleanTheme.primaryColor
-                                                    .withValues(alpha: 0.16),
-                                                blurRadius: 10,
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.55,
+                                                ),
+                                                blurRadius: 14,
                                               ),
                                             ]
                                           : null,
@@ -1638,26 +1680,41 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
       color: isCompleted
           ? CleanTheme.accentGreen.withValues(alpha: 0.06)
           : isActive
-          ? CleanTheme.primaryColor.withValues(alpha: 0.07)
+          ? Colors.white
           : CleanTheme.chromeSubtle.withValues(alpha: 0.5),
       borderRadius: BorderRadius.circular(22),
       border: Border.all(
         color: isCompleted
             ? CleanTheme.accentGreen.withValues(alpha: 0.3)
             : isActive
-            ? CleanTheme.primaryColor
+            ? Colors.white
             : CleanTheme.borderSecondary,
         width: isActive ? 1.4 : 1,
       ),
       boxShadow: isActive
           ? [
               BoxShadow(
-                color: CleanTheme.primaryColor.withValues(alpha: 0.14),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+                color: Colors.white.withValues(alpha: 0.7),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 3),
               ),
             ]
           : null,
+    );
+  }
+
+  Widget _buildInputSelectionTheme({required Widget child}) {
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: CleanTheme.textPrimary,
+          selectionColor: Color(0x66FFFFFF),
+          selectionHandleColor: Colors.white,
+        ),
+      ),
+      child: child,
     );
   }
 

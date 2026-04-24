@@ -12,9 +12,11 @@ import '../../../providers/auth_provider.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
 import '../../../core/services/haptic_service.dart';
+import '../../../core/constants/subscription_tiers.dart';
 import '../paywall/paywall_screen.dart';
 import '../paywall/gigi_pro_welcome_screen.dart';
 import '../../../core/services/payment_service.dart';
+import '../../../core/utils/subscription_access_resolver.dart';
 import '../../../data/services/subscription_sync_service.dart';
 import '../../../providers/engagement_provider.dart';
 import '../../../providers/quota_provider.dart';
@@ -61,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _refreshProfileStatus() async {
     if (!mounted) return;
 
-    await context.read<PaymentService>().checkSubscriptionStatus();
+    await context.read<PaymentService>().refreshStoreState();
     if (!mounted) return;
 
     await context.read<AuthProvider>().fetchUser();
@@ -101,11 +103,16 @@ class _ProfileScreenState extends State<ProfileScreen>
             Consumer<AuthProvider>(
               builder: (context, authProvider, _) {
                 final user = authProvider.user;
+                final effectiveAccess = SubscriptionAccessResolver.resolve(
+                  user: user,
+                  paymentService: context.watch<PaymentService>(),
+                  quotaStatus: context.watch<QuotaProvider>().status,
+                );
                 final name =
                     user?.name ?? AppLocalizations.of(context)!.userDefaultName;
                 final email = user?.email ?? '';
                 final initials = name.isNotEmpty ? name[0].toUpperCase() : 'U';
-                final isPremium = user?.subscription?.isActive ?? false;
+                final isPremium = effectiveAccess.hasPremiumAccess;
 
                 String height = user?.height != null
                     ? '${user!.height!.toInt()} cm'
@@ -257,23 +264,39 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 20),
 
             // Subscription card
-            Consumer3<AuthProvider, PaymentService, EngagementProvider>(
+            Consumer4<
+              AuthProvider,
+              PaymentService,
+              EngagementProvider,
+              QuotaProvider
+            >(
               builder:
                   (
                     context,
                     authProvider,
                     paymentService,
                     engagementProvider,
+                    quotaProvider,
                     _,
                   ) {
-                    final isPremium =
-                        authProvider.user?.subscription?.isActive ?? false;
+                    final effectiveAccess = SubscriptionAccessResolver.resolve(
+                      user: authProvider.user,
+                      paymentService: paymentService,
+                      quotaStatus: quotaProvider.status,
+                    );
 
-                    if (isPremium) {
+                    if (effectiveAccess.hasBackendPremium) {
                       return _buildActiveSubscriptionCard(
                         context,
                         authProvider,
                         paymentService,
+                      );
+                    }
+
+                    if (effectiveAccess.isSyncPending) {
+                      return _buildSubscriptionActivationCard(
+                        context,
+                        effectiveAccess,
                       );
                     }
 
@@ -578,7 +601,77 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
+  Widget _buildSubscriptionActivationCard(
+    BuildContext context,
+    EffectiveSubscriptionAccess effectiveAccess,
+  ) {
+    final tierLabel = switch (effectiveAccess.tier) {
+      SubscriptionTier.elite => 'GIGI ELITE',
+      SubscriptionTier.pro => 'GIGI PRO',
+      SubscriptionTier.free => 'GIGI PRO',
+    };
 
+    return CleanCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CleanTheme.accentGreen.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.sync_rounded,
+                  color: CleanTheme.accentGreen,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$tierLabel in attivazione',
+                      style: GoogleFonts.outfit(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: CleanTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'L\'acquisto risulta attivo. Stiamo aggiornando il profilo e le quote.',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: CleanTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _refreshProfileStatus,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Aggiorna stato'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildQuickBuySubscriptionCard(
     BuildContext context,
@@ -923,7 +1016,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Acquisto riuscito, ma sincronizzazione non completata. Usa Ripristina acquisti tra poco.',
+              'Acquisto confermato. Stiamo ancora aggiornando il profilo: controlla di nuovo tra pochi secondi.',
             ),
             backgroundColor: CleanTheme.accentOrange,
           ),
@@ -942,25 +1035,32 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Future<bool> _syncBackendAfterPurchase(BuildContext context) async {
-    final syncResult = await SubscriptionSyncService().sync();
-    if (!syncResult.success || !context.mounted) {
-      return false;
-    }
-
+    final paymentService = Provider.of<PaymentService>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    for (var attempt = 0; attempt < 3; attempt++) {
+    final quotaProvider = Provider.of<QuotaProvider>(context, listen: false);
+
+    for (var attempt = 0; attempt < 5; attempt++) {
+      await paymentService.checkSubscriptionStatus();
+      final syncResult = await SubscriptionSyncService().sync();
       await authProvider.fetchUser();
-      final isActive = authProvider.user?.subscription?.isActive ?? false;
-      if (isActive) {
-        if (context.mounted) {
-          await Provider.of<QuotaProvider>(
-            context,
-            listen: false,
-          ).refresh(silent: true);
-        }
+      await quotaProvider.refresh(silent: true);
+
+      final effectiveAccess = SubscriptionAccessResolver.resolve(
+        user: authProvider.user,
+        paymentService: paymentService,
+        quotaStatus: quotaProvider.status,
+      );
+
+      if (effectiveAccess.hasPremiumAccess) {
         return true;
       }
-      await Future.delayed(const Duration(seconds: 1));
+
+      if (!syncResult.success && !paymentService.isProOrAbove) {
+        await Future.delayed(Duration(milliseconds: 700 * (attempt + 1)));
+        continue;
+      }
+
+      await Future.delayed(Duration(milliseconds: 700 * (attempt + 1)));
     }
 
     return false;

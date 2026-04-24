@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/legal_links.dart';
 import '../../../core/constants/subscription_tiers.dart';
 import '../../../core/services/payment_service.dart';
+import '../../../core/utils/subscription_access_resolver.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/quota_provider.dart';
 import '../../../data/models/quota_status_model.dart';
@@ -55,6 +56,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
     _calculateTimeRemaining();
     _startTimer();
     _loadQuotaStatus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final paymentService = context.read<PaymentService>();
+      paymentService.refreshStoreState();
+    });
   }
 
   Future<void> _loadQuotaStatus() async {
@@ -93,9 +98,18 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final paymentService = context.watch<PaymentService>();
+    final authProvider = context.watch<AuthProvider>();
+    final quotaProvider = context.watch<QuotaProvider>();
+    final effectiveAccess = SubscriptionAccessResolver.resolve(
+      user: authProvider.user,
+      paymentService: paymentService,
+      quotaStatus: quotaProvider.status,
+    );
     final isPaidTierSelected = _selectedTier != SubscriptionTier.free;
     final isStoreUnavailable =
+        !effectiveAccess.hasPremiumAccess &&
         paymentService.isInitialized &&
+        !paymentService.isRefreshingStore &&
         isPaidTierSelected &&
         (_selectedStoreProductUnavailable(paymentService) ||
             !paymentService.isStoreReady);
@@ -215,6 +229,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             const SizedBox(height: 32),
 
+            if (effectiveAccess.isSyncPending) ...[
+              _buildSubscriptionActivationNotice(effectiveAccess),
+              const SizedBox(height: 16),
+            ],
+
             if (isStoreUnavailable) ...[
               _buildStoreUnavailableNotice(paymentService),
               const SizedBox(height: 16),
@@ -222,12 +241,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
             // Subscribe button
             CleanButton(
-              text: _selectedTier == SubscriptionTier.free
+              text: effectiveAccess.hasPremiumAccess
+                  ? l10n.paywallManageSubscription
+                  : paymentService.isRefreshingStore && isPaidTierSelected
+                  ? 'Caricamento abbonamenti...'
+                  : _selectedTier == SubscriptionTier.free
                   ? l10n.paywallCurrentPlan
                   : isStoreUnavailable
                   ? 'Abbonamenti non disponibili'
                   : 'Abbonati - ${_billedPriceLabel(_getSelectedConfig(), paymentService)}',
-              onPressed: !isPaidTierSelected || isStoreUnavailable
+              onPressed: effectiveAccess.hasPremiumAccess
+                  ? _openManageSubscriptions
+                  : paymentService.isRefreshingStore
+                  ? null
+                  : !isPaidTierSelected || isStoreUnavailable
                   ? null
                   : _handleSubscribe,
               width: double.infinity,
@@ -663,6 +690,49 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
   }
 
+  Widget _buildSubscriptionActivationNotice(
+    EffectiveSubscriptionAccess effectiveAccess,
+  ) {
+    final tierName = switch (effectiveAccess.tier) {
+      SubscriptionTier.elite => 'GIGI Elite',
+      SubscriptionTier.pro => 'GIGI Pro',
+      SubscriptionTier.free => 'GIGI Pro',
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CleanTheme.accentGreen.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: CleanTheme.accentGreen.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.workspace_premium_rounded,
+            color: CleanTheme.accentGreen,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$tierName risulta già attivo. Il profilo si sta aggiornando: puoi già gestire l\'abbonamento, senza riacquistarlo.',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _billedPriceLabel(
     SubscriptionTierConfig config,
     PaymentService paymentService,
@@ -845,10 +915,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             paymentService.productInfoFor(productId) == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            paymentService.errorMessage ??
-                'Abbonamento non disponibile in questo momento.',
-          ),
+          content: Text(paymentService.unavailableReasonFor(productId)),
           backgroundColor: CleanTheme.accentOrange,
         ),
       );
@@ -882,7 +949,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Acquisto riuscito, ma sincronizzazione non completata. Usa Ripristina acquisti tra poco.',
+            'Acquisto confermato. Il piano si sta attivando: aggiorneremo il profilo tra pochi secondi.',
           ),
           backgroundColor: CleanTheme.accentOrange,
         ),
@@ -917,7 +984,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Ripristino riuscito, ma sincronizzazione non completata. Riprova tra poco.',
+              'Ripristino confermato. Il piano si sta aggiornando sul profilo.',
             ),
             backgroundColor: CleanTheme.accentOrange,
           ),
@@ -941,26 +1008,33 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<bool> _syncBackendAfterPurchase() async {
-    final syncResult = await SubscriptionSyncService().sync();
-    if (!syncResult.success) {
-      return false;
-    }
-
-    if (!mounted) return false;
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    for (var attempt = 0; attempt < 3; attempt++) {
+    final paymentService = Provider.of<PaymentService>(context, listen: false);
+    final quotaProvider = Provider.of<QuotaProvider>(context, listen: false);
+
+    for (var attempt = 0; attempt < 5; attempt++) {
+      await paymentService.checkSubscriptionStatus();
+      final syncResult = await SubscriptionSyncService().sync();
+      if (!mounted) return false;
       await authProvider.fetchUser();
-      final isActive = authProvider.user?.subscription?.isActive ?? false;
-      if (isActive) {
-        if (mounted) {
-          await Provider.of<QuotaProvider>(
-            context,
-            listen: false,
-          ).refresh(silent: true);
-        }
+      await quotaProvider.refresh(silent: true);
+
+      final effectiveAccess = SubscriptionAccessResolver.resolve(
+        user: authProvider.user,
+        paymentService: paymentService,
+        quotaStatus: quotaProvider.status,
+      );
+
+      if (effectiveAccess.hasPremiumAccess) {
         return true;
       }
-      await Future.delayed(const Duration(seconds: 1));
+
+      if (!syncResult.success && !paymentService.isProOrAbove) {
+        await Future.delayed(Duration(milliseconds: 700 * (attempt + 1)));
+        continue;
+      }
+
+      await Future.delayed(Duration(milliseconds: 700 * (attempt + 1)));
     }
 
     return false;

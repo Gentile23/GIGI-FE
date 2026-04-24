@@ -273,10 +273,11 @@ class _ShoppingListScreenState extends State<ShoppingListScreen> {
       buffer.writeln('');
     });
 
-    // ignore: deprecated_member_use
-    await Share.share(
-      buffer.toString(),
-      subject: 'Lista della Spesa Gigi AI',
+    await SharePlus.instance.share(
+      ShareParams(
+        text: buffer.toString(),
+        subject: 'Lista della Spesa Gigi AI',
+      ),
     );
 
     if (mounted) {

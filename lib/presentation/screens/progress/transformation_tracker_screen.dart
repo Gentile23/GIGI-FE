@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart'; 
+import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/clean_theme.dart';
 import '../../widgets/clean_widgets.dart';
 import '../../widgets/animations/liquid_steel_container.dart';
@@ -11,10 +11,12 @@ class TransformationTrackerScreen extends StatefulWidget {
   const TransformationTrackerScreen({super.key});
 
   @override
-  State<TransformationTrackerScreen> createState() => _TransformationTrackerScreenState();
+  State<TransformationTrackerScreen> createState() =>
+      _TransformationTrackerScreenState();
 }
 
-class _TransformationTrackerScreenState extends State<TransformationTrackerScreen> {
+class _TransformationTrackerScreenState
+    extends State<TransformationTrackerScreen> {
   final List<TransformationEntry> _entries = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -35,12 +37,12 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
       ),
       // Decommenta per vedere lo stato "Dopo"
       TransformationEntry(
-         id: '2',
-         date: DateTime.now(),
-         weight: 78.0,
-         notes: '90 Giorni dopo. Non ci credo!',
-         imagePath: 'assets/after_placeholder.png' // Simulato
-       ),
+        id: '2',
+        date: DateTime.now(),
+        weight: 78.0,
+        notes: '90 Giorni dopo. Non ci credo!',
+        imagePath: 'assets/after_placeholder.png', // Simulato
+      ),
     ]);
   }
 
@@ -59,9 +61,9 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                 children: [
                   // 1. IL CONSIGLIO DI GIGI (Psicologia & Motivazione)
                   _buildGigiAdviceCard(),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // 2. LO STATO ATTUALE (La Sfida)
                   _buildChallengeStatus(),
 
@@ -71,7 +73,7 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                   if (_entries.isNotEmpty) _buildPhotoTipsSection(),
 
                   const SizedBox(height: 32),
-                  
+
                   // 4. TIMELINE
                   Text(
                     'LA TUA STORIA',
@@ -84,7 +86,7 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                   ),
                   const SizedBox(height: 16),
                   _buildTimeline(),
-                  
+
                   const SizedBox(height: 100),
                 ],
               ),
@@ -99,7 +101,10 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
         icon: const Icon(Icons.camera_alt, color: Colors.white),
         label: Text(
           _entries.isEmpty ? 'INIZIA LA SFIDA' : 'AGGIORNA PROGRESSO',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -123,7 +128,7 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
           style: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
             color: CleanTheme.textPrimary,
-            fontSize: 18
+            fontSize: 18,
           ),
         ),
         centerTitle: true,
@@ -146,12 +151,17 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [CleanTheme.accentOrange.withValues(alpha: 0.15), CleanTheme.surfaceColor],
+          colors: [
+            CleanTheme.accentOrange.withValues(alpha: 0.15),
+            CleanTheme.surfaceColor,
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: CleanTheme.accentOrange.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: CleanTheme.accentOrange.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +174,11 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                   color: CleanTheme.accentOrange,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.lightbulb_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
@@ -224,11 +238,19 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
       child: Column(
         children: [
           const SizedBox(height: 20),
-          Icon(Icons.photo_camera_front, size: 64, color: CleanTheme.textTertiary.withValues(alpha: 0.5)),
+          Icon(
+            Icons.photo_camera_front,
+            size: 64,
+            color: CleanTheme.textTertiary.withValues(alpha: 0.5),
+          ),
           const SizedBox(height: 16),
           Text(
             'Nessuna foto... ancora.',
-            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: CleanTheme.textPrimary,
+            ),
           ),
           Text(
             'Il momento migliore per iniziare era ieri.\nIl secondo migliore è adesso.',
@@ -261,9 +283,12 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                     width: 100,
                     height: 120,
                     color: Colors.black26,
-                    child: _entries.first.imagePath != null 
-                      ? Image.asset(_entries.first.imagePath!, fit: BoxFit.cover) // In prod: FileImage
-                      : const Icon(Icons.person, color: Colors.white),
+                    child: _entries.first.imagePath != null
+                        ? Image.asset(
+                            _entries.first.imagePath!,
+                            fit: BoxFit.cover,
+                          ) // In prod: FileImage
+                        : const Icon(Icons.person, color: Colors.white),
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -274,29 +299,42 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                     children: [
                       Text(
                         'IN CORSO...',
-                        style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: CleanTheme.accentOrange, letterSpacing: 1),
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w900,
+                          color: CleanTheme.accentOrange,
+                          letterSpacing: 1,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Giorno $daysPassed di 90',
-                        style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: GoogleFonts.outfit(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       LinearProgressIndicator(
                         value: progress,
                         backgroundColor: Colors.white24,
-                        valueColor: const AlwaysStoppedAnimation<Color>(CleanTheme.accentOrange),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          CleanTheme.accentOrange,
+                        ),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(3),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Mancano ${90 - daysPassed} giorni alla rivelazione.',
-                        style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -348,7 +386,11 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                 shape: BoxShape.circle,
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
               ),
-              child: const Icon(Icons.arrow_forward, size: 20, color: CleanTheme.primaryColor),
+              child: const Icon(
+                Icons.arrow_forward,
+                size: 20,
+                color: CleanTheme.primaryColor,
+              ),
             ),
             Expanded(
               child: Column(
@@ -396,9 +438,15 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
           fit: StackFit.expand,
           children: [
             entry.imagePath != null
-                ? Image.asset(entry.imagePath!, fit: BoxFit.cover) // In prod: FileImage
-                : Container(color: CleanTheme.primaryLight.withValues(alpha: 0.3), child: const Icon(Icons.person)),
-            
+                ? Image.asset(
+                    entry.imagePath!,
+                    fit: BoxFit.cover,
+                  ) // In prod: FileImage
+                : Container(
+                    color: CleanTheme.primaryLight.withValues(alpha: 0.3),
+                    child: const Icon(Icons.person),
+                  ),
+
             Positioned(
               top: 12,
               left: 12,
@@ -410,7 +458,11 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                 ),
                 child: Text(
                   label,
-                  style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
                 ),
               ),
             ),
@@ -444,13 +496,29 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
             ),
           ),
           const SizedBox(height: 16),
-          _buildTipRow(Icons.wb_sunny_outlined, 'Luce', 'Usa luce naturale frontale. Evita ombre dure.'),
+          _buildTipRow(
+            Icons.wb_sunny_outlined,
+            'Luce',
+            'Usa luce naturale frontale. Evita ombre dure.',
+          ),
           const SizedBox(height: 12),
-          _buildTipRow(Icons.accessibility_new, 'Posa', 'Rilassato/a, braccia lungo i fianchi. Non trattenere il respiro.'),
+          _buildTipRow(
+            Icons.accessibility_new,
+            'Posa',
+            'Rilassato/a, braccia lungo i fianchi. Non trattenere il respiro.',
+          ),
           const SizedBox(height: 12),
-          _buildTipRow(Icons.checkroom, 'Abbigliamento', 'Indossa abbigliamento simile alla prima foto (o intimo).'),
+          _buildTipRow(
+            Icons.checkroom,
+            'Abbigliamento',
+            'Indossa abbigliamento simile alla prima foto (o intimo).',
+          ),
           const SizedBox(height: 12),
-          _buildTipRow(Icons.photo_camera_back, 'Angolazione', 'Fotocamera all\'altezza del petto, non dall\'alto.'),
+          _buildTipRow(
+            Icons.photo_camera_back,
+            'Angolazione',
+            'Fotocamera all\'altezza del petto, non dall\'alto.',
+          ),
         ],
       ),
     );
@@ -465,9 +533,19 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: GoogleFonts.inter(fontSize: 13, color: CleanTheme.textSecondary, height: 1.4),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: CleanTheme.textSecondary,
+                height: 1.4,
+              ),
               children: [
-                TextSpan(text: '$title: ', style: const TextStyle(fontWeight: FontWeight.bold, color: CleanTheme.textPrimary)),
+                TextSpan(
+                  text: '$title: ',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: CleanTheme.textPrimary,
+                  ),
+                ),
                 TextSpan(text: desc),
               ],
             ),
@@ -493,7 +571,10 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
             children: [
               Text(
                 DateFormat('dd/MM').format(entry.date),
-                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.textSecondary),
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  color: CleanTheme.textSecondary,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -509,7 +590,10 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                       if (entry.weight != null) ...[
                         Text(
                           '${entry.weight} kg',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: CleanTheme.textPrimary),
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            color: CleanTheme.textPrimary,
+                          ),
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -518,7 +602,10 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                           entry.notes ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(fontSize: 12, color: CleanTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: CleanTheme.textSecondary,
+                          ),
                         ),
                       ),
                     ],
@@ -542,7 +629,10 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
       builder: (context) => AlertDialog(
         backgroundColor: CleanTheme.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Pronto per lo scatto?', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Pronto per lo scatto?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -552,7 +642,9 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   image: DecorationImage(
-                    image: AssetImage(_entries.first.imagePath ?? ''), // In prod: FileImage
+                    image: AssetImage(
+                      _entries.first.imagePath ?? '',
+                    ), // In prod: FileImage
                     fit: BoxFit.cover,
                     opacity: 0.5, // GHOST EFFECT
                   ),
@@ -561,19 +653,27 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
                 child: const Center(
                   child: Text(
                     'Usa la foto precedente come guida',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
             ],
-            const Text('Mantieni la stessa distanza e luce per un confronto valido.'),
+            const Text(
+              'Mantieni la stessa distanza e luce per un confronto valido.',
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annulla')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annulla'),
+          ),
           CleanButton(
-            text: 'Apri Fotocamera', 
+            text: 'Apri Fotocamera',
             onPressed: () {
               Navigator.pop(context);
               _pickImage();
@@ -590,32 +690,33 @@ class _TransformationTrackerScreenState extends State<TransformationTrackerScree
     if (image != null) {
       // Qui salveremmo la foto. Per ora aggiungiamo una entry fittizia
       setState(() {
-        _entries.add(TransformationEntry(
-          id: DateTime.now().toString(),
-          date: DateTime.now(),
-          weight: 78.0,
-          notes: 'Nuovo progresso!',
-          imagePath: image.path,
-        ));
+        _entries.add(
+          TransformationEntry(
+            id: DateTime.now().toString(),
+            date: DateTime.now(),
+            weight: 78.0,
+            notes: 'Nuovo progresso!',
+            imagePath: image.path,
+          ),
+        );
       });
     }
   }
 
   void _generateAndShareContent() {
     // 1. Testo Promozionale Virale
-    const String promoText = 
-      "Ho accettato la sfida dei 90 giorni con GiGi! 🚀\n"
-      "Guarda il mio cambiamento. La costanza paga sempre.\n\n"
-      "Vuoi trasformare il tuo corpo? Scarica l'app qui: [LINK_STORE]\n"
-      "#GigiApp #Transformation #FitnessJourney #90DaysChallenge";
+    const String promoText =
+        "Ho accettato la sfida dei 90 giorni con GiGi! 🚀\n"
+        "Guarda il mio cambiamento. La costanza paga sempre.\n\n"
+        "Vuoi trasformare il tuo corpo? Scarica l'app qui: [LINK_STORE]\n"
+        "#GigiApp #Transformation #FitnessJourney #90DaysChallenge";
 
     // 2. Simulazione Generazione Immagine Branding
     // In produzione useremmo il package 'screenshot' o 'image' per unire le foto e aggiungere il logo.
-    
+
     // 3. Trigger Share
-    // ignore: deprecated_member_use
-    Share.share(promoText);
-    
+    SharePlus.instance.share(ShareParams(text: promoText));
+
     // Feedback Utente
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -633,5 +734,11 @@ class TransformationEntry {
   final double? weight;
   final String? notes;
 
-  TransformationEntry({required this.id, required this.date, this.imagePath, this.weight, this.notes});
+  TransformationEntry({
+    required this.id,
+    required this.date,
+    this.imagePath,
+    this.weight,
+    this.notes,
+  });
 }
