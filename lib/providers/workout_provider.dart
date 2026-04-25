@@ -14,7 +14,10 @@ class WorkoutProvider with ChangeNotifier {
   WorkoutPlan? _currentPlan;
   bool _isLoading = false;
   bool _isInitialized = false;
+  bool _isFetchingPlan = false;
+  String? _activeUserId;
   String? _error;
+  int _requestGeneration = 0;
 
   // Workout Templates (static from DB)
   List<WorkoutTemplate> _workoutTemplates = [];
@@ -28,11 +31,31 @@ class WorkoutProvider with ChangeNotifier {
   WorkoutPlan? get currentPlan => _currentPlan;
   bool get isLoading => _isLoading;
   bool get isInitialized => _isInitialized;
+  String? get activeUserId => _activeUserId;
   String? get error => _error;
 
   // Templates getters
   List<WorkoutTemplate> get workoutTemplates => _workoutTemplates;
   bool get isLoadingTemplates => _isLoadingTemplates;
+
+  void syncAuthenticatedUser(String? userId) {
+    if (_activeUserId == userId) return;
+
+    _activeUserId = userId;
+    _resetUserScopedState(isInitialized: userId == null);
+    notifyListeners();
+  }
+
+  void _resetUserScopedState({required bool isInitialized}) {
+    _requestGeneration++;
+    _workoutPlans = [];
+    _currentPlan = null;
+    _isLoading = false;
+    _isInitialized = isInitialized;
+    _isFetchingPlan = false;
+    _isGenerating = false;
+    _error = null;
+  }
 
   /// Fetch workout templates from database
   Future<void> fetchWorkoutTemplates({String? category}) async {
@@ -70,11 +93,17 @@ class WorkoutProvider with ChangeNotifier {
   }
 
   Future<void> fetchWorkoutPlans() async {
+    final userId = _activeUserId;
+    final requestGeneration = _requestGeneration;
+    if (userId == null) return;
+
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     final result = await _workoutService.getWorkoutPlans();
+
+    if (!_isCurrentUserRequest(userId, requestGeneration)) return;
 
     _isLoading = false;
 
@@ -86,25 +115,31 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Guard to prevent concurrent fetches
-  bool _isFetchingPlan = false;
-
   Future<void> fetchCurrentPlan() async {
     debugPrint('DEBUG: fetchCurrentPlan called');
-    
+    final userId = _activeUserId;
+    final requestGeneration = _requestGeneration;
+    if (userId == null) {
+      _resetUserScopedState(isInitialized: true);
+      notifyListeners();
+      return;
+    }
+
     // Prevent concurrent fetches - if already fetching, skip
     if (_isFetchingPlan) {
       debugPrint('DEBUG: fetchCurrentPlan already in progress, skipping');
       return;
     }
     _isFetchingPlan = true;
-    
+
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
       final result = await _workoutService.getCurrentPlan();
+      if (!_isCurrentUserRequest(userId, requestGeneration)) return;
+
       debugPrint('DEBUG: getCurrentPlan result: ${result['success']}');
 
       _isLoading = false;
@@ -128,23 +163,34 @@ class WorkoutProvider with ChangeNotifier {
         if (_currentPlan?.status == 'processing' && !_isGenerating) {
           debugPrint('DEBUG: Plan is processing, starting poll');
           _isGenerating = true;
-          _pollPlanStatus(_currentPlan!.id);
+          _pollPlanStatus(
+            _currentPlan!.id,
+            userId: userId,
+            requestGeneration: requestGeneration,
+          );
         }
       } else {
         // No plan found is not an error - it's expected for new users
         debugPrint('DEBUG: No current plan found: ${result['message']}');
         _currentPlan = null;
+        _isGenerating = false;
         _error = null; // Don't show error for "no plan found"
       }
     } catch (e) {
+      if (!_isCurrentUserRequest(userId, requestGeneration)) return;
+
       debugPrint('ERROR fetching current plan: $e');
       _isLoading = false;
       _currentPlan = null;
+      _isGenerating = false;
       _error = null; // Don't show error for new users without plans
+    } finally {
+      if (_isCurrentUserRequest(userId, requestGeneration)) {
+        _isInitialized = true;
+        _isFetchingPlan = false;
+      }
     }
 
-    _isInitialized = true;
-    _isFetchingPlan = false;
     notifyListeners();
   }
 
@@ -152,6 +198,10 @@ class WorkoutProvider with ChangeNotifier {
     String? language,
     bool includeHistory = false,
   }) async {
+    final userId = _activeUserId;
+    final requestGeneration = _requestGeneration;
+    if (userId == null) return false;
+
     _isLoading = true;
     _error = null;
     Future.microtask(() => notifyListeners());
@@ -161,6 +211,8 @@ class WorkoutProvider with ChangeNotifier {
       includeHistory: includeHistory,
     );
 
+    if (!_isCurrentUserRequest(userId, requestGeneration)) return false;
+
     if (result['success']) {
       final plan = result['plan'];
       _currentPlan = plan;
@@ -168,7 +220,11 @@ class WorkoutProvider with ChangeNotifier {
       // If plan is processing, start polling
       if (plan.status == 'processing') {
         _isGenerating = true;
-        _pollPlanStatus(plan.id);
+        _pollPlanStatus(
+          plan.id,
+          userId: userId,
+          requestGeneration: requestGeneration,
+        );
       }
 
       _isLoading = false;
@@ -186,6 +242,10 @@ class WorkoutProvider with ChangeNotifier {
     Map<String, dynamic> filters, {
     String? language,
   }) async {
+    final userId = _activeUserId;
+    final requestGeneration = _requestGeneration;
+    if (userId == null) return false;
+
     _isLoading = true;
     _error = null;
     Future.microtask(() => notifyListeners());
@@ -196,13 +256,19 @@ class WorkoutProvider with ChangeNotifier {
       language: language,
     );
 
+    if (!_isCurrentUserRequest(userId, requestGeneration)) return false;
+
     if (result['success']) {
       final plan = result['plan'];
       _currentPlan = plan;
       // If plan is processing, start polling
       if (plan.status == 'processing') {
         _isGenerating = true;
-        _pollPlanStatus(plan.id);
+        _pollPlanStatus(
+          plan.id,
+          userId: userId,
+          requestGeneration: requestGeneration,
+        );
       }
       _isLoading = false;
       Future.microtask(() => notifyListeners());
@@ -274,23 +340,29 @@ class WorkoutProvider with ChangeNotifier {
     }
   }
 
-  void _pollPlanStatus(String planId) async {
+  void _pollPlanStatus(
+    String planId, {
+    required String userId,
+    required int requestGeneration,
+  }) async {
     int attempts = 0;
     const maxAttempts = 100; // 5 minutes (3s * 100)
 
     while (attempts < maxAttempts) {
       await Future.delayed(const Duration(seconds: 3));
+      if (!_isCurrentUserRequest(userId, requestGeneration)) return;
 
       try {
         debugPrint('Polling attempt $attempts for plan $planId...');
 
         // Fetch specific plan by ID
         final result = await _workoutService.getPlanById(planId);
+        if (!_isCurrentUserRequest(userId, requestGeneration)) return;
 
         if (result['success']) {
           final plan = result['plan'] as WorkoutPlan?;
 
-          if (plan != null) {
+          if (plan != null && plan.userId == userId) {
             debugPrint('Fetched plan: ${plan.id}, Status: ${plan.status}');
 
             if (plan.status == 'completed') {
@@ -327,8 +399,13 @@ class WorkoutProvider with ChangeNotifier {
     try {
       debugPrint('Polling timed out, checking current plan one last time...');
       final result = await _workoutService.getCurrentPlan();
+      if (!_isCurrentUserRequest(userId, requestGeneration)) return;
+
       if (result['success'] && result['plan'] != null) {
-        _currentPlan = result['plan'];
+        final plan = result['plan'] as WorkoutPlan;
+        if (plan.userId != userId) return;
+
+        _currentPlan = plan;
         _isGenerating = false;
         _isLoading = false;
         notifyListeners();
@@ -342,6 +419,10 @@ class WorkoutProvider with ChangeNotifier {
     _isGenerating = false;
     _isLoading = false;
     notifyListeners();
+  }
+
+  bool _isCurrentUserRequest(String userId, int requestGeneration) {
+    return _activeUserId == userId && _requestGeneration == requestGeneration;
   }
 
   void clearError() {

@@ -115,7 +115,14 @@ class GigiApp extends StatelessWidget {
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
-        ChangeNotifierProvider(create: (_) => WorkoutProvider(apiClient)),
+        ChangeNotifierProxyProvider<AuthProvider, WorkoutProvider>(
+          create: (_) => WorkoutProvider(apiClient),
+          update: (_, authProvider, workoutProvider) {
+            final provider = workoutProvider ?? WorkoutProvider(apiClient);
+            provider.syncAuthenticatedUser(authProvider.user?.id);
+            return provider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => WorkoutLogProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => GamificationProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => EngagementProvider(apiClient)),

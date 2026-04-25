@@ -320,7 +320,11 @@ class _GigiPreparationOverlayState extends State<GigiPreparationOverlay>
         const SizedBox(width: 10),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 500),
-          child: widget.isAudioReady ? _buildSkipButton() : _buildWaitingText(),
+          child: widget.isAudioReady && _currentIndex == widget.cards.length - 1
+              ? _buildStartButton()
+              : _buildWaitingText(
+                  widget.isAudioReady ? 'GUIDA PRONTA' : 'QUASI PRONTO...',
+                ),
         ),
       ],
     );
@@ -361,9 +365,9 @@ class _GigiPreparationOverlayState extends State<GigiPreparationOverlay>
     );
   }
 
-  Widget _buildSkipButton() {
+  Widget _buildStartButton() {
     return GestureDetector(
-      key: const ValueKey('skip_btn'),
+      key: const ValueKey('start_btn'),
       onTap: widget.onSkip,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -387,7 +391,7 @@ class _GigiPreparationOverlayState extends State<GigiPreparationOverlay>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'SALTA',
+              'AVVIA',
               style: GoogleFonts.outfit(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -403,9 +407,9 @@ class _GigiPreparationOverlayState extends State<GigiPreparationOverlay>
     );
   }
 
-  Widget _buildWaitingText() {
+  Widget _buildWaitingText(String label) {
     return Text(
-      'QUASI PRONTO...',
+      label,
       key: const ValueKey('skip_hidden'),
       style: GoogleFonts.outfit(
         fontSize: 10,

@@ -91,7 +91,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
   int _guidedOperationId = 0;
   String? _guidedError;
   bool _isSessionStarted = false;
-  int _guidedExecutionClickCount = 0; // Track clicks for varied phrases
   List<PreparationCard>? _preparationCards; // Structured cards for UI
   int _currentCardIndex = 0;
   bool _isAudioReady = false; // True when audio URL is obtained
@@ -348,7 +347,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
   /// Notify controller that workout session has started
   void notifySessionStarted() {
     _isSessionStarted = true;
-    _guidedExecutionClickCount = 0; // Reset for new session
     // Silent - no automatic greeting
     notifyListeners();
   }
@@ -603,71 +601,6 @@ class SynchronizedVoiceController extends ChangeNotifier {
   // "ESEGUI CON GIGI" - GUIDED EXECUTION
   // =====================================
 
-  /// Get a varied intro phrase for "Esegui con Gigi"
-  /// Personalizes based on exercise name, user name, and click count
-  String _getGuidedExecutionIntro(String exerciseName) {
-    _guidedExecutionClickCount++;
-    final isFirstClick = _guidedExecutionClickCount == 1;
-    final clickIndex =
-        (_guidedExecutionClickCount - 1) % 8; // Cycle through 8 variations
-
-    // Shorten exercise name if too long for natural speech
-    final shortName = exerciseName.length > 25
-        ? exerciseName.split(' ').take(3).join(' ')
-        : exerciseName;
-
-    final hasName = firstName.isNotEmpty;
-
-    if (isFirstClick) {
-      // First click in session - more enthusiastic intro
-      final firstClickPhrases = [
-        hasName
-            ? '$firstName, ottima scelta! Ti guido passo passo su $shortName...'
-            : 'Ottima scelta! Ti guido passo passo su $shortName...',
-        hasName
-            ? 'Perfetto $firstName! Vediamo insieme la tecnica di $shortName...'
-            : 'Perfetto! Vediamo insieme la tecnica di $shortName...',
-        hasName
-            ? '$shortName è un esercizio fantastico $firstName! Ecco come farlo al meglio...'
-            : '$shortName è un esercizio fantastico! Ecco come farlo al meglio...',
-        hasName
-            ? 'Eccellente $firstName! Preparati per $shortName, ti mostro la tecnica perfetta...'
-            : 'Eccellente! Preparati per $shortName, ti mostro la tecnica perfetta...',
-      ];
-      return firstClickPhrases[DateTime.now().second %
-          firstClickPhrases.length];
-    } else {
-      // Subsequent clicks - varied but connected phrases
-      final subsequentPhrases = [
-        hasName
-            ? 'Ok $firstName, $shortName! Ti ricordo i punti chiave...'
-            : 'Ok, $shortName! Ti ricordo i punti chiave...',
-        hasName
-            ? '$shortName di nuovo? Perfetto $firstName, rivediamolo insieme...'
-            : '$shortName di nuovo? Perfetto, rivediamolo insieme...',
-        hasName
-            ? 'Certo $firstName! Ecco la guida per $shortName...'
-            : 'Certo! Ecco la guida per $shortName...',
-        hasName
-            ? '$firstName, concentrazione su $shortName... Ti accompagno io...'
-            : 'Massima concentrazione su $shortName... Ti accompagno io...',
-        hasName
-            ? 'Ancora $shortName? Ottima dedizione $firstName! Vediamo...'
-            : 'Ancora $shortName? Ottima dedizione! Vediamo...',
-        hasName
-            ? 'Va bene $firstName, $shortName passo per passo...'
-            : 'Va bene, $shortName passo per passo...',
-        hasName
-            ? '$firstName pronto per $shortName? Partiamo...'
-            : 'Tutto pronto per $shortName? Partiamo...',
-        hasName
-            ? 'Riprendiamo $shortName $firstName, segui il mio ritmo...'
-            : 'Riprendiamo $shortName, segui il mio ritmo...',
-      ];
-      return subsequentPhrases[clickIndex];
-    }
-  }
-
   /// Speak guided execution for "Esegui con Gigi" button
   /// Provides step-by-step guide for 2 perfect reps
   ///
@@ -692,22 +625,17 @@ class SynchronizedVoiceController extends ChangeNotifier {
       );
     }
 
-    // 0. Immediate personalized feedback to mask loading time
-    final introPhrase = _getGuidedExecutionIntro(exerciseName);
-    await _speak(introPhrase);
-    if (!_isCurrentOperation(operationId)) return;
-
     String? scriptToSpeak;
     String? guidedAudioUrl;
 
-    // 1. Show preparation cards immediately (always — user can skip with "Salta")
-    _preparationCards = _deduplicatePreparationCards(
-      _getPreparationCards(exerciseName),
-    );
+    // Show only a neutral loading card until exercise-specific cards arrive.
+    _preparationCards = _getLoadingPreparationCard(exerciseName);
     _currentCardIndex = 0;
+    _allCardsShown = false;
+    _isAudioReady = false;
     notifyListeners();
 
-    // 2. Try API-generated script and cards if exerciseId is provided
+    // Try API-generated script and cards if exerciseId is provided
     if (exerciseId != null && voiceCoachingService != null) {
       try {
         final responseData = await voiceCoachingService
@@ -728,6 +656,8 @@ class SynchronizedVoiceController extends ChangeNotifier {
                   )
                   .toList(),
             );
+            _allCardsShown = false;
+            _currentCardIndex = 0;
             notifyListeners();
             debugPrint('📢 Got SPECIFIC preparation cards from API');
           }
@@ -740,10 +670,15 @@ class SynchronizedVoiceController extends ChangeNotifier {
       }
     }
 
-    // 2. Fallback to local script database
     if (scriptToSpeak == null) {
       if (_currentScript != null) {
         scriptToSpeak = _currentScript!.getGuidedExecutionScript(firstName);
+        _preparationCards = _deduplicatePreparationCards(
+          _getPreparationCards(exerciseName),
+        );
+        _currentCardIndex = 0;
+        _allCardsShown = false;
+        notifyListeners();
       }
     }
 
@@ -775,12 +710,6 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName.' : 'Ottimo lavoro.'} Questa è la
 
     if (voiceCoachingService != null) {
       try {
-        // Advance card index to breathing phase while generating audio
-        if (_preparationCards != null && _preparationCards!.length > 2) {
-          _currentCardIndex = 2; // Breathing card
-          notifyListeners();
-        }
-
         final audioUrl = guidedAudioUrl?.isNotEmpty == true
             ? guidedAudioUrl
             : await voiceCoachingService.generateTTS(scriptToSpeak);
@@ -837,10 +766,6 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName.' : 'Ottimo lavoro.'} Questa è la
       if (!_isCurrentOperation(operationId)) return;
     }
 
-    // 4. PERSONALIZED CLOSING: Short phrase with user's name (local TTS only)
-    await _speakPersonalizedClosing();
-    if (!_isCurrentOperation(operationId)) return;
-
     _setGuidedState(GuidedExecutionUiState.idle);
     _preparationCards = null;
     _currentCardIndex = 0;
@@ -851,6 +776,16 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName.' : 'Ottimo lavoro.'} Questa è la
 
   /// Build structured preparation cards from exercise script data
   /// These cards are shown during audio generation to mask latency
+  List<PreparationCard> _getLoadingPreparationCard(String exerciseName) {
+    return [
+      PreparationCard(
+        icon: '🎧',
+        title: 'Guida in preparazione',
+        body: 'Sto preparando la guida tecnica per $exerciseName.',
+      ),
+    ];
+  }
+
   List<PreparationCard> _getPreparationCards(String exerciseName) {
     if (_currentScript != null) {
       return [
@@ -928,30 +863,6 @@ ${firstName.isNotEmpty ? 'Perfetto $firstName.' : 'Ottimo lavoro.'} Questa è la
     }
 
     return unique;
-  }
-
-  /// Speak a short personalized closing phrase using local TTS
-  Future<void> _speakPersonalizedClosing() async {
-    final hasName = firstName.isNotEmpty;
-    final closingPhrases = [
-      hasName
-          ? 'Perfetto $firstName! Ora tocca a te, dai il massimo!'
-          : 'Perfetto! Ora tocca a te, dai il massimo!',
-      hasName
-          ? 'Ottimo $firstName! Sei pronto, spacca tutto!'
-          : 'Ottimo lavoro! Tutto pronto, spacca tutto!',
-      hasName
-          ? 'Forza $firstName! Adesso mostrami cosa sai fare!'
-          : 'Forza! Adesso mostriamo cosa sai fare!',
-      hasName
-          ? 'Bravissimo $firstName! Ora inizia le tue serie!'
-          : 'Eccellente! Ora inizia le tue serie!',
-      hasName
-          ? 'Eccellente $firstName! Concentrati e vai!'
-          : 'Ottimo! Massima concentrazione e via!',
-    ];
-    final index = DateTime.now().millisecond % closingPhrases.length;
-    await _speak(closingPhrases[index]);
   }
 
   /// Stop guided execution if playing

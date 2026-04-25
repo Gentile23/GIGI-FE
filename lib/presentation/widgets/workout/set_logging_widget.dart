@@ -1298,8 +1298,9 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
           clipBehavior: Clip.hardEdge,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 66),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Left accent bar
                 AnimatedContainer(
@@ -1642,6 +1643,7 @@ class SetLoggingWidgetState extends State<SetLoggingWidget> {
                   ),
                 ),
               ],
+            ),
             ),
           ),
         )
